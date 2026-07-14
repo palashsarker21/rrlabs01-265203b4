@@ -28,6 +28,7 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
+import { Route as ErrorCodeRouteImport } from './routes/error.$code'
 import { Route as BlogSearchRouteImport } from './routes/blog.search'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as AuthenticatedSetupRouteImport } from './routes/_authenticated/setup'
@@ -36,6 +37,7 @@ import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/ap
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as BlogTagTagRouteImport } from './routes/blog.tag.$tag'
 import { Route as BlogCategoryCategoryRouteImport } from './routes/blog.category.$category'
+import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
 import { Route as ApiPublicWebhooksStripeRouteImport } from './routes/api/public/webhooks/stripe'
 import { Route as ApiPublicWebhooksLemonsqueezyRouteImport } from './routes/api/public/webhooks/lemonsqueezy'
 import { Route as ApiPublicHooksRecoveryCadenceRouteImport } from './routes/api/public/hooks/recovery-cadence'
@@ -134,6 +136,11 @@ const BlogIndexRoute = BlogIndexRouteImport.update({
   path: '/',
   getParentRoute: () => BlogRoute,
 } as any)
+const ErrorCodeRoute = ErrorCodeRouteImport.update({
+  id: '/error/$code',
+  path: '/error/$code',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BlogSearchRoute = BlogSearchRouteImport.update({
   id: '/search',
   path: '/search',
@@ -173,6 +180,11 @@ const BlogCategoryCategoryRoute = BlogCategoryCategoryRouteImport.update({
   id: '/category/$category',
   path: '/category/$category',
   getParentRoute: () => BlogRoute,
+} as any)
+const ApiPublicHealthRoute = ApiPublicHealthRouteImport.update({
+  id: '/api/public/health',
+  path: '/api/public/health',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicWebhooksStripeRoute = ApiPublicWebhooksStripeRouteImport.update({
   id: '/api/public/webhooks/stripe',
@@ -216,7 +228,9 @@ export interface FileRoutesByFullPath {
   '/setup': typeof AuthenticatedSetupRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/blog/search': typeof BlogSearchRoute
+  '/error/$code': typeof ErrorCodeRoute
   '/blog/': typeof BlogIndexRoute
+  '/api/public/health': typeof ApiPublicHealthRoute
   '/blog/category/$category': typeof BlogCategoryCategoryRoute
   '/blog/tag/$tag': typeof BlogTagTagRoute
   '/api/public/hooks/recovery-cadence': typeof ApiPublicHooksRecoveryCadenceRoute
@@ -246,7 +260,9 @@ export interface FileRoutesByTo {
   '/setup': typeof AuthenticatedSetupRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/blog/search': typeof BlogSearchRoute
+  '/error/$code': typeof ErrorCodeRoute
   '/blog': typeof BlogIndexRoute
+  '/api/public/health': typeof ApiPublicHealthRoute
   '/blog/category/$category': typeof BlogCategoryCategoryRoute
   '/blog/tag/$tag': typeof BlogTagTagRoute
   '/api/public/hooks/recovery-cadence': typeof ApiPublicHooksRecoveryCadenceRoute
@@ -279,7 +295,9 @@ export interface FileRoutesById {
   '/_authenticated/setup': typeof AuthenticatedSetupRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/blog/search': typeof BlogSearchRoute
+  '/error/$code': typeof ErrorCodeRoute
   '/blog/': typeof BlogIndexRoute
+  '/api/public/health': typeof ApiPublicHealthRoute
   '/blog/category/$category': typeof BlogCategoryCategoryRoute
   '/blog/tag/$tag': typeof BlogTagTagRoute
   '/api/public/hooks/recovery-cadence': typeof ApiPublicHooksRecoveryCadenceRoute
@@ -312,7 +330,9 @@ export interface FileRouteTypes {
     | '/setup'
     | '/blog/$slug'
     | '/blog/search'
+    | '/error/$code'
     | '/blog/'
+    | '/api/public/health'
     | '/blog/category/$category'
     | '/blog/tag/$tag'
     | '/api/public/hooks/recovery-cadence'
@@ -342,7 +362,9 @@ export interface FileRouteTypes {
     | '/setup'
     | '/blog/$slug'
     | '/blog/search'
+    | '/error/$code'
     | '/blog'
+    | '/api/public/health'
     | '/blog/category/$category'
     | '/blog/tag/$tag'
     | '/api/public/hooks/recovery-cadence'
@@ -374,7 +396,9 @@ export interface FileRouteTypes {
     | '/_authenticated/setup'
     | '/blog/$slug'
     | '/blog/search'
+    | '/error/$code'
     | '/blog/'
+    | '/api/public/health'
     | '/blog/category/$category'
     | '/blog/tag/$tag'
     | '/api/public/hooks/recovery-cadence'
@@ -401,6 +425,8 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   StatusRoute: typeof StatusRoute
   TermsRoute: typeof TermsRoute
+  ErrorCodeRoute: typeof ErrorCodeRoute
+  ApiPublicHealthRoute: typeof ApiPublicHealthRoute
   ApiPublicHooksRecoveryCadenceRoute: typeof ApiPublicHooksRecoveryCadenceRoute
   ApiPublicWebhooksLemonsqueezyRoute: typeof ApiPublicWebhooksLemonsqueezyRoute
   ApiPublicWebhooksStripeRoute: typeof ApiPublicWebhooksStripeRoute
@@ -541,6 +567,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BlogIndexRouteImport
       parentRoute: typeof BlogRoute
     }
+    '/error/$code': {
+      id: '/error/$code'
+      path: '/error/$code'
+      fullPath: '/error/$code'
+      preLoaderRoute: typeof ErrorCodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/blog/search': {
       id: '/blog/search'
       path: '/search'
@@ -596,6 +629,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/blog/category/$category'
       preLoaderRoute: typeof BlogCategoryCategoryRouteImport
       parentRoute: typeof BlogRoute
+    }
+    '/api/public/health': {
+      id: '/api/public/health'
+      path: '/api/public/health'
+      fullPath: '/api/public/health'
+      preLoaderRoute: typeof ApiPublicHealthRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/public/webhooks/stripe': {
       id: '/api/public/webhooks/stripe'
@@ -675,6 +715,8 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   StatusRoute: StatusRoute,
   TermsRoute: TermsRoute,
+  ErrorCodeRoute: ErrorCodeRoute,
+  ApiPublicHealthRoute: ApiPublicHealthRoute,
   ApiPublicHooksRecoveryCadenceRoute: ApiPublicHooksRecoveryCadenceRoute,
   ApiPublicWebhooksLemonsqueezyRoute: ApiPublicWebhooksLemonsqueezyRoute,
   ApiPublicWebhooksStripeRoute: ApiPublicWebhooksStripeRoute,
