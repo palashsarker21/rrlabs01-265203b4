@@ -106,8 +106,15 @@ function AppShell() {
   }
 
   async function handleRetry(eventId: string) {
-    await retry({ data: { eventId } });
-    await refetchEvents();
+    try {
+      const { toast } = await import("sonner");
+      await retry({ data: { eventId } });
+      toast.success("Recovery attempt queued.");
+      await refetchEvents();
+    } catch (err) {
+      const { toast } = await import("sonner");
+      toast.error(err instanceof Error ? err.message : "Retry failed.");
+    }
   }
 
   return (

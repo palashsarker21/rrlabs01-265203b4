@@ -71,8 +71,15 @@ function AdminConsole() {
   }, [workspaces]);
 
   async function toggleEngine(id: string, next: boolean) {
-    await setEngine({ data: { workspaceId: id, enabled: next } });
-    await refetchWorkspaces();
+    try {
+      const { toast } = await import("sonner");
+      await setEngine({ data: { workspaceId: id, enabled: next } });
+      toast.success(`Recovery engine ${next ? "enabled" : "disabled"}.`);
+      await refetchWorkspaces();
+    } catch (err) {
+      const { toast } = await import("sonner");
+      toast.error(err instanceof Error ? err.message : "Update failed.");
+    }
   }
 
   if (meLoading || !me) {
