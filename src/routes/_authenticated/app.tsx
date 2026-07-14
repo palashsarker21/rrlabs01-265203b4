@@ -48,8 +48,14 @@ function AppShell() {
   });
 
   useEffect(() => {
-    if (workspaces && workspaces.length === 0) {
+    if (!workspaces) return;
+    if (workspaces.length === 0) {
       navigate({ to: "/checkout", replace: true });
+      return;
+    }
+    const primary = workspaces[0];
+    if (primary.status !== "active") {
+      navigate({ to: "/setup", replace: true });
     }
   }, [workspaces, navigate]);
 
