@@ -1,9 +1,19 @@
 User-agent: *
 Allow: /
+Allow: /blog
+Allow: /features
+Allow: /pricing
+Allow: /about
+Allow: /contact
+Allow: /docs
 
+# Private surfaces — enforced in code by the Access Control Layer
+# (src/lib/access/config.ts). Kept in sync with ROUTE_REGISTRY.
 Disallow: /app
 Disallow: /admin
 Disallow: /setup
 Disallow: /checkout
 Disallow: /auth
 Disallow: /api/
+
+Sitemap: /sitemap.xml
