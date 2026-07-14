@@ -18,6 +18,7 @@ import { Route as AuthenticatedCheckoutRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
 import { Route as ApiPublicWebhooksStripeRouteImport } from './routes/api/public/webhooks/stripe'
 import { Route as ApiPublicWebhooksLemonsqueezyRouteImport } from './routes/api/public/webhooks/lemonsqueezy'
+import { Route as ApiPublicHooksRecoveryCadenceRouteImport } from './routes/api/public/hooks/recovery-cadence'
 
 const PricingRoute = PricingRouteImport.update({
   id: '/pricing',
@@ -64,6 +65,12 @@ const ApiPublicWebhooksLemonsqueezyRoute =
     path: '/api/public/webhooks/lemonsqueezy',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksRecoveryCadenceRoute =
+  ApiPublicHooksRecoveryCadenceRouteImport.update({
+    id: '/api/public/hooks/recovery-cadence',
+    path: '/api/public/hooks/recovery-cadence',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -72,6 +79,7 @@ export interface FileRoutesByFullPath {
   '/app': typeof AuthenticatedAppRoute
   '/checkout': typeof AuthenticatedCheckoutRoute
   '/setup': typeof AuthenticatedSetupRoute
+  '/api/public/hooks/recovery-cadence': typeof ApiPublicHooksRecoveryCadenceRoute
   '/api/public/webhooks/lemonsqueezy': typeof ApiPublicWebhooksLemonsqueezyRoute
   '/api/public/webhooks/stripe': typeof ApiPublicWebhooksStripeRoute
 }
@@ -82,6 +90,7 @@ export interface FileRoutesByTo {
   '/app': typeof AuthenticatedAppRoute
   '/checkout': typeof AuthenticatedCheckoutRoute
   '/setup': typeof AuthenticatedSetupRoute
+  '/api/public/hooks/recovery-cadence': typeof ApiPublicHooksRecoveryCadenceRoute
   '/api/public/webhooks/lemonsqueezy': typeof ApiPublicWebhooksLemonsqueezyRoute
   '/api/public/webhooks/stripe': typeof ApiPublicWebhooksStripeRoute
 }
@@ -94,6 +103,7 @@ export interface FileRoutesById {
   '/_authenticated/app': typeof AuthenticatedAppRoute
   '/_authenticated/checkout': typeof AuthenticatedCheckoutRoute
   '/_authenticated/setup': typeof AuthenticatedSetupRoute
+  '/api/public/hooks/recovery-cadence': typeof ApiPublicHooksRecoveryCadenceRoute
   '/api/public/webhooks/lemonsqueezy': typeof ApiPublicWebhooksLemonsqueezyRoute
   '/api/public/webhooks/stripe': typeof ApiPublicWebhooksStripeRoute
 }
@@ -106,6 +116,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/checkout'
     | '/setup'
+    | '/api/public/hooks/recovery-cadence'
     | '/api/public/webhooks/lemonsqueezy'
     | '/api/public/webhooks/stripe'
   fileRoutesByTo: FileRoutesByTo
@@ -116,6 +127,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/checkout'
     | '/setup'
+    | '/api/public/hooks/recovery-cadence'
     | '/api/public/webhooks/lemonsqueezy'
     | '/api/public/webhooks/stripe'
   id:
@@ -127,6 +139,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app'
     | '/_authenticated/checkout'
     | '/_authenticated/setup'
+    | '/api/public/hooks/recovery-cadence'
     | '/api/public/webhooks/lemonsqueezy'
     | '/api/public/webhooks/stripe'
   fileRoutesById: FileRoutesById
@@ -136,6 +149,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   PricingRoute: typeof PricingRoute
+  ApiPublicHooksRecoveryCadenceRoute: typeof ApiPublicHooksRecoveryCadenceRoute
   ApiPublicWebhooksLemonsqueezyRoute: typeof ApiPublicWebhooksLemonsqueezyRoute
   ApiPublicWebhooksStripeRoute: typeof ApiPublicWebhooksStripeRoute
 }
@@ -205,6 +219,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicWebhooksLemonsqueezyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/recovery-cadence': {
+      id: '/api/public/hooks/recovery-cadence'
+      path: '/api/public/hooks/recovery-cadence'
+      fullPath: '/api/public/hooks/recovery-cadence'
+      preLoaderRoute: typeof ApiPublicHooksRecoveryCadenceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -228,6 +249,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   PricingRoute: PricingRoute,
+  ApiPublicHooksRecoveryCadenceRoute: ApiPublicHooksRecoveryCadenceRoute,
   ApiPublicWebhooksLemonsqueezyRoute: ApiPublicWebhooksLemonsqueezyRoute,
   ApiPublicWebhooksStripeRoute: ApiPublicWebhooksStripeRoute,
 }
