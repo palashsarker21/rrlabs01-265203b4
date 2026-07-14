@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
-import { AlertCircle, Sparkles } from "lucide-react";
+import { useEffect, useState } from "react";
+import { AlertCircle, Sparkles, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -13,6 +14,9 @@ const TONE: Record<string, string> = {
   danger: "bg-red-500/10 text-red-700 dark:text-red-300 border-red-500/30",
   muted: "bg-muted text-muted-foreground border-border",
 };
+
+const DISMISS_KEY = "rrlabs.trialBanner.dismissedAt";
+const DISMISS_TTL_MS = 24 * 60 * 60 * 1000;
 
 export function WorkspaceStatusBadge({ status }: { status: string | null | undefined }) {
   const { label, tone } = workspaceStateLabel(status);
@@ -40,26 +44,48 @@ export function TrialBadge({ trial }: { trial: TrialInfo }) {
     >
       <Sparkles className="h-3 w-3" />
       {trial.isExpired
-        ? "Trial Expired"
-        : `Free Trial · ${trial.daysRemaining} ${trial.daysRemaining === 1 ? "day" : "days"} remaining`}
+        ? "Trial expired"
+        : `Trial · ${trial.daysRemaining} ${trial.daysRemaining === 1 ? "day" : "days"} remaining`}
     </span>
   );
 }
 
 export function TrialReminderBanner({ trial }: { trial: TrialInfo }) {
+  const [dismissed, setDismissed] = useState(true);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const raw = window.localStorage.getItem(DISMISS_KEY);
+    if (!raw) {
+      setDismissed(false);
+      return;
+    }
+    const at = Number(raw);
+    if (!Number.isFinite(at) || Date.now() - at > DISMISS_TTL_MS) {
+      setDismissed(false);
+    }
+  }, []);
+
+  function dismiss() {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(DISMISS_KEY, String(Date.now()));
+    }
+    setDismissed(true);
+  }
+
   if (!trial.isTrial) return null;
-  const showReminder =
-    trial.isExpired || trial.daysRemaining <= 7;
+  const showReminder = trial.isExpired || trial.daysRemaining <= 7;
   if (!showReminder) return null;
+  if (dismissed) return null;
 
   const headline = trial.isExpired
-    ? "Your free trial has ended"
+    ? "Trial expired"
     : trial.daysRemaining <= 1
       ? "Your trial ends today"
-      : `${trial.daysRemaining} days left in your free trial`;
+      : `Your trial expires in ${trial.daysRemaining} days`;
   const sub = trial.isExpired
-    ? "Upgrade to continue recovering failed payments."
-    : "Upgrade any time to keep your recovery engine running after the trial.";
+    ? "Upgrade to continue automated recovery. Your dashboard stays available."
+    : "Upgrade anytime to continue uninterrupted.";
 
   return (
     <div
@@ -75,9 +101,16 @@ export function TrialReminderBanner({ trial }: { trial: TrialInfo }) {
           <p className="text-xs opacity-80">{sub}</p>
         </div>
       </div>
-      <Button asChild size="sm" variant={trial.isExpired ? "default" : "outline"}>
-        <Link to="/pricing">{trial.isExpired ? "Upgrade now" : "View plans"}</Link>
-      </Button>
+      <div className="flex items-center gap-2">
+        <Button asChild size="sm" variant={trial.isExpired ? "default" : "outline"}>
+          <Link to="/pricing">{trial.isExpired ? "Upgrade now" : "Upgrade"}</Link>
+        </Button>
+        <Button size="sm" variant="ghost" onClick={dismiss}>
+          {trial.isExpired ? "Later" : "Dismiss"}
+          <X className="ml-1 h-3.5 w-3.5" />
+        </Button>
+      </div>
     </div>
   );
 }
+
