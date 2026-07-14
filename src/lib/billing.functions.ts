@@ -99,9 +99,21 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
             logo: true,
           },
         },
+          product_options: {
+            enabled_variants: [Number(variantId)].filter((n) => Number.isFinite(n)),
+            redirect_url: redirectUrl,
+            receipt_button_text: "Return to RRLabs",
+            receipt_link_url: redirectUrl,
+          },
+          checkout_options: {
+            embed: false,
+            dark: true,
+            logo: true,
+          },
+        },
         relationships: {
           store: { data: { type: "stores", id: storeId } },
-          variant: { data: { type: "variants", id: plan.ls_variant_id } },
+          variant: { data: { type: "variants", id: variantId } },
         },
       },
     };
