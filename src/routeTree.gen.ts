@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as PricingRouteImport } from './routes/pricing'
+import { Route as FeaturesRouteImport } from './routes/features'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
@@ -23,6 +24,11 @@ import { Route as ApiPublicHooksRecoveryCadenceRouteImport } from './routes/api/
 const PricingRoute = PricingRouteImport.update({
   id: '/pricing',
   path: '/pricing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FeaturesRoute = FeaturesRouteImport.update({
+  id: '/features',
+  path: '/features',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -75,6 +81,7 @@ const ApiPublicHooksRecoveryCadenceRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/features': typeof FeaturesRoute
   '/pricing': typeof PricingRoute
   '/app': typeof AuthenticatedAppRoute
   '/checkout': typeof AuthenticatedCheckoutRoute
@@ -86,6 +93,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/features': typeof FeaturesRoute
   '/pricing': typeof PricingRoute
   '/app': typeof AuthenticatedAppRoute
   '/checkout': typeof AuthenticatedCheckoutRoute
@@ -99,6 +107,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/features': typeof FeaturesRoute
   '/pricing': typeof PricingRoute
   '/_authenticated/app': typeof AuthenticatedAppRoute
   '/_authenticated/checkout': typeof AuthenticatedCheckoutRoute
@@ -112,6 +121,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/features'
     | '/pricing'
     | '/app'
     | '/checkout'
@@ -123,6 +133,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/features'
     | '/pricing'
     | '/app'
     | '/checkout'
@@ -135,6 +146,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/features'
     | '/pricing'
     | '/_authenticated/app'
     | '/_authenticated/checkout'
@@ -148,6 +160,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  FeaturesRoute: typeof FeaturesRoute
   PricingRoute: typeof PricingRoute
   ApiPublicHooksRecoveryCadenceRoute: typeof ApiPublicHooksRecoveryCadenceRoute
   ApiPublicWebhooksLemonsqueezyRoute: typeof ApiPublicWebhooksLemonsqueezyRoute
@@ -161,6 +174,13 @@ declare module '@tanstack/react-router' {
       path: '/pricing'
       fullPath: '/pricing'
       preLoaderRoute: typeof PricingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/features': {
+      id: '/features'
+      path: '/features'
+      fullPath: '/features'
+      preLoaderRoute: typeof FeaturesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -248,6 +268,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  FeaturesRoute: FeaturesRoute,
   PricingRoute: PricingRoute,
   ApiPublicHooksRecoveryCadenceRoute: ApiPublicHooksRecoveryCadenceRoute,
   ApiPublicWebhooksLemonsqueezyRoute: ApiPublicWebhooksLemonsqueezyRoute,
