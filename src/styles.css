@@ -58,31 +58,31 @@
   --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
 }
 
-/* Light theme (kept minimal — the app is dark-first) */
+/* Light theme — RRLabs is light-first. White surfaces, black text, elements keep their own accent colors. */
 :root {
   --radius: 0.75rem;
   --background: 0 0% 100%;
-  --foreground: 222 47% 8%;
+  --foreground: 0 0% 0%;
   --card: 0 0% 100%;
-  --card-foreground: 222 47% 8%;
+  --card-foreground: 0 0% 0%;
   --popover: 0 0% 100%;
-  --popover-foreground: 222 47% 8%;
+  --popover-foreground: 0 0% 0%;
   --primary: 158 84% 39%;
-  --primary-foreground: 155 100% 8%;
+  --primary-foreground: 0 0% 100%;
   --secondary: 220 14% 96%;
-  --secondary-foreground: 222 47% 11%;
+  --secondary-foreground: 0 0% 0%;
   --muted: 220 14% 96%;
-  --muted-foreground: 220 9% 46%;
+  --muted-foreground: 220 9% 40%;
   --accent: 158 60% 94%;
   --accent-foreground: 158 84% 22%;
   --destructive: 0 84% 55%;
   --destructive-foreground: 0 0% 100%;
   --success: 158 84% 39%;
-  --success-foreground: 155 100% 8%;
+  --success-foreground: 0 0% 100%;
   --warning: 38 92% 50%;
   --warning-foreground: 25 100% 10%;
-  --border: 220 13% 91%;
-  --input: 220 13% 91%;
+  --border: 220 13% 88%;
+  --input: 220 13% 88%;
   --ring: 158 84% 39%;
 
   --chart-1: 158 84% 39%;
@@ -91,61 +91,19 @@
   --chart-4: 38 92% 50%;
   --chart-5: 340 82% 52%;
 
-  --sidebar: 222 47% 8%;
-  --sidebar-foreground: 220 14% 90%;
+  --sidebar: 0 0% 100%;
+  --sidebar-foreground: 0 0% 0%;
   --sidebar-primary: 158 84% 39%;
-  --sidebar-primary-foreground: 155 100% 8%;
-  --sidebar-accent: 222 33% 14%;
-  --sidebar-accent-foreground: 220 14% 96%;
-  --sidebar-border: 222 33% 16%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 220 14% 96%;
+  --sidebar-accent-foreground: 0 0% 0%;
+  --sidebar-border: 220 13% 88%;
   --sidebar-ring: 158 84% 39%;
-}
-
-.dark, :root {
-  /* Force dark palette globally — RRLabs is dark-first. */
-  --background: 222 47% 5%;
-  --foreground: 210 40% 98%;
-  --card: 222 40% 8%;
-  --card-foreground: 210 40% 98%;
-  --popover: 222 40% 8%;
-  --popover-foreground: 210 40% 98%;
-  --primary: 158 84% 45%;
-  --primary-foreground: 155 100% 7%;
-  --secondary: 222 30% 14%;
-  --secondary-foreground: 210 40% 98%;
-  --muted: 222 30% 12%;
-  --muted-foreground: 217 15% 65%;
-  --accent: 158 60% 18%;
-  --accent-foreground: 158 84% 75%;
-  --destructive: 0 72% 55%;
-  --destructive-foreground: 0 0% 100%;
-  --success: 158 84% 45%;
-  --success-foreground: 155 100% 7%;
-  --warning: 38 92% 55%;
-  --warning-foreground: 25 100% 10%;
-  --border: 222 30% 16%;
-  --input: 222 30% 14%;
-  --ring: 158 84% 45%;
-
-  --chart-1: 158 84% 45%;
-  --chart-2: 199 89% 55%;
-  --chart-3: 262 83% 65%;
-  --chart-4: 38 92% 55%;
-  --chart-5: 340 82% 60%;
-
-  --sidebar: 222 47% 6%;
-  --sidebar-foreground: 220 14% 90%;
-  --sidebar-primary: 158 84% 45%;
-  --sidebar-primary-foreground: 155 100% 7%;
-  --sidebar-accent: 222 33% 12%;
-  --sidebar-accent-foreground: 220 14% 96%;
-  --sidebar-border: 222 30% 14%;
-  --sidebar-ring: 158 84% 45%;
 }
 
 @layer base {
   * { border-color: hsl(var(--border)); }
-  html { color-scheme: dark; }
+  html { color-scheme: light; }
   body {
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
@@ -154,6 +112,7 @@
     text-rendering: optimizeLegibility;
   }
 }
+
 
 @theme inline {
   --color-background: hsl(var(--background));
