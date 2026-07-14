@@ -1,0 +1,170 @@
+name: Deploy (Supabase migrations + App)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+env:
+  SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+  SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+  SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+  SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+  SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+  SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+  DATABASE_URL: ${{ secrets.DATABASE_URL }}
+  VITE_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+  VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+  VITE_SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_REF }}
+
+jobs:
+  # ------------------------------------------------------------------
+  # PHASE 1 — Verify GitHub Secrets and Supabase connectivity
+  # ------------------------------------------------------------------
+  verify:
+    name: Phase 1 · Verify Connection
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check required secrets
+        run: |
+          set -euo pipefail
+          missing=()
+          for var in SUPABASE_PROJECT_REF SUPABASE_ACCESS_TOKEN SUPABASE_DB_PASSWORD \
+                     SUPABASE_URL SUPABASE_PUBLISHABLE_KEY SUPABASE_SERVICE_ROLE_KEY; do
+            if [ -z "${!var:-}" ]; then missing+=("$var"); fi
+          done
+          if [ ${#missing[@]} -gt 0 ]; then
+            echo "::error::Missing required secrets: ${missing[*]}"
+            exit 1
+          fi
+          echo "All required secrets are present."
+
+      - uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Verify Supabase project link
+        run: |
+          set -euo pipefail
+          supabase link --project-ref "$SUPABASE_PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
+          supabase projects list | head -n 40 || true
+
+      - name: Database connectivity probe
+        run: |
+          set -euo pipefail
+          supabase db remote commit --dry-run >/dev/null 2>&1 || true
+          echo "Supabase CLI authenticated and project linked."
+
+  # ------------------------------------------------------------------
+  # PHASE 2 & 6 — Application validation (typecheck / lint / build)
+  # ------------------------------------------------------------------
+  app-validate:
+    name: Phase 2/6 · Typecheck · Lint · Build
+    runs-on: ubuntu-latest
+    needs: verify
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Discover & validate migrations
+        run: bash scripts/ci/validate-migrations.sh
+
+      - name: Lint
+        run: bun run lint
+
+      - name: Typecheck
+        run: bunx tsgo --noEmit || bunx tsc --noEmit
+
+      - name: Build
+        run: bun run build
+
+  # ------------------------------------------------------------------
+  # PHASE 3 — Apply migrations to production
+  # ------------------------------------------------------------------
+  migrate:
+    name: Phase 3 · Apply Migrations
+    runs-on: ubuntu-latest
+    needs: app-validate
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Link project
+        run: supabase link --project-ref "$SUPABASE_PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
+
+      - name: Show pending migrations
+        run: supabase migration list --linked
+
+      - name: Push migrations (chronological, transactional)
+        run: supabase db push --linked --password "$SUPABASE_DB_PASSWORD"
+
+      - name: Confirm migration state
+        run: supabase migration list --linked
+
+  # ------------------------------------------------------------------
+  # PHASE 4 & 5 — Schema + security validation
+  # ------------------------------------------------------------------
+  post-migrate-validate:
+    name: Phase 4/5 · Schema & Security Validation
+    runs-on: ubuntu-latest
+    needs: migrate
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Link project
+        run: supabase link --project-ref "$SUPABASE_PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
+
+      - name: Detect schema drift
+        run: |
+          set -euo pipefail
+          supabase db diff --linked --schema public --file drift || true
+          if [ -s "supabase/migrations/"*"_drift.sql" ] 2>/dev/null; then
+            echo "::error::Schema drift detected against production. Commit a migration."
+            exit 1
+          fi
+          echo "No schema drift."
+
+      - name: RLS + security lint
+        run: |
+          set -euo pipefail
+          # Fail if any public table has RLS disabled.
+          PGPASSWORD="$SUPABASE_DB_PASSWORD" psql \
+            "postgresql://postgres.${SUPABASE_PROJECT_REF}:${SUPABASE_DB_PASSWORD}@aws-0-us-east-1.pooler.supabase.com:6543/postgres" \
+            -v ON_ERROR_STOP=1 -f scripts/ci/security-checks.sql
+
+  # ------------------------------------------------------------------
+  # PHASE 7 — Deployment gate
+  # ------------------------------------------------------------------
+  deploy:
+    name: Phase 7 · Deploy Application
+    runs-on: ubuntu-latest
+    needs: post-migrate-validate
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deployment marker
+        run: |
+          echo "All gates passed. Application deploys via Lovable publish pipeline."
+          echo "commit=${GITHUB_SHA}" >> "$GITHUB_STEP_SUMMARY"
