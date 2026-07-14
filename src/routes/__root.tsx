@@ -13,6 +13,7 @@ import { Toaster } from "sonner";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { supabase } from "../integrations/supabase/client";
+import { BRAND, SITE_URL, LOGO, absoluteUrl } from "../lib/brand";
 
 function NotFoundComponent() {
   return (
@@ -80,46 +81,86 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { name: "theme-color", content: "#0a1520" },
-      { title: "RRLabs — AI Revenue Recovery for Subscription Businesses" },
-      {
-        name: "description",
-        content:
-          "Recover failed subscription payments automatically with AI-powered emails and WhatsApp. Connect your store in minutes.",
-      },
-      { name: "author", content: "Revenue Recovery Labs" },
-      { property: "og:title", content: "RRLabs — AI Revenue Recovery for Subscription Businesses" },
-      {
-        property: "og:description",
-        content:
-          "Recover failed subscription payments automatically with AI-powered emails and WhatsApp. Connect your store in minutes.",
-      },
+      { title: `${BRAND.name} — ${BRAND.tagline}` },
+      { name: "description", content: BRAND.description },
+      { name: "author", content: BRAND.company },
+      { name: "application-name", content: BRAND.name },
+      { name: "apple-mobile-web-app-title", content: BRAND.name },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+      { property: "og:site_name", content: BRAND.company },
+      { property: "og:title", content: `${BRAND.name} — ${BRAND.tagline}` },
+      { property: "og:description", content: BRAND.description },
       { property: "og:type", content: "website" },
+      { property: "og:url", content: SITE_URL },
+      { property: "og:image", content: absoluteUrl(LOGO.ogImage) },
+      { property: "og:image:width", content: "1200" },
+      { property: "og:image:height", content: "630" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "RRLabs — AI Revenue Recovery for Subscription Businesses" },
-      { name: "twitter:description", content: "Recover failed subscription payments automatically with AI-powered emails and WhatsApp. Connect your store in minutes." },
-      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/1Otdz8zaoeMOGuUNQdlbXbWzEbo2/social-images/social-1784044235902-rsz_rrlabs_logo_2026.webp" },
-      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/1Otdz8zaoeMOGuUNQdlbXbWzEbo2/social-images/social-1784044235902-rsz_rrlabs_logo_2026.webp" },
+      { name: "twitter:title", content: `${BRAND.name} — ${BRAND.tagline}` },
+      { name: "twitter:description", content: BRAND.description },
+      { name: "twitter:image", content: absoluteUrl(LOGO.ogImage) },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
+      { rel: "icon", type: "image/png", sizes: "32x32", href: LOGO.icon32 },
+      { rel: "icon", type: "image/png", sizes: "192x192", href: LOGO.icon192 },
+      { rel: "apple-touch-icon", sizes: "180x180", href: LOGO.icon180 },
+      { rel: "mask-icon", href: LOGO.full, color: "#0a1520" },
+      { rel: "manifest", href: "/manifest.webmanifest" },
       {
         rel: "alternate",
         type: "application/rss+xml",
-        title: "RRLabs Blog RSS",
+        title: `${BRAND.name} Blog RSS`,
         href: "/rss.xml",
       },
-      {
-        rel: "preconnect",
-        href: "https://fonts.googleapis.com",
-      },
-      {
-        rel: "preconnect",
-        href: "https://fonts.gstatic.com",
-        crossOrigin: "anonymous",
-      },
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
         href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap",
+      },
+    ],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "Organization",
+              "@id": `${SITE_URL}/#organization`,
+              name: BRAND.company,
+              alternateName: BRAND.name,
+              url: SITE_URL,
+              logo: absoluteUrl(LOGO.full),
+              email: "support@rrlabs.online",
+              telephone: "+8801323405346",
+              address: {
+                "@type": "PostalAddress",
+                streetAddress: "60, Chowhaddi, Dotto Kendua-7901",
+                addressLocality: "Madaripur Sadar",
+                addressRegion: "Dhaka",
+                addressCountry: "BD",
+              },
+            },
+            {
+              "@type": "WebSite",
+              "@id": `${SITE_URL}/#website`,
+              url: SITE_URL,
+              name: BRAND.name,
+              publisher: { "@id": `${SITE_URL}/#organization` },
+            },
+            {
+              "@type": "SoftwareApplication",
+              name: BRAND.name,
+              applicationCategory: "BusinessApplication",
+              operatingSystem: "Web",
+              offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+              publisher: { "@id": `${SITE_URL}/#organization` },
+            },
+          ],
+        }),
       },
     ],
   }),
