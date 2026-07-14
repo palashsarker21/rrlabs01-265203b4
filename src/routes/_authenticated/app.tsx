@@ -2,11 +2,13 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { LogOut, Sparkles, RefreshCw, Mail, MessageCircle, Settings, TrendingUp, Shield } from "lucide-react";
+import { LogOut, Sparkles, RefreshCw, Mail, MessageCircle, Settings, TrendingUp, Shield, CheckCircle2, Circle, Zap } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { BrandLockup } from "@/components/brand-mark";
+import { TrialBadge, TrialReminderBanner, WorkspaceStatusBadge } from "@/components/trial-badge";
+import { computeTrialInfo } from "@/lib/trial";
 import {
   getRecoveryStats,
   listRecoveryEvents,
