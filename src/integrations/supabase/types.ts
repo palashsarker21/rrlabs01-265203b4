@@ -1133,6 +1133,7 @@ export type Database = {
           subscription_id: string | null
           subscription_status: string | null
           trial_ends_at: string | null
+          trial_started_at: string | null
           updated_at: string
         }
         Insert: {
@@ -1149,6 +1150,7 @@ export type Database = {
           subscription_id?: string | null
           subscription_status?: string | null
           trial_ends_at?: string | null
+          trial_started_at?: string | null
           updated_at?: string
         }
         Update: {
@@ -1165,6 +1167,7 @@ export type Database = {
           subscription_id?: string | null
           subscription_status?: string | null
           trial_ends_at?: string | null
+          trial_started_at?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -1262,6 +1265,10 @@ export type Database = {
         | "paused"
         | "suspended"
         | "cancelled"
+        | "trial"
+        | "expired"
+        | "pending"
+        | "archived"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1421,7 +1428,17 @@ export const Constants = {
         "expired",
       ],
       workspace_role: ["owner", "admin", "member", "viewer"],
-      workspace_status: ["setup", "active", "paused", "suspended", "cancelled"],
+      workspace_status: [
+        "setup",
+        "active",
+        "paused",
+        "suspended",
+        "cancelled",
+        "trial",
+        "expired",
+        "pending",
+        "archived",
+      ],
     },
   },
 } as const
