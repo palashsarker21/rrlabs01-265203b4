@@ -14,6 +14,56 @@ export type Database = {
   }
   public: {
     Tables: {
+      audit_logs: {
+        Row: {
+          action: string
+          actor_email: string | null
+          actor_id: string | null
+          created_at: string
+          details: Json
+          id: string
+          ip: string | null
+          target_id: string | null
+          target_type: string | null
+          user_agent: string | null
+          workspace_id: string | null
+        }
+        Insert: {
+          action: string
+          actor_email?: string | null
+          actor_id?: string | null
+          created_at?: string
+          details?: Json
+          id?: string
+          ip?: string | null
+          target_id?: string | null
+          target_type?: string | null
+          user_agent?: string | null
+          workspace_id?: string | null
+        }
+        Update: {
+          action?: string
+          actor_email?: string | null
+          actor_id?: string | null
+          created_at?: string
+          details?: Json
+          id?: string
+          ip?: string | null
+          target_id?: string | null
+          target_type?: string | null
+          user_agent?: string | null
+          workspace_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_logs_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       billing_events: {
         Row: {
           created_at: string
@@ -791,6 +841,29 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_set_workspace_engine: {
+        Args: { _enabled: boolean; _workspace_id: string }
+        Returns: boolean
+      }
+      admin_workspace_overview: {
+        Args: never
+        Returns: {
+          active_integrations_count: number
+          created_at: string
+          events_count: number
+          integrations_count: number
+          members_count: number
+          organization_id: string
+          organization_name: string
+          recovered_amount_cents: number
+          recovered_count: number
+          recovery_engine_enabled: boolean
+          status: string
+          workspace_id: string
+          workspace_name: string
+          workspace_slug: string
+        }[]
+      }
       can_manage_workspace: {
         Args: { _user_id: string; _workspace_id: string }
         Returns: boolean
