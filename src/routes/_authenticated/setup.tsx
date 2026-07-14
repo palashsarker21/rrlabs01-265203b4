@@ -100,7 +100,7 @@ function SetupWizard() {
 
   useEffect(() => {
     if (!wsLoading && !workspace) {
-      navigate({ to: "/checkout", replace: true });
+      navigate({ to: "/onboarding", replace: true });
     }
   }, [wsLoading, workspace, navigate]);
 
