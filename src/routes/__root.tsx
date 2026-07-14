@@ -84,21 +84,24 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         name: "description",
         content:
-          "RRLabs recovers failed subscription payments automatically with AI. Connect your store, payment gateway, and messaging in minutes.",
+          "Recover failed subscription payments automatically with AI-powered emails and WhatsApp. Connect your store in minutes.",
       },
       { name: "author", content: "Revenue Recovery Labs" },
-      { property: "og:title", content: "RRLabs — AI Revenue Recovery" },
+      { property: "og:title", content: "RRLabs — AI Revenue Recovery for Subscription Businesses" },
       {
         property: "og:description",
         content:
-          "Recover failed subscription payments automatically with AI-powered emails and WhatsApp.",
+          "Recover failed subscription payments automatically with AI-powered emails and WhatsApp. Connect your store in minutes.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "RRLabs — AI Revenue Recovery for Subscription Businesses" },
+      { name: "twitter:description", content: "Recover failed subscription payments automatically with AI-powered emails and WhatsApp. Connect your store in minutes." },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/1Otdz8zaoeMOGuUNQdlbXbWzEbo2/social-images/social-1784044235902-rsz_rrlabs_logo_2026.webp" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/1Otdz8zaoeMOGuUNQdlbXbWzEbo2/social-images/social-1784044235902-rsz_rrlabs_logo_2026.webp" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
       {
         rel: "alternate",
         type: "application/rss+xml",

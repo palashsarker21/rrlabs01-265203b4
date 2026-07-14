@@ -13,10 +13,10 @@ export const Route = createFileRoute("/")({
         content:
           "Recover failed subscription payments automatically with AI-powered emails and WhatsApp. Connect your store in minutes.",
       },
-      { property: "og:title", content: "RRLabs — AI Revenue Recovery" },
+      { property: "og:title", content: "RRLabs — AI Revenue Recovery for Subscription Businesses" },
       {
         property: "og:description",
-        content: "Automatically recover failed subscription payments with AI.",
+        content: "Recover failed subscription payments automatically with AI-powered emails and WhatsApp. Connect your store in minutes.",
       },
     ],
   }),
