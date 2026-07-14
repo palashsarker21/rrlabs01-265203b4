@@ -125,6 +125,59 @@ export type Database = {
           },
         ]
       }
+      customers: {
+        Row: {
+          created_at: string
+          currency: string | null
+          email: string | null
+          external_id: string | null
+          id: string
+          locale: string | null
+          metadata: Json
+          name: string | null
+          phone: string | null
+          provider: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          currency?: string | null
+          email?: string | null
+          external_id?: string | null
+          id?: string
+          locale?: string | null
+          metadata?: Json
+          name?: string | null
+          phone?: string | null
+          provider?: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          currency?: string | null
+          email?: string | null
+          external_id?: string | null
+          id?: string
+          locale?: string | null
+          metadata?: Json
+          name?: string | null
+          phone?: string | null
+          provider?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customers_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       integrations: {
         Row: {
           config: Json
@@ -297,6 +350,180 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      recovery_attempts: {
+        Row: {
+          ai_completion_tokens: number | null
+          ai_model: string | null
+          ai_prompt_tokens: number | null
+          body_html: string | null
+          body_text: string | null
+          channel: Database["public"]["Enums"]["recovery_channel"]
+          created_at: string
+          delivered_at: string | null
+          error: string | null
+          event_id: string
+          id: string
+          provider_message_id: string | null
+          provider_response: Json
+          scheduled_for: string
+          sent_at: string | null
+          status: Database["public"]["Enums"]["recovery_attempt_status"]
+          step: number
+          subject: string | null
+          to_address: string | null
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          ai_completion_tokens?: number | null
+          ai_model?: string | null
+          ai_prompt_tokens?: number | null
+          body_html?: string | null
+          body_text?: string | null
+          channel: Database["public"]["Enums"]["recovery_channel"]
+          created_at?: string
+          delivered_at?: string | null
+          error?: string | null
+          event_id: string
+          id?: string
+          provider_message_id?: string | null
+          provider_response?: Json
+          scheduled_for?: string
+          sent_at?: string | null
+          status?: Database["public"]["Enums"]["recovery_attempt_status"]
+          step?: number
+          subject?: string | null
+          to_address?: string | null
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          ai_completion_tokens?: number | null
+          ai_model?: string | null
+          ai_prompt_tokens?: number | null
+          body_html?: string | null
+          body_text?: string | null
+          channel?: Database["public"]["Enums"]["recovery_channel"]
+          created_at?: string
+          delivered_at?: string | null
+          error?: string | null
+          event_id?: string
+          id?: string
+          provider_message_id?: string | null
+          provider_response?: Json
+          scheduled_for?: string
+          sent_at?: string | null
+          status?: Database["public"]["Enums"]["recovery_attempt_status"]
+          step?: number
+          subject?: string | null
+          to_address?: string | null
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recovery_attempts_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "recovery_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recovery_attempts_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      recovery_events: {
+        Row: {
+          ai_analysis: Json
+          ai_summary: string | null
+          amount_cents: number | null
+          attempts_count: number
+          created_at: string
+          currency: string | null
+          customer_id: string | null
+          external_event_id: string | null
+          external_object_id: string | null
+          failure_category: string | null
+          failure_code: string | null
+          failure_message: string | null
+          id: string
+          next_action: string | null
+          object_type: string | null
+          provider: string
+          raw: Json
+          recovered_at: string | null
+          status: Database["public"]["Enums"]["recovery_event_status"]
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          ai_analysis?: Json
+          ai_summary?: string | null
+          amount_cents?: number | null
+          attempts_count?: number
+          created_at?: string
+          currency?: string | null
+          customer_id?: string | null
+          external_event_id?: string | null
+          external_object_id?: string | null
+          failure_category?: string | null
+          failure_code?: string | null
+          failure_message?: string | null
+          id?: string
+          next_action?: string | null
+          object_type?: string | null
+          provider?: string
+          raw?: Json
+          recovered_at?: string | null
+          status?: Database["public"]["Enums"]["recovery_event_status"]
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          ai_analysis?: Json
+          ai_summary?: string | null
+          amount_cents?: number | null
+          attempts_count?: number
+          created_at?: string
+          currency?: string | null
+          customer_id?: string | null
+          external_event_id?: string | null
+          external_object_id?: string | null
+          failure_category?: string | null
+          failure_code?: string | null
+          failure_message?: string | null
+          id?: string
+          next_action?: string | null
+          object_type?: string | null
+          provider?: string
+          raw?: Json
+          recovered_at?: string | null
+          status?: Database["public"]["Enums"]["recovery_event_status"]
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recovery_events_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recovery_events_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       subscriptions: {
         Row: {
@@ -533,6 +760,22 @@ export type Database = {
       app_role: "super_admin" | "admin" | "user"
       integration_kind: "store" | "payment_gateway" | "communication"
       integration_status: "pending" | "connected" | "error" | "disconnected"
+      recovery_attempt_status:
+        | "pending"
+        | "sending"
+        | "sent"
+        | "delivered"
+        | "failed"
+        | "skipped"
+        | "cancelled"
+      recovery_channel: "email" | "whatsapp"
+      recovery_event_status:
+        | "new"
+        | "analyzing"
+        | "recovering"
+        | "recovered"
+        | "abandoned"
+        | "failed"
       subscription_status:
         | "on_trial"
         | "active"
@@ -678,6 +921,24 @@ export const Constants = {
       app_role: ["super_admin", "admin", "user"],
       integration_kind: ["store", "payment_gateway", "communication"],
       integration_status: ["pending", "connected", "error", "disconnected"],
+      recovery_attempt_status: [
+        "pending",
+        "sending",
+        "sent",
+        "delivered",
+        "failed",
+        "skipped",
+        "cancelled",
+      ],
+      recovery_channel: ["email", "whatsapp"],
+      recovery_event_status: [
+        "new",
+        "analyzing",
+        "recovering",
+        "recovered",
+        "abandoned",
+        "failed",
+      ],
       subscription_status: [
         "on_trial",
         "active",

@@ -16,6 +16,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedSetupRouteImport } from './routes/_authenticated/setup'
 import { Route as AuthenticatedCheckoutRouteImport } from './routes/_authenticated/checkout'
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
+import { Route as ApiPublicWebhooksStripeRouteImport } from './routes/api/public/webhooks/stripe'
 import { Route as ApiPublicWebhooksLemonsqueezyRouteImport } from './routes/api/public/webhooks/lemonsqueezy'
 
 const PricingRoute = PricingRouteImport.update({
@@ -52,6 +53,11 @@ const AuthenticatedAppRoute = AuthenticatedAppRouteImport.update({
   path: '/app',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ApiPublicWebhooksStripeRoute = ApiPublicWebhooksStripeRouteImport.update({
+  id: '/api/public/webhooks/stripe',
+  path: '/api/public/webhooks/stripe',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicWebhooksLemonsqueezyRoute =
   ApiPublicWebhooksLemonsqueezyRouteImport.update({
     id: '/api/public/webhooks/lemonsqueezy',
@@ -67,6 +73,7 @@ export interface FileRoutesByFullPath {
   '/checkout': typeof AuthenticatedCheckoutRoute
   '/setup': typeof AuthenticatedSetupRoute
   '/api/public/webhooks/lemonsqueezy': typeof ApiPublicWebhooksLemonsqueezyRoute
+  '/api/public/webhooks/stripe': typeof ApiPublicWebhooksStripeRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -76,6 +83,7 @@ export interface FileRoutesByTo {
   '/checkout': typeof AuthenticatedCheckoutRoute
   '/setup': typeof AuthenticatedSetupRoute
   '/api/public/webhooks/lemonsqueezy': typeof ApiPublicWebhooksLemonsqueezyRoute
+  '/api/public/webhooks/stripe': typeof ApiPublicWebhooksStripeRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -87,6 +95,7 @@ export interface FileRoutesById {
   '/_authenticated/checkout': typeof AuthenticatedCheckoutRoute
   '/_authenticated/setup': typeof AuthenticatedSetupRoute
   '/api/public/webhooks/lemonsqueezy': typeof ApiPublicWebhooksLemonsqueezyRoute
+  '/api/public/webhooks/stripe': typeof ApiPublicWebhooksStripeRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -98,6 +107,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/setup'
     | '/api/public/webhooks/lemonsqueezy'
+    | '/api/public/webhooks/stripe'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -107,6 +117,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/setup'
     | '/api/public/webhooks/lemonsqueezy'
+    | '/api/public/webhooks/stripe'
   id:
     | '__root__'
     | '/'
@@ -117,6 +128,7 @@ export interface FileRouteTypes {
     | '/_authenticated/checkout'
     | '/_authenticated/setup'
     | '/api/public/webhooks/lemonsqueezy'
+    | '/api/public/webhooks/stripe'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -125,6 +137,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   PricingRoute: typeof PricingRoute
   ApiPublicWebhooksLemonsqueezyRoute: typeof ApiPublicWebhooksLemonsqueezyRoute
+  ApiPublicWebhooksStripeRoute: typeof ApiPublicWebhooksStripeRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -178,6 +191,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/webhooks/stripe': {
+      id: '/api/public/webhooks/stripe'
+      path: '/api/public/webhooks/stripe'
+      fullPath: '/api/public/webhooks/stripe'
+      preLoaderRoute: typeof ApiPublicWebhooksStripeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/webhooks/lemonsqueezy': {
       id: '/api/public/webhooks/lemonsqueezy'
       path: '/api/public/webhooks/lemonsqueezy'
@@ -209,6 +229,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   PricingRoute: PricingRoute,
   ApiPublicWebhooksLemonsqueezyRoute: ApiPublicWebhooksLemonsqueezyRoute,
+  ApiPublicWebhooksStripeRoute: ApiPublicWebhooksStripeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
