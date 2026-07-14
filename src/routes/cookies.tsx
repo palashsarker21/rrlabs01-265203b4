@@ -9,7 +9,7 @@ export const Route = createFileRoute("/cookies")({
       { title: "Cookie Policy — RRLabs" },
       { name: "description", content: "How RRLabs uses cookies and similar technologies." },
     ],
-    links: [{ rel: "canonical", href: "https://rrlabs01.lovable.app/cookies" }],
+    links: [{ rel: "canonical", href: "https://www.rrlabs.online/cookies" }],
   }),
 });
 

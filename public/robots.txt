@@ -23,4 +23,4 @@ Disallow: /checkout
 Disallow: /auth
 Disallow: /api/
 
-Sitemap: https://rrlabs01.lovable.app/sitemap.xml
+Sitemap: https://www.rrlabs.online/sitemap.xml

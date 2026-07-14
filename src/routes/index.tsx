@@ -25,7 +25,7 @@ export const Route = createFileRoute("/")({
           "Recover failed subscription payments automatically with AI-personalized email and WhatsApp. Connect Stripe or LemonSqueezy in minutes.",
       },
       { property: "og:type", content: "website" },
-      { property: "og:url", content: "https://rrlabs01.lovable.app/" },
+      { property: "og:url", content: "https://www.rrlabs.online/" },
       { property: "og:title", content: "RRLabs — AI Revenue Recovery for Subscription Businesses" },
       {
         property: "og:description",
@@ -34,7 +34,7 @@ export const Route = createFileRoute("/")({
       },
       { name: "twitter:card", content: "summary_large_image" },
     ],
-    links: [{ rel: "canonical", href: "https://rrlabs01.lovable.app/" }],
+    links: [{ rel: "canonical", href: "https://www.rrlabs.online/" }],
     scripts: [
       {
         type: "application/ld+json",
@@ -42,7 +42,7 @@ export const Route = createFileRoute("/")({
           "@context": "https://schema.org",
           "@type": "Organization",
           name: "Revenue Recovery Labs",
-          url: "https://rrlabs01.lovable.app",
+          url: "https://www.rrlabs.online",
         }),
       },
     ],

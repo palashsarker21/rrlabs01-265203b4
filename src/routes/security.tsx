@@ -9,7 +9,7 @@ export const Route = createFileRoute("/security")({
       { title: "Security — RRLabs" },
       { name: "description", content: "How RRLabs protects your data: encryption, RLS, RBAC, and compliance." },
     ],
-    links: [{ rel: "canonical", href: "https://rrlabs01.lovable.app/security" }],
+    links: [{ rel: "canonical", href: "https://www.rrlabs.online/security" }],
   }),
 });
 
@@ -26,7 +26,7 @@ function SecurityPage() {
         <h2>Compliance</h2>
         <p>GDPR-compliant data retention. SOC 2 Type II in progress. PCI DSS scope minimized — we never store raw card data.</p>
         <h2>Reporting a vulnerability</h2>
-        <p>Email security@rrlabs.com. We respond within one business day.</p>
+        <p>Email support@rrlabs.online. We respond within one business day.</p>
       </LegalPage>
       <MarketingFooter />
     </div>

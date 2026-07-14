@@ -1,9 +1,10 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, Menu, X, Github, Linkedin, Twitter } from "lucide-react";
+import { ArrowRight, Menu, X, Github, Linkedin, Twitter, Mail, Phone, MapPin } from "lucide-react";
 import { useEffect, useState } from "react";
 import { BrandLockup } from "@/components/brand-mark";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { BRAND, CONTACT, SOCIAL } from "@/lib/brand";
 
 const PRIMARY_NAV = [
   { to: "/features", label: "Features" },
@@ -38,7 +39,7 @@ export function MarketingHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/85 backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-6 py-3.5">
-        <Link to="/" className="shrink-0" aria-label="RRLabs home">
+        <Link to="/" className="shrink-0" aria-label={`${BRAND.name} home`}>
           <BrandLockup />
         </Link>
 
@@ -127,30 +128,34 @@ export function MarketingHeader() {
   );
 }
 
-const FOOTER_COLS: { title: string; items: { label: string; to: string }[] }[] = [
+type FooterItem = { label: string; to?: string; href?: string; badge?: string };
+
+const FOOTER_COLS: { title: string; items: FooterItem[] }[] = [
+  {
+    title: "Company",
+    items: [
+      { label: "About", to: "/about" },
+      { label: "Contact", to: "/contact" },
+      { label: "Careers", to: "/contact", badge: "Coming Soon" },
+      { label: "Blog", to: "/blog" },
+    ],
+  },
   {
     title: "Product",
     items: [
       { label: "Features", to: "/features" },
       { label: "Pricing", to: "/pricing" },
       { label: "Documentation", to: "/docs" },
-      { label: "Status", to: "/status" },
-    ],
-  },
-  {
-    title: "Company",
-    items: [
-      { label: "About", to: "/about" },
-      { label: "Contact", to: "/contact" },
-      { label: "Blog", to: "/blog" },
+      { label: "Integrations", to: "/features" },
     ],
   },
   {
     title: "Resources",
     items: [
+      { label: "Help Center", to: "/faq" },
       { label: "FAQ", to: "/faq" },
-      { label: "Security", to: "/security" },
-      { label: "Blog", to: "/blog" },
+      { label: "Status", to: "/status" },
+      { label: "API Documentation", to: "/docs", badge: "Coming Soon" },
     ],
   },
   {
@@ -160,11 +165,13 @@ const FOOTER_COLS: { title: string; items: { label: string; to: string }[] }[] =
       { label: "Terms of Service", to: "/terms" },
       { label: "Refund Policy", to: "/refund" },
       { label: "Cookie Policy", to: "/cookies" },
+      { label: "Security", to: "/security" },
     ],
   },
 ];
 
 export function MarketingFooter() {
+  const { address } = CONTACT;
   return (
     <footer className="border-t border-border/60 bg-background">
       <div className="mx-auto max-w-7xl px-6 py-16">
@@ -172,18 +179,40 @@ export function MarketingFooter() {
           <div>
             <BrandLockup />
             <p className="mt-4 max-w-xs text-sm text-muted-foreground">
-              AI-powered revenue recovery for modern subscription businesses.
+              {BRAND.description}
             </p>
+            <div className="mt-6 space-y-2 text-sm text-muted-foreground">
+              <a href={`mailto:${CONTACT.supportEmail}`} className="flex items-center gap-2 hover:text-foreground">
+                <Mail className="h-4 w-4" /> {CONTACT.supportEmail}
+              </a>
+              {CONTACT.phones.map((p) => (
+                <a key={p} href={`tel:${p}`} className="flex items-center gap-2 hover:text-foreground">
+                  <Phone className="h-4 w-4" /> {p}
+                </a>
+              ))}
+              <div className="flex items-start gap-2">
+                <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
+                <address className="not-italic leading-relaxed">
+                  {address.line1}<br />
+                  {address.line2}<br />
+                  {address.city}, {address.region}<br />
+                  {address.country}
+                </address>
+              </div>
+              <a href={CONTACT.website} target="_blank" rel="noreferrer" className="inline-flex hover:text-foreground">
+                {CONTACT.website}
+              </a>
+            </div>
             <div className="mt-6 flex items-center gap-3">
-              <a href="https://linkedin.com" target="_blank" rel="noreferrer" aria-label="LinkedIn"
+              <a href={SOCIAL.linkedin} target="_blank" rel="noreferrer" aria-label="LinkedIn"
                 className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border/60 text-muted-foreground transition-colors hover:text-foreground">
                 <Linkedin className="h-4 w-4" />
               </a>
-              <a href="https://x.com" target="_blank" rel="noreferrer" aria-label="X"
+              <a href={SOCIAL.x} target="_blank" rel="noreferrer" aria-label="X"
                 className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border/60 text-muted-foreground transition-colors hover:text-foreground">
                 <Twitter className="h-4 w-4" />
               </a>
-              <a href="https://github.com" target="_blank" rel="noreferrer" aria-label="GitHub"
+              <a href={SOCIAL.github} target="_blank" rel="noreferrer" aria-label="GitHub"
                 className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border/60 text-muted-foreground transition-colors hover:text-foreground">
                 <Github className="h-4 w-4" />
               </a>
@@ -194,20 +223,40 @@ export function MarketingFooter() {
             <div key={col.title}>
               <h4 className="text-sm font-semibold text-foreground">{col.title}</h4>
               <ul className="mt-4 space-y-3">
-                {col.items.map((i) => (
-                  <li key={i.to}>
-                    <Link to={i.to} className="text-sm text-muted-foreground transition-colors hover:text-foreground">
+                {col.items.map((i) => {
+                  const content = (
+                    <span className="inline-flex items-center gap-2">
                       {i.label}
-                    </Link>
-                  </li>
-                ))}
+                      {i.badge && (
+                        <span className="rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                          {i.badge}
+                        </span>
+                      )}
+                    </span>
+                  );
+                  return (
+                    <li key={i.label}>
+                      {i.to ? (
+                        <Link to={i.to} className="text-sm text-muted-foreground transition-colors hover:text-foreground">
+                          {content}
+                        </Link>
+                      ) : (
+                        <a href={i.href} className="text-sm text-muted-foreground transition-colors hover:text-foreground">
+                          {content}
+                        </a>
+                      )}
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           ))}
         </div>
 
         <div className="mt-14 flex flex-col items-start justify-between gap-3 border-t border-border/60 pt-6 text-xs text-muted-foreground sm:flex-row sm:items-center">
-          <div>© {new Date().getFullYear()} Revenue Recovery Labs (RRLabs). All Rights Reserved.</div>
+          <div>
+            © {new Date().getFullYear()} {BRAND.legalOwner}. All Rights Reserved.
+          </div>
           <div>Powered by AI-powered Revenue Recovery.</div>
         </div>
       </div>

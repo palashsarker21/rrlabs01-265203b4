@@ -7,8 +7,7 @@ import {
 } from "@/lib/blog/loader";
 import { ROUTE_REGISTRY } from "@/lib/access/config";
 
-// TODO: replace with your project URL once a project name or custom domain is set.
-const BASE_URL = "";
+const BASE_URL = "https://www.rrlabs.online";
 
 interface SitemapEntry {
   path: string;
