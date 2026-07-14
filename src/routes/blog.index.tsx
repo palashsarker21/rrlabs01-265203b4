@@ -6,8 +6,10 @@ import {
   getAllCategories,
   getAllTags,
   getFeaturedPosts,
+  getBlogLoadIssues,
 } from "@/lib/blog/loader";
 import { PostCard } from "@/components/blog/post-card";
+import { BlogErrorState } from "@/components/blog/blog-error-state";
 
 export const Route = createFileRoute("/blog/")({
   component: BlogIndex,
@@ -16,6 +18,7 @@ export const Route = createFileRoute("/blog/")({
     featured: getFeaturedPosts(3),
     categories: getAllCategories(),
     tags: getAllTags().slice(0, 24),
+    loadIssues: getBlogLoadIssues(),
   }),
   head: () => ({
     meta: [
@@ -37,11 +40,23 @@ export const Route = createFileRoute("/blog/")({
     ],
     links: [{ rel: "canonical", href: "/blog" }],
   }),
+  errorComponent: BlogIndexError,
 });
 
 function BlogIndex() {
-  const { posts, featured, categories, tags } = Route.useLoaderData();
+  const { posts, featured, categories, tags, loadIssues } = Route.useLoaderData();
   const latest = posts.slice(0, 12);
+
+  if (posts.length === 0 && loadIssues.length > 0) {
+    return (
+      <BlogErrorState
+        title="Blog temporarily unavailable"
+        description="We couldn't load the article archive because the published content needs attention."
+        detail="The team has been notified and the rest of the site is still available."
+      />
+    );
+  }
+
   return (
     <main className="mx-auto max-w-6xl px-6 py-14">
       <header className="mb-12 max-w-3xl">
@@ -70,6 +85,12 @@ function BlogIndex() {
           </button>
         </form>
       </header>
+
+      {loadIssues.length > 0 && (
+        <div className="mb-8 rounded-lg border border-warning/30 bg-warning/10 px-4 py-3 text-sm text-foreground">
+          Some articles could not be loaded and are temporarily hidden while we fix their content.
+        </div>
+      )}
 
       {featured.length > 0 && (
         <section className="mb-14">
@@ -163,5 +184,15 @@ function BlogIndex() {
         </aside>
       </div>
     </main>
+  );
+}
+
+function BlogIndexError() {
+  return (
+    <BlogErrorState
+      title="Blog temporarily unavailable"
+      description="We couldn't load the article archive right now."
+      detail="Please refresh the page or try again shortly."
+    />
   );
 }

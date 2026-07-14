@@ -36,3 +36,11 @@ export interface BlogPost extends BlogPostSummary {
   raw: string;
   source: string;
 }
+
+export interface BlogLoadIssue {
+  slug: string;
+  filepath: string;
+  title: string;
+  reason: string;
+  kind: "frontmatter" | "markdown" | "metadata";
+}
