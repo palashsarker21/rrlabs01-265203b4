@@ -14,6 +14,117 @@ export type Database = {
   }
   public: {
     Tables: {
+      billing_events: {
+        Row: {
+          created_at: string
+          error: string | null
+          event_id: string | null
+          event_name: string
+          id: string
+          payload: Json
+          processed_at: string | null
+          provider: string
+          subscription_id: string | null
+          workspace_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          error?: string | null
+          event_id?: string | null
+          event_name: string
+          id?: string
+          payload: Json
+          processed_at?: string | null
+          provider?: string
+          subscription_id?: string | null
+          workspace_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          error?: string | null
+          event_id?: string | null
+          event_name?: string
+          id?: string
+          payload?: Json
+          processed_at?: string | null
+          provider?: string
+          subscription_id?: string | null
+          workspace_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_events_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_events_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      checkout_sessions: {
+        Row: {
+          created_at: string
+          fulfilled_workspace_id: string | null
+          id: string
+          ls_checkout_id: string | null
+          ls_checkout_url: string | null
+          organization_name: string
+          plan_id: string
+          status: string
+          updated_at: string
+          user_id: string
+          workspace_name: string
+        }
+        Insert: {
+          created_at?: string
+          fulfilled_workspace_id?: string | null
+          id?: string
+          ls_checkout_id?: string | null
+          ls_checkout_url?: string | null
+          organization_name: string
+          plan_id: string
+          status?: string
+          updated_at?: string
+          user_id: string
+          workspace_name: string
+        }
+        Update: {
+          created_at?: string
+          fulfilled_workspace_id?: string | null
+          id?: string
+          ls_checkout_id?: string | null
+          ls_checkout_url?: string | null
+          organization_name?: string
+          plan_id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+          workspace_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checkout_sessions_fulfilled_workspace_id_fkey"
+            columns: ["fulfilled_workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "checkout_sessions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       integrations: {
         Row: {
           config: Json
@@ -103,6 +214,60 @@ export type Database = {
         }
         Relationships: []
       }
+      plans: {
+        Row: {
+          code: string
+          created_at: string
+          currency: string
+          description: string | null
+          features: Json
+          id: string
+          interval: string
+          is_active: boolean
+          ls_product_id: string | null
+          ls_variant_id: string
+          name: string
+          price_cents: number
+          sort_order: number
+          trial_days: number
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          currency?: string
+          description?: string | null
+          features?: Json
+          id?: string
+          interval?: string
+          is_active?: boolean
+          ls_product_id?: string | null
+          ls_variant_id: string
+          name: string
+          price_cents?: number
+          sort_order?: number
+          trial_days?: number
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          currency?: string
+          description?: string | null
+          features?: Json
+          id?: string
+          interval?: string
+          is_active?: boolean
+          ls_product_id?: string | null
+          ls_variant_id?: string
+          name?: string
+          price_cents?: number
+          sort_order?: number
+          trial_days?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -132,6 +297,93 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          cancelled_at: string | null
+          card_brand: string | null
+          card_last_four: string | null
+          created_at: string
+          current_period_end: string | null
+          current_period_start: string | null
+          customer_portal_url: string | null
+          ends_at: string | null
+          id: string
+          ls_customer_id: string | null
+          ls_order_id: string | null
+          ls_subscription_id: string | null
+          ls_variant_id: string | null
+          plan_id: string | null
+          raw: Json
+          renews_at: string | null
+          status: Database["public"]["Enums"]["subscription_status"]
+          trial_ends_at: string | null
+          update_payment_url: string | null
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          cancelled_at?: string | null
+          card_brand?: string | null
+          card_last_four?: string | null
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          customer_portal_url?: string | null
+          ends_at?: string | null
+          id?: string
+          ls_customer_id?: string | null
+          ls_order_id?: string | null
+          ls_subscription_id?: string | null
+          ls_variant_id?: string | null
+          plan_id?: string | null
+          raw?: Json
+          renews_at?: string | null
+          status?: Database["public"]["Enums"]["subscription_status"]
+          trial_ends_at?: string | null
+          update_payment_url?: string | null
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          cancelled_at?: string | null
+          card_brand?: string | null
+          card_last_four?: string | null
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          customer_portal_url?: string | null
+          ends_at?: string | null
+          id?: string
+          ls_customer_id?: string | null
+          ls_order_id?: string | null
+          ls_subscription_id?: string | null
+          ls_variant_id?: string | null
+          plan_id?: string | null
+          raw?: Json
+          renews_at?: string | null
+          status?: Database["public"]["Enums"]["subscription_status"]
+          trial_ends_at?: string | null
+          update_payment_url?: string | null
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscriptions_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
@@ -281,6 +533,14 @@ export type Database = {
       app_role: "super_admin" | "admin" | "user"
       integration_kind: "store" | "payment_gateway" | "communication"
       integration_status: "pending" | "connected" | "error" | "disconnected"
+      subscription_status:
+        | "on_trial"
+        | "active"
+        | "paused"
+        | "past_due"
+        | "unpaid"
+        | "cancelled"
+        | "expired"
       workspace_role: "owner" | "admin" | "member" | "viewer"
       workspace_status:
         | "setup"
@@ -418,6 +678,15 @@ export const Constants = {
       app_role: ["super_admin", "admin", "user"],
       integration_kind: ["store", "payment_gateway", "communication"],
       integration_status: ["pending", "connected", "error", "disconnected"],
+      subscription_status: [
+        "on_trial",
+        "active",
+        "paused",
+        "past_due",
+        "unpaid",
+        "cancelled",
+        "expired",
+      ],
       workspace_role: ["owner", "admin", "member", "viewer"],
       workspace_status: ["setup", "active", "paused", "suspended", "cancelled"],
     },
