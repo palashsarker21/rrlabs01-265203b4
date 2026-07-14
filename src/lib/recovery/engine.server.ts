@@ -145,7 +145,7 @@ export async function runRecoveryForEvent({ eventId }: RunRecoveryArgs): Promise
   const { data: event, error } = await supabaseAdmin
     .from("recovery_events")
     .select(
-      "id, workspace_id, customer_id, amount_cents, currency, failure_code, failure_message, status, ai_analysis, raw",
+      "id, workspace_id, customer_id, amount_cents, currency, failure_code, failure_message, status, attempts_count, ai_analysis, raw",
     )
     .eq("id", eventId)
     .maybeSingle();
