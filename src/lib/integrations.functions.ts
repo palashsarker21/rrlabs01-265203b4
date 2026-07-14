@@ -225,7 +225,7 @@ export const activateWorkspace = createServerFn({ method: "POST" })
         status: "active",
         recovery_engine_enabled: true,
         setup_step: 4,
-        activated_at: new Date().toISOString(),
+        setup_completed_at: new Date().toISOString(),
       })
       .eq("id", data.workspaceId);
     if (upErr) throw new Error(upErr.message);
