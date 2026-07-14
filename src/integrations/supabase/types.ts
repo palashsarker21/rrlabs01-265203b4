@@ -1224,6 +1224,20 @@ export type Database = {
         Args: { _user_id: string; _workspace_id: string }
         Returns: boolean
       }
+      provision_trial_workspace: {
+        Args: {
+          _org_name: string
+          _org_slug: string
+          _trial_days?: number
+          _workspace_name: string
+          _workspace_slug: string
+        }
+        Returns: {
+          already_exists: boolean
+          organization_id: string
+          workspace_id: string
+        }[]
+      }
       workspace_role_of: {
         Args: { _user_id: string; _workspace_id: string }
         Returns: Database["public"]["Enums"]["workspace_role"]

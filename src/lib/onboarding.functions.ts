@@ -16,67 +16,35 @@ function randomSuffix() {
 }
 
 /**
- * Create an organization + workspace + owner membership for the signed-in
- * user and start a 14-day free trial. No payment required.
+ * Atomic provisioning: organization + workspace + owner membership + 14-day
+ * trial. Runs inside a single SECURITY DEFINER RPC so all three inserts share
+ * one auth.uid() and one transaction. Removes the circular RLS dependency
+ * that made sequential inserts fail with "new row violates row-level
+ * security policy for table 'workspaces'".
  */
 export const provisionTrialWorkspace = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((raw) => provisionInput.parse(raw))
   .handler(async ({ data, context }) => {
-    const { supabase, userId, claims } = context;
-
-    // If the user already has a workspace, don't create a new one.
-    const { data: existing } = await supabase
-      .from("workspace_members")
-      .select("workspace_id, workspaces:workspace_id(id, name, status, trial_ends_at)")
-      .eq("user_id", userId)
-      .limit(1)
-      .maybeSingle();
-    if (existing?.workspace_id) {
-      return { workspaceId: existing.workspace_id, alreadyExists: true as const };
-    }
+    const { supabase } = context;
 
     const orgSlug = `${slugify(data.organizationName)}-${randomSuffix()}`;
     const wsSlug = `${slugify(data.workspaceName)}-${randomSuffix()}`;
-    const email = (claims as { email?: string }).email ?? null;
 
-    const { data: org, error: orgErr } = await supabase
-      .from("organizations")
-      .insert({
-        slug: orgSlug,
-        name: data.organizationName,
-        owner_id: userId,
-        billing_email: email,
-      })
-      .select("id")
-      .single();
-    if (orgErr || !org) throw new Error(orgErr?.message ?? "Could not create organization.");
-
-    const now = new Date();
-    const trialEnds = new Date(now.getTime() + TRIAL_DAYS * 24 * 60 * 60 * 1000);
-
-    const { data: ws, error: wsErr } = await supabase
-      .from("workspaces")
-      .insert({
-        organization_id: org.id,
-        slug: wsSlug,
-        name: data.workspaceName,
-        status: "trial",
-        setup_step: 0,
-        trial_started_at: now.toISOString(),
-        trial_ends_at: trialEnds.toISOString(),
-        subscription_status: "trialing",
-      })
-      .select("id")
-      .single();
-    if (wsErr || !ws) throw new Error(wsErr?.message ?? "Could not create workspace.");
-
-    const { error: memberErr } = await supabase.from("workspace_members").insert({
-      workspace_id: ws.id,
-      user_id: userId,
-      role: "owner",
+    const { data: rows, error } = await supabase.rpc("provision_trial_workspace", {
+      _org_name: data.organizationName,
+      _workspace_name: data.workspaceName,
+      _org_slug: orgSlug,
+      _workspace_slug: wsSlug,
+      _trial_days: TRIAL_DAYS,
     });
-    if (memberErr) throw new Error(memberErr.message);
 
-    return { workspaceId: ws.id, alreadyExists: false as const };
+    if (error) throw new Error(error.message);
+    const row = Array.isArray(rows) ? rows[0] : rows;
+    if (!row?.workspace_id) throw new Error("Could not create workspace.");
+
+    return {
+      workspaceId: row.workspace_id as string,
+      alreadyExists: !!row.already_exists,
+    };
   });
