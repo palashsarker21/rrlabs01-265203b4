@@ -5,7 +5,7 @@
  * Vite's import.meta.glob. No database, no manual registration.
  * Works on Cloudflare Workers because all markdown is inlined into the bundle.
  */
-import matter from "gray-matter";
+import { parseFrontmatter } from "./frontmatter";
 import { parseMarkdown, calculateReadingTime, extractToc } from "./parse";
 import type { BlogPost, BlogPostSummary, TocItem } from "./types";
 
