@@ -6,15 +6,15 @@ pipeline before production is touched.
 
 ## Required GitHub Secrets
 
-| Secret                       | Purpose                                                   |
-| ---------------------------- | --------------------------------------------------------- |
-| `SUPABASE_PROJECT_REF`       | Target project ref (e.g. `abcdxyz`).                      |
-| `SUPABASE_ACCESS_TOKEN`      | Personal access token for the Supabase CLI (`sbp_...`).   |
-| `SUPABASE_DB_PASSWORD`       | Database password used by `supabase link` / `db push`.    |
-| `SUPABASE_URL`               | `https://<ref>.supabase.co`.                              |
-| `SUPABASE_PUBLISHABLE_KEY`   | Anon / publishable API key (safe in client bundles).      |
-| `SUPABASE_SERVICE_ROLE_KEY`  | Service role key (server only; never logged).             |
-| `DATABASE_URL`               | Optional pooled Postgres URL for ad-hoc checks.           |
+| Secret                      | Purpose                                                 |
+| --------------------------- | ------------------------------------------------------- |
+| `SUPABASE_PROJECT_REF`      | Target project ref (e.g. `abcdxyz`).                    |
+| `SUPABASE_ACCESS_TOKEN`     | Personal access token for the Supabase CLI (`sbp_...`). |
+| `SUPABASE_DB_PASSWORD`      | Database password used by `supabase link` / `db push`.  |
+| `SUPABASE_URL`              | `https://<ref>.supabase.co`.                            |
+| `SUPABASE_PUBLISHABLE_KEY`  | Anon / publishable API key (safe in client bundles).    |
+| `SUPABASE_SERVICE_ROLE_KEY` | Service role key (server only; never logged).           |
+| `DATABASE_URL`              | Optional pooled Postgres URL for ad-hoc checks.         |
 
 ## Phases
 

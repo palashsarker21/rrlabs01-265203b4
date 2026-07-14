@@ -2,7 +2,13 @@
 title: "WhatsApp Business API for Payment Recovery: A 2026 Implementation Guide"
 slug: "whatsapp-business-api-payment-recovery"
 description: "Templates, opt-in, pricing, and orchestration rules for using the WhatsApp Business API as a recovery channel alongside email."
-keywords: ["whatsapp business api", "whatsapp payment recovery", "whatsapp dunning", "conversational commerce"]
+keywords:
+  [
+    "whatsapp business api",
+    "whatsapp payment recovery",
+    "whatsapp dunning",
+    "conversational commerce",
+  ]
 category: "Channels"
 tags: ["WhatsApp", "Channels", "Recovery", "Compliance"]
 author: "RRLabs Editorial"
@@ -18,7 +24,7 @@ twitterTitle: "WhatsApp Payment Recovery"
 twitterDescription: "Templates, opt-in, pricing, orchestration."
 ---
 
-Email deliverability has a ceiling — even a perfectly authenticated domain lands around 95% inbox placement. Recovery on the missing 5% is where the WhatsApp Business API earns its budget. In markets where WhatsApp is the dominant messaging app — Brazil, India, Mexico, Indonesia, most of Southern Europe — it is often the *primary* recovery channel, not the fallback.
+Email deliverability has a ceiling — even a perfectly authenticated domain lands around 95% inbox placement. Recovery on the missing 5% is where the WhatsApp Business API earns its budget. In markets where WhatsApp is the dominant messaging app — Brazil, India, Mexico, Indonesia, most of Southern Europe — it is often the _primary_ recovery channel, not the fallback.
 
 ## When WhatsApp beats email
 
@@ -34,7 +40,7 @@ For soft failures with a clear resolution path, WhatsApp payment-update reminder
 
 WhatsApp Business Policy allows business-initiated messages only to users who have granted opt-in through a clear, documented channel. For a subscription product, the correct pattern is:
 
-- At signup, an explicit checkbox: *"Send me service notifications on WhatsApp"* — unchecked by default.
+- At signup, an explicit checkbox: _"Send me service notifications on WhatsApp"_ — unchecked by default.
 - Store the opt-in with timestamp, IP, and the exact copy shown.
 - Provide a persistent opt-out (`STOP`, or an in-app toggle) and honor it immediately.
 
@@ -44,11 +50,11 @@ Do not use scraped phone lists. Do not send WhatsApp to users who signed up with
 
 Every business-initiated WhatsApp message must use a pre-approved template. Meta categorizes templates and prices them differently:
 
-| Category | Use case | 2026 pricing (varies by region) |
-| --- | --- | --- |
-| Utility | Order updates, payment reminders, delivery notifications | Lowest tier |
-| Authentication | OTP, 2FA codes | Similar to utility |
-| Marketing | Promotions, new features, re-engagement | Highest tier |
+| Category       | Use case                                                 | 2026 pricing (varies by region) |
+| -------------- | -------------------------------------------------------- | ------------------------------- |
+| Utility        | Order updates, payment reminders, delivery notifications | Lowest tier                     |
+| Authentication | OTP, 2FA codes                                           | Similar to utility              |
+| Marketing      | Promotions, new features, re-engagement                  | Highest tier                    |
 
 Payment recovery messages are **Utility**. Do not submit them as Marketing — they will still be approved, but you will pay 3–5x per message for the same conversion. Do not smuggle a marketing offer into a utility template — that gets the template rejected and, on repeat offense, the whole number reviewed.
 
@@ -77,7 +83,7 @@ Do not send WhatsApp and email at the same moment — you look desperate and you
 - **Hour 0**: Payment fails silently.
 - **Hour 2**: First email (assumes it will arrive within 15 minutes).
 - **Hour 24**: Second email, different subject line.
-- **Hour 48**: WhatsApp Utility template — only if email #2 was not opened *and* the user is opted in.
+- **Hour 48**: WhatsApp Utility template — only if email #2 was not opened _and_ the user is opted in.
 - **Hour 96**: In-app modal on next login.
 - **Hour 168**: Final email + WhatsApp, then grace period ends.
 

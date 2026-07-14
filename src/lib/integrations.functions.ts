@@ -52,7 +52,8 @@ export const saveIntegration = createServerFn({ method: "POST" })
       _user_id: userId,
     });
     if (roleErr) throw new Error(roleErr.message);
-    if (!canManage) throw new Error("You do not have permission to change integrations for this workspace.");
+    if (!canManage)
+      throw new Error("You do not have permission to change integrations for this workspace.");
 
     // Validate required fields per catalog.
     for (const field of info.fields) {
@@ -71,21 +72,19 @@ export const saveIntegration = createServerFn({ method: "POST" })
 
     if (!result.ok) {
       // Persist failure so the operator sees the last error without leaking secrets.
-      await supabaseAdmin
-        .from("integrations")
-        .upsert(
-          {
-            workspace_id: data.workspaceId,
-            kind: info.kind,
-            provider: info.provider,
-            display_name: data.displayName ?? info.name,
-            status: "error",
-            health: "unhealthy",
-            last_error: result.message,
-            config: {},
-          },
-          { onConflict: "workspace_id,kind,provider" },
-        );
+      await supabaseAdmin.from("integrations").upsert(
+        {
+          workspace_id: data.workspaceId,
+          kind: info.kind,
+          provider: info.provider,
+          display_name: data.displayName ?? info.name,
+          status: "error",
+          health: "unhealthy",
+          last_error: result.message,
+          config: {},
+        },
+        { onConflict: "workspace_id,kind,provider" },
+      );
       return { ok: false as const, message: result.message };
     }
 
@@ -93,23 +92,21 @@ export const saveIntegration = createServerFn({ method: "POST" })
     const { encryptJSON } = await import("./crypto.server");
     const ciphertext = encryptJSON(data.credentials);
 
-    const { error: upErr } = await supabaseAdmin
-      .from("integrations")
-      .upsert(
-        {
-          workspace_id: data.workspaceId,
-          kind: info.kind,
-          provider: info.provider,
-          display_name: data.displayName ?? info.name,
-          status: "connected",
-          health: "healthy",
-          config: (result.publicConfig ?? {}) as never,
-          credentials_ciphertext: ciphertext,
-          last_verified_at: nowIso,
-          last_error: null,
-        },
-        { onConflict: "workspace_id,kind,provider" },
-      );
+    const { error: upErr } = await supabaseAdmin.from("integrations").upsert(
+      {
+        workspace_id: data.workspaceId,
+        kind: info.kind,
+        provider: info.provider,
+        display_name: data.displayName ?? info.name,
+        status: "connected",
+        health: "healthy",
+        config: (result.publicConfig ?? {}) as never,
+        credentials_ciphertext: ciphertext,
+        last_verified_at: nowIso,
+        last_error: null,
+      },
+      { onConflict: "workspace_id,kind,provider" },
+    );
     if (upErr) throw new Error(upErr.message);
 
     const { writeAuditLog } = await import("./audit.server");
@@ -279,6 +276,9 @@ export const setSetupStep = createServerFn({ method: "POST" })
     });
     if (!canManage) throw new Error("Not permitted.");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    await supabaseAdmin.from("workspaces").update({ setup_step: data.step }).eq("id", data.workspaceId);
+    await supabaseAdmin
+      .from("workspaces")
+      .update({ setup_step: data.step })
+      .eq("id", data.workspaceId);
     return { ok: true as const };
   });

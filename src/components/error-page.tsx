@@ -1,18 +1,24 @@
 import { Link } from "@tanstack/react-router";
 import {
-  AlertOctagon, Ban, Clock, HelpCircle, Lock, ShieldAlert, Wrench, XCircle,
+  AlertOctagon,
+  Ban,
+  Clock,
+  HelpCircle,
+  Lock,
+  ShieldAlert,
+  Wrench,
+  XCircle,
 } from "lucide-react";
 import type { ComponentType } from "react";
 import { Button } from "@/components/ui/button";
 import { MarketingHeader, MarketingFooter } from "@/components/marketing-chrome";
 import { CONTACT } from "@/lib/brand";
 
-export type ErrorPageCode =
-  | 400 | 401 | 403 | 404 | 429 | 500 | 503 | "maintenance";
+export type ErrorPageCode = 400 | 401 | 403 | 404 | 429 | 500 | 503 | "maintenance";
 
 const MAP: Record<
   string,
-  { title: string; message: string; icon: ComponentType<{ className?: string }>; }
+  { title: string; message: string; icon: ComponentType<{ className?: string }> }
 > = {
   "400": {
     title: "Bad request",
@@ -77,10 +83,7 @@ export function ErrorPage({
   const codeLabel = typeof code === "number" ? code : "MAINTENANCE";
 
   const body = (
-    <main
-      role="alert"
-      className="flex min-h-[60vh] items-center justify-center px-6 py-20"
-    >
+    <main role="alert" className="flex min-h-[60vh] items-center justify-center px-6 py-20">
       <div className="mx-auto max-w-md text-center">
         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10 text-destructive">
           <Icon className="h-6 w-6" />
@@ -91,9 +94,7 @@ export function ErrorPage({
         <h1 className="mt-2 text-2xl font-semibold text-foreground sm:text-3xl">{title}</h1>
         <p className="mt-3 text-sm text-muted-foreground">{message}</p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
-          {onRetry && (
-            <Button onClick={onRetry}>Try again</Button>
-          )}
+          {onRetry && <Button onClick={onRetry}>Try again</Button>}
           <Link to="/">
             <Button variant={onRetry ? "outline" : "default"}>Return home</Button>
           </Link>

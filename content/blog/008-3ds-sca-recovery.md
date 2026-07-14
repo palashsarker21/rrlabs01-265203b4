@@ -2,7 +2,14 @@
 title: "3DS and SCA Failures Are Different — Here's How to Recover Them"
 slug: "3ds-sca-recovery"
 description: "Authentication-required failures are the most recoverable class of payment failure, and the most mishandled. A guide to 3DS/SCA recovery flows that actually convert."
-keywords: ["3ds recovery", "sca payment failures", "authentication required", "strong customer authentication", "3d secure recovery"]
+keywords:
+  [
+    "3ds recovery",
+    "sca payment failures",
+    "authentication required",
+    "strong customer authentication",
+    "3d secure recovery",
+  ]
 category: "Engineering"
 tags: ["3DS", "SCA", "Payments", "Recovery", "Compliance"]
 author: "RRLabs Engineering"
@@ -110,4 +117,4 @@ The lift from a proper 3DS-specific flow over generic dunning is typically 20+ p
 
 ---
 
-*See also: [Stripe Failed Payments: The Complete Guide](/blog/stripe-failed-payments-guide) for the full decline-code reference.*
+_See also: [Stripe Failed Payments: The Complete Guide](/blog/stripe-failed-payments-guide) for the full decline-code reference._

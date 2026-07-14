@@ -2,7 +2,15 @@
 title: "Localized Payment Methods That Actually Move the Needle"
 slug: "localized-payment-methods-that-move-the-needle"
 description: "Which alternative payment methods are worth integrating in each major market — from Pix and iDEAL to SEPA Direct Debit and UPI."
-keywords: ["alternative payment methods", "pix brazil", "ideal netherlands", "sepa direct debit", "upi india", "local payments"]
+keywords:
+  [
+    "alternative payment methods",
+    "pix brazil",
+    "ideal netherlands",
+    "sepa direct debit",
+    "upi india",
+    "local payments",
+  ]
 category: "Payments"
 tags: ["APM", "Localization", "Payments", "Growth"]
 author: "RRLabs Editorial"
@@ -18,7 +26,7 @@ twitterTitle: "Local Payment Methods"
 twitterDescription: "What to support in each market, and why."
 ---
 
-Card-only subscription businesses leave money on the table in every market outside the US and UK. The question is not *whether* to support local payment methods — it is *which ones*, in *which markets*, in what order. Integrating everything at once is expensive and mostly useless. This is how we prioritize.
+Card-only subscription businesses leave money on the table in every market outside the US and UK. The question is not _whether_ to support local payment methods — it is _which ones_, in _which markets_, in what order. Integrating everything at once is expensive and mostly useless. This is how we prioritize.
 
 ## The two-factor rule
 

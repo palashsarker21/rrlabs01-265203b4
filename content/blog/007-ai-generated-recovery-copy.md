@@ -2,7 +2,14 @@
 title: "How AI-Generated Recovery Copy Beats Templates (and How to Do It Safely)"
 slug: "ai-generated-recovery-copy"
 description: "A practical guide to using LLMs for per-customer recovery message generation — prompts, guardrails, brand voice, and the operational patterns that keep quality high."
-keywords: ["ai email copy", "llm dunning copy", "ai recovery messages", "gemini email generation", "personalized dunning"]
+keywords:
+  [
+    "ai email copy",
+    "llm dunning copy",
+    "ai recovery messages",
+    "gemini email generation",
+    "personalized dunning",
+  ]
 category: "AI"
 tags: ["AI", "LLM", "Gemini", "Copywriting", "Personalization"]
 author: "RRLabs Engineering"

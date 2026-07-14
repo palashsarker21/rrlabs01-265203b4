@@ -2,7 +2,14 @@
 title: "SMS vs. Email vs. Push for Payment Recovery: A Channel Comparison"
 slug: "sms-vs-email-vs-push-for-payment-recovery"
 description: "A head-to-head comparison of SMS, email, and push notifications for failed-payment recovery — cost, conversion, deliverability, and compliance."
-keywords: ["sms payment recovery", "push notification recovery", "email vs sms", "recovery channel", "omnichannel dunning"]
+keywords:
+  [
+    "sms payment recovery",
+    "push notification recovery",
+    "email vs sms",
+    "recovery channel",
+    "omnichannel dunning",
+  ]
 category: "Channels"
 tags: ["SMS", "Email", "Push", "Channels"]
 author: "RRLabs Editorial"
@@ -22,14 +29,14 @@ Channel choice is where recovery programs stop being generic and start being tun
 
 ## The channel comparison
 
-| Metric | Email | SMS | Push |
-| --- | --- | --- | --- |
-| Cost per send | ~$0.001 | $0.01–$0.10 | $0 |
-| Open / delivery rate | 40–60% open (post-Apple MPP inflation) | 95%+ delivery, 90%+ read within 15 min | 20–35% seen |
-| CTR on primary CTA | 3–8% | 15–35% | 8–20% |
-| Compliance burden | DMARC, unsubscribe | TCPA, opt-in proof, quiet hours | App permission |
-| Reach | Anyone with an email | Only opted-in phone numbers | Only active app installs |
-| Best for | Bulk of the cadence | Time-sensitive, high-value | Users mid-session |
+| Metric               | Email                                  | SMS                                    | Push                     |
+| -------------------- | -------------------------------------- | -------------------------------------- | ------------------------ |
+| Cost per send        | ~$0.001                                | $0.01–$0.10                            | $0                       |
+| Open / delivery rate | 40–60% open (post-Apple MPP inflation) | 95%+ delivery, 90%+ read within 15 min | 20–35% seen              |
+| CTR on primary CTA   | 3–8%                                   | 15–35%                                 | 8–20%                    |
+| Compliance burden    | DMARC, unsubscribe                     | TCPA, opt-in proof, quiet hours        | App permission           |
+| Reach                | Anyone with an email                   | Only opted-in phone numbers            | Only active app installs |
+| Best for             | Bulk of the cadence                    | Time-sensitive, high-value             | Users mid-session        |
 
 The costs are order-of-magnitude, not competitive. SMS is 10–100x the cost of email per send. Push is free but has no reach outside your app installs. Any comparison that ignores cost or reach is oversimplified.
 
@@ -85,17 +92,17 @@ In-app conversion on payment recovery is 30–60% — higher than every other ch
 
 For a B2C consumer subscription in a card-first market:
 
-| Hour | Channel | Purpose |
-| --- | --- | --- |
-| 0 | (retry) | Silent smart retry |
-| 2 | Email #1 | First notification |
-| 24 | In-app | If user logs in |
-| 48 | Email #2 | Different subject line |
-| 72 | Push | If app installed |
-| 96 | SMS | If opted in and high-value |
-| 120 | (retry) | Second smart retry |
-| 168 | Email #3 + In-app | Final notification |
-| 168 | Grace ends | Reactivation flow |
+| Hour | Channel           | Purpose                    |
+| ---- | ----------------- | -------------------------- |
+| 0    | (retry)           | Silent smart retry         |
+| 2    | Email #1          | First notification         |
+| 24   | In-app            | If user logs in            |
+| 48   | Email #2          | Different subject line     |
+| 72   | Push              | If app installed           |
+| 96   | SMS               | If opted in and high-value |
+| 120  | (retry)           | Second smart retry         |
+| 168  | Email #3 + In-app | Final notification         |
+| 168  | Grace ends        | Reactivation flow          |
 
 Every step is conditional. Users who paid at hour 3 do not receive email #2. Users without SMS opt-in skip the SMS step. Cadence is not a script; it is a state machine.
 

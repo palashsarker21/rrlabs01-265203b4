@@ -33,7 +33,9 @@ export function MarketingHeader() {
   useEffect(() => {
     if (open) document.body.style.overflow = "hidden";
     else document.body.style.overflow = "";
-    return () => { document.body.style.overflow = ""; };
+    return () => {
+      document.body.style.overflow = "";
+    };
   }, [open]);
 
   return (
@@ -67,7 +69,9 @@ export function MarketingHeader() {
           ) : (
             <>
               <Link to="/auth">
-                <Button variant="ghost" size="sm">Sign in</Button>
+                <Button variant="ghost" size="sm">
+                  Sign in
+                </Button>
               </Link>
               <Link to="/auth" search={{ redirect: "/app" }}>
                 <Button size="sm">
@@ -113,7 +117,9 @@ export function MarketingHeader() {
               ) : (
                 <>
                   <Link to="/auth" onClick={() => setOpen(false)}>
-                    <Button variant="outline" className="w-full">Sign in</Button>
+                    <Button variant="outline" className="w-full">
+                      Sign in
+                    </Button>
                   </Link>
                   <Link to="/auth" search={{ redirect: "/app" }} onClick={() => setOpen(false)}>
                     <Button className="w-full">Create account</Button>
@@ -178,42 +184,70 @@ export function MarketingFooter() {
         <div className="grid gap-12 lg:grid-cols-[1.4fr_repeat(4,1fr)]">
           <div>
             <BrandLockup />
-            <p className="mt-4 max-w-xs text-sm text-muted-foreground">
-              {BRAND.description}
-            </p>
+            <p className="mt-4 max-w-xs text-sm text-muted-foreground">{BRAND.description}</p>
             <div className="mt-6 space-y-2 text-sm text-muted-foreground">
-              <a href={`mailto:${CONTACT.supportEmail}`} className="flex items-center gap-2 hover:text-foreground">
+              <a
+                href={`mailto:${CONTACT.supportEmail}`}
+                className="flex items-center gap-2 hover:text-foreground"
+              >
                 <Mail className="h-4 w-4" /> {CONTACT.supportEmail}
               </a>
               {CONTACT.phones.map((p) => (
-                <a key={p} href={`tel:${p}`} className="flex items-center gap-2 hover:text-foreground">
+                <a
+                  key={p}
+                  href={`tel:${p}`}
+                  className="flex items-center gap-2 hover:text-foreground"
+                >
                   <Phone className="h-4 w-4" /> {p}
                 </a>
               ))}
               <div className="flex items-start gap-2">
                 <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
                 <address className="not-italic leading-relaxed">
-                  {address.line1}<br />
-                  {address.line2}<br />
-                  {address.city}, {address.region}<br />
+                  {address.line1}
+                  <br />
+                  {address.line2}
+                  <br />
+                  {address.city}, {address.region}
+                  <br />
                   {address.country}
                 </address>
               </div>
-              <a href={CONTACT.website} target="_blank" rel="noreferrer" className="inline-flex hover:text-foreground">
+              <a
+                href={CONTACT.website}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex hover:text-foreground"
+              >
                 {CONTACT.website}
               </a>
             </div>
             <div className="mt-6 flex items-center gap-3">
-              <a href={SOCIAL.linkedin} target="_blank" rel="noreferrer" aria-label="LinkedIn"
-                className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border/60 text-muted-foreground transition-colors hover:text-foreground">
+              <a
+                href={SOCIAL.linkedin}
+                target="_blank"
+                rel="noreferrer"
+                aria-label="LinkedIn"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border/60 text-muted-foreground transition-colors hover:text-foreground"
+              >
                 <Linkedin className="h-4 w-4" />
               </a>
-              <a href={SOCIAL.x} target="_blank" rel="noreferrer" aria-label="X"
-                className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border/60 text-muted-foreground transition-colors hover:text-foreground">
+              <a
+                href={SOCIAL.x}
+                target="_blank"
+                rel="noreferrer"
+                aria-label="X"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border/60 text-muted-foreground transition-colors hover:text-foreground"
+              >
                 <Twitter className="h-4 w-4" />
               </a>
-              <a href={SOCIAL.github} target="_blank" rel="noreferrer" aria-label="GitHub"
-                className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border/60 text-muted-foreground transition-colors hover:text-foreground">
+              <a
+                href={SOCIAL.github}
+                target="_blank"
+                rel="noreferrer"
+                aria-label="GitHub"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border/60 text-muted-foreground transition-colors hover:text-foreground"
+              >
                 <Github className="h-4 w-4" />
               </a>
             </div>
@@ -237,11 +271,17 @@ export function MarketingFooter() {
                   return (
                     <li key={i.label}>
                       {i.to ? (
-                        <Link to={i.to} className="text-sm text-muted-foreground transition-colors hover:text-foreground">
+                        <Link
+                          to={i.to}
+                          className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                        >
                           {content}
                         </Link>
                       ) : (
-                        <a href={i.href} className="text-sm text-muted-foreground transition-colors hover:text-foreground">
+                        <a
+                          href={i.href}
+                          className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                        >
                           {content}
                         </a>
                       )}

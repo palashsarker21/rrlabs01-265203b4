@@ -62,7 +62,7 @@ When the dashboard shows the signature:
 1. **Enable emergency rate limits** — drop per-IP to 1 attempt per hour, drop per-BIN to 3 per hour.
 2. **Force CAPTCHA on every payment** for 30–60 minutes.
 3. **Block the offending ASN or IP range** at the CDN, not the app.
-4. **Notify your acquirer** *before* they notice — a proactive message from you looks different from a decline-ratio spike they surface first.
+4. **Notify your acquirer** _before_ they notice — a proactive message from you looks different from a decline-ratio spike they surface first.
 5. **Refund any successful $0.50–$5 test charges** that made it through, before those turn into chargebacks. Every one you miss becomes a Fraud dispute (code 10.4) and hurts your ratio.
 
 Do not shut the checkout off entirely unless the attack is bad enough that legitimate signups would be indistinguishable from the noise. That costs revenue and signals weakness. Rate limits and CAPTCHAs are almost always sufficient.

@@ -2,7 +2,8 @@
 title: "Proration and Mid-Cycle Changes: The Math That Breaks Every Billing System"
 slug: "proration-and-mid-cycle-changes"
 description: "Upgrades, downgrades, seat changes, and plan swaps mid-cycle — the edge cases that eat engineering time and customer trust."
-keywords: ["proration", "mid-cycle upgrade", "subscription proration", "billing math", "stripe proration"]
+keywords:
+  ["proration", "mid-cycle upgrade", "subscription proration", "billing math", "stripe proration"]
 category: "Engineering"
 tags: ["Billing", "Proration", "Engineering", "Subscriptions"]
 author: "RRLabs Engineering"
@@ -35,16 +36,19 @@ Pick one primary and document the exceptions.
 ## The formula
 
 Unused-time credit:
+
 ```
 credit = (old_price / period_length_in_days) * days_remaining
 ```
 
 New-period charge:
+
 ```
 charge = (new_price / period_length_in_days) * days_remaining
 ```
 
 Net:
+
 ```
 proration_amount = charge - credit
 ```
@@ -53,7 +57,7 @@ proration_amount = charge - credit
 
 - **Leap years:** period_length_in_days is 365 or 366. Use actual days in the current billing period, not a constant.
 - **Timezone boundaries:** "days remaining" is undefined across DST. Anchor to UTC.
-- **Refunded credits:** if the original charge was partially refunded, credit is on the *net* paid, not gross.
+- **Refunded credits:** if the original charge was partially refunded, credit is on the _net_ paid, not gross.
 - **Coupons and discounts:** apply after proration, not before. Otherwise upgrades give free money.
 - **Seat additions in the last hour:** most systems charge a full day's proration for adding a seat 30 seconds before renewal. Add a "no-op window" of the last 4 hours.
 - **Downgrades below current usage:** what happens to seats/features already in use? Grandfather until renewal, don't kick users out.
@@ -63,7 +67,7 @@ proration_amount = charge - credit
 The interaction rule most systems get wrong:
 
 1. Calculate the base proration on undiscounted prices.
-2. Apply percentage discounts to the *charge* portion, not the credit portion.
+2. Apply percentage discounts to the _charge_ portion, not the credit portion.
 3. Fixed-amount discounts stay on the original schedule and don't multiply.
 
 Otherwise a 100%-off coupon on a $100 upgrade nets to a $50 refund, which is not what anyone intended.

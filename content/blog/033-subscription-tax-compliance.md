@@ -2,7 +2,14 @@
 title: "Subscription Tax Compliance Without Losing Your Mind: VAT, Sales Tax, GST"
 slug: "subscription-tax-compliance"
 description: "A practical map of VAT, US sales tax, GST, and digital services taxes for SaaS subscriptions — where to register, what to collect, and what to automate."
-keywords: ["saas sales tax", "vat digital services", "gst subscription", "moss oss", "subscription tax compliance"]
+keywords:
+  [
+    "saas sales tax",
+    "vat digital services",
+    "gst subscription",
+    "moss oss",
+    "subscription tax compliance",
+  ]
 category: "Operations"
 tags: ["Tax", "VAT", "Compliance", "SaaS", "Operations"]
 author: "RRLabs Editorial"

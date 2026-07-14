@@ -45,17 +45,11 @@ export function PostCard({ post }: { post: BlogPostSummary }) {
           </span>
         </div>
         <h3 className="text-lg font-semibold leading-snug text-foreground">
-          <Link
-            to="/blog/$slug"
-            params={{ slug: post.slug }}
-            className="hover:text-primary"
-          >
+          <Link to="/blog/$slug" params={{ slug: post.slug }} className="hover:text-primary">
             {post.title}
           </Link>
         </h3>
-        <p className="line-clamp-3 text-sm text-muted-foreground">
-          {post.description}
-        </p>
+        <p className="line-clamp-3 text-sm text-muted-foreground">{post.description}</p>
         <div className="mt-auto flex flex-wrap gap-1.5 pt-2">
           {post.tags.slice(0, 4).map((tag, i) => (
             <Link

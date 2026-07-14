@@ -35,10 +35,7 @@ import type { AdapterInfo } from "@/lib/integrations/catalog";
 
 export const Route = createFileRoute("/_authenticated/setup")({
   head: () => ({
-    meta: [
-      { title: "Set up your workspace — RRLabs" },
-      { name: "robots", content: "noindex" },
-    ],
+    meta: [{ title: "Set up your workspace — RRLabs" }, { name: "robots", content: "noindex" }],
   }),
   component: SetupWizard,
 });
@@ -58,7 +55,13 @@ type IntegrationRow = {
 
 const STEPS = [
   { key: "payment", title: "Connect payments", icon: Plug, kind: "payment_gateway" as const },
-  { key: "email", title: "Set up email", icon: Zap, kind: "communication" as const, provider: "resend" },
+  {
+    key: "email",
+    title: "Set up email",
+    icon: Zap,
+    kind: "communication" as const,
+    provider: "resend",
+  },
   {
     key: "whatsapp",
     title: "Add WhatsApp",
@@ -210,8 +213,8 @@ function SetupWizard() {
           Let's get {workspace?.name ?? "your workspace"} recovering revenue
         </h1>
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-          Connect your billing and messaging channels. Every credential is encrypted at rest and never sent
-          back to your browser.
+          Connect your billing and messaging channels. Every credential is encrypted at rest and
+          never sent back to your browser.
         </p>
 
         <Stepper current={stepIndex} steps={STEPS.map((s) => s.title)} />
@@ -245,9 +248,7 @@ function SetupWizard() {
               optional
             />
           )}
-          {stepIndex === 3 && (
-            <ReviewStep integrations={integrations} onActivate={onActivate} />
-          )}
+          {stepIndex === 3 && <ReviewStep integrations={integrations} onActivate={onActivate} />}
         </div>
 
         <div className="mt-6 flex items-center justify-between">
@@ -308,7 +309,8 @@ function PaymentStep(props: {
 }) {
   const primary = props.adapters[0];
   const existing = props.integrations.find((i) => i.provider === primary?.provider);
-  if (!primary) return <p className="text-sm text-muted-foreground">No payment adapters available.</p>;
+  if (!primary)
+    return <p className="text-sm text-muted-foreground">No payment adapters available.</p>;
   return (
     <AdapterStep
       adapter={primary}
@@ -471,7 +473,9 @@ function ReviewStep({
   integrations: IntegrationRow[];
   onActivate: () => void;
 }) {
-  const payment = integrations.find((i) => i.kind === "payment_gateway" && i.status === "connected");
+  const payment = integrations.find(
+    (i) => i.kind === "payment_gateway" && i.status === "connected",
+  );
   const comms = integrations.filter((i) => i.kind === "communication" && i.status === "connected");
   const ready = Boolean(payment) && comms.length > 0;
 
@@ -479,8 +483,8 @@ function ReviewStep({
     <div>
       <h2 className="text-lg font-semibold text-foreground">Review your setup</h2>
       <p className="mt-1 text-sm text-muted-foreground">
-        Activating turns on the recovery engine. It will begin monitoring failed payments and dispatching
-        recovery flows immediately.
+        Activating turns on the recovery engine. It will begin monitoring failed payments and
+        dispatching recovery flows immediately.
       </p>
 
       <ul className="mt-6 space-y-3 text-sm">

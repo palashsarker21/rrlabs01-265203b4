@@ -22,17 +22,13 @@ export const Route = createFileRoute("/blog/category/$category")({
         { property: "og:title", content: `${name} — RRLabs Blog` },
         { property: "og:url", content: `/blog/category/${params.category}` },
       ],
-      links: [
-        { rel: "canonical", href: `/blog/category/${params.category}` },
-      ],
+      links: [{ rel: "canonical", href: `/blog/category/${params.category}` }],
     };
   },
   component: CategoryPage,
   notFoundComponent: () => (
     <main className="mx-auto max-w-3xl px-6 py-24 text-center">
-      <h1 className="text-3xl font-semibold text-foreground">
-        Category not found
-      </h1>
+      <h1 className="text-3xl font-semibold text-foreground">Category not found</h1>
       <Link to="/blog" className="mt-6 inline-block text-sm text-primary hover:underline">
         Back to the blog
       </Link>
@@ -45,12 +41,8 @@ function CategoryPage() {
   return (
     <main className="mx-auto max-w-6xl px-6 py-14">
       <header className="mb-10">
-        <p className="text-xs uppercase tracking-widest text-muted-foreground">
-          Category
-        </p>
-        <h1 className="mt-2 text-4xl font-semibold tracking-tight text-foreground">
-          {name}
-        </h1>
+        <p className="text-xs uppercase tracking-widest text-muted-foreground">Category</p>
+        <h1 className="mt-2 text-4xl font-semibold tracking-tight text-foreground">{name}</h1>
         <p className="mt-2 text-muted-foreground">
           {posts.length} article{posts.length === 1 ? "" : "s"}
         </p>

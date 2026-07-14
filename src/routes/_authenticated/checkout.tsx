@@ -20,10 +20,7 @@ const searchSchema = z.object({
 export const Route = createFileRoute("/_authenticated/checkout")({
   validateSearch: (raw) => searchSchema.parse(raw),
   head: () => ({
-    meta: [
-      { title: "Start your subscription — RRLabs" },
-      { name: "robots", content: "noindex" },
-    ],
+    meta: [{ title: "Start your subscription — RRLabs" }, { name: "robots", content: "noindex" }],
   }),
   component: CheckoutPage,
 });
@@ -86,9 +83,7 @@ function CheckoutPage() {
       </header>
 
       <main className="mx-auto max-w-2xl px-6 py-12">
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">
-          Create your workspace
-        </h1>
+        <h1 className="text-3xl font-bold tracking-tight text-foreground">Create your workspace</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Pick a plan and name your company. We'll create your workspace after payment confirms.
         </p>

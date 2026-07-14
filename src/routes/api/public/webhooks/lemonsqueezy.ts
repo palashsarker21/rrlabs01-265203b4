@@ -179,16 +179,14 @@ async function onSubscriptionCreated(payload: LSWebhookPayload): Promise<void> {
   const planIdFromCustom = custom.plan_id;
 
   // Fetch the checkout session (source of workspace/org names)
-  let session:
-    | {
-        id: string;
-        user_id: string;
-        plan_id: string;
-        workspace_name: string;
-        organization_name: string;
-        fulfilled_workspace_id: string | null;
-      }
-    | null = null;
+  let session: {
+    id: string;
+    user_id: string;
+    plan_id: string;
+    workspace_name: string;
+    organization_name: string;
+    fulfilled_workspace_id: string | null;
+  } | null = null;
   if (checkoutSessionId) {
     const { data } = await supabaseAdmin
       .from("checkout_sessions")
@@ -261,28 +259,26 @@ async function onSubscriptionCreated(payload: LSWebhookPayload): Promise<void> {
   const statusStr = String(attr.status ?? "on_trial");
   const status: SubscriptionStatus = STATUS_MAP[statusStr] ?? "on_trial";
 
-  await supabaseAdmin
-    .from("subscriptions")
-    .upsert(
-      {
-        workspace_id: workspaceId!,
-        plan_id: planId,
-        ls_subscription_id: lsSubscriptionId,
-        ls_customer_id: attr.customer_id ? String(attr.customer_id) : null,
-        ls_order_id: attr.order_id ? String(attr.order_id) : null,
-        ls_variant_id: attr.variant_id ? String(attr.variant_id) : null,
-        status,
-        trial_ends_at: asDate(attr.trial_ends_at),
-        renews_at: asDate(attr.renews_at),
-        ends_at: asDate(attr.ends_at),
-        update_payment_url: extractUrl(attr, "update_payment_method"),
-        customer_portal_url: extractUrl(attr, "customer_portal"),
-        card_brand: (attr.card_brand as string | null) ?? null,
-        card_last_four: (attr.card_last_four as string | null) ?? null,
-        raw: attr as never,
-      },
-      { onConflict: "ls_subscription_id" },
-    );
+  await supabaseAdmin.from("subscriptions").upsert(
+    {
+      workspace_id: workspaceId!,
+      plan_id: planId,
+      ls_subscription_id: lsSubscriptionId,
+      ls_customer_id: attr.customer_id ? String(attr.customer_id) : null,
+      ls_order_id: attr.order_id ? String(attr.order_id) : null,
+      ls_variant_id: attr.variant_id ? String(attr.variant_id) : null,
+      status,
+      trial_ends_at: asDate(attr.trial_ends_at),
+      renews_at: asDate(attr.renews_at),
+      ends_at: asDate(attr.ends_at),
+      update_payment_url: extractUrl(attr, "update_payment_method"),
+      customer_portal_url: extractUrl(attr, "customer_portal"),
+      card_brand: (attr.card_brand as string | null) ?? null,
+      card_last_four: (attr.card_last_four as string | null) ?? null,
+      raw: attr as never,
+    },
+    { onConflict: "ls_subscription_id" },
+  );
 
   await supabaseAdmin
     .from("workspaces")
@@ -331,8 +327,8 @@ async function onSubscriptionUpdated(payload: LSWebhookPayload): Promise<void> {
       status === "cancelled" || status === "expired"
         ? "cancelled"
         : status === "past_due" || status === "unpaid" || status === "paused"
-        ? "suspended"
-        : undefined;
+          ? "suspended"
+          : undefined;
 
     await supabaseAdmin
       .from("workspaces")

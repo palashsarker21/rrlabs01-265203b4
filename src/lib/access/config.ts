@@ -71,10 +71,28 @@ export interface RouteAccess {
 export const ROUTE_REGISTRY: RouteAccess[] = [
   // Marketing / public
   { path: "/", visibility: "public", indexable: true, navGroup: "marketing", label: "Home" },
-  { path: "/features", visibility: "public", indexable: true, navGroup: "marketing", label: "Features" },
-  { path: "/pricing", visibility: "public", indexable: true, navGroup: "marketing", label: "Pricing" },
+  {
+    path: "/features",
+    visibility: "public",
+    indexable: true,
+    navGroup: "marketing",
+    label: "Features",
+  },
+  {
+    path: "/pricing",
+    visibility: "public",
+    indexable: true,
+    navGroup: "marketing",
+    label: "Pricing",
+  },
   { path: "/about", visibility: "public", indexable: true, navGroup: "marketing", label: "About" },
-  { path: "/contact", visibility: "public", indexable: true, navGroup: "marketing", label: "Contact" },
+  {
+    path: "/contact",
+    visibility: "public",
+    indexable: true,
+    navGroup: "marketing",
+    label: "Contact",
+  },
   { path: "/docs", visibility: "public", indexable: true, navGroup: "marketing", label: "Docs" },
   { path: "/blog", visibility: "public", indexable: true, navGroup: "marketing", label: "Blog" },
   { path: "/blog/category", visibility: "public", indexable: true, label: "Blog Category" },
@@ -90,11 +108,29 @@ export const ROUTE_REGISTRY: RouteAccess[] = [
   { path: "/auth", visibility: "public", indexable: false, label: "Sign in" },
 
   // Authenticated app
-  { path: "/app", visibility: "authenticated", indexable: false, navGroup: "app", label: "Dashboard" },
+  {
+    path: "/app",
+    visibility: "authenticated",
+    indexable: false,
+    navGroup: "app",
+    label: "Dashboard",
+  },
   { path: "/onboarding", visibility: "authenticated", indexable: false, label: "Onboarding" },
   { path: "/upgrade", visibility: "authenticated", indexable: false, label: "Upgrade" },
-  { path: "/setup", visibility: "authenticated", indexable: false, navGroup: "app", label: "Setup" },
-  { path: "/checkout", visibility: "authenticated", indexable: false, navGroup: "app", label: "Checkout" },
+  {
+    path: "/setup",
+    visibility: "authenticated",
+    indexable: false,
+    navGroup: "app",
+    label: "Setup",
+  },
+  {
+    path: "/checkout",
+    visibility: "authenticated",
+    indexable: false,
+    navGroup: "app",
+    label: "Checkout",
+  },
   { path: "/error", visibility: "public", indexable: false, label: "Error" },
 
   // Workspace management (managers+)
@@ -129,7 +165,13 @@ export const ROUTE_REGISTRY: RouteAccess[] = [
   },
 
   // Admin
-  { path: "/admin", visibility: "super_admin", indexable: false, navGroup: "super_admin", label: "God Mode" },
+  {
+    path: "/admin",
+    visibility: "super_admin",
+    indexable: false,
+    navGroup: "super_admin",
+    label: "God Mode",
+  },
 ];
 
 export function routeAccessFor(pathname: string): RouteAccess | undefined {

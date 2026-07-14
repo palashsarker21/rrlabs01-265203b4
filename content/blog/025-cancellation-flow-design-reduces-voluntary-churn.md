@@ -2,7 +2,8 @@
 title: "Cancellation Flow Design That Reduces Voluntary Churn"
 slug: "cancellation-flow-design-reduces-voluntary-churn"
 description: "How to build a cancellation flow that respects the user, complies with regulators, and still saves 15-25% of would-be churners."
-keywords: ["cancellation flow", "voluntary churn", "save flow", "cancellation ux", "ftc click to cancel"]
+keywords:
+  ["cancellation flow", "voluntary churn", "save flow", "cancellation ux", "ftc click to cancel"]
 category: "Retention"
 tags: ["Retention", "Churn", "UX", "Compliance"]
 author: "RRLabs Editorial"

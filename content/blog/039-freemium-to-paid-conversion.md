@@ -2,7 +2,14 @@
 title: "Freemium to Paid Conversion: The Moments That Matter"
 slug: "freemium-to-paid-conversion"
 description: "The specific product moments that convert freemium users to paid. Where to put upgrade prompts, what to say, and what to never do."
-keywords: ["freemium conversion", "free to paid", "upgrade prompts", "saas conversion", "product-led growth"]
+keywords:
+  [
+    "freemium conversion",
+    "free to paid",
+    "upgrade prompts",
+    "saas conversion",
+    "product-led growth",
+  ]
 category: "Growth"
 tags: ["Freemium", "Conversion", "PLG", "Growth", "Product"]
 author: "RRLabs Editorial"
@@ -37,9 +44,11 @@ Freemium conversion rates cluster at 2–5% for consumer, 15–25% for prosumer,
 ## What "value moment" copy looks like
 
 Bad:
+
 > Upgrade to Pro for more features!
 
 Good:
+
 > You just automated 12 tasks this week. Pro's automation runs unlimited — you'd save ~40h/month at your rate.
 
 Specific. Numeric. About what the user just did.

@@ -1,12 +1,7 @@
 import type { ReactNode } from "react";
 
 import { useAccess } from "@/hooks/use-access";
-import type {
-  FeatureKey,
-  PlanCode,
-  Visibility,
-  WorkspaceRole,
-} from "@/lib/access/config";
+import type { FeatureKey, PlanCode, Visibility, WorkspaceRole } from "@/lib/access/config";
 
 interface CanProps {
   /** Explicit visibility level. Defaults to "authenticated" if any other prop is set. */

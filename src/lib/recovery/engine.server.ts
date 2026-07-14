@@ -29,7 +29,13 @@ const AnalysisSchema = z.object({
   ]),
   severity: z.enum(["low", "medium", "high"]),
   summary: z.string().max(280),
-  next_action: z.enum(["retry_later", "ask_update_card", "ask_authenticate", "contact_support", "abandon"]),
+  next_action: z.enum([
+    "retry_later",
+    "ask_update_card",
+    "ask_authenticate",
+    "contact_support",
+    "abandon",
+  ]),
   email_subject: z.string().max(120),
   email_body: z.string().max(1800),
   whatsapp_text: z.string().max(700),
@@ -52,9 +58,10 @@ export async function analyzeFailure(input: AnalyzeInput): Promise<RecoveryAnaly
   const gateway = createLovableGateway();
   const model = gateway(DEFAULT_CHAT_MODEL);
 
-  const amount = input.amount_cents != null && input.currency
-    ? `${(input.amount_cents / 100).toFixed(2)} ${input.currency.toUpperCase()}`
-    : "the outstanding amount";
+  const amount =
+    input.amount_cents != null && input.currency
+      ? `${(input.amount_cents / 100).toFixed(2)} ${input.currency.toUpperCase()}`
+      : "the outstanding amount";
 
   const prompt = `You are the recovery specialist for ${input.business_name ?? "an online business"}.
 A payment just failed. Analyse the failure and draft warm, concise recovery messages the customer will actually respond to.
@@ -96,7 +103,9 @@ Rules:
         `Thanks so much,\n${input.business_name ?? "The team"}`,
       whatsapp_text:
         `Hi ${name}, quick note — your recent payment didn't go through. ` +
-        (input.update_payment_url ? `You can update your card here: ${input.update_payment_url}` : "Could you take a look when you get a moment?"),
+        (input.update_payment_url
+          ? `You can update your card here: ${input.update_payment_url}`
+          : "Could you take a look when you get a moment?"),
     };
   }
 }
@@ -185,7 +194,11 @@ export async function runRecoveryForEvent({ eventId }: RunRecoveryArgs): Promise
 
   const [{ data: customer }, { data: workspace }] = await Promise.all([
     event.customer_id
-      ? supabaseAdmin.from("customers").select("id, email, phone, name").eq("id", event.customer_id).maybeSingle()
+      ? supabaseAdmin
+          .from("customers")
+          .select("id, email, phone, name")
+          .eq("id", event.customer_id)
+          .maybeSingle()
       : Promise.resolve({ data: null }),
     supabaseAdmin
       .from("workspaces")
@@ -200,8 +213,7 @@ export async function runRecoveryForEvent({ eventId }: RunRecoveryArgs): Promise
   const trialEnds = workspace.trial_ends_at ? new Date(workspace.trial_ends_at).getTime() : 0;
   const canSend =
     workspace.recovery_engine_enabled !== false &&
-    (workspace.status === "active" ||
-      (workspace.status === "trial" && trialEnds > now));
+    (workspace.status === "active" || (workspace.status === "trial" && trialEnds > now));
   if (!canSend) {
     await supabaseAdmin
       .from("recovery_events")
@@ -384,23 +396,27 @@ export async function ingestStripeFailure(args: IngestArgs): Promise<string | nu
   // Resolve customer identity from the Stripe object.
   const customerId =
     (object.customer as string | undefined) ??
-    ((object as { customer?: { id?: string } }).customer?.id) ??
+    (object as { customer?: { id?: string } }).customer?.id ??
     null;
   const email =
     (object.receipt_email as string | undefined) ??
-    ((object as { charges?: { data?: Array<{ billing_details?: { email?: string; name?: string; phone?: string } }> } })
-      .charges?.data?.[0]?.billing_details?.email) ??
+    (
+      object as {
+        charges?: {
+          data?: Array<{ billing_details?: { email?: string; name?: string; phone?: string } }>;
+        };
+      }
+    ).charges?.data?.[0]?.billing_details?.email ??
     (object.customer_email as string | undefined) ??
     null;
   const name =
-    ((object as { charges?: { data?: Array<{ billing_details?: { name?: string } }> } }).charges?.data?.[0]
-      ?.billing_details?.name) ??
+    (object as { charges?: { data?: Array<{ billing_details?: { name?: string } }> } }).charges
+      ?.data?.[0]?.billing_details?.name ??
     (object.customer_name as string | undefined) ??
     null;
   const phone =
-    ((object as { charges?: { data?: Array<{ billing_details?: { phone?: string } }> } }).charges?.data?.[0]
-      ?.billing_details?.phone) ??
-    null;
+    (object as { charges?: { data?: Array<{ billing_details?: { phone?: string } }> } }).charges
+      ?.data?.[0]?.billing_details?.phone ?? null;
 
   let customerRowId: string | null = null;
   if (customerId || email) {
@@ -429,16 +445,19 @@ export async function ingestStripeFailure(args: IngestArgs): Promise<string | nu
     null;
   const currency = (object.currency as string | undefined) ?? null;
 
-  const lastError = (object.last_payment_error as { code?: string; message?: string } | undefined) ?? undefined;
+  const lastError =
+    (object.last_payment_error as { code?: string; message?: string } | undefined) ?? undefined;
   const failure_code =
     (object.failure_code as string | undefined) ??
     lastError?.code ??
-    ((object as { charges?: { data?: Array<{ failure_code?: string }> } }).charges?.data?.[0]?.failure_code) ??
+    (object as { charges?: { data?: Array<{ failure_code?: string }> } }).charges?.data?.[0]
+      ?.failure_code ??
     null;
   const failure_message =
     (object.failure_message as string | undefined) ??
     lastError?.message ??
-    ((object as { charges?: { data?: Array<{ failure_message?: string }> } }).charges?.data?.[0]?.failure_message) ??
+    (object as { charges?: { data?: Array<{ failure_message?: string }> } }).charges?.data?.[0]
+      ?.failure_message ??
     null;
 
   const externalObjectId = (object.id as string | undefined) ?? null;

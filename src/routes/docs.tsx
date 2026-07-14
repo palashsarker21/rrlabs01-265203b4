@@ -37,8 +37,8 @@ function DocsPage() {
           <h1 className="text-3xl font-semibold text-foreground">Documentation</h1>
         </div>
         <p className="mt-3 max-w-2xl text-muted-foreground">
-          Get RRLabs recovering revenue in under ten minutes. Start with the quickstart, then
-          jump to the reference sections you need.
+          Get RRLabs recovering revenue in under ten minutes. Start with the quickstart, then jump
+          to the reference sections you need.
         </p>
 
         <nav className="mt-8 grid gap-3 sm:grid-cols-2">
@@ -66,8 +66,8 @@ function DocsPage() {
               Stripe account.
             </li>
             <li>
-              Activate the workspace — the recovery engine begins analyzing every failed payment
-              in real time.
+              Activate the workspace — the recovery engine begins analyzing every failed payment in
+              real time.
             </li>
           </ol>
         </Section>
@@ -148,8 +148,8 @@ function DocsPage() {
             <li>Row-level security scopes every read and write to a workspace.</li>
             <li>Stripe webhooks require a valid signature per workspace.</li>
             <li>
-              Every sensitive action (integrations, activations, retries) is written to an
-              immutable audit log.
+              Every sensitive action (integrations, activations, retries) is written to an immutable
+              audit log.
             </li>
           </ul>
         </Section>
@@ -168,15 +168,7 @@ function DocsPage() {
   );
 }
 
-function TocCard({
-  href,
-  title,
-  icon,
-}: {
-  href: string;
-  title: string;
-  icon: React.ReactNode;
-}) {
+function TocCard({ href, title, icon }: { href: string; title: string; icon: React.ReactNode }) {
   return (
     <a
       href={href}

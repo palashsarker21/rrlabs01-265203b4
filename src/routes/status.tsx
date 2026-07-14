@@ -8,7 +8,10 @@ export const Route = createFileRoute("/status")({
   head: () => ({
     meta: [
       { title: `System Status — ${BRAND.name}` },
-      { name: "description", content: `Real-time status of ${BRAND.name} recovery engine, API, and integrations.` },
+      {
+        name: "description",
+        content: `Real-time status of ${BRAND.name} recovery engine, API, and integrations.`,
+      },
     ],
     links: [{ rel: "canonical", href: `${SITE_URL}/status` }],
   }),
@@ -35,7 +38,11 @@ const TONE: Record<CheckStatus, { dot: string; text: string; label: string }> = 
   ok: { dot: "bg-emerald-500", text: "text-emerald-600", label: "Operational" },
   degraded: { dot: "bg-amber-500", text: "text-amber-600", label: "Degraded" },
   down: { dot: "bg-red-500", text: "text-red-600", label: "Down" },
-  not_configured: { dot: "bg-muted-foreground/40", text: "text-muted-foreground", label: "Not configured" },
+  not_configured: {
+    dot: "bg-muted-foreground/40",
+    text: "text-muted-foreground",
+    label: "Not configured",
+  },
 };
 
 function StatusPage() {

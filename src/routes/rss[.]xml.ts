@@ -5,7 +5,6 @@ import { SITE_URL } from "@/lib/brand";
 
 const BASE_URL = SITE_URL;
 
-
 function escapeXml(s: string): string {
   return s
     .replace(/&/g, "&amp;")

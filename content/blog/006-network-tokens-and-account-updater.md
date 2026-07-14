@@ -2,7 +2,15 @@
 title: "Network Tokens and Account Updater: The Two Features That Silently Reduce Churn"
 slug: "network-tokens-and-account-updater"
 description: "Two underused card-network features that reduce failed payments by 20–40% for most subscription businesses — how they work, when they help, and how to turn them on."
-keywords: ["network tokens", "account updater", "card updater", "stripe network tokens", "adyen account updater", "reduce failed payments"]
+keywords:
+  [
+    "network tokens",
+    "account updater",
+    "card updater",
+    "stripe network tokens",
+    "adyen account updater",
+    "reduce failed payments",
+  ]
 category: "Engineering"
 tags: ["Payments", "Cards", "Retention", "Engineering", "Stripe"]
 author: "RRLabs Engineering"
@@ -41,7 +49,8 @@ Stripe, Adyen, and Braintree all support network tokens. On Stripe, it's on by d
 ```ts
 // New charges use PaymentMethod — network tokens flow automatically.
 const intent = await stripe.paymentIntents.create({
-  amount, currency,
+  amount,
+  currency,
   customer: customerId,
   payment_method: paymentMethodId,
   off_session: true,

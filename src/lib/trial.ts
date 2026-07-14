@@ -9,13 +9,24 @@ export type TrialInfo = {
 /**
  * Derive trial state from a workspace row.
  */
-export function computeTrialInfo(ws: {
-  status: string | null;
-  trial_ends_at: string | null;
-  subscription_status: string | null;
-} | null | undefined): TrialInfo {
+export function computeTrialInfo(
+  ws:
+    | {
+        status: string | null;
+        trial_ends_at: string | null;
+        subscription_status: string | null;
+      }
+    | null
+    | undefined,
+): TrialInfo {
   if (!ws) {
-    return { isTrial: false, isExpired: false, daysRemaining: 0, trialEndsAt: null, hasActiveSubscription: false };
+    return {
+      isTrial: false,
+      isExpired: false,
+      daysRemaining: 0,
+      trialEndsAt: null,
+      hasActiveSubscription: false,
+    };
   }
   const hasActiveSubscription =
     ws.status === "active" &&

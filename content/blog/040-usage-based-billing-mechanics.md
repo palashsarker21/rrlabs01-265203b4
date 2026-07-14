@@ -41,7 +41,7 @@ await meter.record({
   customer_id: "cus_123",
   event: "api_call",
   timestamp: 1710000000,
-  idempotency_key: `req_${requestId}`,  // must be unique per business event
+  idempotency_key: `req_${requestId}`, // must be unique per business event
   quantity: 1,
 });
 ```
@@ -98,7 +98,7 @@ Under $10M ARR use Stripe. $10M–$100M use Orb/Metronome. Above that, evaluate 
 
 ## The rev-rec question
 
-Usage-based revenue is recognized as the service is delivered — meter events *are* the delivery. This is simpler than subscription rev-rec, not harder, but requires:
+Usage-based revenue is recognized as the service is delivered — meter events _are_ the delivery. This is simpler than subscription rev-rec, not harder, but requires:
 
 - Clean event stream to accounting
 - Cutoff handling at period boundaries

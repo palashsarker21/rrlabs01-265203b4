@@ -79,8 +79,9 @@ export async function authorize(opts: AuthorizeOptions) {
       }
     }
 
-    const plan = opts.requiredPlan
-      ?? (opts.requiredFeature ? FEATURE_MIN_PLAN[opts.requiredFeature] : undefined);
+    const plan =
+      opts.requiredPlan ??
+      (opts.requiredFeature ? FEATURE_MIN_PLAN[opts.requiredFeature] : undefined);
     if (plan) {
       const { data: sub } = await supabase
         .from("subscriptions")
@@ -92,7 +93,7 @@ export async function authorize(opts: AuthorizeOptions) {
       const code = (sub as { plans?: { code?: string } } | null)?.plans?.code as
         | PlanCode
         | undefined;
-      const rank = code ? PLAN_RANK[code] ?? 0 : 0;
+      const rank = code ? (PLAN_RANK[code] ?? 0) : 0;
       if (rank < PLAN_RANK[plan]) {
         throw new AccessError("upgrade_required", `Requires ${plan} plan.`, 402);
       }

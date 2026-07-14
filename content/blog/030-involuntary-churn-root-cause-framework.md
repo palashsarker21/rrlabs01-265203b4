@@ -2,7 +2,14 @@
 title: "The Involuntary Churn Root-Cause Framework"
 slug: "involuntary-churn-root-cause-framework"
 description: "A five-layer diagnostic framework for finding and fixing the real cause of involuntary churn — from card lifecycle to descriptor to product state."
-keywords: ["involuntary churn", "root cause analysis", "failed payment analysis", "churn framework", "recovery diagnostics"]
+keywords:
+  [
+    "involuntary churn",
+    "root cause analysis",
+    "failed payment analysis",
+    "churn framework",
+    "recovery diagnostics",
+  ]
 category: "Playbooks"
 tags: ["Involuntary Churn", "Diagnostics", "Recovery", "Framework"]
 author: "RRLabs Editorial"
@@ -77,7 +84,7 @@ Signals:
 
 - Recovery rate drops sharply at the exact hour grace ends.
 - Support tickets citing "the app suddenly stopped working."
-- Reactivation rate is high (customers *wanted* to keep paying — you kicked them out too fast).
+- Reactivation rate is high (customers _wanted_ to keep paying — you kicked them out too fast).
 - Or the opposite: recovery rate is high but churn 30 days later spikes (grace was too long, customers stopped valuing the service).
 
 Fixes:
@@ -132,13 +139,13 @@ Reactivation adds 3–10% of MRR back to the recovery program for companies that
 
 Every recovery quarterly review at RRLabs starts with a layer-by-layer attribution:
 
-| Layer | % of losses | Recovery rate | Investment priority |
-| --- | --- | --- | --- |
-| Card lifecycle | 22% | 18% | Medium |
-| Network + issuer | 31% | 6% | **High** |
-| Product state | 14% | 42% | Low |
-| Communication | 24% | 28% | Medium |
-| Reactivation | 9% | 11% | Medium |
+| Layer            | % of losses | Recovery rate | Investment priority |
+| ---------------- | ----------- | ------------- | ------------------- |
+| Card lifecycle   | 22%         | 18%           | Medium              |
+| Network + issuer | 31%         | 6%            | **High**            |
+| Product state    | 14%         | 42%           | Low                 |
+| Communication    | 24%         | 28%           | Medium              |
+| Reactivation     | 9%          | 11%           | Medium              |
 
 In this hypothetical company, the highest-leverage investment is Layer 2 (network + issuer) — the largest slice with the worst current recovery rate. Communication is doing okay; product state is already handled well.
 
@@ -146,4 +153,4 @@ Without the framework, this company would probably A/B test email copy — the v
 
 ## The RRLabs default
 
-The Revenue Recovery Labs analytics module produces this layer-by-layer attribution automatically from your payment event stream. Every recovery investment proposal is grounded in "which layer, which recovery rate, which lift." That discipline is what separates a recovery program from a recovery *project* — and a recovery program is what compounds into eight-figure revenue impact over years.
+The Revenue Recovery Labs analytics module produces this layer-by-layer attribution automatically from your payment event stream. Every recovery investment proposal is grounded in "which layer, which recovery rate, which lift." That discipline is what separates a recovery program from a recovery _project_ — and a recovery program is what compounds into eight-figure revenue impact over years.

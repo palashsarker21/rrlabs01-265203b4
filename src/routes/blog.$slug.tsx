@@ -21,10 +21,7 @@ export const Route = createFileRoute("/blog/$slug")({
   head: ({ loaderData, params }) => {
     if (!loaderData) {
       return {
-        meta: [
-          { title: "Article not found — RRLabs" },
-          { name: "robots", content: "noindex" },
-        ],
+        meta: [{ title: "Article not found — RRLabs" }, { name: "robots", content: "noindex" }],
       };
     }
     const p = loaderData.post;
@@ -140,14 +137,8 @@ function BlogPost() {
               </h2>
               <ul className="space-y-1.5 text-sm">
                 {post.toc.map((item: TocItem) => (
-                  <li
-                    key={item.id}
-                    style={{ paddingLeft: `${(item.level - 2) * 12}px` }}
-                  >
-                    <a
-                      href={`#${item.id}`}
-                      className="text-muted-foreground hover:text-primary"
-                    >
+                  <li key={item.id} style={{ paddingLeft: `${(item.level - 2) * 12}px` }}>
+                    <a href={`#${item.id}`} className="text-muted-foreground hover:text-primary">
                       {item.text}
                     </a>
                   </li>
@@ -192,12 +183,8 @@ function BlogPost() {
 function PostNotFound() {
   return (
     <main className="mx-auto max-w-3xl px-6 py-24 text-center">
-      <h1 className="text-3xl font-semibold text-foreground">
-        Article not found
-      </h1>
-      <p className="mt-3 text-muted-foreground">
-        That article may have moved or been renamed.
-      </p>
+      <h1 className="text-3xl font-semibold text-foreground">Article not found</h1>
+      <p className="mt-3 text-muted-foreground">That article may have moved or been renamed.</p>
       <Link
         to="/blog"
         className="mt-6 inline-flex items-center gap-1.5 text-sm text-primary hover:underline"

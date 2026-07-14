@@ -8,7 +8,10 @@ export const Route = createFileRoute("/contact")({
   head: () => ({
     meta: [
       { title: `Contact — ${BRAND.name}` },
-      { name: "description", content: `Get in touch with ${BRAND.company} about the Recovery Engine, integrations, or partnerships.` },
+      {
+        name: "description",
+        content: `Get in touch with ${BRAND.company} about the Recovery Engine, integrations, or partnerships.`,
+      },
       { property: "og:title", content: `Contact ${BRAND.name}` },
       { property: "og:description", content: `Talk to the team behind ${BRAND.name}.` },
       { property: "og:type", content: "website" },
@@ -47,7 +50,11 @@ function ContactPage() {
             <h3 className="mt-3 font-semibold text-foreground">Phone</h3>
             <ul className="mt-1 space-y-1 text-sm text-muted-foreground">
               {CONTACT.phones.map((p) => (
-                <li key={p}><a href={`tel:${p}`} className="hover:text-foreground">{p}</a></li>
+                <li key={p}>
+                  <a href={`tel:${p}`} className="hover:text-foreground">
+                    {p}
+                  </a>
+                </li>
               ))}
             </ul>
           </div>
@@ -55,15 +62,19 @@ function ContactPage() {
             <MapPin className="h-5 w-5 text-primary" />
             <h3 className="mt-3 font-semibold text-foreground">Business address</h3>
             <address className="mt-1 not-italic text-sm leading-relaxed text-muted-foreground">
-              {address.line1}<br />
-              {address.line2}<br />
-              {address.city}, {address.region}<br />
+              {address.line1}
+              <br />
+              {address.line2}
+              <br />
+              {address.city}, {address.region}
+              <br />
               {address.country}
             </address>
           </div>
           <a
             href={CONTACT.website}
-            target="_blank" rel="noreferrer"
+            target="_blank"
+            rel="noreferrer"
             className="rounded-xl border border-border/60 bg-card/50 p-6 backdrop-blur transition hover:border-primary/50 sm:col-span-2"
           >
             <Globe className="h-5 w-5 text-primary" />

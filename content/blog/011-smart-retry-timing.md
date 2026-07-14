@@ -2,7 +2,14 @@
 title: "Smart Retry Timing: When to Re-Attempt a Failed Card Charge"
 slug: "smart-retry-timing"
 description: "A data-driven guide to retry scheduling for failed subscription payments — why fixed 3/5/7 schedules leak revenue and what to replace them with."
-keywords: ["retry timing", "failed payment retry", "smart retries", "dunning schedule", "card decline recovery"]
+keywords:
+  [
+    "retry timing",
+    "failed payment retry",
+    "smart retries",
+    "dunning schedule",
+    "card decline recovery",
+  ]
 category: "Playbooks"
 tags: ["Retries", "Dunning", "Revenue Recovery", "Billing"]
 author: "RRLabs Editorial"
@@ -24,11 +31,11 @@ Most billing systems retry failed charges on a **fixed schedule**: day 1, day 3,
 
 Card networks return a decline reason for every failed authorization. The reasons cluster into three groups that each want a completely different retry policy:
 
-| Group | Example codes | What it means | Retry policy |
-| --- | --- | --- | --- |
-| Soft, timing-sensitive | `insufficient_funds`, `card_velocity_exceeded` | The card *can* pay, just not right now | Retry aligned to paycheck / cycle boundaries |
-| Soft, issuer-side | `do_not_honor`, `issuer_not_available`, `try_again_later` | Issuer's risk engine or infra hiccup | Retry within 24–72h, off-hours |
-| Hard | `stolen_card`, `lost_card`, `pickup_card`, `no_such_card` | The card will never succeed | Do not retry — request a new instrument |
+| Group                  | Example codes                                             | What it means                          | Retry policy                                 |
+| ---------------------- | --------------------------------------------------------- | -------------------------------------- | -------------------------------------------- |
+| Soft, timing-sensitive | `insufficient_funds`, `card_velocity_exceeded`            | The card _can_ pay, just not right now | Retry aligned to paycheck / cycle boundaries |
+| Soft, issuer-side      | `do_not_honor`, `issuer_not_available`, `try_again_later` | Issuer's risk engine or infra hiccup   | Retry within 24–72h, off-hours               |
+| Hard                   | `stolen_card`, `lost_card`, `pickup_card`, `no_such_card` | The card will never succeed            | Do not retry — request a new instrument      |
 
 Retrying a hard decline is worse than doing nothing. It costs a network fee, teaches the issuer's fraud engine to distrust your merchant descriptor, and delays the conversation you actually need to have with the customer.
 

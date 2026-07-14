@@ -2,7 +2,14 @@
 title: "Stripe Failed Payments: The Complete Guide to Decline Codes, Retries, and Recovery"
 slug: "stripe-failed-payments-guide"
 description: "A definitive reference for Stripe payment failures — every major decline code, when to retry, when to stop, and how to build recovery flows that actually work."
-keywords: ["stripe failed payments", "stripe decline codes", "stripe retry logic", "smart retries", "payment recovery"]
+keywords:
+  [
+    "stripe failed payments",
+    "stripe decline codes",
+    "stripe retry logic",
+    "smart retries",
+    "payment recovery",
+  ]
 category: "Engineering"
 tags: ["Stripe", "Payments", "Dunning", "Engineering", "Webhooks"]
 author: "RRLabs Engineering"
@@ -62,17 +69,17 @@ app.post("/webhooks/stripe", async (req, res) => {
 
 Stripe returns two useful strings on a failed charge: `outcome.type` and `outcome.reason`. The card network's raw `decline_code` is more granular but less consistent. The high-signal ones:
 
-| Code | Meaning | Recoverable? | Best action |
-| --- | --- | --- | --- |
-| `insufficient_funds` | Not enough money on the card | Yes, with delay | Retry in 3–5 days, T2 with warmth |
-| `card_declined` (generic) | Issuer said no, no reason given | Sometimes | One retry, then reach out |
-| `expired_card` | Card past expiry | Yes | Prompt customer to update |
-| `incorrect_cvc` / `incorrect_number` | Typo on manual entry | Yes | Ask customer to re-enter |
-| `authentication_required` | 3DS/SCA needed | Yes | Send confirmation link |
-| `lost_card` / `stolen_card` | Card flagged | No | Stop retrying immediately |
-| `fraudulent` | Issuer suspects fraud | Rarely | Do not retry, contact customer |
-| `do_not_honor` | Vague issuer refusal | Sometimes | One retry after 48h |
-| `processing_error` | Transient network issue | Yes | Retry in minutes |
+| Code                                 | Meaning                         | Recoverable?    | Best action                       |
+| ------------------------------------ | ------------------------------- | --------------- | --------------------------------- |
+| `insufficient_funds`                 | Not enough money on the card    | Yes, with delay | Retry in 3–5 days, T2 with warmth |
+| `card_declined` (generic)            | Issuer said no, no reason given | Sometimes       | One retry, then reach out         |
+| `expired_card`                       | Card past expiry                | Yes             | Prompt customer to update         |
+| `incorrect_cvc` / `incorrect_number` | Typo on manual entry            | Yes             | Ask customer to re-enter          |
+| `authentication_required`            | 3DS/SCA needed                  | Yes             | Send confirmation link            |
+| `lost_card` / `stolen_card`          | Card flagged                    | No              | Stop retrying immediately         |
+| `fraudulent`                         | Issuer suspects fraud           | Rarely          | Do not retry, contact customer    |
+| `do_not_honor`                       | Vague issuer refusal            | Sometimes       | One retry after 48h               |
+| `processing_error`                   | Transient network issue         | Yes             | Retry in minutes                  |
 
 :::warning
 Do NOT retry `lost_card`, `stolen_card`, or `fraudulent`. It will not work, it damages your acceptance rate with the issuer, and repeated attempts can get merchant accounts flagged.
@@ -127,4 +134,4 @@ You want to be able to answer "what worked on `insufficient_funds` for annual pl
 
 ---
 
-*This is the reference. The playbook that ties it to messaging and cadence lives in [The AI Revenue Recovery Playbook](/blog/ai-revenue-recovery-playbook).*
+_This is the reference. The playbook that ties it to messaging and cadence lives in [The AI Revenue Recovery Playbook](/blog/ai-revenue-recovery-playbook)._

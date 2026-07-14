@@ -2,7 +2,8 @@
 title: "Webhook Reliability Patterns for Payment Systems"
 slug: "webhook-reliability-patterns-for-payment-systems"
 description: "How to receive, verify, deduplicate, and retry payment webhooks so no revenue event is ever silently lost."
-keywords: ["webhook reliability", "stripe webhooks", "idempotency", "webhook retry", "payment events"]
+keywords:
+  ["webhook reliability", "stripe webhooks", "idempotency", "webhook retry", "payment events"]
 category: "Engineering"
 tags: ["Webhooks", "Reliability", "Payments", "Engineering"]
 author: "RRLabs Editorial"
@@ -39,7 +40,7 @@ Every major PSP signs webhooks. Verify the signature before doing anything with 
 import { createHmac, timingSafeEqual } from "crypto";
 
 function verifyStripeSignature(body: string, header: string, secret: string) {
-  const parts = Object.fromEntries(header.split(",").map(kv => kv.split("=")));
+  const parts = Object.fromEntries(header.split(",").map((kv) => kv.split("=")));
   const signed = `${parts.t}.${body}`;
   const expected = createHmac("sha256", secret).update(signed).digest("hex");
   return timingSafeEqual(Buffer.from(expected), Buffer.from(parts.v1));
@@ -112,7 +113,7 @@ Reconciliation is not glamorous. It is what stops one missed webhook per year fr
 
 ## Idempotent handlers, not just idempotent ingestion
 
-Deduplication at the ingestion layer prevents processing the same event twice, but the *handler* must still be idempotent. If a network blip causes a partial processing (event stored, downstream side effect not applied), reprocessing must produce the correct outcome.
+Deduplication at the ingestion layer prevents processing the same event twice, but the _handler_ must still be idempotent. If a network blip causes a partial processing (event stored, downstream side effect not applied), reprocessing must produce the correct outcome.
 
 Rules:
 

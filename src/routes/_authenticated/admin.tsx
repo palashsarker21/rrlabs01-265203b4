@@ -16,10 +16,7 @@ import {
 export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminConsole,
   head: () => ({
-    meta: [
-      { title: "Admin console — RRLabs" },
-      { name: "robots", content: "noindex" },
-    ],
+    meta: [{ title: "Admin console — RRLabs" }, { name: "robots", content: "noindex" }],
   }),
 });
 
@@ -181,9 +178,7 @@ function AdminConsole() {
                         <Button
                           size="sm"
                           variant={w.recovery_engine_enabled ? "default" : "outline"}
-                          onClick={() =>
-                            toggleEngine(w.workspace_id, !w.recovery_engine_enabled)
-                          }
+                          onClick={() => toggleEngine(w.workspace_id, !w.recovery_engine_enabled)}
                         >
                           <Power className="mr-1.5 h-3.5 w-3.5" />
                           {w.recovery_engine_enabled ? "On" : "Off"}
@@ -230,9 +225,7 @@ function AdminConsole() {
                       </td>
                       <td className="px-4 py-3 text-xs text-muted-foreground">
                         <code className="whitespace-pre-wrap break-all">
-                          {Object.keys(l.details ?? {}).length
-                            ? JSON.stringify(l.details)
-                            : "—"}
+                          {Object.keys(l.details ?? {}).length ? JSON.stringify(l.details) : "—"}
                         </code>
                       </td>
                     </tr>
@@ -254,7 +247,15 @@ function AdminConsole() {
   );
 }
 
-function Stat({ label, value, accent }: { label: string; value: React.ReactNode; accent?: boolean }) {
+function Stat({
+  label,
+  value,
+  accent,
+}: {
+  label: string;
+  value: React.ReactNode;
+  accent?: boolean;
+}) {
   return (
     <div
       className={`rounded-xl border p-4 ${
@@ -262,9 +263,7 @@ function Stat({ label, value, accent }: { label: string; value: React.ReactNode;
       }`}
     >
       <p className="text-xs uppercase tracking-wider text-muted-foreground">{label}</p>
-      <p
-        className={`mt-2 text-2xl font-semibold ${accent ? "text-primary" : "text-foreground"}`}
-      >
+      <p className={`mt-2 text-2xl font-semibold ${accent ? "text-primary" : "text-foreground"}`}>
         {value}
       </p>
     </div>

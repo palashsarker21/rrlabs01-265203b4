@@ -6,14 +6,10 @@ import { normalizeError } from "./normalize";
  * go through these so success / warning / error / info are consistent.
  */
 export const notify = {
-  success: (title: string, description?: string) =>
-    toast.success(title, { description }),
-  warning: (title: string, description?: string) =>
-    toast.warning(title, { description }),
-  info: (title: string, description?: string) =>
-    toast.info(title, { description }),
-  error: (title: string, description?: string) =>
-    toast.error(title, { description }),
+  success: (title: string, description?: string) => toast.success(title, { description }),
+  warning: (title: string, description?: string) => toast.warning(title, { description }),
+  info: (title: string, description?: string) => toast.info(title, { description }),
+  error: (title: string, description?: string) => toast.error(title, { description }),
   /**
    * Render any thrown value as an error toast. Never leaks stack traces.
    */

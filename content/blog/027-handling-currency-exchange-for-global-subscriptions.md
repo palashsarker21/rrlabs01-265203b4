@@ -2,7 +2,14 @@
 title: "Handling Currency Exchange for Global Subscriptions"
 slug: "handling-currency-exchange-for-global-subscriptions"
 description: "How to price, charge, and reconcile subscriptions across currencies without leaking margin to FX spreads or accounting mismatches."
-keywords: ["currency conversion", "fx subscription", "multi currency saas", "presentment currency", "billing fx"]
+keywords:
+  [
+    "currency conversion",
+    "fx subscription",
+    "multi currency saas",
+    "presentment currency",
+    "billing fx",
+  ]
 category: "Payments"
 tags: ["FX", "Currency", "Payments", "International"]
 author: "RRLabs Editorial"
@@ -81,7 +88,7 @@ A €26 charge that settled to your account as $28 USD, then refunded, will cost
 Two implications:
 
 1. Do not treat refunds as free. There is an FX cost proportional to the delay between charge and refund.
-2. Chargebacks are worse — they include the chargeback fee, the ratio impact, *and* the FX exposure.
+2. Chargebacks are worse — they include the chargeback fee, the ratio impact, _and_ the FX exposure.
 
 Neither is a reason not to refund; both are reasons to configure the underlying flows well so refunds are rare.
 

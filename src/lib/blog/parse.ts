@@ -11,14 +11,7 @@ import type { TocItem } from "./types";
  * - Code blocks tagged with language classes for CSS-based styling
  */
 
-const admonitionTypes = new Set([
-  "note",
-  "tip",
-  "warning",
-  "info",
-  "success",
-  "danger",
-]);
+const admonitionTypes = new Set(["note", "tip", "warning", "info", "success", "danger"]);
 
 /** Preprocess `:::type\n...\n:::` blocks into styled HTML. */
 function preprocessAdmonitions(md: string): string {
@@ -66,18 +59,14 @@ function buildMarked() {
     renderer: {
       heading({ tokens, depth }) {
         const text = this.parser.parseInline(tokens);
-        const plain = tokens
-          .map((t) => ("text" in t ? (t.text as string) : ""))
-          .join("");
+        const plain = tokens.map((t) => ("text" in t ? (t.text as string) : "")).join("");
         const id = slugger.slug(plain);
         return `<h${depth} id="${id}"><a class="anchor" href="#${id}" aria-label="Anchor">#</a> ${text}</h${depth}>\n`;
       },
       image({ href, title, text }) {
         const t = title ? ` title="${escapeAttr(title)}"` : "";
         const alt = escapeAttr(text ?? "");
-        const captionHtml = title
-          ? `<figcaption>${escapeAttr(title)}</figcaption>`
-          : "";
+        const captionHtml = title ? `<figcaption>${escapeAttr(title)}</figcaption>` : "";
         return `<figure class="blog-figure"><img src="${escapeAttr(href)}" alt="${alt}"${t} loading="lazy" decoding="async" />${captionHtml}</figure>`;
       },
       code({ text, lang }) {
@@ -108,9 +97,7 @@ function buildMarked() {
       link({ href, title, tokens }) {
         const text = this.parser.parseInline(tokens);
         const isExternal = /^https?:\/\//i.test(href);
-        const extra = isExternal
-          ? ' target="_blank" rel="noopener noreferrer"'
-          : "";
+        const extra = isExternal ? ' target="_blank" rel="noopener noreferrer"' : "";
         const t = title ? ` title="${escapeAttr(title)}"` : "";
         return `<a href="${escapeAttr(href)}"${t}${extra}>${text}</a>`;
       },
@@ -137,7 +124,10 @@ export function parseMarkdown(source: string): { html: string; plain: string } {
   const preprocessed = preprocessAdmonitions(source);
   const marked = buildMarked();
   const html = marked.parse(preprocessed) as string;
-  const plain = source.replace(/[#>*_`~\[\]\(\)\!]/g, "").replace(/\s+/g, " ").trim();
+  const plain = source
+    .replace(/[#>*_`~\[\]\(\)\!]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
   return { html, plain };
 }
 
