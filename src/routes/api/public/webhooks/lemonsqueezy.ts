@@ -69,7 +69,7 @@ export const Route = createFileRoute("/api/public/webhooks/lemonsqueezy")({
               provider: "lemonsqueezy",
               event_name: eventName,
               event_id: eventId ?? null,
-              payload: payload as unknown as Record<string, unknown>,
+              payload: payload as never,
             },
             { onConflict: "provider,event_id" },
           )
@@ -279,7 +279,7 @@ async function onSubscriptionCreated(payload: LSWebhookPayload): Promise<void> {
         customer_portal_url: extractUrl(attr, "customer_portal"),
         card_brand: (attr.card_brand as string | null) ?? null,
         card_last_four: (attr.card_last_four as string | null) ?? null,
-        raw: attr as Record<string, unknown>,
+        raw: attr as never,
       },
       { onConflict: "ls_subscription_id" },
     );
@@ -321,7 +321,7 @@ async function onSubscriptionUpdated(payload: LSWebhookPayload): Promise<void> {
       customer_portal_url: extractUrl(attr, "customer_portal"),
       card_brand: (attr.card_brand as string | null) ?? null,
       card_last_four: (attr.card_last_four as string | null) ?? null,
-      raw: attr as Record<string, unknown>,
+      raw: attr as never,
     })
     .eq("ls_subscription_id", lsSubscriptionId);
 
