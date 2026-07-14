@@ -84,7 +84,7 @@ export const saveIntegration = createServerFn({ method: "POST" })
             last_error: result.message,
             config: {},
           },
-          { onConflict: "workspace_id,provider" },
+          { onConflict: "workspace_id,kind,provider" },
         );
       return { ok: false as const, message: result.message };
     }
@@ -108,7 +108,7 @@ export const saveIntegration = createServerFn({ method: "POST" })
           last_verified_at: nowIso,
           last_error: null,
         },
-        { onConflict: "workspace_id,provider" },
+        { onConflict: "workspace_id,kind,provider" },
       );
     if (upErr) throw new Error(upErr.message);
 
