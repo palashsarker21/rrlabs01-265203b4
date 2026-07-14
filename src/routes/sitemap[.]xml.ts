@@ -5,6 +5,7 @@ import {
   getAllCategories,
   getAllTags,
 } from "@/lib/blog/loader";
+import { ROUTE_REGISTRY } from "@/lib/access/config";
 
 // TODO: replace with your project URL once a project name or custom domain is set.
 const BASE_URL = "";
@@ -20,15 +21,16 @@ export const Route = createFileRoute("/sitemap.xml")({
   server: {
     handlers: {
       GET: async () => {
-        const entries: SitemapEntry[] = [
-          { path: "/", changefreq: "weekly", priority: "1.0" },
-          { path: "/features", changefreq: "monthly", priority: "0.8" },
-          { path: "/pricing", changefreq: "monthly", priority: "0.8" },
-          { path: "/blog", changefreq: "daily", priority: "0.9" },
-          { path: "/docs", changefreq: "weekly", priority: "0.7" },
-          { path: "/about", changefreq: "yearly", priority: "0.5" },
-          { path: "/contact", changefreq: "yearly", priority: "0.5" },
-        ];
+        // Derive from the centralized route registry — private routes
+        // (auth, admin, subscription-gated) are automatically excluded.
+        const indexable = ROUTE_REGISTRY.filter(
+          (r) => r.visibility === "public" && r.indexable !== false && r.path !== "/auth",
+        );
+        const entries: SitemapEntry[] = indexable.map((r) => ({
+          path: r.path,
+          changefreq: r.path === "/" ? "weekly" : "monthly",
+          priority: r.path === "/" ? "1.0" : "0.7",
+        }));
 
         for (const post of getAllPosts()) {
           entries.push({
