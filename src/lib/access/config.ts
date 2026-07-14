@@ -77,7 +77,14 @@ export const ROUTE_REGISTRY: RouteAccess[] = [
   { path: "/contact", visibility: "public", indexable: true, navGroup: "marketing", label: "Contact" },
   { path: "/docs", visibility: "public", indexable: true, navGroup: "marketing", label: "Docs" },
   { path: "/blog", visibility: "public", indexable: true, navGroup: "marketing", label: "Blog" },
-  { path: "/auth", visibility: "public", indexable: false },
+  { path: "/faq", visibility: "public", indexable: true, navGroup: "marketing", label: "FAQ" },
+  { path: "/status", visibility: "public", indexable: true, label: "Status" },
+  { path: "/security", visibility: "public", indexable: true, label: "Security" },
+  { path: "/privacy", visibility: "public", indexable: true, label: "Privacy Policy" },
+  { path: "/terms", visibility: "public", indexable: true, label: "Terms of Service" },
+  { path: "/refund", visibility: "public", indexable: true, label: "Refund Policy" },
+  { path: "/cookies", visibility: "public", indexable: true, label: "Cookie Policy" },
+  { path: "/auth", visibility: "public", indexable: false, label: "Sign in" },
 
   // Authenticated app
   { path: "/app", visibility: "authenticated", indexable: false, navGroup: "app", label: "Dashboard" },
