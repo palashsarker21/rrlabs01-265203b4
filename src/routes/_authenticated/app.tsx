@@ -61,25 +61,28 @@ function AppShell() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("workspaces")
-        .select("id, name, slug, status, recovery_engine_enabled, setup_step")
+        .select("id, name, slug, status, recovery_engine_enabled, setup_step, trial_ends_at, trial_started_at, subscription_status")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data ?? [];
     },
   });
 
-  const activeWorkspace = workspaces?.find((w) => w.status === "active") ?? null;
+  const activeWorkspace =
+    workspaces?.find((w) => w.status === "active" || w.status === "trial") ?? null;
+  const trial = computeTrialInfo(activeWorkspace);
 
   useEffect(() => {
     if (!workspaces) return;
     if (workspaces.length === 0) {
-      navigate({ to: "/checkout", replace: true });
+      navigate({ to: "/onboarding", replace: true });
       return;
     }
-    if (!activeWorkspace) {
-      navigate({ to: "/setup", replace: true });
+    if (trial.isExpired) {
+      navigate({ to: "/upgrade", search: { reason: "trial_expired" }, replace: true });
     }
-  }, [workspaces, activeWorkspace, navigate]);
+  }, [workspaces, trial.isExpired, navigate]);
+
 
   const stats = useServerFn(getRecoveryStats);
   const events = useServerFn(listRecoveryEvents);
