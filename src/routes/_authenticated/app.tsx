@@ -48,8 +48,11 @@ function AppShell() {
   });
 
   useEffect(() => {
-    // Placeholder: in Phase 2, redirect users with no workspace to the checkout flow.
-  }, []);
+    if (workspaces && workspaces.length === 0) {
+      navigate({ to: "/checkout", replace: true });
+    }
+  }, [workspaces, navigate]);
+
 
   async function handleSignOut() {
     setSigningOut(true);
