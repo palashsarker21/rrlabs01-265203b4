@@ -39,7 +39,7 @@ function loadAllPosts(): BlogPost[] {
   const posts: BlogPost[] = [];
 
   for (const [filepath, raw] of Object.entries(rawModules)) {
-    const parsed = matter(raw);
+    const parsed = parseFrontmatter(raw);
     const data = parsed.data as Record<string, unknown>;
 
     if (data.draft === true) continue;
