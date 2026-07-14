@@ -189,15 +189,23 @@ export async function runRecoveryForEvent({ eventId }: RunRecoveryArgs): Promise
       : Promise.resolve({ data: null }),
     supabaseAdmin
       .from("workspaces")
-      .select("id, name, organization_id, recovery_engine_enabled")
+      .select("id, name, organization_id, recovery_engine_enabled, status, trial_ends_at")
       .eq("id", event.workspace_id)
       .maybeSingle(),
   ]);
   if (!workspace) throw new Error("Workspace not found for event.");
-  if (workspace.recovery_engine_enabled === false) {
+  // Trial-expiry / subscription gate. Automation runs only when the workspace
+  // is on an active paid plan, or on a trial that has not yet expired.
+  const now = Date.now();
+  const trialEnds = workspace.trial_ends_at ? new Date(workspace.trial_ends_at).getTime() : 0;
+  const canSend =
+    workspace.recovery_engine_enabled !== false &&
+    (workspace.status === "active" ||
+      (workspace.status === "trial" && trialEnds > now));
+  if (!canSend) {
     await supabaseAdmin
       .from("recovery_events")
-      .update({ status: "abandoned", abandoned_at: new Date().toISOString() })
+      .update({ status: "abandoned", abandoned_at: new Date().toISOString(), last_error: `blocked: workspace status=${workspace.status}` })
       .eq("id", event.id);
     return;
   }
