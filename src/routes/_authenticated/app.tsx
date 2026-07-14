@@ -1,21 +1,39 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { LogOut, Sparkles } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { LogOut, Sparkles, RefreshCw, Mail, MessageCircle, Settings, TrendingUp } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { BrandLockup } from "@/components/brand-mark";
+import {
+  getRecoveryStats,
+  listRecoveryEvents,
+  retryRecoveryEvent,
+} from "@/lib/recovery.functions";
 
 export const Route = createFileRoute("/_authenticated/app")({
   component: AppShell,
   head: () => ({
     meta: [
-      { title: "Workspace — RRLabs" },
+      { title: "Dashboard — RRLabs" },
       { name: "robots", content: "noindex" },
     ],
   }),
 });
+
+function money(cents: number | null | undefined, currency: string | null | undefined) {
+  if (cents == null) return "—";
+  try {
+    return new Intl.NumberFormat(undefined, {
+      style: "currency",
+      currency: (currency ?? "USD").toUpperCase(),
+    }).format(cents / 100);
+  } catch {
+    return `${(cents / 100).toFixed(2)} ${currency ?? ""}`.trim();
+  }
+}
 
 function AppShell() {
   const navigate = useNavigate();
@@ -47,23 +65,46 @@ function AppShell() {
     },
   });
 
+  const activeWorkspace = workspaces?.find((w) => w.status === "active") ?? null;
+
   useEffect(() => {
     if (!workspaces) return;
     if (workspaces.length === 0) {
       navigate({ to: "/checkout", replace: true });
       return;
     }
-    const primary = workspaces[0];
-    if (primary.status !== "active") {
+    if (!activeWorkspace) {
       navigate({ to: "/setup", replace: true });
     }
-  }, [workspaces, navigate]);
+  }, [workspaces, activeWorkspace, navigate]);
 
+  const stats = useServerFn(getRecoveryStats);
+  const events = useServerFn(listRecoveryEvents);
+  const retry = useServerFn(retryRecoveryEvent);
+
+  const { data: statsData } = useQuery({
+    enabled: !!activeWorkspace,
+    queryKey: ["recovery-stats", activeWorkspace?.id],
+    queryFn: () => stats({ data: { workspaceId: activeWorkspace!.id } }),
+    refetchInterval: 15000,
+  });
+
+  const { data: eventsData, refetch: refetchEvents } = useQuery({
+    enabled: !!activeWorkspace,
+    queryKey: ["recovery-events", activeWorkspace?.id],
+    queryFn: () => events({ data: { workspaceId: activeWorkspace!.id, limit: 50 } }),
+    refetchInterval: 15000,
+  });
 
   async function handleSignOut() {
     setSigningOut(true);
     await supabase.auth.signOut();
     navigate({ to: "/auth", replace: true });
+  }
+
+  async function handleRetry(eventId: string) {
+    await retry({ data: { eventId } });
+    await refetchEvents();
   }
 
   return (
@@ -75,12 +116,13 @@ function AppShell() {
             <span className="hidden text-sm text-muted-foreground sm:inline">
               {profile?.profile?.display_name ?? profile?.user?.email}
             </span>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={handleSignOut}
-              disabled={signingOut}
-            >
+            <Button asChild size="sm" variant="ghost">
+              <Link to="/setup">
+                <Settings className="mr-2 h-4 w-4" />
+                Integrations
+              </Link>
+            </Button>
+            <Button size="sm" variant="ghost" onClick={handleSignOut} disabled={signingOut}>
               <LogOut className="mr-2 h-4 w-4" />
               Sign out
             </Button>
@@ -88,51 +130,174 @@ function AppShell() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-6 py-10">
-        <div className="rounded-2xl border border-border/60 bg-card/50 p-8">
+      <main className="mx-auto max-w-6xl px-6 py-10 space-y-8">
+        <section className="rounded-2xl border border-border/60 bg-card/50 p-8">
           <div className="flex items-center gap-3">
             <div className="rounded-lg bg-primary/10 p-2 text-primary">
               <Sparkles className="h-5 w-5" />
             </div>
             <div>
               <h1 className="text-xl font-semibold text-foreground">
-                Welcome to RRLabs
+                Recovery dashboard
               </h1>
               <p className="text-sm text-muted-foreground">
-                Phase 1 foundation is live. Billing, setup wizard, and the recovery engine come next.
+                {activeWorkspace?.name ?? "Your workspace"} · engine{" "}
+                {activeWorkspace?.recovery_engine_enabled ? "on" : "off"}
               </p>
             </div>
           </div>
 
-          <div className="mt-8">
-            <h2 className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
-              Your workspaces
-            </h2>
-            {workspaces && workspaces.length > 0 ? (
-              <ul className="mt-3 divide-y divide-border/60 rounded-lg border border-border/60 bg-background/40">
-                {workspaces.map((w) => (
-                  <li key={w.id} className="flex items-center justify-between px-4 py-3">
-                    <div>
-                      <p className="font-medium text-foreground">{w.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {w.status} · setup step {w.setup_step}
-                      </p>
-                    </div>
-                    <span className="text-xs uppercase tracking-wider text-muted-foreground">
-                      {w.recovery_engine_enabled ? "Engine on" : "Engine off"}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <div className="mt-3 rounded-lg border border-dashed border-border/70 bg-background/40 p-6 text-center text-sm text-muted-foreground">
-                No workspaces yet. Phase 2 (billing + checkout) will create one automatically after
-                subscription.
-              </div>
-            )}
+          <div className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-4">
+            <StatCard label="Failures tracked" value={statsData?.total ?? 0} />
+            <StatCard label="Recovered" value={statsData?.recovered ?? 0} />
+            <StatCard
+              label="Recovery rate"
+              value={`${Math.round((statsData?.recoveryRate ?? 0) * 100)}%`}
+              accent
+            />
+            <StatCard
+              label="Recovered value"
+              value={money(statsData?.recoveredAmountCents ?? 0, statsData?.currency)}
+            />
           </div>
-        </div>
+        </section>
+
+        <section className="rounded-2xl border border-border/60 bg-card/50">
+          <div className="flex items-center justify-between border-b border-border/60 px-6 py-4">
+            <div className="flex items-center gap-2">
+              <TrendingUp className="h-4 w-4 text-primary" />
+              <h2 className="text-sm font-medium text-foreground">Recovery events</h2>
+            </div>
+            <span className="text-xs text-muted-foreground">
+              Live · updates every 15s
+            </span>
+          </div>
+
+          {eventsData && eventsData.length > 0 ? (
+            <ul className="divide-y divide-border/60">
+              {eventsData.map((e) => (
+                <li key={e.id} className="px-6 py-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="min-w-0">
+                      <p className="truncate font-medium text-foreground">
+                        {e.customer?.email ?? e.customer?.name ?? "Unknown customer"}
+                      </p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {e.ai_summary ?? e.failure_message ?? e.failure_code ?? "Analyzing…"}
+                      </p>
+                      <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+                        <StatusBadge status={e.status} />
+                        {e.failure_category ? (
+                          <span className="rounded bg-muted px-2 py-0.5 text-muted-foreground">
+                            {e.failure_category.replace(/_/g, " ")}
+                          </span>
+                        ) : null}
+                        <span className="text-muted-foreground">
+                          {e.attempts_count ?? 0}{" "}
+                          {(e.attempts_count ?? 0) === 1 ? "attempt" : "attempts"}
+                        </span>
+                        <span className="text-muted-foreground">
+                          {new Date(e.created_at).toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end gap-2">
+                      <span className="text-sm font-semibold text-foreground">
+                        {money(e.amount_cents, e.currency)}
+                      </span>
+                      {e.status !== "recovered" && e.status !== "abandoned" ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleRetry(e.id)}
+                        >
+                          <RefreshCw className="mr-1.5 h-3.5 w-3.5" />
+                          Retry
+                        </Button>
+                      ) : null}
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <EmptyState workspaceId={activeWorkspace?.id} />
+          )}
+        </section>
+
+        <section className="rounded-2xl border border-border/60 bg-card/40 p-6">
+          <h3 className="text-sm font-medium text-foreground">Stripe webhook URL</h3>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Paste this URL in your Stripe dashboard → Developers → Webhooks. Select events
+            <code className="mx-1">payment_intent.payment_failed</code>,
+            <code className="mx-1">invoice.payment_failed</code>,
+            <code className="mx-1">charge.failed</code>,
+            <code className="mx-1">payment_intent.succeeded</code>,
+            <code className="mx-1">invoice.payment_succeeded</code>. Copy the signing secret
+            into the Stripe integration.
+          </p>
+          {activeWorkspace ? (
+            <code className="mt-3 block break-all rounded bg-background/60 p-3 text-xs">
+              {typeof window !== "undefined" ? window.location.origin : ""}
+              /api/public/webhooks/stripe?w={activeWorkspace.id}
+            </code>
+          ) : null}
+        </section>
       </main>
+    </div>
+  );
+}
+
+function StatCard({ label, value, accent }: { label: string; value: React.ReactNode; accent?: boolean }) {
+  return (
+    <div
+      className={`rounded-xl border p-4 ${
+        accent ? "border-primary/40 bg-primary/5" : "border-border/60 bg-background/40"
+      }`}
+    >
+      <p className="text-xs uppercase tracking-wider text-muted-foreground">{label}</p>
+      <p className={`mt-2 text-2xl font-semibold ${accent ? "text-primary" : "text-foreground"}`}>
+        {value}
+      </p>
+    </div>
+  );
+}
+
+function StatusBadge({ status }: { status: string }) {
+  const map: Record<string, string> = {
+    new: "bg-blue-500/15 text-blue-600 dark:text-blue-400",
+    analyzing: "bg-amber-500/15 text-amber-600 dark:text-amber-400",
+    recovering: "bg-amber-500/15 text-amber-600 dark:text-amber-400",
+    recovered: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400",
+    abandoned: "bg-muted text-muted-foreground",
+    failed: "bg-red-500/15 text-red-600 dark:text-red-400",
+  };
+  return (
+    <span className={`rounded px-2 py-0.5 text-[11px] font-medium capitalize ${map[status] ?? "bg-muted"}`}>
+      {status}
+    </span>
+  );
+}
+
+function EmptyState({ workspaceId }: { workspaceId?: string }) {
+  return (
+    <div className="p-10 text-center">
+      <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+        <Mail className="h-5 w-5" />
+      </div>
+      <h3 className="mt-3 text-sm font-medium text-foreground">
+        No recovery events yet
+      </h3>
+      <p className="mt-1 text-xs text-muted-foreground">
+        Connect Stripe to this workspace and configure the webhook above. Failed payments will
+        appear here and be recovered automatically.
+      </p>
+      {workspaceId ? (
+        <p className="mt-4 inline-flex items-center gap-1 text-xs text-muted-foreground">
+          <MessageCircle className="h-3.5 w-3.5" />
+          Recovery messages send via your connected email and WhatsApp channels.
+        </p>
+      ) : null}
     </div>
   );
 }
