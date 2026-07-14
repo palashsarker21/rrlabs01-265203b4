@@ -82,6 +82,8 @@ function AppShell() {
   const stats = useServerFn(getRecoveryStats);
   const events = useServerFn(listRecoveryEvents);
   const retry = useServerFn(retryRecoveryEvent);
+  const adminStatus = useServerFn(getMyAdminStatus);
+  const { data: me } = useQuery({ queryKey: ["admin-status"], queryFn: () => adminStatus({}) });
 
   const { data: statsData } = useQuery({
     enabled: !!activeWorkspace,
