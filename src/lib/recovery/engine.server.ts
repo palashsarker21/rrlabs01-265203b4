@@ -205,7 +205,7 @@ export async function runRecoveryForEvent({ eventId }: RunRecoveryArgs): Promise
   if (!canSend) {
     await supabaseAdmin
       .from("recovery_events")
-      .update({ status: "abandoned", abandoned_at: new Date().toISOString(), last_error: `blocked: workspace status=${workspace.status}` })
+      .update({ status: "abandoned", abandoned_at: new Date().toISOString() })
       .eq("id", event.id);
     return;
   }
