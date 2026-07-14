@@ -294,12 +294,15 @@ export async function runRecoveryForEvent({ eventId }: RunRecoveryArgs): Promise
     }
   }
 
+  const { data: countRow } = await supabaseAdmin
+    .from("recovery_attempts")
+    .select("id", { count: "exact", head: true })
+    .eq("event_id", event.id);
+  void countRow;
+
   await supabaseAdmin
     .from("recovery_events")
     .update({
-      attempts_count: (event as { attempts_count?: number }).attempts_count
-        ? (event as { attempts_count: number }).attempts_count + 1
-        : 1,
       status: anySent ? "recovering" : "failed",
     })
     .eq("id", event.id);
