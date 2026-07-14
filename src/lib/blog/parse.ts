@@ -125,7 +125,7 @@ export function parseMarkdown(source: string): { html: string; plain: string } {
   const marked = buildMarked();
   const html = marked.parse(preprocessed) as string;
   const plain = source
-    .replace(/[#>*_`~\[\]\(\)\!]/g, "")
+    .replace(/[#>*_`~[\]()!]/g, "")
     .replace(/\s+/g, " ")
     .trim();
   return { html, plain };
