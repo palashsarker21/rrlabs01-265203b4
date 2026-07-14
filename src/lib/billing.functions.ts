@@ -22,11 +22,22 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
 
     const { data: plan, error: planErr } = await supabase
       .from("plans")
-      .select("id, name, ls_variant_id, price_cents, currency, trial_days, is_active")
+      .select("id, code, name, ls_variant_id, price_cents, currency, trial_days, is_active")
       .eq("id", data.planId)
       .maybeSingle();
     if (planErr || !plan || !plan.is_active) {
       throw new Error("Selected plan is not available.");
+    }
+
+    // Resolve Lemon Squeezy variant ID: prefer per-plan env override, fall back to DB.
+    const envVariantByCode: Record<string, string | undefined> = {
+      starter: process.env.LEMONSQUEEZY_VARIANT_STARTER,
+      growth: process.env.LEMONSQUEEZY_VARIANT_GROWTH,
+      scale: process.env.LEMONSQUEEZY_VARIANT_SCALE,
+    };
+    const variantId = envVariantByCode[plan.code] ?? plan.ls_variant_id;
+    if (!variantId || variantId.startsWith("ls_variant_")) {
+      throw new Error("This plan is not yet linked to a Lemon Squeezy variant.");
     }
 
     const apiKey = process.env.LEMONSQUEEZY_API_KEY;
@@ -77,7 +88,7 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
             },
           },
           product_options: {
-            enabled_variants: [Number(plan.ls_variant_id)].filter((n) => Number.isFinite(n)),
+            enabled_variants: [Number(variantId)].filter((n) => Number.isFinite(n)),
             redirect_url: redirectUrl,
             receipt_button_text: "Return to RRLabs",
             receipt_link_url: redirectUrl,
@@ -90,7 +101,7 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
         },
         relationships: {
           store: { data: { type: "stores", id: storeId } },
-          variant: { data: { type: "variants", id: plan.ls_variant_id } },
+          variant: { data: { type: "variants", id: variantId } },
         },
       },
     };
