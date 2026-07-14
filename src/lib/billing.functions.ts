@@ -88,18 +88,6 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
             },
           },
           product_options: {
-            enabled_variants: [Number(plan.ls_variant_id)].filter((n) => Number.isFinite(n)),
-            redirect_url: redirectUrl,
-            receipt_button_text: "Return to RRLabs",
-            receipt_link_url: redirectUrl,
-          },
-          checkout_options: {
-            embed: false,
-            dark: true,
-            logo: true,
-          },
-        },
-          product_options: {
             enabled_variants: [Number(variantId)].filter((n) => Number.isFinite(n)),
             redirect_url: redirectUrl,
             receipt_button_text: "Return to RRLabs",
