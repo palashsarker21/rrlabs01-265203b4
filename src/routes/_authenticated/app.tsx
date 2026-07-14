@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { LogOut, Sparkles, RefreshCw, Mail, MessageCircle, Settings, TrendingUp } from "lucide-react";
+import { LogOut, Sparkles, RefreshCw, Mail, MessageCircle, Settings, TrendingUp, Shield } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import {
   listRecoveryEvents,
   retryRecoveryEvent,
 } from "@/lib/recovery.functions";
+import { getMyAdminStatus } from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/_authenticated/app")({
   component: AppShell,
