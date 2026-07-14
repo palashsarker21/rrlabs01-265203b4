@@ -1212,6 +1212,7 @@ export type Database = {
         Args: { _user_id: string; _workspace_id: string }
         Returns: boolean
       }
+      expire_trial_workspaces: { Args: never; Returns: number }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1238,6 +1239,7 @@ export type Database = {
           workspace_id: string
         }[]
       }
+      workspace_can_send: { Args: { _workspace_id: string }; Returns: boolean }
       workspace_role_of: {
         Args: { _user_id: string; _workspace_id: string }
         Returns: Database["public"]["Enums"]["workspace_role"]

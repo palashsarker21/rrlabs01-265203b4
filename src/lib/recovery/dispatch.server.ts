@@ -42,6 +42,51 @@ export async function sendEmailViaResend(
   return { ok: true, providerMessageId: (body as { id?: string }).id, raw: body };
 }
 
+interface SendGridCreds {
+  api_key: string;
+  from_email: string;
+  from_name?: string;
+}
+
+export async function sendEmailViaSendGrid(
+  creds: SendGridCreds,
+  args: { to: string; subject: string; text: string; html?: string },
+): Promise<DispatchResult> {
+  const res = await fetch("https://api.sendgrid.com/v3/mail/send", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${creds.api_key}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      personalizations: [{ to: [{ email: args.to }] }],
+      from: { email: creds.from_email, name: creds.from_name },
+      subject: args.subject,
+      content: [
+        { type: "text/plain", value: args.text },
+        ...(args.html ? [{ type: "text/html", value: args.html }] : []),
+      ],
+    }),
+  });
+  if (!res.ok) {
+    const body = await res.text().catch(() => "");
+    return { ok: false, error: `SendGrid ${res.status}: ${body.slice(0, 300)}` };
+  }
+  return { ok: true, providerMessageId: res.headers.get("x-message-id") ?? undefined };
+}
+
+/**
+ * SMTP is unavailable from the Cloudflare Worker runtime (no raw TCP sockets).
+ * We surface a clear error so the caller can fall back to Resend / SendGrid.
+ * Wire SMTP later via an external relay (e.g. a small Node worker) if needed.
+ */
+export async function sendEmailViaSmtp(): Promise<DispatchResult> {
+  return {
+    ok: false,
+    error: "SMTP dispatch is not supported from the edge runtime. Use Resend or SendGrid, or configure an SMTP-to-HTTP relay.",
+  };
+}
+
 interface WhatsAppCreds {
   access_token: string;
   phone_number_id: string;
