@@ -19,7 +19,7 @@ export const Route = createFileRoute("/faq")({
       { property: "og:title", content: "FAQ — RRLabs" },
       { property: "og:description", content: "Frequently asked questions about RRLabs revenue recovery." },
     ],
-    links: [{ rel: "canonical", href: "https://rrlabs01.lovable.app/faq" }],
+    links: [{ rel: "canonical", href: "https://www.rrlabs.online/faq" }],
     scripts: [{
       type: "application/ld+json",
       children: JSON.stringify({

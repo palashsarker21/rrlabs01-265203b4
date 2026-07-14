@@ -9,7 +9,7 @@ export const Route = createFileRoute("/security")({
       { title: "Security — RRLabs" },
       { name: "description", content: "How RRLabs protects your data: encryption, RLS, RBAC, and compliance." },
     ],
-    links: [{ rel: "canonical", href: "https://rrlabs01.lovable.app/security" }],
+    links: [{ rel: "canonical", href: "https://www.rrlabs.online/security" }],
   }),
 });
 

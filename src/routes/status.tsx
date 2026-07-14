@@ -8,7 +8,7 @@ export const Route = createFileRoute("/status")({
       { title: "System Status — RRLabs" },
       { name: "description", content: "Real-time status of RRLabs recovery engine, API, and integrations." },
     ],
-    links: [{ rel: "canonical", href: "https://rrlabs01.lovable.app/status" }],
+    links: [{ rel: "canonical", href: "https://www.rrlabs.online/status" }],
   }),
 });
 

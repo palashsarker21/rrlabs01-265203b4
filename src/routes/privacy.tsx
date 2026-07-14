@@ -9,7 +9,7 @@ export const Route = createFileRoute("/privacy")({
       { title: "Privacy Policy — RRLabs" },
       { name: "description", content: "How Revenue Recovery Labs collects, uses, and protects your data." },
     ],
-    links: [{ rel: "canonical", href: "https://rrlabs01.lovable.app/privacy" }],
+    links: [{ rel: "canonical", href: "https://www.rrlabs.online/privacy" }],
   }),
 });
 

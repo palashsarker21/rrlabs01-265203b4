@@ -9,7 +9,7 @@ export const Route = createFileRoute("/refund")({
       { title: "Refund Policy — RRLabs" },
       { name: "description", content: "RRLabs refund terms for monthly and annual plans." },
     ],
-    links: [{ rel: "canonical", href: "https://rrlabs01.lovable.app/refund" }],
+    links: [{ rel: "canonical", href: "https://www.rrlabs.online/refund" }],
   }),
 });
 

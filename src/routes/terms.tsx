@@ -9,7 +9,7 @@ export const Route = createFileRoute("/terms")({
       { title: "Terms of Service — RRLabs" },
       { name: "description", content: "Terms governing the use of Revenue Recovery Labs." },
     ],
-    links: [{ rel: "canonical", href: "https://rrlabs01.lovable.app/terms" }],
+    links: [{ rel: "canonical", href: "https://www.rrlabs.online/terms" }],
   }),
 });
 
