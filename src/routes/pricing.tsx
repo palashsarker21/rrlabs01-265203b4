@@ -1,7 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import {
-  ArrowRight, Check, Sparkles, ShieldCheck, Lock, BadgeCheck, ChevronDown,
+  ArrowRight,
+  Check,
+  Sparkles,
+  ShieldCheck,
+  BadgeCheck,
+  CreditCard,
+  ChevronDown,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -11,16 +17,17 @@ import { SITE_URL } from "@/lib/brand";
 export const Route = createFileRoute("/pricing")({
   head: () => ({
     meta: [
-      { title: "Pricing — Simple plans that grow with you | RRLabs" },
+      { title: "Pricing — Enterprise plans that grow with your revenue | RRLabs" },
       {
         name: "description",
         content:
-          "Simple pricing for AI-powered revenue recovery. Fixed monthly subscription plus a small success fee only when revenue is recovered.",
+          "Enterprise pricing for AI-powered revenue recovery. Start free with a 14-day trial. Upgrade only when you're ready.",
       },
       { property: "og:title", content: "RRLabs Pricing" },
       {
         property: "og:description",
-        content: "Fixed monthly plans plus a small success fee. Pay only when we recover revenue.",
+        content:
+          "Enterprise pricing that grows with your revenue. 14-day free trial. No credit card required.",
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: `${SITE_URL}/pricing` },
@@ -35,14 +42,15 @@ type Plan = {
   code: "starter" | "growth" | "business" | "enterprise";
   name: string;
   price: string;
-  priceSuffix: string;
+  priceSuffix?: string;
+  priceLead?: string;
   fee: string;
+  feeLead?: string;
   tagline: string;
   featuresLead?: string;
   features: string[];
   cta: string;
-  ctaTo: string;
-  ctaSearch?: Record<string, string>;
+  ctaTo: "/auth" | "/contact";
   highlight?: boolean;
 };
 
@@ -52,41 +60,41 @@ const PLANS: Plan[] = [
     name: "Starter",
     price: "$29",
     priceSuffix: "/month",
-    fee: "+ 5% success fee",
-    tagline: "Best for startups and small businesses.",
+    fee: "+5% success fee",
+    tagline: "Perfect for startups.",
     features: [
-      "AI Recovery Engine",
+      "AI Recovery",
       "Email Recovery",
       "WhatsApp Recovery",
-      "Stripe Integration",
-      "Shopify Integration",
-      "WooCommerce Integration",
-      "Basic Analytics",
+      "Stripe",
+      "Shopify",
+      "WooCommerce",
+      "Dashboard",
+      "Analytics",
+      "API",
       "Community Support",
     ],
-    cta: "Start Starter",
+    cta: "Start Free Trial",
     ctaTo: "/auth",
-    ctaSearch: { redirect: "/checkout?plan=starter" },
   },
   {
     code: "growth",
     name: "Growth",
     price: "$99",
     priceSuffix: "/month",
-    fee: "+ 4% success fee",
-    tagline: "Perfect for growing subscription businesses.",
-    featuresLead: "Everything in Starter, plus:",
+    fee: "+4% success fee",
+    tagline: "For growing subscription businesses.",
+    featuresLead: "Everything in Starter, plus",
     features: [
       "Advanced Analytics",
-      "Customer Insights",
+      "Customer Segmentation",
       "AI Recommendations",
       "Workflow Automation",
       "Unlimited Integrations",
       "Priority Support",
     ],
-    cta: "Start Growth",
+    cta: "Start Free Trial",
     ctaTo: "/auth",
-    ctaSearch: { redirect: "/checkout?plan=growth" },
     highlight: true,
   },
   {
@@ -94,36 +102,36 @@ const PLANS: Plan[] = [
     name: "Business",
     price: "$299",
     priceSuffix: "/month",
-    fee: "+ 3% success fee",
-    tagline: "Built for high-volume SaaS companies.",
-    featuresLead: "Everything in Growth, plus:",
+    fee: "+3% success fee",
+    tagline: "Built for high-volume SaaS.",
+    featuresLead: "Everything in Growth, plus",
     features: [
       "Executive Dashboard",
-      "Realtime Analytics",
       "Revenue Intelligence",
-      "Advanced Security",
-      "Team Management",
-      "Premium Support",
+      "Predictive Analytics",
+      "SSO Ready",
+      "Enterprise Security",
+      "Dedicated Success Manager",
     ],
-    cta: "Start Business",
+    cta: "Start Free Trial",
     ctaTo: "/auth",
-    ctaSearch: { redirect: "/checkout?plan=business" },
   },
   {
     code: "enterprise",
     name: "Enterprise",
-    price: "From $999",
-    priceSuffix: "/month",
-    fee: "Custom success fee",
-    tagline: "For enterprise organizations with advanced requirements.",
-    featuresLead: "Everything in Business, plus:",
+    price: "Custom",
+    priceLead: "Starting from $999/month",
+    fee: "Starting from 2% success fee",
+    tagline: "For enterprises with advanced requirements.",
     features: [
       "White Label",
-      "Custom Branding",
+      "Custom Domain",
       "Dedicated Infrastructure",
-      "Enterprise Security",
-      "Dedicated Success Manager",
+      "Dedicated AI",
       "Custom Integrations",
+      "Enterprise SLA",
+      "Professional Services",
+      "Dedicated Engineer",
     ],
     cta: "Contact Sales",
     ctaTo: "/contact",
@@ -131,57 +139,56 @@ const PLANS: Plan[] = [
 ];
 
 const TRUST = [
-  { icon: Sparkles, label: "AI Powered" },
-  { icon: BadgeCheck, label: "Enterprise Ready" },
-  { icon: ShieldCheck, label: "Secure by Design" },
-  { icon: Lock, label: "No Hidden Fees" },
+  { icon: Sparkles, label: "14-Day Free Trial" },
+  { icon: CreditCard, label: "No Credit Card Required" },
+  { icon: BadgeCheck, label: "AI Powered" },
+  { icon: ShieldCheck, label: "Enterprise Ready" },
 ];
 
-const COMPARE_ROWS: { label: string; values: [boolean, boolean, boolean, boolean] }[] = [
-  { label: "AI Recovery Engine",  values: [true, true, true, true] },
-  { label: "Email Recovery",      values: [true, true, true, true] },
-  { label: "WhatsApp Recovery",   values: [true, true, true, true] },
-  { label: "Analytics",           values: [true, true, true, true] },
-  { label: "Advanced Analytics",  values: [false, true, true, true] },
-  { label: "Realtime Dashboard",  values: [false, false, true, true] },
-  { label: "AI Recommendations",  values: [false, true, true, true] },
-  { label: "Workflow Automation", values: [false, true, true, true] },
-  { label: "White Label",         values: [false, false, false, true] },
-  { label: "Custom Integrations", values: [false, false, false, true] },
-  { label: "Priority Support",    values: [false, true, true, true] },
-  { label: "Dedicated Support",   values: [false, false, false, true] },
+type CompareValue = boolean | string;
+const COMPARE_ROWS: { label: string; values: [CompareValue, CompareValue, CompareValue, CompareValue] }[] = [
+  { label: "AI Recovery",            values: [true, true, true, true] },
+  { label: "Analytics",              values: ["Basic", "Advanced", "Advanced", "Custom"] },
+  { label: "Revenue Intelligence",   values: [false, false, true, true] },
+  { label: "Workflow Automation",    values: [false, true, true, true] },
+  { label: "API",                    values: [true, true, true, true] },
+  { label: "Webhooks",               values: [true, true, true, true] },
+  { label: "SSO",                    values: [false, false, true, true] },
+  { label: "White Label",            values: [false, false, false, true] },
+  { label: "Support",                values: ["Community", "Priority", "Dedicated CSM", "Dedicated Engineer"] },
+  { label: "Communication Channels", values: ["Email + WhatsApp", "Email + WhatsApp", "Email + WhatsApp", "Email + WhatsApp + Custom"] },
 ];
 
 const FAQS = [
   {
     q: "What is the success fee?",
-    a: "A small percentage of revenue we successfully recover for you. If we don't recover, you don't pay a success fee — only the fixed monthly subscription.",
+    a: "A small percentage of revenue we recover for you. No recovery, no fee.",
   },
   {
-    q: "How does AI recovery work?",
-    a: "Our engine analyzes each failed payment, chooses the best retry timing, and sends AI-generated Email and WhatsApp messages tailored to the customer, language, and payment failure reason.",
+    q: "Do I need a credit card to start?",
+    a: "No. The 14-day trial requires no card.",
   },
   {
-    q: "Do I use my own Email and WhatsApp accounts?",
-    a: "Yes. You connect your existing Email (SMTP / provider) and WhatsApp Business API accounts. RRLabs orchestrates messaging on your behalf — your brand, your deliverability.",
+    q: "Can I change plans later?",
+    a: "Yes. Upgrade, downgrade, or cancel anytime from your dashboard.",
   },
   {
-    q: "Can I upgrade anytime?",
-    a: "Yes. Upgrade, downgrade, or cancel at any time from your dashboard. Changes are prorated automatically.",
+    q: "Which channels are supported?",
+    a: "Email and WhatsApp Business API on all plans.",
+  },
+  {
+    q: "How does billing work?",
+    a: "A fixed monthly subscription plus a small success fee on recovered revenue.",
   },
   {
     q: "Is my data secure?",
-    a: "All data is encrypted in transit and at rest. We follow enterprise security practices with role-based access, audit logs, and least-privilege service boundaries.",
-  },
-  {
-    q: "Do you offer Enterprise onboarding?",
-    a: "Yes. Enterprise plans include a dedicated success manager, custom integration support, and white-glove onboarding tailored to your stack.",
+    a: "Encrypted in transit and at rest, with role-based access and audit logs.",
   },
 ];
 
 function PricingPage() {
   return (
-    <div className="min-h-screen bg-[#fafafa] text-neutral-900">
+    <div className="min-h-screen bg-white text-neutral-900">
       <MarketingHeader />
       <Hero />
       <PlanGrid />
@@ -197,38 +204,47 @@ function PricingPage() {
 
 function Hero() {
   return (
-    <section className="relative overflow-hidden">
-      <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(60%_50%_at_50%_0%,rgba(0,0,0,0.05),transparent_70%)]" />
-      <div className="mx-auto max-w-4xl px-6 pt-20 pb-14 text-center sm:pt-28">
+    <section className="relative overflow-hidden bg-[#fafafa]">
+      <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(60%_50%_at_50%_0%,rgba(16,185,129,0.06),transparent_70%)]" />
+      <div className="mx-auto max-w-4xl px-6 pt-20 pb-16 text-center sm:pt-28">
         <div className="mx-auto inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-3 py-1 text-xs font-medium text-neutral-600 shadow-sm">
-          <Sparkles className="h-3.5 w-3.5" />
-          AI-powered revenue recovery
+          <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500" />
+          Simple, transparent pricing
         </div>
         <h1 className="mt-6 text-balance text-4xl font-semibold tracking-tight text-neutral-950 sm:text-5xl md:text-6xl">
-          Simple pricing that grows with your business.
+          Enterprise pricing that grows with your revenue.
         </h1>
         <p className="mx-auto mt-5 max-w-2xl text-pretty text-base leading-relaxed text-neutral-600 sm:text-lg">
-          Recover failed subscription payments automatically using AI-powered Email and WhatsApp
-          recovery. Pay a fixed monthly subscription plus a small success fee — only when revenue
-          is recovered.
+          Recover failed payments automatically using AI-powered Email and WhatsApp recovery.
+          Start free with a 14-day trial. Upgrade only when you're ready.
         </p>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-          <Link to="/auth" search={{ redirect: "/setup" }}>
-            <Button size="lg" className="rounded-full bg-neutral-950 px-6 text-white hover:bg-neutral-800">
-              Start Free Setup
+          <Link to="/auth">
+            <Button
+              size="lg"
+              className="rounded-full bg-emerald-600 px-6 text-white hover:bg-emerald-700"
+            >
+              Start Free Trial
               <ArrowRight className="ml-1.5 h-4 w-4" />
             </Button>
           </Link>
           <Link to="/contact">
-            <Button size="lg" variant="outline" className="rounded-full border-neutral-300 bg-white px-6 text-neutral-900 hover:bg-neutral-100">
+            <Button
+              size="lg"
+              variant="outline"
+              className="rounded-full border-neutral-300 bg-white px-6 text-neutral-900 hover:bg-neutral-100"
+            >
               Talk to Sales
             </Button>
           </Link>
         </div>
         <div className="mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-3">
           {TRUST.map(({ icon: Icon, label }) => (
-            <div key={label} className="inline-flex items-center gap-1.5 text-xs font-medium text-neutral-600">
-              <Icon className="h-3.5 w-3.5 text-neutral-500" />
+            <div
+              key={label}
+              className="inline-flex items-center gap-1.5 text-xs font-medium text-neutral-600"
+            >
+              <Icon className="h-3.5 w-3.5 text-emerald-600" />
               {label}
             </div>
           ))}
@@ -240,14 +256,14 @@ function Hero() {
 
 function PlanGrid() {
   return (
-    <section className="mx-auto max-w-7xl px-6 pb-16">
+    <section className="mx-auto max-w-7xl px-6 py-16">
       <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
         {PLANS.map((p) => (
           <PlanCard key={p.code} plan={p} />
         ))}
       </div>
       <p className="mt-6 text-center text-xs text-neutral-500">
-        All plans include a 14-day free trial. No credit card required to start.
+        14-day free trial on all plans. No credit card required.
       </p>
     </section>
   );
@@ -260,26 +276,34 @@ function PlanCard({ plan }: { plan: Plan }) {
       className={
         "group relative flex h-full flex-col rounded-2xl border bg-white p-6 transition-all duration-300 " +
         (highlight
-          ? "border-neutral-900 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.25)] ring-1 ring-neutral-900/5"
+          ? "border-emerald-500/70 shadow-[0_20px_60px_-20px_rgba(16,185,129,0.35)] ring-1 ring-emerald-500/10"
           : "border-neutral-200 shadow-[0_1px_2px_rgba(0,0,0,0.04)] hover:-translate-y-0.5 hover:shadow-[0_16px_40px_-20px_rgba(0,0,0,0.18)]")
       }
     >
       {highlight && (
-        <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-neutral-950 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-white">
+        <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-emerald-600 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-white">
           Most Popular
         </div>
       )}
+
       <div>
         <h3 className="text-lg font-semibold text-neutral-950">{plan.name}</h3>
         <p className="mt-1 text-sm text-neutral-600">{plan.tagline}</p>
       </div>
 
-      <div className="mt-6">
+      <div className="mt-6 min-h-[92px]">
         <div className="flex items-baseline gap-1">
-          <span className="text-4xl font-semibold tracking-tight text-neutral-950">{plan.price}</span>
-          <span className="text-sm text-neutral-500">{plan.priceSuffix}</span>
+          <span className="text-4xl font-semibold tracking-tight text-neutral-950">
+            {plan.price}
+          </span>
+          {plan.priceSuffix && (
+            <span className="text-sm text-neutral-500">{plan.priceSuffix}</span>
+          )}
         </div>
-        <p className="mt-1 text-xs font-medium text-neutral-600">{plan.fee}</p>
+        {plan.priceLead && (
+          <p className="mt-1 text-xs text-neutral-500">{plan.priceLead}</p>
+        )}
+        <p className="mt-1 text-xs font-medium text-emerald-700">{plan.fee}</p>
       </div>
 
       <div className="my-6 h-px bg-neutral-200" />
@@ -291,7 +315,7 @@ function PlanCard({ plan }: { plan: Plan }) {
         <ul className="space-y-2.5">
           {plan.features.map((f) => (
             <li key={f} className="flex items-start gap-2.5 text-sm text-neutral-800">
-              <Check className="mt-0.5 h-4 w-4 shrink-0 text-neutral-900" />
+              <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
               <span>{f}</span>
             </li>
           ))}
@@ -299,16 +323,12 @@ function PlanCard({ plan }: { plan: Plan }) {
       </div>
 
       <div className="mt-8">
-        <Link
-          to={plan.ctaTo}
-          {...(plan.ctaSearch ? { search: plan.ctaSearch } : {})}
-          className="block"
-        >
+        <Link to={plan.ctaTo} className="block">
           <Button
             className={
               "w-full rounded-full transition-colors " +
               (highlight
-                ? "bg-neutral-950 text-white hover:bg-neutral-800"
+                ? "bg-emerald-600 text-white hover:bg-emerald-700"
                 : "bg-white text-neutral-900 border border-neutral-300 hover:bg-neutral-100")
             }
           >
@@ -326,7 +346,7 @@ function ComparisonTable() {
     <section className="mx-auto max-w-7xl px-6 py-16">
       <div className="mx-auto max-w-2xl text-center">
         <h2 className="text-3xl font-semibold tracking-tight text-neutral-950 sm:text-4xl">
-          Compare plans at a glance
+          Compare plans
         </h2>
         <p className="mt-3 text-neutral-600">
           Every plan includes the AI recovery engine. Higher tiers unlock deeper analytics,
@@ -341,10 +361,13 @@ function ComparisonTable() {
               <tr className="border-b border-neutral-200 bg-neutral-50/70">
                 <th className="p-4 text-left font-medium text-neutral-500">Feature</th>
                 {PLANS.map((p) => (
-                  <th key={p.code} className="p-4 text-center font-semibold text-neutral-950">
+                  <th
+                    key={p.code}
+                    className="p-4 text-center font-semibold text-neutral-950"
+                  >
                     {p.name}
                     {p.highlight && (
-                      <span className="ml-1.5 rounded-full bg-neutral-950 px-1.5 py-0.5 align-middle text-[9px] font-medium uppercase tracking-wider text-white">
+                      <span className="ml-1.5 rounded-full bg-emerald-600 px-1.5 py-0.5 align-middle text-[9px] font-medium uppercase tracking-wider text-white">
                         Popular
                       </span>
                     )}
@@ -358,10 +381,17 @@ function ComparisonTable() {
                   <td className="p-4 text-neutral-800">{row.label}</td>
                   {row.values.map((v, idx) => (
                     <td key={idx} className="p-4 text-center">
-                      {v ? (
-                        <Check className="mx-auto h-4 w-4 text-neutral-900" />
+                      {typeof v === "boolean" ? (
+                        v ? (
+                          <Check className="mx-auto h-4 w-4 text-emerald-600" />
+                        ) : (
+                          <span
+                            className="mx-auto block h-1 w-4 rounded-full bg-neutral-200"
+                            aria-label="Not included"
+                          />
+                        )
                       ) : (
-                        <span className="mx-auto block h-1 w-4 rounded-full bg-neutral-200" aria-label="Not included" />
+                        <span className="text-xs font-medium text-neutral-700">{v}</span>
                       )}
                     </td>
                   ))}
@@ -381,18 +411,25 @@ function ROICalculator() {
   const [aov, setAov] = useState(49);
   const [recoveryRate, setRecoveryRate] = useState(35);
 
-  const { recovered, monthlyProfit, roi } = useMemo(() => {
+  const results = useMemo(() => {
     const failedRevenue = revenue * (failedPct / 100);
     const recovered = failedRevenue * (recoveryRate / 100);
-    // Assume Growth plan cost as reference: $99 + 4% success fee
     const platformCost = 99 + recovered * 0.04;
-    const monthlyProfit = recovered - platformCost;
-    const roi = platformCost > 0 ? (monthlyProfit / platformCost) * 100 : 0;
-    return { recovered, monthlyProfit, roi };
+    const monthlyGain = recovered - platformCost;
+    const annualGain = monthlyGain * 12;
+    const roi = platformCost > 0 ? (monthlyGain / platformCost) * 100 : 0;
+    return { recovered, monthlyGain, annualGain, platformCost, roi };
   }, [revenue, failedPct, recoveryRate]);
 
   const fmt = (n: number) =>
-    n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
+    n.toLocaleString("en-US", {
+      style: "currency",
+      currency: "USD",
+      maximumFractionDigits: 0,
+    });
+
+  // aov is a UX input; not directly used in the simplified formula but shown as context
+  void aov;
 
   return (
     <section className="mx-auto max-w-7xl px-6 pb-16">
@@ -403,7 +440,7 @@ function ROICalculator() {
               See what RRLabs could recover
             </h2>
             <p className="mt-3 text-neutral-600">
-              Estimate your monthly recovered revenue and ROI. Numbers update instantly.
+              Estimate your recovered revenue and ROI. Numbers update instantly.
             </p>
             <div className="mt-8 space-y-6">
               <NumberField
@@ -445,22 +482,31 @@ function ROICalculator() {
             </div>
           </div>
 
-          <div className="rounded-2xl bg-neutral-950 p-8 text-white">
-            <p className="text-xs font-medium uppercase tracking-widest text-neutral-400">
+          <div className="rounded-2xl border border-neutral-200 bg-[#fafafa] p-8">
+            <p className="text-xs font-medium uppercase tracking-widest text-neutral-500">
               Estimated results
             </p>
-            <div className="mt-6 space-y-6">
-              <Result label="Estimated Revenue Recovered" value={fmt(recovered)} />
-              <Result label="Monthly Profit Increase" value={fmt(monthlyProfit)} tone="pos" />
-              <Result label="Estimated ROI" value={`${roi.toFixed(0)}%`} tone="pos" />
+            <div className="mt-6 grid grid-cols-2 gap-6">
+              <Result label="Recovered Revenue" value={fmt(results.recovered)} />
+              <Result label="Monthly Gain" value={fmt(results.monthlyGain)} accent />
+              <Result label="Annual Gain" value={fmt(results.annualGain)} accent />
+              <Result label="Platform Cost" value={fmt(results.platformCost)} />
+              <div className="col-span-2 rounded-xl border border-emerald-200 bg-emerald-50 p-5">
+                <p className="text-xs font-medium uppercase tracking-widest text-emerald-800">
+                  ROI
+                </p>
+                <p className="mt-1 text-4xl font-semibold tracking-tight text-emerald-700">
+                  {results.roi.toFixed(0)}%
+                </p>
+              </div>
             </div>
-            <p className="mt-8 text-xs text-neutral-400">
-              Based on the Growth plan ($99/mo + 4% success fee). Estimates are illustrative and
-              vary by industry, payment mix, and customer base.
+            <p className="mt-6 text-xs text-neutral-500">
+              Based on the Growth plan ($99/mo + 4% success fee). Estimates vary by industry
+              and payment mix.
             </p>
-            <Link to="/auth" search={{ redirect: "/setup" }} className="mt-6 inline-block">
-              <Button className="rounded-full bg-white text-neutral-950 hover:bg-neutral-200">
-                Start Free Setup
+            <Link to="/auth" className="mt-6 inline-block">
+              <Button className="rounded-full bg-emerald-600 text-white hover:bg-emerald-700">
+                Start Free Trial
                 <ArrowRight className="ml-1.5 h-4 w-4" />
               </Button>
             </Link>
@@ -513,18 +559,23 @@ function NumberField({
         step={step}
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
-        className="mt-3 h-1 w-full cursor-pointer appearance-none rounded-full bg-neutral-200 accent-neutral-900"
+        className="mt-3 h-1 w-full cursor-pointer appearance-none rounded-full bg-neutral-200 accent-emerald-600"
         aria-label={`${label} slider`}
       />
     </div>
   );
 }
 
-function Result({ label, value, tone }: { label: string; value: string; tone?: "pos" }) {
+function Result({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (
     <div>
-      <p className="text-xs text-neutral-400">{label}</p>
-      <p className={"mt-1 text-3xl font-semibold tracking-tight " + (tone === "pos" ? "text-emerald-400" : "text-white")}>
+      <p className="text-xs text-neutral-500">{label}</p>
+      <p
+        className={
+          "mt-1 text-2xl font-semibold tracking-tight " +
+          (accent ? "text-emerald-700" : "text-neutral-950")
+        }
+      >
         {value}
       </p>
     </div>
@@ -538,9 +589,6 @@ function FAQ() {
         <h2 className="text-3xl font-semibold tracking-tight text-neutral-950 sm:text-4xl">
           Frequently asked questions
         </h2>
-        <p className="mt-3 text-neutral-600">
-          Everything you need to know before getting started.
-        </p>
       </div>
       <div className="mt-10 divide-y divide-neutral-200 rounded-2xl border border-neutral-200 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
         {FAQS.map((item, i) => (
@@ -563,12 +611,13 @@ function FAQItem({ q, a, defaultOpen }: { q: string; a: string; defaultOpen?: bo
       >
         <span className="text-sm font-medium text-neutral-900 sm:text-base">{q}</span>
         <ChevronDown
-          className={"h-4 w-4 shrink-0 text-neutral-500 transition-transform " + (open ? "rotate-180" : "")}
+          className={
+            "h-4 w-4 shrink-0 text-neutral-500 transition-transform " +
+            (open ? "rotate-180" : "")
+          }
         />
       </button>
-      {open && (
-        <div className="px-6 pb-5 text-sm leading-relaxed text-neutral-600">{a}</div>
-      )}
+      {open && <div className="px-6 pb-5 text-sm leading-relaxed text-neutral-600">{a}</div>}
     </div>
   );
 }
@@ -576,24 +625,30 @@ function FAQItem({ q, a, defaultOpen }: { q: string; a: string; defaultOpen?: bo
 function FinalCTA() {
   return (
     <section className="mx-auto max-w-7xl px-6 pb-24">
-      <div className="relative overflow-hidden rounded-3xl border border-neutral-200 bg-white p-10 text-center shadow-[0_1px_2px_rgba(0,0,0,0.04)] sm:p-16">
-        <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(60%_60%_at_50%_0%,rgba(0,0,0,0.06),transparent_70%)]" />
+      <div className="relative overflow-hidden rounded-3xl border border-neutral-200 bg-[#fafafa] p-10 text-center shadow-[0_1px_2px_rgba(0,0,0,0.04)] sm:p-16">
+        <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(60%_60%_at_50%_0%,rgba(16,185,129,0.08),transparent_70%)]" />
         <h2 className="mx-auto max-w-2xl text-balance text-3xl font-semibold tracking-tight text-neutral-950 sm:text-5xl">
           Stop losing revenue to failed payments.
         </h2>
         <p className="mx-auto mt-4 max-w-xl text-pretty text-neutral-600">
-          Get started in minutes and let RRLabs recover revenue automatically while you focus on
-          growing your business.
+          Start free in minutes. Upgrade only when you're ready.
         </p>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-          <Link to="/auth" search={{ redirect: "/setup" }}>
-            <Button size="lg" className="rounded-full bg-neutral-950 px-6 text-white hover:bg-neutral-800">
-              Start Free Setup
+          <Link to="/auth">
+            <Button
+              size="lg"
+              className="rounded-full bg-emerald-600 px-6 text-white hover:bg-emerald-700"
+            >
+              Start Free Trial
               <ArrowRight className="ml-1.5 h-4 w-4" />
             </Button>
           </Link>
           <Link to="/contact">
-            <Button size="lg" variant="outline" className="rounded-full border-neutral-300 bg-white px-6 text-neutral-900 hover:bg-neutral-100">
+            <Button
+              size="lg"
+              variant="outline"
+              className="rounded-full border-neutral-300 bg-white px-6 text-neutral-900 hover:bg-neutral-100"
+            >
               Talk to Sales
             </Button>
           </Link>
@@ -608,13 +663,16 @@ function StickyMobileCTA() {
     <div className="fixed inset-x-0 bottom-0 z-30 border-t border-neutral-200 bg-white/95 p-3 backdrop-blur md:hidden">
       <div className="mx-auto flex max-w-lg items-center gap-2">
         <Link to="/contact" className="flex-1">
-          <Button variant="outline" className="w-full rounded-full border-neutral-300 bg-white text-neutral-900">
+          <Button
+            variant="outline"
+            className="w-full rounded-full border-neutral-300 bg-white text-neutral-900"
+          >
             Talk to Sales
           </Button>
         </Link>
-        <Link to="/auth" search={{ redirect: "/setup" }} className="flex-1">
-          <Button className="w-full rounded-full bg-neutral-950 text-white hover:bg-neutral-800">
-            Start Free Setup
+        <Link to="/auth" className="flex-1">
+          <Button className="w-full rounded-full bg-emerald-600 text-white hover:bg-emerald-700">
+            Start Free Trial
           </Button>
         </Link>
       </div>
