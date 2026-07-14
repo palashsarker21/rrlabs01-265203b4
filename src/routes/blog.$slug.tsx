@@ -1,12 +1,20 @@
 import type { BlogPostSummary, TocItem } from "@/lib/blog/types";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { ArrowLeft, Calendar, Clock, User } from "lucide-react";
-import { getPostBySlug, getRelatedPosts } from "@/lib/blog/loader";
+import {
+  BlogPostLoadError,
+  getPostBySlug,
+  getPostLoadIssueBySlug,
+  getRelatedPosts,
+} from "@/lib/blog/loader";
 import { PostCard, formatDate } from "@/components/blog/post-card";
+import { BlogErrorState } from "@/components/blog/blog-error-state";
 
 export const Route = createFileRoute("/blog/$slug")({
   loader: ({ params }) => {
     const post = getPostBySlug(params.slug);
+    const loadIssue = getPostLoadIssueBySlug(params.slug);
+    if (loadIssue) throw new BlogPostLoadError(loadIssue);
     if (!post) throw notFound();
     return { post, related: getRelatedPosts(params.slug, 3) };
   },
@@ -200,21 +208,22 @@ function PostNotFound() {
   );
 }
 
-function PostError() {
+function PostError({ error }: { error: Error }) {
+  if (error.name === "BlogPostLoadError") {
+    return (
+      <BlogErrorState
+        title="Article could not be loaded"
+        description="This article is temporarily unavailable because its content could not be parsed."
+        detail="Please return to the blog archive while we correct the post."
+      />
+    );
+  }
+
   return (
-    <main className="mx-auto max-w-3xl px-6 py-24 text-center">
-      <h1 className="text-3xl font-semibold text-foreground">
-        Something went wrong
-      </h1>
-      <p className="mt-3 text-muted-foreground">
-        We couldn't render this article.
-      </p>
-      <Link
-        to="/blog"
-        className="mt-6 inline-flex items-center gap-1.5 text-sm text-primary hover:underline"
-      >
-        <ArrowLeft className="h-3.5 w-3.5" /> Back to the blog
-      </Link>
-    </main>
+    <BlogErrorState
+      title="Article could not be loaded"
+      description="We couldn't render this article right now."
+      detail="Please refresh the page or return to the blog archive."
+    />
   );
 }

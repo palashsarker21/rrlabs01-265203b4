@@ -10,6 +10,13 @@ export interface ParsedFrontmatter {
   content: string;
 }
 
+export class FrontmatterParseError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "FrontmatterParseError";
+  }
+}
+
 function stripQuotes(v: string): string {
   const s = v.trim();
   if (
@@ -55,23 +62,30 @@ export function parseFrontmatter(raw: string): ParsedFrontmatter {
       break;
     }
   }
-  if (endIdx === -1) return { data: {}, content: src };
+  if (endIdx === -1) {
+    throw new FrontmatterParseError("Frontmatter block is missing a closing delimiter.");
+  }
 
   const fmLines = lines.slice(1, endIdx);
   const content = lines.slice(endIdx + 1).join("\n").replace(/^\n+/, "");
 
   const data: Record<string, unknown> = {};
   let currentKey: string | null = null;
-  let blockArray: string[] | null = null;
+  let blockArray: unknown[] | null = null;
 
-  for (const line of fmLines) {
+  for (const [index, line] of fmLines.entries()) {
     if (line.trim() === "" || line.trim().startsWith("#")) continue;
 
     // Block-array item: "  - value"
     const arrayItem = line.match(/^\s*-\s+(.*)$/);
     if (arrayItem && currentKey && blockArray) {
-      blockArray.push(coerce(arrayItem[1]) as string);
+      blockArray.push(coerce(arrayItem[1]));
       continue;
+    }
+    if (arrayItem) {
+      throw new FrontmatterParseError(
+        `Unexpected list item on frontmatter line ${index + 2}.`,
+      );
     }
 
     // Commit any pending block array before a new key
@@ -81,7 +95,11 @@ export function parseFrontmatter(raw: string): ParsedFrontmatter {
     }
 
     const kv = line.match(/^([A-Za-z0-9_-]+)\s*:\s*(.*)$/);
-    if (!kv) continue;
+    if (!kv) {
+      throw new FrontmatterParseError(
+        `Invalid frontmatter syntax on line ${index + 2}.`,
+      );
+    }
     const key = kv[1];
     const val = kv[2];
 

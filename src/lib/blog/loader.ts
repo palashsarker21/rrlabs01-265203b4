@@ -5,9 +5,9 @@
  * Vite's import.meta.glob. No database, no manual registration.
  * Works on Cloudflare Workers because all markdown is inlined into the bundle.
  */
-import { parseFrontmatter } from "./frontmatter";
+import { parseFrontmatter, FrontmatterParseError } from "./frontmatter";
 import { parseMarkdown, calculateReadingTime, extractToc } from "./parse";
-import type { BlogPost, BlogPostSummary, TocItem } from "./types";
+import type { BlogLoadIssue, BlogPost, BlogPostSummary, TocItem } from "./types";
 
 // Vite bundles every markdown file's raw source at build time.
 const rawModules = import.meta.glob("/content/blog/*.md", {
@@ -32,75 +32,132 @@ function fileToSlug(filepath: string, frontmatterSlug?: string): string {
   return name.replace(/^\d+-/, "").replace(/\.md$/, "");
 }
 
-let cache: BlogPost[] | null = null;
+interface BlogCache {
+  posts: BlogPost[];
+  issues: BlogLoadIssue[];
+}
 
-function loadAllPosts(): BlogPost[] {
+export class BlogPostLoadError extends Error {
+  readonly issue: BlogLoadIssue;
+
+  constructor(issue: BlogLoadIssue) {
+    super(issue.reason);
+    this.name = "BlogPostLoadError";
+    this.issue = issue;
+  }
+}
+
+let cache: BlogCache | null = null;
+
+function issueReason(error: unknown): string {
+  if (error instanceof Error && error.message) return error.message;
+  return "The post could not be parsed.";
+}
+
+function kindFor(error: unknown): BlogLoadIssue["kind"] {
+  return error instanceof FrontmatterParseError ? "frontmatter" : "markdown";
+}
+
+function asString(value: unknown, fallback: string): string {
+  return typeof value === "string" && value.trim() ? value : fallback;
+}
+
+function asStringArray(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .filter((item): item is string | number | boolean =>
+      ["string", "number", "boolean"].includes(typeof item),
+    )
+    .map(String)
+    .filter(Boolean);
+}
+
+function asBoolean(value: unknown): boolean {
+  return value === true;
+}
+
+function asNumber(value: unknown): number | undefined {
+  return typeof value === "number" && Number.isFinite(value) ? value : undefined;
+}
+
+function loadBlogCache(): BlogCache {
   if (cache) return cache;
   const posts: BlogPost[] = [];
+  const issues: BlogLoadIssue[] = [];
 
   for (const [filepath, raw] of Object.entries(rawModules)) {
-    const parsed = parseFrontmatter(raw);
-    const data = parsed.data as Record<string, unknown>;
+    const fallbackSlug = fileToSlug(filepath);
 
-    if (data.draft === true) continue;
+    try {
+      const parsed = parseFrontmatter(raw);
+      const data = parsed.data as Record<string, unknown>;
 
-    const slug = fileToSlug(filepath, data.slug as string | undefined);
-    const title = (data.title as string) ?? "Untitled";
-    const description = (data.description as string) ?? "";
-    const category = (data.category as string) ?? "General";
-    const tags = Array.isArray(data.tags) ? (data.tags as string[]) : [];
-    const author = (data.author as string) ?? "RRLabs Editorial";
-    const publishDate =
-      (data.publishDate as string) ?? new Date().toISOString().slice(0, 10);
-    const lastModified = (data.lastModified as string) ?? publishDate;
-    const featuredImage = (data.featuredImage as string) ?? null;
-    const imageAlt = (data.imageAlt as string) ?? title;
-    const featured = data.featured === true;
-    const keywords = Array.isArray(data.keywords)
-      ? (data.keywords as string[])
-      : [];
+      if (data.draft === true) continue;
 
-    const { html, plain } = parseMarkdown(parsed.content);
-    const readingTime =
-      (data.readingTime as number | undefined) ?? calculateReadingTime(plain);
-    const toc = extractToc(parsed.content);
+      const slug = fileToSlug(filepath, asString(data.slug, ""));
+      const title = asString(data.title, "Untitled");
+      const description = asString(data.description, "");
+      const category = asString(data.category, "General");
+      const tags = asStringArray(data.tags);
+      const author = asString(data.author, "RRLabs Editorial");
+      const publishDate = asString(data.publishDate, "1970-01-01");
+      const lastModified = asString(data.lastModified, publishDate);
+      const featuredImage = asString(data.featuredImage, "") || null;
+      const imageAlt = asString(data.imageAlt, title);
+      const featured = asBoolean(data.featured);
+      const keywords = asStringArray(data.keywords);
 
-    posts.push({
-      slug,
-      title,
-      description,
-      keywords,
-      category,
-      categorySlug: slugify(category),
-      tags,
-      tagSlugs: tags.map(slugify),
-      author,
-      publishDate,
-      lastModified,
-      readingTime,
-      featuredImage,
-      imageAlt,
-      featured,
-      canonical: (data.canonical as string | undefined) ?? null,
-      seoTitle: (data.seoTitle as string | undefined) ?? title,
-      seoDescription:
-        (data.seoDescription as string | undefined) ?? description,
-      ogTitle: (data.ogTitle as string | undefined) ?? title,
-      ogDescription: (data.ogDescription as string | undefined) ?? description,
-      twitterTitle: (data.twitterTitle as string | undefined) ?? title,
-      twitterDescription:
-        (data.twitterDescription as string | undefined) ?? description,
-      html,
-      plain,
-      toc,
-      raw,
-      source: parsed.content,
-    });
+      const { html, plain } = parseMarkdown(parsed.content);
+      const readingTime = asNumber(data.readingTime) ?? calculateReadingTime(plain);
+      const toc = extractToc(parsed.content);
+
+      posts.push({
+        slug,
+        title,
+        description,
+        keywords,
+        category,
+        categorySlug: slugify(category),
+        tags,
+        tagSlugs: tags.map(slugify),
+        author,
+        publishDate,
+        lastModified,
+        readingTime,
+        featuredImage,
+        imageAlt,
+        featured,
+        canonical: asString(data.canonical, "") || null,
+        seoTitle: asString(data.seoTitle, title),
+        seoDescription: asString(data.seoDescription, description),
+        ogTitle: asString(data.ogTitle, title),
+        ogDescription: asString(data.ogDescription, description),
+        twitterTitle: asString(data.twitterTitle, title),
+        twitterDescription: asString(data.twitterDescription, description),
+        html,
+        plain,
+        toc,
+        raw,
+        source: parsed.content,
+      });
+    } catch (error) {
+      issues.push({
+        slug: fallbackSlug,
+        filepath,
+        title: fallbackSlug.replace(/-/g, " "),
+        reason: issueReason(error),
+        kind: kindFor(error),
+      });
+    }
   }
 
   posts.sort((a, b) => (a.publishDate < b.publishDate ? 1 : -1));
-  cache = posts;
-  return posts;
+  cache = { posts, issues };
+  return cache;
+}
+
+function loadAllPosts(): BlogPost[] {
+  return loadBlogCache().posts;
 }
 
 export function getAllPosts(): BlogPost[] {
@@ -113,6 +170,14 @@ export function getAllSummaries(): BlogPostSummary[] {
 
 export function getPostBySlug(slug: string): BlogPost | null {
   return loadAllPosts().find((p) => p.slug === slug) ?? null;
+}
+
+export function getPostLoadIssueBySlug(slug: string): BlogLoadIssue | null {
+  return loadBlogCache().issues.find((issue) => issue.slug === slug) ?? null;
+}
+
+export function getBlogLoadIssues(): BlogLoadIssue[] {
+  return loadBlogCache().issues;
 }
 
 export function getPostsByCategory(categorySlug: string): BlogPostSummary[] {
