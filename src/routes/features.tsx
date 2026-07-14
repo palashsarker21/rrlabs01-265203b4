@@ -1,6 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, Bot, LineChart, MessageSquare, ShieldCheck, Zap, Lock, Layers, Workflow } from "lucide-react";
-import { BrandLockup } from "@/components/brand-mark";
 import { Button } from "@/components/ui/button";
 import { MarketingHeader, MarketingFooter } from "@/components/marketing-chrome";
 
