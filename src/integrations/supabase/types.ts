@@ -118,6 +118,347 @@ export type Database = {
           },
         ]
       }
+      blog_authors: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          created_at: string
+          display_name: string
+          id: string
+          linkedin: string | null
+          slug: string
+          title: string | null
+          twitter: string | null
+          updated_at: string
+          user_id: string | null
+          website: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          display_name: string
+          id?: string
+          linkedin?: string | null
+          slug: string
+          title?: string | null
+          twitter?: string | null
+          updated_at?: string
+          user_id?: string | null
+          website?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          display_name?: string
+          id?: string
+          linkedin?: string | null
+          slug?: string
+          title?: string | null
+          twitter?: string | null
+          updated_at?: string
+          user_id?: string | null
+          website?: string | null
+        }
+        Relationships: []
+      }
+      blog_categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          hero_image_url: string | null
+          id: string
+          name: string
+          seo_description: string | null
+          seo_title: string | null
+          slug: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          hero_image_url?: string | null
+          id?: string
+          name: string
+          seo_description?: string | null
+          seo_title?: string | null
+          slug: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          hero_image_url?: string | null
+          id?: string
+          name?: string
+          seo_description?: string | null
+          seo_title?: string | null
+          slug?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      blog_media: {
+        Row: {
+          alt: string | null
+          caption: string | null
+          created_at: string
+          created_by: string | null
+          credit: string | null
+          external_url: string | null
+          height: number | null
+          id: string
+          mime_type: string | null
+          source: string | null
+          storage_path: string | null
+          updated_at: string
+          width: number | null
+        }
+        Insert: {
+          alt?: string | null
+          caption?: string | null
+          created_at?: string
+          created_by?: string | null
+          credit?: string | null
+          external_url?: string | null
+          height?: number | null
+          id?: string
+          mime_type?: string | null
+          source?: string | null
+          storage_path?: string | null
+          updated_at?: string
+          width?: number | null
+        }
+        Update: {
+          alt?: string | null
+          caption?: string | null
+          created_at?: string
+          created_by?: string | null
+          credit?: string | null
+          external_url?: string | null
+          height?: number | null
+          id?: string
+          mime_type?: string | null
+          source?: string | null
+          storage_path?: string | null
+          updated_at?: string
+          width?: number | null
+        }
+        Relationships: []
+      }
+      blog_post_tags: {
+        Row: {
+          post_id: string
+          tag_id: string
+        }
+        Insert: {
+          post_id: string
+          tag_id: string
+        }
+        Update: {
+          post_id?: string
+          tag_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_post_tags_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "blog_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blog_post_tags_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "blog_tags"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      blog_posts: {
+        Row: {
+          affiliate_blocks: Json
+          affiliate_enabled: boolean
+          author_id: string | null
+          body_html: string | null
+          body_md: string
+          canonical_url: string | null
+          category_id: string | null
+          cover_image_alt: string | null
+          cover_image_url: string | null
+          created_at: string
+          created_by: string | null
+          excerpt: string | null
+          faq: Json
+          id: string
+          keywords: string[]
+          og_description: string | null
+          og_image_url: string | null
+          og_title: string | null
+          published_at: string | null
+          reading_time_min: number
+          scheduled_for: string | null
+          schema_jsonld: Json | null
+          seo_description: string | null
+          seo_title: string | null
+          slug: string
+          status: Database["public"]["Enums"]["blog_post_status"]
+          title: string
+          twitter_description: string | null
+          twitter_title: string | null
+          updated_at: string
+          view_count: number
+        }
+        Insert: {
+          affiliate_blocks?: Json
+          affiliate_enabled?: boolean
+          author_id?: string | null
+          body_html?: string | null
+          body_md?: string
+          canonical_url?: string | null
+          category_id?: string | null
+          cover_image_alt?: string | null
+          cover_image_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          excerpt?: string | null
+          faq?: Json
+          id?: string
+          keywords?: string[]
+          og_description?: string | null
+          og_image_url?: string | null
+          og_title?: string | null
+          published_at?: string | null
+          reading_time_min?: number
+          scheduled_for?: string | null
+          schema_jsonld?: Json | null
+          seo_description?: string | null
+          seo_title?: string | null
+          slug: string
+          status?: Database["public"]["Enums"]["blog_post_status"]
+          title: string
+          twitter_description?: string | null
+          twitter_title?: string | null
+          updated_at?: string
+          view_count?: number
+        }
+        Update: {
+          affiliate_blocks?: Json
+          affiliate_enabled?: boolean
+          author_id?: string | null
+          body_html?: string | null
+          body_md?: string
+          canonical_url?: string | null
+          category_id?: string | null
+          cover_image_alt?: string | null
+          cover_image_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          excerpt?: string | null
+          faq?: Json
+          id?: string
+          keywords?: string[]
+          og_description?: string | null
+          og_image_url?: string | null
+          og_title?: string | null
+          published_at?: string | null
+          reading_time_min?: number
+          scheduled_for?: string | null
+          schema_jsonld?: Json | null
+          seo_description?: string | null
+          seo_title?: string | null
+          slug?: string
+          status?: Database["public"]["Enums"]["blog_post_status"]
+          title?: string
+          twitter_description?: string | null
+          twitter_title?: string | null
+          updated_at?: string
+          view_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_posts_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "blog_authors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blog_posts_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "blog_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      blog_revisions: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          note: string | null
+          post_id: string
+          snapshot: Json
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          note?: string | null
+          post_id: string
+          snapshot: Json
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          note?: string | null
+          post_id?: string
+          snapshot?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_revisions_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "blog_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      blog_tags: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       checkout_sessions: {
         Row: {
           created_at: string
@@ -887,6 +1228,7 @@ export type Database = {
     }
     Enums: {
       app_role: "super_admin" | "admin" | "user"
+      blog_post_status: "draft" | "scheduled" | "published" | "archived"
       integration_kind: "store" | "payment_gateway" | "communication"
       integration_status: "pending" | "connected" | "error" | "disconnected"
       recovery_attempt_status:
@@ -1048,6 +1390,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["super_admin", "admin", "user"],
+      blog_post_status: ["draft", "scheduled", "published", "archived"],
       integration_kind: ["store", "payment_gateway", "communication"],
       integration_status: ["pending", "connected", "error", "disconnected"],
       recovery_attempt_status: [
