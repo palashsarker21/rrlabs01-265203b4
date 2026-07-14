@@ -141,11 +141,41 @@ interface RunRecoveryArgs {
  * Analyse a recovery event, then dispatch recovery messages on every
  * connected communication channel. Idempotent per event+channel+step.
  */
+/**
+ * Cadence: run recovery messages at 0h / +1d / +3d / +7d after the initial failure.
+ * When the array is exhausted the event is auto-abandoned.
+ */
+const CADENCE_HOURS = [0, 24, 72, 168];
+
+function nextRunAt(nextStep: number): string | null {
+  if (nextStep >= CADENCE_HOURS.length) return null;
+  return new Date(Date.now() + CADENCE_HOURS[nextStep] * 3600_000).toISOString();
+}
+
+interface TemplateRow {
+  step: number;
+  channel: "email" | "whatsapp";
+  subject: string | null;
+  body_text: string | null;
+  body_html: string | null;
+  enabled: boolean;
+}
+
+async function loadTemplates(workspaceId: string, step: number): Promise<TemplateRow[]> {
+  const { data } = await supabaseAdmin
+    .from("recovery_templates")
+    .select("step, channel, subject, body_text, body_html, enabled")
+    .eq("workspace_id", workspaceId)
+    .eq("step", step)
+    .eq("enabled", true);
+  return (data ?? []) as TemplateRow[];
+}
+
 export async function runRecoveryForEvent({ eventId }: RunRecoveryArgs): Promise<void> {
   const { data: event, error } = await supabaseAdmin
     .from("recovery_events")
     .select(
-      "id, workspace_id, customer_id, amount_cents, currency, failure_code, failure_message, status, attempts_count, ai_analysis, raw",
+      "id, workspace_id, customer_id, amount_cents, currency, failure_code, failure_message, status, attempts_count, cadence_step, ai_analysis, raw",
     )
     .eq("id", eventId)
     .maybeSingle();
@@ -153,7 +183,6 @@ export async function runRecoveryForEvent({ eventId }: RunRecoveryArgs): Promise
   if (!event) throw new Error("Recovery event not found.");
   if (event.status === "recovered" || event.status === "abandoned") return;
 
-  // Load customer & workspace details.
   const [{ data: customer }, { data: workspace }] = await Promise.all([
     event.customer_id
       ? supabaseAdmin.from("customers").select("id, email, phone, name").eq("id", event.customer_id).maybeSingle()
@@ -166,9 +195,14 @@ export async function runRecoveryForEvent({ eventId }: RunRecoveryArgs): Promise
   ]);
   if (!workspace) throw new Error("Workspace not found for event.");
   if (workspace.recovery_engine_enabled === false) {
-    await supabaseAdmin.from("recovery_events").update({ status: "abandoned" }).eq("id", event.id);
+    await supabaseAdmin
+      .from("recovery_events")
+      .update({ status: "abandoned", abandoned_at: new Date().toISOString() })
+      .eq("id", event.id);
     return;
   }
+
+  const currentStep = (event as { cadence_step?: number }).cadence_step ?? 0;
 
   await supabaseAdmin.from("recovery_events").update({ status: "analyzing" }).eq("id", event.id);
 
@@ -178,16 +212,20 @@ export async function runRecoveryForEvent({ eventId }: RunRecoveryArgs): Promise
     (raw.update_payment_url as string | undefined) ??
     null;
 
-  const analysis = await analyzeFailure({
-    failure_code: event.failure_code,
-    failure_message: event.failure_message,
-    amount_cents: event.amount_cents,
-    currency: event.currency,
-    customer_name: customer?.name ?? null,
-    customer_email: customer?.email ?? null,
-    business_name: workspace.name,
-    update_payment_url: updateUrl,
-  });
+  const cached = (event.ai_analysis ?? null) as Partial<RecoveryAnalysis> | null;
+  const analysis: RecoveryAnalysis =
+    cached && cached.email_subject && cached.email_body && cached.whatsapp_text
+      ? (cached as RecoveryAnalysis)
+      : await analyzeFailure({
+          failure_code: event.failure_code,
+          failure_message: event.failure_message,
+          amount_cents: event.amount_cents,
+          currency: event.currency,
+          customer_name: customer?.name ?? null,
+          customer_email: customer?.email ?? null,
+          business_name: workspace.name,
+          update_payment_url: updateUrl,
+        });
 
   await supabaseAdmin
     .from("recovery_events")
@@ -200,13 +238,13 @@ export async function runRecoveryForEvent({ eventId }: RunRecoveryArgs): Promise
     })
     .eq("id", event.id);
 
-  // Dispatch on every connected communication channel.
+  const stepNumber = currentStep + 1;
+  const templates = await loadTemplates(event.workspace_id, stepNumber);
+  const emailTpl = templates.find((t) => t.channel === "email");
+  const waTpl = templates.find((t) => t.channel === "whatsapp");
+
   const integrations = await loadIntegrations(event.workspace_id);
   const commIntegrations = integrations.filter((i) => i.kind === "communication");
-
-  const nextStep = ((): number => {
-    return 1; // step numbering for later multi-touch cadence
-  })();
 
   let anySent = false;
 
@@ -215,17 +253,22 @@ export async function runRecoveryForEvent({ eventId }: RunRecoveryArgs): Promise
     if (!creds) continue;
 
     if (integ.provider === "resend" && customer?.email) {
+      const subject = emailTpl?.subject ?? analysis.email_subject;
+      const bodyText = emailTpl?.body_text ?? analysis.email_body;
+      const bodyHtml = emailTpl?.body_html ?? undefined;
+
       const { data: attempt } = await supabaseAdmin
         .from("recovery_attempts")
         .insert({
           workspace_id: event.workspace_id,
           event_id: event.id,
-          step: nextStep,
+          step: stepNumber,
           channel: "email",
           status: "sending",
           to_address: customer.email,
-          subject: analysis.email_subject,
-          body_text: analysis.email_body,
+          subject,
+          body_text: bodyText,
+          body_html: bodyHtml ?? null,
           ai_model: DEFAULT_CHAT_MODEL,
         })
         .select("id")
@@ -235,11 +278,7 @@ export async function runRecoveryForEvent({ eventId }: RunRecoveryArgs): Promise
       const from_name = (integ.config?.["from_name"] as string | undefined) ?? creds.from_name;
       const result = await sendEmailViaResend(
         { api_key: creds.api_key, from_email, from_name },
-        {
-          to: customer.email,
-          subject: analysis.email_subject,
-          text: analysis.email_body,
-        },
+        { to: customer.email, subject, text: bodyText, html: bodyHtml },
       );
 
       await supabaseAdmin
@@ -257,16 +296,17 @@ export async function runRecoveryForEvent({ eventId }: RunRecoveryArgs): Promise
     }
 
     if (integ.provider === "whatsapp_cloud" && customer?.phone) {
+      const text = waTpl?.body_text ?? analysis.whatsapp_text;
       const { data: attempt } = await supabaseAdmin
         .from("recovery_attempts")
         .insert({
           workspace_id: event.workspace_id,
           event_id: event.id,
-          step: nextStep,
+          step: stepNumber,
           channel: "whatsapp",
           status: "sending",
           to_address: customer.phone,
-          body_text: analysis.whatsapp_text,
+          body_text: text,
           ai_model: DEFAULT_CHAT_MODEL,
         })
         .select("id")
@@ -276,7 +316,7 @@ export async function runRecoveryForEvent({ eventId }: RunRecoveryArgs): Promise
         (integ.config?.["phone_number_id"] as string | undefined) ?? creds.phone_number_id;
       const result = await sendWhatsAppText(
         { access_token: creds.access_token, phone_number_id },
-        { to: customer.phone, text: analysis.whatsapp_text },
+        { to: customer.phone, text },
       );
 
       await supabaseAdmin
@@ -294,11 +334,17 @@ export async function runRecoveryForEvent({ eventId }: RunRecoveryArgs): Promise
     }
   }
 
+  const nextAt = nextRunAt(stepNumber);
+  const isLastStep = nextAt === null;
+
   await supabaseAdmin
     .from("recovery_events")
     .update({
       attempts_count: (event.attempts_count ?? 0) + 1,
-      status: anySent ? "recovering" : "failed",
+      cadence_step: stepNumber,
+      next_run_at: nextAt,
+      status: isLastStep ? "abandoned" : anySent ? "recovering" : "failed",
+      abandoned_at: isLastStep ? new Date().toISOString() : null,
     })
     .eq("id", event.id);
 }
