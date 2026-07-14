@@ -336,3 +336,64 @@ function EmptyState({ workspaceId }: { workspaceId?: string }) {
     </div>
   );
 }
+
+function GettingStartedChecklist({
+  workspaceId,
+  setupStep,
+  engineOn,
+}: {
+  workspaceId: string | undefined;
+  setupStep: number;
+  engineOn: boolean;
+}) {
+  const steps = [
+    { key: "store", label: "Connect your store", done: setupStep >= 1 },
+    { key: "payment", label: "Connect a payment gateway", done: setupStep >= 2 },
+    { key: "email", label: "Connect email (Resend)", done: setupStep >= 3 },
+    { key: "whatsapp", label: "Connect WhatsApp (optional)", done: setupStep >= 4 },
+    { key: "engine", label: "Enable recovery engine", done: engineOn },
+  ];
+  const remaining = steps.filter((s) => !s.done).length;
+
+  return (
+    <section className="rounded-2xl border border-border/60 bg-card/40 p-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="text-sm font-semibold text-foreground">Getting started</h2>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            {remaining === 0
+              ? "You're all set — recovery is running."
+              : `${remaining} ${remaining === 1 ? "step" : "steps"} to unlock your first recovery.`}
+          </p>
+        </div>
+        {workspaceId ? (
+          <Button asChild size="sm" variant="outline">
+            <Link to="/setup">
+              <Zap className="mr-2 h-4 w-4" />
+              Continue setup
+            </Link>
+          </Button>
+        ) : null}
+      </div>
+      <ul className="mt-4 divide-y divide-border/60">
+        {steps.map((s) => (
+          <li key={s.key} className="flex items-center gap-3 py-2.5">
+            {s.done ? (
+              <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+            ) : (
+              <Circle className="h-4 w-4 text-muted-foreground/60" />
+            )}
+            <span
+              className={
+                s.done ? "text-sm text-muted-foreground line-through" : "text-sm text-foreground"
+              }
+            >
+              {s.label}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
