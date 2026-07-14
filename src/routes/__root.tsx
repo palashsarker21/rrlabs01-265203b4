@@ -100,6 +100,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "stylesheet", href: appCss },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
       {
+        rel: "alternate",
+        type: "application/rss+xml",
+        title: "RRLabs Blog RSS",
+        href: "/rss.xml",
+      },
+      {
         rel: "preconnect",
         href: "https://fonts.googleapis.com",
       },
@@ -122,7 +128,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en">
       <head>
         <HeadContent />
       </head>
@@ -150,7 +156,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <Outlet />
-      <Toaster theme="dark" position="top-right" richColors closeButton />
+      <Toaster position="top-right" richColors closeButton />
     </QueryClientProvider>
   );
 }
