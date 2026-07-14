@@ -1,10 +1,11 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
-import { ArrowRight, Loader2, Sparkles } from "lucide-react";
+import { ArrowLeft, ArrowRight, Loader2, Sparkles } from "lucide-react";
 
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,7 +15,7 @@ import { provisionTrialWorkspace } from "@/lib/onboarding.functions";
 export const Route = createFileRoute("/_authenticated/onboarding")({
   head: () => ({
     meta: [
-      { title: "Set up your workspace — RRLabs" },
+      { title: "Create your workspace — RRLabs" },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -28,6 +29,22 @@ function OnboardingPage() {
   const [orgName, setOrgName] = useState("");
   const [wsName, setWsName] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const wsEditedRef = useRef(false);
+
+  function handleOrgChange(v: string) {
+    setOrgName(v);
+    if (!wsEditedRef.current) setWsName(v);
+  }
+
+  function handleWsChange(v: string) {
+    wsEditedRef.current = true;
+    setWsName(v);
+  }
+
+  async function handleBack() {
+    await supabase.auth.signOut();
+    navigate({ to: "/auth", replace: true });
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -44,7 +61,7 @@ function OnboardingPage() {
       toast.success("Your 14-day free trial has started.");
       navigate({ to: "/app", replace: true });
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Could not start your trial.");
+      toast.error(err instanceof Error ? err.message : "Could not create your workspace.");
       setSubmitting(false);
     }
   }
@@ -54,7 +71,6 @@ function OnboardingPage() {
       <header className="border-b border-border/40">
         <div className="mx-auto flex max-w-3xl items-center justify-between px-6 py-4">
           <BrandLockup />
-          <span className="text-xs text-muted-foreground">Step 1 of 1</span>
         </div>
       </header>
 
@@ -62,22 +78,25 @@ function OnboardingPage() {
         <div className="rounded-2xl border border-border/60 bg-card/50 p-8 shadow-sm">
           <div className="flex items-center gap-2 text-primary">
             <Sparkles className="h-4 w-4" />
-            <span className="text-xs font-medium uppercase tracking-wider">14-day free trial</span>
+            <span className="text-xs font-medium uppercase tracking-wider">
+              14-day free trial
+            </span>
           </div>
           <h1 className="mt-3 text-2xl font-semibold text-foreground">
-            Let's set up your workspace
+            Create your workspace
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Two quick details and you're in. No credit card required.
+            Create your organization and workspace to start your 14-day free trial.
+            You can connect your payment providers and upgrade any time.
           </p>
 
           <form onSubmit={handleSubmit} className="mt-8 space-y-5">
             <div className="space-y-2">
-              <Label htmlFor="org">Organization name</Label>
+              <Label htmlFor="org">Organization Name</Label>
               <Input
                 id="org"
                 value={orgName}
-                onChange={(e) => setOrgName(e.target.value)}
+                onChange={(e) => handleOrgChange(e.target.value)}
                 placeholder="Acme, Inc."
                 autoFocus
                 required
@@ -85,33 +104,40 @@ function OnboardingPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="ws">Workspace name</Label>
+              <Label htmlFor="ws">Workspace Name</Label>
               <Input
                 id="ws"
                 value={wsName}
-                onChange={(e) => setWsName(e.target.value)}
-                placeholder="Production"
+                onChange={(e) => handleWsChange(e.target.value)}
+                placeholder="Acme, Inc."
                 required
               />
             </div>
 
-            <Button type="submit" className="w-full" disabled={submitting}>
-              {submitting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Starting your trial…
-                </>
-              ) : (
-                <>
-                  Start 14-day free trial
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </>
-              )}
-            </Button>
-
-            <p className="text-center text-xs text-muted-foreground">
-              You'll get full access to RRLabs for 14 days. Upgrade any time — no charge until you do.
-            </p>
+            <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-between">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={handleBack}
+                disabled={submitting}
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back
+              </Button>
+              <Button type="submit" disabled={submitting}>
+                {submitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Creating…
+                  </>
+                ) : (
+                  <>
+                    Create Workspace
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </>
+                )}
+              </Button>
+            </div>
           </form>
         </div>
       </main>
