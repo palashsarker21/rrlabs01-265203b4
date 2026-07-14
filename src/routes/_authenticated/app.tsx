@@ -76,12 +76,9 @@ function AppShell() {
     if (!workspaces) return;
     if (workspaces.length === 0) {
       navigate({ to: "/onboarding", replace: true });
-      return;
     }
-    if (trial.isExpired) {
-      navigate({ to: "/upgrade", search: { reason: "trial_expired" }, replace: true });
-    }
-  }, [workspaces, trial.isExpired, navigate]);
+  }, [workspaces, navigate]);
+
 
 
   const stats = useServerFn(getRecoveryStats);
@@ -337,6 +334,17 @@ function EmptyState({ workspaceId }: { workspaceId?: string }) {
   );
 }
 
+const SKIP_STORAGE_KEY = "rrlabs.gettingStarted.skipped";
+
+function loadSkipped(): Record<string, boolean> {
+  if (typeof window === "undefined") return {};
+  try {
+    return JSON.parse(window.localStorage.getItem(SKIP_STORAGE_KEY) ?? "{}");
+  } catch {
+    return {};
+  }
+}
+
 function GettingStartedChecklist({
   workspaceId,
   setupStep,
@@ -346,14 +354,45 @@ function GettingStartedChecklist({
   setupStep: number;
   engineOn: boolean;
 }) {
-  const steps = [
-    { key: "store", label: "Connect your store", done: setupStep >= 1 },
-    { key: "payment", label: "Connect a payment gateway", done: setupStep >= 2 },
-    { key: "email", label: "Connect email (Resend)", done: setupStep >= 3 },
-    { key: "whatsapp", label: "Connect WhatsApp (optional)", done: setupStep >= 4 },
-    { key: "engine", label: "Enable recovery engine", done: engineOn },
+  const [skipped, setSkipped] = useState<Record<string, boolean>>(() => loadSkipped());
+
+  function skip(key: string) {
+    const next = { ...skipped, [key]: true };
+    setSkipped(next);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(SKIP_STORAGE_KEY, JSON.stringify(next));
+    }
+  }
+
+  const actions = [
+    {
+      key: "store",
+      title: "Connect Store",
+      description: "Sync your customers and subscriptions.",
+      done: setupStep >= 1,
+    },
+    {
+      key: "payment",
+      title: "Connect Payment Gateway",
+      description: "Detect and recover failed charges automatically.",
+      done: setupStep >= 2,
+    },
+    {
+      key: "email",
+      title: "Connect Email",
+      description: "Send dunning and recovery emails on your domain.",
+      done: setupStep >= 3,
+    },
+    {
+      key: "ai",
+      title: "Activate AI Recovery",
+      description: "Let AI craft and time the perfect recovery message.",
+      done: engineOn,
+    },
   ];
-  const remaining = steps.filter((s) => !s.done).length;
+
+  const visible = actions.filter((a) => !skipped[a.key]);
+  if (visible.length === 0) return null;
 
   return (
     <section className="rounded-2xl border border-border/60 bg-card/40 p-6">
@@ -361,39 +400,50 @@ function GettingStartedChecklist({
         <div>
           <h2 className="text-sm font-semibold text-foreground">Getting started</h2>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            {remaining === 0
-              ? "You're all set — recovery is running."
-              : `${remaining} ${remaining === 1 ? "step" : "steps"} to unlock your first recovery.`}
+            Optional — configure whenever you're ready.
           </p>
         </div>
-        {workspaceId ? (
-          <Button asChild size="sm" variant="outline">
-            <Link to="/setup">
-              <Zap className="mr-2 h-4 w-4" />
-              Continue setup
-            </Link>
-          </Button>
-        ) : null}
       </div>
-      <ul className="mt-4 divide-y divide-border/60">
-        {steps.map((s) => (
-          <li key={s.key} className="flex items-center gap-3 py-2.5">
-            {s.done ? (
-              <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-            ) : (
-              <Circle className="h-4 w-4 text-muted-foreground/60" />
-            )}
-            <span
-              className={
-                s.done ? "text-sm text-muted-foreground line-through" : "text-sm text-foreground"
-              }
-            >
-              {s.label}
-            </span>
-          </li>
+      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        {visible.map((a) => (
+          <div
+            key={a.key}
+            className="flex flex-col gap-3 rounded-xl border border-border/60 bg-background/40 p-4"
+          >
+            <div className="flex items-start gap-3">
+              {a.done ? (
+                <CheckCircle2 className="mt-0.5 h-4 w-4 text-emerald-500" />
+              ) : (
+                <Circle className="mt-0.5 h-4 w-4 text-muted-foreground/60" />
+              )}
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-foreground">{a.title}</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">{a.description}</p>
+                <p className="mt-1 text-[11px] uppercase tracking-wider text-muted-foreground/70">
+                  {a.done ? "Configured" : "Optional"}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              {workspaceId ? (
+                <Button asChild size="sm" variant="outline">
+                  <Link to="/setup">
+                    <Zap className="mr-2 h-4 w-4" />
+                    {a.done ? "Manage" : "Configure"}
+                  </Link>
+                </Button>
+              ) : null}
+              {!a.done ? (
+                <Button size="sm" variant="ghost" onClick={() => skip(a.key)}>
+                  Skip for now
+                </Button>
+              ) : null}
+            </div>
+          </div>
         ))}
-      </ul>
+      </div>
     </section>
   );
 }
+
 

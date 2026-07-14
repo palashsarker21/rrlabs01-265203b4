@@ -86,13 +86,12 @@ function OnboardingPage() {
             Create your workspace
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Create your organization and workspace to start your 14-day free trial.
-            You can connect your payment providers and upgrade any time.
+            Tell us a little about your company. You'll be inside the product in a few seconds.
           </p>
 
           <form onSubmit={handleSubmit} className="mt-8 space-y-5">
             <div className="space-y-2">
-              <Label htmlFor="org">Organization Name</Label>
+              <Label htmlFor="org">Company Name</Label>
               <Input
                 id="org"
                 value={orgName}
@@ -113,6 +112,7 @@ function OnboardingPage() {
                 required
               />
             </div>
+
 
             <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-between">
               <Button
