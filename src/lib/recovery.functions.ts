@@ -106,6 +106,17 @@ export const retryRecoveryEvent = createServerFn({ method: "POST" })
 
     const { runRecoveryForEvent } = await import("./recovery/engine.server");
     await runRecoveryForEvent({ eventId: row.id });
+
+    const { writeAuditLog } = await import("./audit.server");
+    await writeAuditLog({
+      workspaceId: row.workspace_id,
+      actorId: userId,
+      actorEmail: (context.claims as { email?: string })?.email ?? null,
+      action: "recovery.retry",
+      targetType: "recovery_event",
+      targetId: row.id,
+    });
+
     return { ok: true as const };
   });
 
@@ -134,5 +145,16 @@ export const abandonRecoveryEvent = createServerFn({ method: "POST" })
       .from("recovery_events")
       .update({ status: "abandoned" })
       .eq("id", row.id);
+
+    const { writeAuditLog } = await import("./audit.server");
+    await writeAuditLog({
+      workspaceId: row.workspace_id,
+      actorId: userId,
+      actorEmail: (context.claims as { email?: string })?.email ?? null,
+      action: "recovery.abandoned",
+      targetType: "recovery_event",
+      targetId: row.id,
+    });
+
     return { ok: true as const };
   });

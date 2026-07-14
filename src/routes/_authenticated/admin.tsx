@@ -1,0 +1,288 @@
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { Shield, Power, ArrowLeft, ScrollText, Building2 } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import { BrandLockup } from "@/components/brand-mark";
+import {
+  getAdminOverview,
+  getMyAdminStatus,
+  adminSetEngine,
+  listAuditLogs,
+} from "@/lib/admin.functions";
+
+export const Route = createFileRoute("/_authenticated/admin")({
+  component: AdminConsole,
+  head: () => ({
+    meta: [
+      { title: "Admin console — RRLabs" },
+      { name: "robots", content: "noindex" },
+    ],
+  }),
+});
+
+function money(cents: number | null | undefined) {
+  const n = Number(cents ?? 0);
+  return new Intl.NumberFormat(undefined, { style: "currency", currency: "USD" }).format(n / 100);
+}
+
+function AdminConsole() {
+  const navigate = useNavigate();
+  const status = useServerFn(getMyAdminStatus);
+  const overview = useServerFn(getAdminOverview);
+  const audit = useServerFn(listAuditLogs);
+  const setEngine = useServerFn(adminSetEngine);
+  const [tab, setTab] = useState<"workspaces" | "audit">("workspaces");
+
+  const { data: me, isLoading: meLoading } = useQuery({
+    queryKey: ["admin-status"],
+    queryFn: () => status({}),
+  });
+
+  useEffect(() => {
+    if (!meLoading && me && !me.isSuperAdmin) {
+      navigate({ to: "/app", replace: true });
+    }
+  }, [me, meLoading, navigate]);
+
+  const { data: workspaces, refetch: refetchWorkspaces } = useQuery({
+    enabled: !!me?.isSuperAdmin,
+    queryKey: ["admin-overview"],
+    queryFn: () => overview({}),
+  });
+
+  const { data: logs } = useQuery({
+    enabled: !!me?.isSuperAdmin,
+    queryKey: ["admin-audit"],
+    queryFn: () => audit({ data: { limit: 100 } }),
+    refetchInterval: 30000,
+  });
+
+  const totals = useMemo(() => {
+    const list = workspaces ?? [];
+    return {
+      count: list.length,
+      active: list.filter((w) => w.status === "active").length,
+      events: list.reduce((s, w) => s + Number(w.events_count ?? 0), 0),
+      recovered: list.reduce((s, w) => s + Number(w.recovered_amount_cents ?? 0), 0),
+    };
+  }, [workspaces]);
+
+  async function toggleEngine(id: string, next: boolean) {
+    await setEngine({ data: { workspaceId: id, enabled: next } });
+    await refetchWorkspaces();
+  }
+
+  if (meLoading || !me) {
+    return <div className="p-10 text-sm text-muted-foreground">Loading…</div>;
+  }
+  if (!me.isSuperAdmin) return null;
+
+  return (
+    <div className="min-h-screen bg-background">
+      <header className="border-b border-border/60 bg-card/40 backdrop-blur">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+          <div className="flex items-center gap-3">
+            <BrandLockup />
+            <span className="rounded-md bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+              Admin
+            </span>
+          </div>
+          <Button asChild size="sm" variant="ghost">
+            <Link to="/app">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to dashboard
+            </Link>
+          </Button>
+        </div>
+      </header>
+
+      <main className="mx-auto max-w-6xl space-y-8 px-6 py-10">
+        <section className="rounded-2xl border border-border/60 bg-card/50 p-8">
+          <div className="flex items-center gap-3">
+            <div className="rounded-lg bg-primary/10 p-2 text-primary">
+              <Shield className="h-5 w-5" />
+            </div>
+            <div>
+              <h1 className="text-xl font-semibold text-foreground">Admin console</h1>
+              <p className="text-sm text-muted-foreground">
+                Tenant overview, recovery engine controls, and audit trail.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-4">
+            <Stat label="Workspaces" value={totals.count} />
+            <Stat label="Active" value={totals.active} />
+            <Stat label="Recovery events" value={totals.events} />
+            <Stat label="Recovered value" value={money(totals.recovered)} accent />
+          </div>
+        </section>
+
+        <div className="flex items-center gap-2 border-b border-border/60">
+          <TabButton active={tab === "workspaces"} onClick={() => setTab("workspaces")}>
+            <Building2 className="mr-2 h-4 w-4" /> Workspaces
+          </TabButton>
+          <TabButton active={tab === "audit"} onClick={() => setTab("audit")}>
+            <ScrollText className="mr-2 h-4 w-4" /> Audit log
+          </TabButton>
+        </div>
+
+        {tab === "workspaces" ? (
+          <section className="rounded-2xl border border-border/60 bg-card/50">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-background/40 text-xs uppercase tracking-wider text-muted-foreground">
+                  <tr>
+                    <th className="px-4 py-3 text-left">Workspace</th>
+                    <th className="px-4 py-3 text-left">Org</th>
+                    <th className="px-4 py-3 text-left">Status</th>
+                    <th className="px-4 py-3 text-right">Members</th>
+                    <th className="px-4 py-3 text-right">Integrations</th>
+                    <th className="px-4 py-3 text-right">Events</th>
+                    <th className="px-4 py-3 text-right">Recovered</th>
+                    <th className="px-4 py-3 text-right">Engine</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(workspaces ?? []).map((w) => (
+                    <tr key={w.workspace_id} className="border-t border-border/60">
+                      <td className="px-4 py-3">
+                        <div className="font-medium text-foreground">{w.workspace_name}</div>
+                        <div className="text-xs text-muted-foreground">{w.workspace_slug}</div>
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground">
+                        {w.organization_name ?? "—"}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="rounded bg-muted px-2 py-0.5 text-xs capitalize">
+                          {w.status}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-right">{Number(w.members_count ?? 0)}</td>
+                      <td className="px-4 py-3 text-right">
+                        {Number(w.active_integrations_count ?? 0)}/
+                        {Number(w.integrations_count ?? 0)}
+                      </td>
+                      <td className="px-4 py-3 text-right">{Number(w.events_count ?? 0)}</td>
+                      <td className="px-4 py-3 text-right">
+                        {money(Number(w.recovered_amount_cents ?? 0))}
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <Button
+                          size="sm"
+                          variant={w.recovery_engine_enabled ? "default" : "outline"}
+                          onClick={() =>
+                            toggleEngine(w.workspace_id, !w.recovery_engine_enabled)
+                          }
+                        >
+                          <Power className="mr-1.5 h-3.5 w-3.5" />
+                          {w.recovery_engine_enabled ? "On" : "Off"}
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                  {(!workspaces || workspaces.length === 0) && (
+                    <tr>
+                      <td colSpan={8} className="px-4 py-10 text-center text-muted-foreground">
+                        No workspaces yet.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        ) : (
+          <section className="rounded-2xl border border-border/60 bg-card/50">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-background/40 text-xs uppercase tracking-wider text-muted-foreground">
+                  <tr>
+                    <th className="px-4 py-3 text-left">When</th>
+                    <th className="px-4 py-3 text-left">Actor</th>
+                    <th className="px-4 py-3 text-left">Action</th>
+                    <th className="px-4 py-3 text-left">Target</th>
+                    <th className="px-4 py-3 text-left">Details</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(logs ?? []).map((l) => (
+                    <tr key={l.id} className="border-t border-border/60 align-top">
+                      <td className="px-4 py-3 text-xs text-muted-foreground">
+                        {new Date(l.created_at).toLocaleString()}
+                      </td>
+                      <td className="px-4 py-3 text-xs">
+                        {l.actor_email ?? l.actor_id?.slice(0, 8) ?? "system"}
+                      </td>
+                      <td className="px-4 py-3 font-mono text-xs">{l.action}</td>
+                      <td className="px-4 py-3 text-xs text-muted-foreground">
+                        {l.target_type ? `${l.target_type}:${l.target_id?.slice(0, 8) ?? ""}` : "—"}
+                      </td>
+                      <td className="px-4 py-3 text-xs text-muted-foreground">
+                        <code className="whitespace-pre-wrap break-all">
+                          {Object.keys(l.details ?? {}).length
+                            ? JSON.stringify(l.details)
+                            : "—"}
+                        </code>
+                      </td>
+                    </tr>
+                  ))}
+                  {(!logs || logs.length === 0) && (
+                    <tr>
+                      <td colSpan={5} className="px-4 py-10 text-center text-muted-foreground">
+                        No audit entries yet.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        )}
+      </main>
+    </div>
+  );
+}
+
+function Stat({ label, value, accent }: { label: string; value: React.ReactNode; accent?: boolean }) {
+  return (
+    <div
+      className={`rounded-xl border p-4 ${
+        accent ? "border-primary/40 bg-primary/5" : "border-border/60 bg-background/40"
+      }`}
+    >
+      <p className="text-xs uppercase tracking-wider text-muted-foreground">{label}</p>
+      <p
+        className={`mt-2 text-2xl font-semibold ${accent ? "text-primary" : "text-foreground"}`}
+      >
+        {value}
+      </p>
+    </div>
+  );
+}
+
+function TabButton({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`inline-flex items-center border-b-2 px-3 py-2 text-sm transition-colors ${
+        active
+          ? "border-primary text-foreground"
+          : "border-transparent text-muted-foreground hover:text-foreground"
+      }`}
+    >
+      {children}
+    </button>
+  );
+}

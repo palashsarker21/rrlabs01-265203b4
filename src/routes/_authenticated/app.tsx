@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { LogOut, Sparkles, RefreshCw, Mail, MessageCircle, Settings, TrendingUp } from "lucide-react";
+import { LogOut, Sparkles, RefreshCw, Mail, MessageCircle, Settings, TrendingUp, Shield } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import {
   listRecoveryEvents,
   retryRecoveryEvent,
 } from "@/lib/recovery.functions";
+import { getMyAdminStatus } from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/_authenticated/app")({
   component: AppShell,
@@ -81,6 +82,8 @@ function AppShell() {
   const stats = useServerFn(getRecoveryStats);
   const events = useServerFn(listRecoveryEvents);
   const retry = useServerFn(retryRecoveryEvent);
+  const adminStatus = useServerFn(getMyAdminStatus);
+  const { data: me } = useQuery({ queryKey: ["admin-status"], queryFn: () => adminStatus({}) });
 
   const { data: statsData } = useQuery({
     enabled: !!activeWorkspace,
@@ -116,6 +119,14 @@ function AppShell() {
             <span className="hidden text-sm text-muted-foreground sm:inline">
               {profile?.profile?.display_name ?? profile?.user?.email}
             </span>
+            {me?.isSuperAdmin ? (
+              <Button asChild size="sm" variant="ghost">
+                <Link to="/admin">
+                  <Shield className="mr-2 h-4 w-4" />
+                  Admin
+                </Link>
+              </Button>
+            ) : null}
             <Button asChild size="sm" variant="ghost">
               <Link to="/setup">
                 <Settings className="mr-2 h-4 w-4" />
