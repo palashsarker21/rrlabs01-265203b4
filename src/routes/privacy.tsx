@@ -26,7 +26,7 @@ function PrivacyPage() {
         <h2>Retention</h2>
         <p>End-customer data is retained only as long as needed to complete the recovery cycle, then deleted per our data retention policy.</p>
         <h2>Your rights</h2>
-        <p>Access, correction, deletion, and portability under GDPR/CCPA. Contact privacy@rrlabs.com.</p>
+        <p>Access, correction, deletion, and portability under GDPR/CCPA. Contact support@rrlabs.online.</p>
       </LegalPage>
       <MarketingFooter />
     </div>

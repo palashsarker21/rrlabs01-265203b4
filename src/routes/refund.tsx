@@ -26,7 +26,7 @@ function RefundPage() {
         <h2>Overages and usage</h2>
         <p>Usage-based charges (recovered revenue commission, message overages) are non-refundable once billed.</p>
         <h2>How to request</h2>
-        <p>Email billing@rrlabs.com from your workspace owner address.</p>
+        <p>Email support@rrlabs.online from your workspace owner address.</p>
       </LegalPage>
       <MarketingFooter />
     </div>
