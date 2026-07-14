@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as FeaturesRouteImport } from './routes/features'
 import { Route as DocsRouteImport } from './routes/docs'
@@ -25,6 +26,11 @@ import { Route as ApiPublicWebhooksStripeRouteImport } from './routes/api/public
 import { Route as ApiPublicWebhooksLemonsqueezyRouteImport } from './routes/api/public/webhooks/lemonsqueezy'
 import { Route as ApiPublicHooksRecoveryCadenceRouteImport } from './routes/api/public/hooks/recovery-cadence'
 
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PricingRoute = PricingRouteImport.update({
   id: '/pricing',
   path: '/pricing',
@@ -110,6 +116,7 @@ export interface FileRoutesByFullPath {
   '/docs': typeof DocsRoute
   '/features': typeof FeaturesRoute
   '/pricing': typeof PricingRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/app': typeof AuthenticatedAppRoute
   '/checkout': typeof AuthenticatedCheckoutRoute
@@ -126,6 +133,7 @@ export interface FileRoutesByTo {
   '/docs': typeof DocsRoute
   '/features': typeof FeaturesRoute
   '/pricing': typeof PricingRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/app': typeof AuthenticatedAppRoute
   '/checkout': typeof AuthenticatedCheckoutRoute
@@ -144,6 +152,7 @@ export interface FileRoutesById {
   '/docs': typeof DocsRoute
   '/features': typeof FeaturesRoute
   '/pricing': typeof PricingRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/app': typeof AuthenticatedAppRoute
   '/_authenticated/checkout': typeof AuthenticatedCheckoutRoute
@@ -162,6 +171,7 @@ export interface FileRouteTypes {
     | '/docs'
     | '/features'
     | '/pricing'
+    | '/sitemap.xml'
     | '/admin'
     | '/app'
     | '/checkout'
@@ -178,6 +188,7 @@ export interface FileRouteTypes {
     | '/docs'
     | '/features'
     | '/pricing'
+    | '/sitemap.xml'
     | '/admin'
     | '/app'
     | '/checkout'
@@ -195,6 +206,7 @@ export interface FileRouteTypes {
     | '/docs'
     | '/features'
     | '/pricing'
+    | '/sitemap.xml'
     | '/_authenticated/admin'
     | '/_authenticated/app'
     | '/_authenticated/checkout'
@@ -213,6 +225,7 @@ export interface RootRouteChildren {
   DocsRoute: typeof DocsRoute
   FeaturesRoute: typeof FeaturesRoute
   PricingRoute: typeof PricingRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   ApiPublicHooksRecoveryCadenceRoute: typeof ApiPublicHooksRecoveryCadenceRoute
   ApiPublicWebhooksLemonsqueezyRoute: typeof ApiPublicWebhooksLemonsqueezyRoute
   ApiPublicWebhooksStripeRoute: typeof ApiPublicWebhooksStripeRoute
@@ -220,6 +233,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/pricing': {
       id: '/pricing'
       path: '/pricing'
@@ -354,6 +374,7 @@ const rootRouteChildren: RootRouteChildren = {
   DocsRoute: DocsRoute,
   FeaturesRoute: FeaturesRoute,
   PricingRoute: PricingRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   ApiPublicHooksRecoveryCadenceRoute: ApiPublicHooksRecoveryCadenceRoute,
   ApiPublicWebhooksLemonsqueezyRoute: ApiPublicWebhooksLemonsqueezyRoute,
   ApiPublicWebhooksStripeRoute: ApiPublicWebhooksStripeRoute,
