@@ -162,7 +162,9 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Outlet />
+      <ErrorBoundary boundary="root_client_boundary">
+        <Outlet />
+      </ErrorBoundary>
       <Toaster position="top-right" richColors closeButton />
     </QueryClientProvider>
   );
