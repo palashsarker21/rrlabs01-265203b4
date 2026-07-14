@@ -112,6 +112,17 @@ export const saveIntegration = createServerFn({ method: "POST" })
       );
     if (upErr) throw new Error(upErr.message);
 
+    const { writeAuditLog } = await import("./audit.server");
+    await writeAuditLog({
+      workspaceId: data.workspaceId,
+      actorId: userId,
+      actorEmail: (context.claims as { email?: string })?.email ?? null,
+      action: "integration.connected",
+      targetType: "integration",
+      targetId: `${info.kind}:${info.provider}`,
+      details: { provider: info.provider, kind: info.kind },
+    });
+
     return { ok: true as const, message: result.message };
   });
 
