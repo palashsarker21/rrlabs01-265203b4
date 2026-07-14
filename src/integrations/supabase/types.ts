@@ -440,10 +440,12 @@ export type Database = {
       }
       recovery_events: {
         Row: {
+          abandoned_at: string | null
           ai_analysis: Json
           ai_summary: string | null
           amount_cents: number | null
           attempts_count: number
+          cadence_step: number
           created_at: string
           currency: string | null
           customer_id: string | null
@@ -454,6 +456,7 @@ export type Database = {
           failure_message: string | null
           id: string
           next_action: string | null
+          next_run_at: string | null
           object_type: string | null
           provider: string
           raw: Json
@@ -463,10 +466,12 @@ export type Database = {
           workspace_id: string
         }
         Insert: {
+          abandoned_at?: string | null
           ai_analysis?: Json
           ai_summary?: string | null
           amount_cents?: number | null
           attempts_count?: number
+          cadence_step?: number
           created_at?: string
           currency?: string | null
           customer_id?: string | null
@@ -477,6 +482,7 @@ export type Database = {
           failure_message?: string | null
           id?: string
           next_action?: string | null
+          next_run_at?: string | null
           object_type?: string | null
           provider?: string
           raw?: Json
@@ -486,10 +492,12 @@ export type Database = {
           workspace_id: string
         }
         Update: {
+          abandoned_at?: string | null
           ai_analysis?: Json
           ai_summary?: string | null
           amount_cents?: number | null
           attempts_count?: number
+          cadence_step?: number
           created_at?: string
           currency?: string | null
           customer_id?: string | null
@@ -500,6 +508,7 @@ export type Database = {
           failure_message?: string | null
           id?: string
           next_action?: string | null
+          next_run_at?: string | null
           object_type?: string | null
           provider?: string
           raw?: Json
@@ -518,6 +527,53 @@ export type Database = {
           },
           {
             foreignKeyName: "recovery_events_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      recovery_templates: {
+        Row: {
+          body_html: string | null
+          body_text: string | null
+          channel: Database["public"]["Enums"]["recovery_channel"]
+          created_at: string
+          enabled: boolean
+          id: string
+          step: number
+          subject: string | null
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          body_html?: string | null
+          body_text?: string | null
+          channel: Database["public"]["Enums"]["recovery_channel"]
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          step: number
+          subject?: string | null
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          body_html?: string | null
+          body_text?: string | null
+          channel?: Database["public"]["Enums"]["recovery_channel"]
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          step?: number
+          subject?: string | null
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recovery_templates_workspace_id_fkey"
             columns: ["workspace_id"]
             isOneToOne: false
             referencedRelation: "workspaces"
