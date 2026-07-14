@@ -2,22 +2,35 @@ import { createFileRoute } from "@tanstack/react-router";
 
 /**
  * Public health endpoint. Non-sensitive, cache-disabled JSON so the
- * status page and external monitors can poll it.
+ * status page and external monitors can poll it. Never exposes secrets —
+ * providers are reported as "ok" (configured) / "not_configured" only.
  */
+
+type CheckStatus = "ok" | "degraded" | "down" | "not_configured";
+type Check = { status: CheckStatus; latency_ms?: number; error?: string };
 
 export const Route = createFileRoute("/api/public/health")({
   server: {
     handlers: {
       GET: async () => {
         const started = Date.now();
-        const checks = {
-          server: { status: "ok" as const },
-          database: await checkDatabase(),
+        const [database] = await Promise.all([checkDatabase()]);
+        const checks: Record<string, Check> = {
+          server: { status: "ok" },
+          database,
+          lemonsqueezy: checkConfigured(process.env.LEMONSQUEEZY_API_KEY),
+          stripe: checkConfigured(process.env.STRIPE_SECRET_KEY),
+          resend: checkConfigured(process.env.RESEND_API_KEY),
+          whatsapp: checkConfigured(process.env.WHATSAPP_ACCESS_TOKEN),
+          gemini: checkConfigured(process.env.LOVABLE_API_KEY),
         };
 
-        const overall = Object.values(checks).every((c) => c.status === "ok")
+        const critical: CheckStatus[] = [checks.server.status, checks.database.status];
+        const overall: CheckStatus = critical.every((s) => s === "ok")
           ? "ok"
-          : "degraded";
+          : critical.some((s) => s === "down")
+            ? "down"
+            : "degraded";
 
         return new Response(
           JSON.stringify({
@@ -39,12 +52,16 @@ export const Route = createFileRoute("/api/public/health")({
   },
 });
 
-async function checkDatabase(): Promise<{ status: "ok" | "degraded" | "down"; latency_ms?: number; error?: string }> {
+function checkConfigured(v: string | undefined): Check {
+  return v && v.length > 0 ? { status: "ok" } : { status: "not_configured" };
+}
+
+async function checkDatabase(): Promise<Check> {
   const started = Date.now();
   try {
     const url = process.env.SUPABASE_URL;
     const key = process.env.SUPABASE_PUBLISHABLE_KEY;
-    if (!url || !key) return { status: "degraded", error: "not_configured" };
+    if (!url || !key) return { status: "not_configured" };
     const res = await fetch(`${url}/auth/v1/health`, {
       headers: { apikey: key },
       signal: AbortSignal.timeout(3000),
