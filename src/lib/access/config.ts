@@ -91,8 +91,11 @@ export const ROUTE_REGISTRY: RouteAccess[] = [
 
   // Authenticated app
   { path: "/app", visibility: "authenticated", indexable: false, navGroup: "app", label: "Dashboard" },
+  { path: "/onboarding", visibility: "authenticated", indexable: false, label: "Onboarding" },
+  { path: "/upgrade", visibility: "authenticated", indexable: false, label: "Upgrade" },
   { path: "/setup", visibility: "authenticated", indexable: false, navGroup: "app", label: "Setup" },
   { path: "/checkout", visibility: "authenticated", indexable: false, navGroup: "app", label: "Checkout" },
+  { path: "/error", visibility: "public", indexable: false, label: "Error" },
 
   // Workspace management (managers+)
   {
