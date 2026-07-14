@@ -449,6 +449,8 @@ export async function ingestStripeFailure(args: IngestArgs): Promise<string | nu
       failure_code,
       failure_message,
       status: "new",
+      cadence_step: 0,
+      next_run_at: new Date().toISOString(),
       raw: object as never,
     })
     .select("id")
