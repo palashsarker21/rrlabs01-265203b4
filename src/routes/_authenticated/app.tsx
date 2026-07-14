@@ -119,6 +119,14 @@ function AppShell() {
             <span className="hidden text-sm text-muted-foreground sm:inline">
               {profile?.profile?.display_name ?? profile?.user?.email}
             </span>
+            {me?.isSuperAdmin ? (
+              <Button asChild size="sm" variant="ghost">
+                <Link to="/admin">
+                  <Shield className="mr-2 h-4 w-4" />
+                  Admin
+                </Link>
+              </Button>
+            ) : null}
             <Button asChild size="sm" variant="ghost">
               <Link to="/setup">
                 <Settings className="mr-2 h-4 w-4" />
