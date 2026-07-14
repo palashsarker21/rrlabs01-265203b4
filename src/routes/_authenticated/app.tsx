@@ -76,12 +76,9 @@ function AppShell() {
     if (!workspaces) return;
     if (workspaces.length === 0) {
       navigate({ to: "/onboarding", replace: true });
-      return;
     }
-    if (trial.isExpired) {
-      navigate({ to: "/upgrade", search: { reason: "trial_expired" }, replace: true });
-    }
-  }, [workspaces, trial.isExpired, navigate]);
+  }, [workspaces, navigate]);
+
 
 
   const stats = useServerFn(getRecoveryStats);
