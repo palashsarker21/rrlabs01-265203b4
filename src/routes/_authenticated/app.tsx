@@ -154,36 +154,48 @@ function AppShell() {
       </header>
 
       <main className="mx-auto max-w-6xl px-6 py-10 space-y-8">
+        <TrialReminderBanner trial={trial} />
+
         <section className="rounded-2xl border border-border/60 bg-card/50 p-8">
-          <div className="flex items-center gap-3">
-            <div className="rounded-lg bg-primary/10 p-2 text-primary">
-              <Sparkles className="h-5 w-5" />
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="rounded-lg bg-primary/10 p-2 text-primary">
+                <Sparkles className="h-5 w-5" />
+              </div>
+              <div>
+                <h1 className="text-xl font-semibold text-foreground">
+                  Welcome to {activeWorkspace?.name ?? "your workspace"}
+                </h1>
+                <p className="text-sm text-muted-foreground">
+                  Recovery engine {activeWorkspace?.recovery_engine_enabled ? "on" : "off"} · get started below
+                </p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-xl font-semibold text-foreground">
-                Recovery dashboard
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                {activeWorkspace?.name ?? "Your workspace"} · engine{" "}
-                {activeWorkspace?.recovery_engine_enabled ? "on" : "off"}
-              </p>
+            <div className="flex flex-wrap items-center gap-2">
+              <WorkspaceStatusBadge status={activeWorkspace?.status} />
+              <TrialBadge trial={trial} />
+              {trial.isTrial ? (
+                <Button asChild size="sm">
+                  <Link to="/upgrade">Upgrade</Link>
+                </Button>
+              ) : null}
             </div>
           </div>
 
           <div className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-4">
-            <StatCard label="Failures tracked" value={statsData?.total ?? 0} />
-            <StatCard label="Recovered" value={statsData?.recovered ?? 0} />
+            <StatCard label="Recovered revenue" value={money(statsData?.recoveredAmountCents ?? 0, statsData?.currency)} />
+            <StatCard label="Failed payments" value={statsData?.total ?? 0} />
             <StatCard
               label="Recovery rate"
               value={`${Math.round((statsData?.recoveryRate ?? 0) * 100)}%`}
               accent
             />
-            <StatCard
-              label="Recovered value"
-              value={money(statsData?.recoveredAmountCents ?? 0, statsData?.currency)}
-            />
+            <StatCard label="Messages sent" value={statsData?.recovered ?? 0} />
           </div>
         </section>
+
+        <GettingStartedChecklist workspaceId={activeWorkspace?.id} setupStep={activeWorkspace?.setup_step ?? 0} engineOn={!!activeWorkspace?.recovery_engine_enabled} />
+
 
         <section className="rounded-2xl border border-border/60 bg-card/50">
           <div className="flex items-center justify-between border-b border-border/60 px-6 py-4">
