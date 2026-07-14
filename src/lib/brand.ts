@@ -1,13 +1,13 @@
 /**
  * RRLabs brand + company information — single source of truth.
  */
-import logoAsset from "@/../public/brand/logo.png.asset.json";
-import icon32 from "@/../public/brand/icon-32.png.asset.json";
-import icon180 from "@/../public/brand/icon-180.png.asset.json";
-import icon192 from "@/../public/brand/icon-192.png.asset.json";
-import icon512 from "@/../public/brand/icon-512.png.asset.json";
-import maskable512 from "@/../public/brand/maskable-512.png.asset.json";
-import ogImage from "@/../public/brand/og-image.jpg.asset.json";
+import logoAsset from "../../public/brand/logo.png.asset.json";
+import icon32 from "../../public/brand/icon-32.png.asset.json";
+import icon180 from "../../public/brand/icon-180.png.asset.json";
+import icon192 from "../../public/brand/icon-192.png.asset.json";
+import icon512 from "../../public/brand/icon-512.png.asset.json";
+import maskable512 from "../../public/brand/maskable-512.png.asset.json";
+import ogImage from "../../public/brand/og-image.jpg.asset.json";
 
 export const BRAND = {
   company: "Revenue Recovery Labs",
