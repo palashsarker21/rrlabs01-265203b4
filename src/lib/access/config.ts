@@ -77,6 +77,9 @@ export const ROUTE_REGISTRY: RouteAccess[] = [
   { path: "/contact", visibility: "public", indexable: true, navGroup: "marketing", label: "Contact" },
   { path: "/docs", visibility: "public", indexable: true, navGroup: "marketing", label: "Docs" },
   { path: "/blog", visibility: "public", indexable: true, navGroup: "marketing", label: "Blog" },
+  { path: "/blog/category", visibility: "public", indexable: true, label: "Blog Category" },
+  { path: "/blog/tag", visibility: "public", indexable: true, label: "Blog Tag" },
+  { path: "/blog/search", visibility: "public", indexable: false, label: "Blog Search" },
   { path: "/faq", visibility: "public", indexable: true, navGroup: "marketing", label: "FAQ" },
   { path: "/status", visibility: "public", indexable: true, label: "Status" },
   { path: "/security", visibility: "public", indexable: true, label: "Security" },
@@ -88,8 +91,11 @@ export const ROUTE_REGISTRY: RouteAccess[] = [
 
   // Authenticated app
   { path: "/app", visibility: "authenticated", indexable: false, navGroup: "app", label: "Dashboard" },
+  { path: "/onboarding", visibility: "authenticated", indexable: false, label: "Onboarding" },
+  { path: "/upgrade", visibility: "authenticated", indexable: false, label: "Upgrade" },
   { path: "/setup", visibility: "authenticated", indexable: false, navGroup: "app", label: "Setup" },
   { path: "/checkout", visibility: "authenticated", indexable: false, navGroup: "app", label: "Checkout" },
+  { path: "/error", visibility: "public", indexable: false, label: "Error" },
 
   // Workspace management (managers+)
   {
