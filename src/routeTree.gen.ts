@@ -13,6 +13,7 @@ import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedSetupRouteImport } from './routes/_authenticated/setup'
 import { Route as AuthenticatedCheckoutRouteImport } from './routes/_authenticated/checkout'
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
 import { Route as ApiPublicWebhooksLemonsqueezyRouteImport } from './routes/api/public/webhooks/lemonsqueezy'
@@ -35,6 +36,11 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedSetupRoute = AuthenticatedSetupRouteImport.update({
+  id: '/setup',
+  path: '/setup',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedCheckoutRoute = AuthenticatedCheckoutRouteImport.update({
   id: '/checkout',
@@ -59,6 +65,7 @@ export interface FileRoutesByFullPath {
   '/pricing': typeof PricingRoute
   '/app': typeof AuthenticatedAppRoute
   '/checkout': typeof AuthenticatedCheckoutRoute
+  '/setup': typeof AuthenticatedSetupRoute
   '/api/public/webhooks/lemonsqueezy': typeof ApiPublicWebhooksLemonsqueezyRoute
 }
 export interface FileRoutesByTo {
@@ -67,6 +74,7 @@ export interface FileRoutesByTo {
   '/pricing': typeof PricingRoute
   '/app': typeof AuthenticatedAppRoute
   '/checkout': typeof AuthenticatedCheckoutRoute
+  '/setup': typeof AuthenticatedSetupRoute
   '/api/public/webhooks/lemonsqueezy': typeof ApiPublicWebhooksLemonsqueezyRoute
 }
 export interface FileRoutesById {
@@ -77,6 +85,7 @@ export interface FileRoutesById {
   '/pricing': typeof PricingRoute
   '/_authenticated/app': typeof AuthenticatedAppRoute
   '/_authenticated/checkout': typeof AuthenticatedCheckoutRoute
+  '/_authenticated/setup': typeof AuthenticatedSetupRoute
   '/api/public/webhooks/lemonsqueezy': typeof ApiPublicWebhooksLemonsqueezyRoute
 }
 export interface FileRouteTypes {
@@ -87,6 +96,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/app'
     | '/checkout'
+    | '/setup'
     | '/api/public/webhooks/lemonsqueezy'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -95,6 +105,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/app'
     | '/checkout'
+    | '/setup'
     | '/api/public/webhooks/lemonsqueezy'
   id:
     | '__root__'
@@ -104,6 +115,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/_authenticated/app'
     | '/_authenticated/checkout'
+    | '/_authenticated/setup'
     | '/api/public/webhooks/lemonsqueezy'
   fileRoutesById: FileRoutesById
 }
@@ -145,6 +157,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/setup': {
+      id: '/_authenticated/setup'
+      path: '/setup'
+      fullPath: '/setup'
+      preLoaderRoute: typeof AuthenticatedSetupRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/checkout': {
       id: '/_authenticated/checkout'
       path: '/checkout'
@@ -172,11 +191,13 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAppRoute: typeof AuthenticatedAppRoute
   AuthenticatedCheckoutRoute: typeof AuthenticatedCheckoutRoute
+  AuthenticatedSetupRoute: typeof AuthenticatedSetupRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAppRoute: AuthenticatedAppRoute,
   AuthenticatedCheckoutRoute: AuthenticatedCheckoutRoute,
+  AuthenticatedSetupRoute: AuthenticatedSetupRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
