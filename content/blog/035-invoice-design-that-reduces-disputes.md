@@ -2,7 +2,14 @@
 title: "Invoice Design That Reduces Disputes: The Details That Matter"
 slug: "invoice-design-that-reduces-disputes"
 description: "A poorly designed invoice generates chargebacks and support tickets. The specific elements — descriptor, line items, tax breakdown — that reduce both."
-keywords: ["invoice design", "subscription invoice", "chargeback prevention", "billing statements", "invoice ux"]
+keywords:
+  [
+    "invoice design",
+    "subscription invoice",
+    "chargeback prevention",
+    "billing statements",
+    "invoice ux",
+  ]
 category: "Design"
 tags: ["Invoicing", "UX", "Chargebacks", "Design", "Billing"]
 author: "RRLabs Editorial"
@@ -48,6 +55,7 @@ The descriptor is what appears on the bank statement. `SQ *ACME` fails all six c
 Bad line item: `Subscription — $99.00`.
 
 Good line item:
+
 ```
 Pro Plan (monthly)          Mar 1 – Apr 1, 2026    $89.00
 5 additional seats @ $2.00                          $10.00

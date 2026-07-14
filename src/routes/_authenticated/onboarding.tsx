@@ -14,10 +14,7 @@ import { provisionTrialWorkspace } from "@/lib/onboarding.functions";
 
 export const Route = createFileRoute("/_authenticated/onboarding")({
   head: () => ({
-    meta: [
-      { title: "Create your workspace — RRLabs" },
-      { name: "robots", content: "noindex" },
-    ],
+    meta: [{ title: "Create your workspace — RRLabs" }, { name: "robots", content: "noindex" }],
   }),
   component: OnboardingPage,
 });
@@ -78,13 +75,9 @@ function OnboardingPage() {
         <div className="rounded-2xl border border-border/60 bg-card/50 p-8 shadow-sm">
           <div className="flex items-center gap-2 text-primary">
             <Sparkles className="h-4 w-4" />
-            <span className="text-xs font-medium uppercase tracking-wider">
-              14-day free trial
-            </span>
+            <span className="text-xs font-medium uppercase tracking-wider">14-day free trial</span>
           </div>
-          <h1 className="mt-3 text-2xl font-semibold text-foreground">
-            Create your workspace
-          </h1>
+          <h1 className="mt-3 text-2xl font-semibold text-foreground">Create your workspace</h1>
           <p className="mt-2 text-sm text-muted-foreground">
             Tell us a little about your company. You'll be inside the product in a few seconds.
           </p>
@@ -113,14 +106,8 @@ function OnboardingPage() {
               />
             </div>
 
-
             <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-between">
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={handleBack}
-                disabled={submitting}
-              >
+              <Button type="button" variant="ghost" onClick={handleBack} disabled={submitting}>
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back
               </Button>

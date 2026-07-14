@@ -16,10 +16,7 @@ const searchSchema = z.object({
 export const Route = createFileRoute("/_authenticated/upgrade")({
   validateSearch: (raw) => searchSchema.parse(raw),
   head: () => ({
-    meta: [
-      { title: "Upgrade your plan — RRLabs" },
-      { name: "robots", content: "noindex" },
-    ],
+    meta: [{ title: "Upgrade your plan — RRLabs" }, { name: "robots", content: "noindex" }],
   }),
   component: UpgradePage,
 });
@@ -40,7 +37,9 @@ function UpgradePage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("plans")
-        .select("id, code, name, description, price_cents, currency, interval, features, sort_order")
+        .select(
+          "id, code, name, description, price_cents, currency, interval, features, sort_order",
+        )
         .eq("is_active", true)
         .order("sort_order", { ascending: true });
       if (error) throw error;
@@ -113,9 +112,7 @@ function UpgradePage() {
                   <span className="text-3xl font-semibold text-foreground">
                     {money(plan.price_cents ?? 0, plan.currency ?? "USD")}
                   </span>
-                  <span className="text-sm text-muted-foreground">
-                    /{plan.interval ?? "month"}
-                  </span>
+                  <span className="text-sm text-muted-foreground">/{plan.interval ?? "month"}</span>
                 </div>
 
                 {features.length > 0 ? (

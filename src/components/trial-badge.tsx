@@ -113,4 +113,3 @@ export function TrialReminderBanner({ trial }: { trial: TrialInfo }) {
     </div>
   );
 }
-

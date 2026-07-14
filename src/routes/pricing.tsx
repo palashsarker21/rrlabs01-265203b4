@@ -146,17 +146,28 @@ const TRUST = [
 ];
 
 type CompareValue = boolean | string;
-const COMPARE_ROWS: { label: string; values: [CompareValue, CompareValue, CompareValue, CompareValue] }[] = [
-  { label: "AI Recovery",            values: [true, true, true, true] },
-  { label: "Analytics",              values: ["Basic", "Advanced", "Advanced", "Custom"] },
-  { label: "Revenue Intelligence",   values: [false, false, true, true] },
-  { label: "Workflow Automation",    values: [false, true, true, true] },
-  { label: "API",                    values: [true, true, true, true] },
-  { label: "Webhooks",               values: [true, true, true, true] },
-  { label: "SSO",                    values: [false, false, true, true] },
-  { label: "White Label",            values: [false, false, false, true] },
-  { label: "Support",                values: ["Community", "Priority", "Dedicated CSM", "Dedicated Engineer"] },
-  { label: "Communication Channels", values: ["Email + WhatsApp", "Email + WhatsApp", "Email + WhatsApp", "Email + WhatsApp + Custom"] },
+const COMPARE_ROWS: {
+  label: string;
+  values: [CompareValue, CompareValue, CompareValue, CompareValue];
+}[] = [
+  { label: "AI Recovery", values: [true, true, true, true] },
+  { label: "Analytics", values: ["Basic", "Advanced", "Advanced", "Custom"] },
+  { label: "Revenue Intelligence", values: [false, false, true, true] },
+  { label: "Workflow Automation", values: [false, true, true, true] },
+  { label: "API", values: [true, true, true, true] },
+  { label: "Webhooks", values: [true, true, true, true] },
+  { label: "SSO", values: [false, false, true, true] },
+  { label: "White Label", values: [false, false, false, true] },
+  { label: "Support", values: ["Community", "Priority", "Dedicated CSM", "Dedicated Engineer"] },
+  {
+    label: "Communication Channels",
+    values: [
+      "Email + WhatsApp",
+      "Email + WhatsApp",
+      "Email + WhatsApp",
+      "Email + WhatsApp + Custom",
+    ],
+  },
 ];
 
 const FAQS = [
@@ -215,8 +226,8 @@ function Hero() {
           Enterprise pricing that grows with your revenue.
         </h1>
         <p className="mx-auto mt-5 max-w-2xl text-pretty text-base leading-relaxed text-neutral-600 sm:text-lg">
-          Recover failed payments automatically using AI-powered Email and WhatsApp recovery.
-          Start free with a 14-day trial. Upgrade only when you're ready.
+          Recover failed payments automatically using AI-powered Email and WhatsApp recovery. Start
+          free with a 14-day trial. Upgrade only when you're ready.
         </p>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
           <Link to="/auth">
@@ -296,13 +307,9 @@ function PlanCard({ plan }: { plan: Plan }) {
           <span className="text-4xl font-semibold tracking-tight text-neutral-950">
             {plan.price}
           </span>
-          {plan.priceSuffix && (
-            <span className="text-sm text-neutral-500">{plan.priceSuffix}</span>
-          )}
+          {plan.priceSuffix && <span className="text-sm text-neutral-500">{plan.priceSuffix}</span>}
         </div>
-        {plan.priceLead && (
-          <p className="mt-1 text-xs text-neutral-500">{plan.priceLead}</p>
-        )}
+        {plan.priceLead && <p className="mt-1 text-xs text-neutral-500">{plan.priceLead}</p>}
         <p className="mt-1 text-xs font-medium text-emerald-700">{plan.fee}</p>
       </div>
 
@@ -361,10 +368,7 @@ function ComparisonTable() {
               <tr className="border-b border-neutral-200 bg-neutral-50/70">
                 <th className="p-4 text-left font-medium text-neutral-500">Feature</th>
                 {PLANS.map((p) => (
-                  <th
-                    key={p.code}
-                    className="p-4 text-center font-semibold text-neutral-950"
-                  >
+                  <th key={p.code} className="p-4 text-center font-semibold text-neutral-950">
                     {p.name}
                     {p.highlight && (
                       <span className="ml-1.5 rounded-full bg-emerald-600 px-1.5 py-0.5 align-middle text-[9px] font-medium uppercase tracking-wider text-white">
@@ -501,8 +505,8 @@ function ROICalculator() {
               </div>
             </div>
             <p className="mt-6 text-xs text-neutral-500">
-              Based on the Growth plan ($99/mo + 4% success fee). Estimates vary by industry
-              and payment mix.
+              Based on the Growth plan ($99/mo + 4% success fee). Estimates vary by industry and
+              payment mix.
             </p>
             <Link to="/auth" className="mt-6 inline-block">
               <Button className="rounded-full bg-emerald-600 text-white hover:bg-emerald-700">
@@ -518,7 +522,14 @@ function ROICalculator() {
 }
 
 function NumberField({
-  label, value, min, max, step, onChange, prefix, suffix,
+  label,
+  value,
+  min,
+  max,
+  step,
+  onChange,
+  prefix,
+  suffix,
 }: {
   label: string;
   value: number;
@@ -612,8 +623,7 @@ function FAQItem({ q, a, defaultOpen }: { q: string; a: string; defaultOpen?: bo
         <span className="text-sm font-medium text-neutral-900 sm:text-base">{q}</span>
         <ChevronDown
           className={
-            "h-4 w-4 shrink-0 text-neutral-500 transition-transform " +
-            (open ? "rotate-180" : "")
+            "h-4 w-4 shrink-0 text-neutral-500 transition-transform " + (open ? "rotate-180" : "")
           }
         />
       </button>

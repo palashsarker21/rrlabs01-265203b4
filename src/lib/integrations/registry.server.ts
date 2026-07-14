@@ -38,15 +38,21 @@ const shopifyAdapter: Adapter = {
     const url = trimUrl(creds.store_url);
     const token = creds.admin_access_token?.trim();
     const version = (creds.api_version?.trim() || "2024-10").replace(/[^0-9-]/g, "");
-    if (!url || !token) return { ok: false, message: "Store URL and Admin API token are required." };
+    if (!url || !token)
+      return { ok: false, message: "Store URL and Admin API token are required." };
     const res = await fetch(`${url}/admin/api/${version}/shop.json`, {
       headers: { "X-Shopify-Access-Token": token, Accept: "application/json" },
     });
     if (!res.ok) {
       const body = await res.text().catch(() => "");
-      return { ok: false, message: `Shopify rejected the credentials (${res.status}). ${short(body)}` };
+      return {
+        ok: false,
+        message: `Shopify rejected the credentials (${res.status}). ${short(body)}`,
+      };
     }
-    const j = (await res.json().catch(() => ({}))) as { shop?: { name?: string; domain?: string; currency?: string; plan_name?: string } };
+    const j = (await res.json().catch(() => ({}))) as {
+      shop?: { name?: string; domain?: string; currency?: string; plan_name?: string };
+    };
     return {
       ok: true,
       message: `Connected to Shopify store ${j.shop?.name ?? j.shop?.domain ?? url}.`,
@@ -69,16 +75,22 @@ const wooCommerceAdapter: Adapter = {
     const url = trimUrl(creds.store_url);
     const ck = creds.consumer_key?.trim();
     const cs = creds.consumer_secret?.trim();
-    if (!url || !ck || !cs) return { ok: false, message: "Store URL, consumer key and secret are required." };
+    if (!url || !ck || !cs)
+      return { ok: false, message: "Store URL, consumer key and secret are required." };
     const auth = Buffer.from(`${ck}:${cs}`).toString("base64");
     const res = await fetch(`${url}/wp-json/wc/v3/system_status`, {
       headers: { Authorization: `Basic ${auth}`, Accept: "application/json" },
     });
     if (!res.ok) {
       const body = await res.text().catch(() => "");
-      return { ok: false, message: `WooCommerce rejected the credentials (${res.status}). ${short(body)}` };
+      return {
+        ok: false,
+        message: `WooCommerce rejected the credentials (${res.status}). ${short(body)}`,
+      };
     }
-    const j = (await res.json().catch(() => ({}))) as { environment?: { site_url?: string; version?: string; currency?: string } };
+    const j = (await res.json().catch(() => ({}))) as {
+      environment?: { site_url?: string; version?: string; currency?: string };
+    };
     return {
       ok: true,
       message: `Connected to WooCommerce store ${j.environment?.site_url ?? url}.`,
@@ -104,7 +116,8 @@ const customStoreAdapter: Adapter = {
     const headers: Record<string, string> = { Accept: "application/json" };
     if (authType === "bearer") headers.Authorization = `Bearer ${apiKey}`;
     else if (authType === "api_key") headers["X-API-Key"] = apiKey;
-    else if (authType === "basic") headers.Authorization = `Basic ${Buffer.from(apiKey).toString("base64")}`;
+    else if (authType === "basic")
+      headers.Authorization = `Basic ${Buffer.from(apiKey).toString("base64")}`;
     const res = await fetch(base, { headers });
     // Any non-5xx counts as reachable — custom endpoints often 404 the root.
     if (res.status >= 500) {
@@ -179,7 +192,10 @@ const paypalAdapter: Adapter = {
     });
     if (!res.ok) {
       const body = await res.text().catch(() => "");
-      return { ok: false, message: `PayPal rejected the credentials (${res.status}). ${short(body)}` };
+      return {
+        ok: false,
+        message: `PayPal rejected the credentials (${res.status}). ${short(body)}`,
+      };
     }
     const j = (await res.json()) as { app_id?: string; scope?: string; expires_in?: number };
     return {
@@ -222,14 +238,22 @@ const lemonSqueezyAdapter: Adapter = {
     const key = creds.api_key?.trim();
     const storeId = creds.store_id?.trim();
     if (!key || !storeId) return { ok: false, message: "API key and Store ID are required." };
-    const res = await fetch(`https://api.lemonsqueezy.com/v1/stores/${encodeURIComponent(storeId)}`, {
-      headers: { Authorization: `Bearer ${key}`, Accept: "application/vnd.api+json" },
-    });
+    const res = await fetch(
+      `https://api.lemonsqueezy.com/v1/stores/${encodeURIComponent(storeId)}`,
+      {
+        headers: { Authorization: `Bearer ${key}`, Accept: "application/vnd.api+json" },
+      },
+    );
     if (!res.ok) {
       const body = await res.text().catch(() => "");
-      return { ok: false, message: `Lemon Squeezy rejected the credentials (${res.status}). ${short(body)}` };
+      return {
+        ok: false,
+        message: `Lemon Squeezy rejected the credentials (${res.status}). ${short(body)}`,
+      };
     }
-    const j = (await res.json()) as { data?: { attributes?: { name?: string; domain?: string; currency?: string } } };
+    const j = (await res.json()) as {
+      data?: { attributes?: { name?: string; domain?: string; currency?: string } };
+    };
     return {
       ok: true,
       message: `Connected to Lemon Squeezy store ${j.data?.attributes?.name ?? storeId}.`,
@@ -250,10 +274,12 @@ const adyenAdapter: Adapter = {
     const key = creds.api_key?.trim();
     const merchant = creds.merchant_account?.trim();
     const env = creds.environment?.trim() === "live" ? "live" : "test";
-    if (!key || !merchant) return { ok: false, message: "API key and merchant account are required." };
-    const base = env === "live"
-      ? "https://checkout-live.adyen.com/v71"
-      : "https://checkout-test.adyen.com/v71";
+    if (!key || !merchant)
+      return { ok: false, message: "API key and merchant account are required." };
+    const base =
+      env === "live"
+        ? "https://checkout-live.adyen.com/v71"
+        : "https://checkout-test.adyen.com/v71";
     // paymentMethods is the standard health-check endpoint for Adyen Checkout.
     const res = await fetch(`${base}/paymentMethods`, {
       method: "POST",
@@ -262,7 +288,10 @@ const adyenAdapter: Adapter = {
     });
     if (!res.ok) {
       const body = await res.text().catch(() => "");
-      return { ok: false, message: `Adyen rejected the credentials (${res.status}). ${short(body)}` };
+      return {
+        ok: false,
+        message: `Adyen rejected the credentials (${res.status}). ${short(body)}`,
+      };
     }
     return {
       ok: true,
@@ -325,10 +354,16 @@ const resendAdapter: Adapter = {
     const fromDomain = from.split("@")[1]?.toLowerCase();
     const match = domains.find((d) => d.name?.toLowerCase() === fromDomain);
     if (!match) {
-      return { ok: false, message: `Sending domain "${fromDomain}" is not in your Resend account. Verify it first.` };
+      return {
+        ok: false,
+        message: `Sending domain "${fromDomain}" is not in your Resend account. Verify it first.`,
+      };
     }
     if (match.status && match.status !== "verified") {
-      return { ok: false, message: `Domain "${fromDomain}" is not verified in Resend (status: ${match.status}).` };
+      return {
+        ok: false,
+        message: `Domain "${fromDomain}" is not verified in Resend (status: ${match.status}).`,
+      };
     }
     return {
       ok: true,
@@ -360,7 +395,9 @@ const sendgridAdapter: Adapter = {
       return { ok: false, message: `SendGrid rejected the key (${res.status}). ${short(body)}` };
     }
     const j = (await res.json()) as { scopes?: string[] };
-    const canSend = (j.scopes ?? []).some((s) => s === "mail.send" || s === "sender_verification_eligible" || s.startsWith("mail."));
+    const canSend = (j.scopes ?? []).some(
+      (s) => s === "mail.send" || s === "sender_verification_eligible" || s.startsWith("mail."),
+    );
     if (!canSend) {
       return { ok: false, message: "SendGrid API key does not include mail.send scope." };
     }
@@ -385,7 +422,10 @@ const smtpAdapter: Adapter = {
     const port = Number(creds.port);
     const from = creds.from_email?.trim();
     if (!host || !port || !creds.username?.trim() || !creds.password?.trim() || !from) {
-      return { ok: false, message: "Host, port, username, password and from address are required." };
+      return {
+        ok: false,
+        message: "Host, port, username, password and from address are required.",
+      };
     }
     if (Number.isNaN(port) || port < 1 || port > 65535) {
       return { ok: false, message: "Port must be between 1 and 65535." };
@@ -422,7 +462,10 @@ const whatsappCloudAdapter: Adapter = {
     );
     if (!res.ok) {
       const body = await res.text().catch(() => "");
-      return { ok: false, message: `Meta rejected the credentials (${res.status}). ${short(body)}` };
+      return {
+        ok: false,
+        message: `Meta rejected the credentials (${res.status}). ${short(body)}`,
+      };
     }
     const j = (await res.json()) as {
       display_phone_number?: string;

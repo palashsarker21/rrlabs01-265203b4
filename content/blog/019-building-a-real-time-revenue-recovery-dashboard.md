@@ -2,7 +2,13 @@
 title: "Building a Real-Time Revenue Recovery Dashboard"
 slug: "building-a-real-time-revenue-recovery-dashboard"
 description: "The metrics, event model, and UX rules for a real-time dashboard that helps finance and product teams monitor failed-payment recovery."
-keywords: ["revenue recovery dashboard", "real-time saas metrics", "recovered revenue", "involuntary churn dashboard"]
+keywords:
+  [
+    "revenue recovery dashboard",
+    "real-time saas metrics",
+    "recovered revenue",
+    "involuntary churn dashboard",
+  ]
 category: "Analytics"
 tags: ["Dashboard", "Analytics", "Metrics", "Recovery"]
 author: "RRLabs Editorial"
@@ -123,7 +129,7 @@ Finance needs the recovery dashboard to reconcile with the general ledger. That 
 
 - Recovered revenue on the dashboard matches the settlement report from your PSP, within currency-conversion rounding.
 - Refunds and chargebacks flow through the same event stream.
-- The "recovered" total for a period does not change retroactively — cohort recoveries after the period close are attributed to the *new* period, not backfilled.
+- The "recovered" total for a period does not change retroactively — cohort recoveries after the period close are attributed to the _new_ period, not backfilled.
 
 If the dashboard number disagrees with the GL number by more than 1% at month-end, finance stops trusting the dashboard. That is expensive.
 

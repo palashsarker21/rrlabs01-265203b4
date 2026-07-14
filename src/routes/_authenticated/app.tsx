@@ -19,26 +19,15 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { BrandLockup } from "@/components/brand-mark";
-import {
-  TrialBadge,
-  TrialReminderBanner,
-  WorkspaceStatusBadge,
-} from "@/components/trial-badge";
+import { TrialBadge, TrialReminderBanner, WorkspaceStatusBadge } from "@/components/trial-badge";
 import { computeTrialInfo } from "@/lib/trial";
-import {
-  getRecoveryStats,
-  listRecoveryEvents,
-  retryRecoveryEvent,
-} from "@/lib/recovery.functions";
+import { getRecoveryStats, listRecoveryEvents, retryRecoveryEvent } from "@/lib/recovery.functions";
 import { getMyAdminStatus } from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/_authenticated/app")({
   component: AppShell,
   head: () => ({
-    meta: [
-      { title: "Dashboard — RRLabs" },
-      { name: "robots", content: "noindex" },
-    ],
+    meta: [{ title: "Dashboard — RRLabs" }, { name: "robots", content: "noindex" }],
   }),
 });
 
@@ -322,11 +311,7 @@ function StatCard({
       {loading ? (
         <div className="mt-2 h-7 w-24 animate-pulse rounded bg-muted" />
       ) : (
-        <p
-          className={`mt-2 text-2xl font-semibold ${
-            accent ? "text-primary" : "text-foreground"
-          }`}
-        >
+        <p className={`mt-2 text-2xl font-semibold ${accent ? "text-primary" : "text-foreground"}`}>
           {value}
         </p>
       )}
@@ -374,13 +359,7 @@ function EmptyState() {
   );
 }
 
-function GettingStarted({
-  setupStep,
-  engineOn,
-}: {
-  setupStep: number;
-  engineOn: boolean;
-}) {
+function GettingStarted({ setupStep, engineOn }: { setupStep: number; engineOn: boolean }) {
   const items = [
     { key: "store", title: "Connect Store", done: setupStep >= 1 },
     { key: "payment", title: "Connect Payment", done: setupStep >= 2 },
@@ -483,9 +462,7 @@ function HealthRow({
         }`}
       >
         <span
-          className={`h-1.5 w-1.5 rounded-full ${
-            ok ? "bg-emerald-500" : "bg-muted-foreground/50"
-          }`}
+          className={`h-1.5 w-1.5 rounded-full ${ok ? "bg-emerald-500" : "bg-muted-foreground/50"}`}
         />
         {ok ? okText : offText}
       </span>

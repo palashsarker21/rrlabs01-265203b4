@@ -49,7 +49,12 @@ export const getRecoveryStats = createServerFn({ method: "POST" })
 export const listRecoveryEvents = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((raw) =>
-    z.object({ workspaceId: z.string().uuid(), limit: z.number().int().min(1).max(100).default(50) }).parse(raw),
+    z
+      .object({
+        workspaceId: z.string().uuid(),
+        limit: z.number().int().min(1).max(100).default(50),
+      })
+      .parse(raw),
   )
   .handler(async ({ data, context }) => {
     const { supabase } = context;
@@ -141,10 +146,7 @@ export const abandonRecoveryEvent = createServerFn({ method: "POST" })
     if (!canManage) throw new Error("Not permitted.");
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    await supabaseAdmin
-      .from("recovery_events")
-      .update({ status: "abandoned" })
-      .eq("id", row.id);
+    await supabaseAdmin.from("recovery_events").update({ status: "abandoned" }).eq("id", row.id);
 
     const { writeAuditLog } = await import("./audit.server");
     await writeAuditLog({

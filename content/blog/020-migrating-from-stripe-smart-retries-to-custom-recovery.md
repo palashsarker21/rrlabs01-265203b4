@@ -2,7 +2,14 @@
 title: "Migrating From Stripe Smart Retries to a Custom Recovery Engine"
 slug: "migrating-from-stripe-smart-retries-to-custom-recovery"
 description: "A step-by-step migration plan for subscription businesses moving from Stripe's built-in Smart Retries and dunning to a custom recovery engine."
-keywords: ["stripe smart retries", "custom dunning", "stripe migration", "recovery engine", "billing migration"]
+keywords:
+  [
+    "stripe smart retries",
+    "custom dunning",
+    "stripe migration",
+    "recovery engine",
+    "billing migration",
+  ]
 category: "Migration"
 tags: ["Stripe", "Migration", "Dunning", "Engineering"]
 author: "RRLabs Editorial"
@@ -49,7 +56,7 @@ Do not switch off Stripe's recovery on day one. Run the new engine in **shadow m
 
 1. Subscribe to Stripe webhooks for `invoice.payment_failed`, `charge.failed`, and related events.
 2. Feed those events into the new engine.
-3. The new engine calculates the recovery plan it *would* have executed — retry schedule, channel, copy — and logs it.
+3. The new engine calculates the recovery plan it _would_ have executed — retry schedule, channel, copy — and logs it.
 4. Stripe continues to execute its own recovery on production traffic.
 5. At the end of shadow mode, compare: for each failure, would the custom engine have recovered it faster, slower, or the same as Stripe did?
 

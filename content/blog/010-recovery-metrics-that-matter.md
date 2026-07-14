@@ -2,7 +2,14 @@
 title: "Recovery Metrics That Matter: What to Report to Your Board (and What to Ignore)"
 slug: "recovery-metrics-that-matter"
 description: "Which failed-payment recovery metrics belong in an investor update, which belong in an engineering dashboard, and which belong nowhere at all."
-keywords: ["recovery metrics", "dunning kpis", "board reporting saas", "involuntary churn kpi", "recovery rate"]
+keywords:
+  [
+    "recovery metrics",
+    "dunning kpis",
+    "board reporting saas",
+    "involuntary churn kpi",
+    "recovery rate",
+  ]
 category: "Metrics"
 tags: ["Metrics", "Reporting", "Board", "Analytics", "KPIs"]
 author: "RRLabs Editorial"
@@ -51,7 +58,7 @@ How fast recovered money is recovered. Fast money is more valuable than slow mon
 - **Failure code distribution.**
 - **Retry timing histograms.**
 
-These are operationally important. They are not board-worthy on their own. They inform *why* the top-line metrics moved, not *whether* they did.
+These are operationally important. They are not board-worthy on their own. They inform _why_ the top-line metrics moved, not _whether_ they did.
 
 ## The vanity metrics to retire
 
@@ -94,4 +101,4 @@ If you get one line on the CEO's weekly review: **involuntary churn rate as % of
 
 ---
 
-*Related: [Involuntary Churn Benchmarks 2026](/blog/involuntary-churn-benchmarks-2026) for how your numbers compare to peers.*
+_Related: [Involuntary Churn Benchmarks 2026](/blog/involuntary-churn-benchmarks-2026) for how your numbers compare to peers._

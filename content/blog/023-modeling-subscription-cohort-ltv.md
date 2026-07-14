@@ -22,7 +22,7 @@ twitterDescription: "The formula, done right."
 
 ## Why the simple formula lies
 
-The formula assumes an exponential retention curve — every customer has the same probability of churning next month, regardless of tenure. Real subscription retention is not exponential. It is *bimodal*:
+The formula assumes an exponential retention curve — every customer has the same probability of churning next month, regardless of tenure. Real subscription retention is not exponential. It is _bimodal_:
 
 - A large fraction of new customers churn in the first 30–90 days (evaluation, buyer's remorse, involuntary churn from failed cards).
 - The customers who survive that period churn at dramatically lower rates for years.

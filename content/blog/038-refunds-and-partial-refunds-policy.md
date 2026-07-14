@@ -2,7 +2,14 @@
 title: "Refunds and Partial Refunds: The Policy That Actually Protects Revenue"
 slug: "refunds-and-partial-refunds-policy"
 description: "A permissive refund policy costs less than you think and dramatically reduces chargebacks. How to design one that protects revenue without inviting abuse."
-keywords: ["refund policy", "saas refunds", "partial refunds", "chargeback prevention", "subscription refunds"]
+keywords:
+  [
+    "refund policy",
+    "saas refunds",
+    "partial refunds",
+    "chargeback prevention",
+    "subscription refunds",
+  ]
 category: "Operations"
 tags: ["Refunds", "Policy", "Operations", "Chargebacks"]
 author: "RRLabs Editorial"

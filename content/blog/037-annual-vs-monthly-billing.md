@@ -2,7 +2,8 @@
 title: "Annual vs Monthly Billing: The Math That Justifies the Discount"
 slug: "annual-vs-monthly-billing"
 description: "Why annual billing typically justifies a 15–20% discount, when it doesn't, and how to design annual plans that don't spike involuntary churn at renewal."
-keywords: ["annual billing", "monthly vs annual", "annual discount", "saas pricing", "prepaid subscription"]
+keywords:
+  ["annual billing", "monthly vs annual", "annual discount", "saas pricing", "prepaid subscription"]
 category: "Strategy"
 tags: ["Pricing", "Annual", "Strategy", "SaaS"]
 author: "RRLabs Editorial"
@@ -47,7 +48,7 @@ Involuntary churn per-transaction on annual is 3–5x monthly (large amounts tri
 
 ## Annual dunning: what changes
 
-- **Longer pre-notification window.** Send "your annual renewal charges in 14 days" at day -14, -7, -3. Give the customer time to update the card *before* the charge.
+- **Longer pre-notification window.** Send "your annual renewal charges in 14 days" at day -14, -7, -3. Give the customer time to update the card _before_ the charge.
 - **Softer retry cadence.** Retry an annual charge on days 1, 3, 7, 14, 30. Not 1, 3, 5.
 - **Two attempts on different windows.** Same-day retry rarely helps on annual amounts. Different day of week + different time-of-day boosts recovery ~15%.
 - **Human outreach for ACV > $2K.** A CSM email at day 5 recovers what automation misses.

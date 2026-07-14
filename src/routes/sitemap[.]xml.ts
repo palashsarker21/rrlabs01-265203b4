@@ -1,10 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type {} from "@tanstack/react-start";
-import {
-  getAllPosts,
-  getAllCategories,
-  getAllTags,
-} from "@/lib/blog/loader";
+import { getAllPosts, getAllCategories, getAllTags } from "@/lib/blog/loader";
 import { ROUTE_REGISTRY } from "@/lib/access/config";
 
 const BASE_URL = "https://www.rrlabs.online";
@@ -84,4 +80,3 @@ export const Route = createFileRoute("/sitemap.xml")({
     },
   },
 });
-

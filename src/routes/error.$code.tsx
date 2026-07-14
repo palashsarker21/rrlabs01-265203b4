@@ -18,6 +18,8 @@ function ErrorCodePage() {
   const { code } = Route.useParams();
   const key = VALID.has(code) ? code : "500";
   const c =
-    key === "maintenance" ? "maintenance" : (Number(key) as 400 | 401 | 403 | 404 | 429 | 500 | 503);
+    key === "maintenance"
+      ? "maintenance"
+      : (Number(key) as 400 | 401 | 403 | 404 | 429 | 500 | 503);
   return <ErrorPage code={c} />;
 }

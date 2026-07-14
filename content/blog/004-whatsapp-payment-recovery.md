@@ -2,7 +2,14 @@
 title: "WhatsApp for Payment Recovery: Setup, Templates, and What Actually Works"
 slug: "whatsapp-payment-recovery"
 description: "How to use the WhatsApp Business Cloud API for failed-payment recovery — approved templates, tone, timing, and what to skip."
-keywords: ["whatsapp payment recovery", "whatsapp business api", "whatsapp templates", "payment reminder whatsapp", "dunning whatsapp"]
+keywords:
+  [
+    "whatsapp payment recovery",
+    "whatsapp business api",
+    "whatsapp templates",
+    "payment reminder whatsapp",
+    "dunning whatsapp",
+  ]
 category: "Channels"
 tags: ["WhatsApp", "Dunning", "Messaging", "Meta", "Recovery"]
 author: "RRLabs Editorial"

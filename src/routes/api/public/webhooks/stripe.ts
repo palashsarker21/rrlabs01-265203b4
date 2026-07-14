@@ -41,7 +41,9 @@ export const Route = createFileRoute("/api/public/webhooks/stripe")({
 
         let creds: { secret_key?: string; webhook_secret?: string };
         try {
-          creds = decryptJSON<{ secret_key?: string; webhook_secret?: string }>(integ.credentials_ciphertext);
+          creds = decryptJSON<{ secret_key?: string; webhook_secret?: string }>(
+            integ.credentials_ciphertext,
+          );
         } catch (err) {
           console.error("[stripe webhook] decrypt failed", err);
           return new Response("Bad workspace credentials", { status: 500 });

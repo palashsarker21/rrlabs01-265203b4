@@ -40,10 +40,14 @@ export function ErrorStateView({
           </Button>
         )}
         <Link to="/">
-          <Button size="sm" variant="outline">Go home</Button>
+          <Button size="sm" variant="outline">
+            Go home
+          </Button>
         </Link>
         <a href={`mailto:${supportEmail}`}>
-          <Button size="sm" variant="ghost">Contact support</Button>
+          <Button size="sm" variant="ghost">
+            Contact support
+          </Button>
         </a>
       </div>
     </div>

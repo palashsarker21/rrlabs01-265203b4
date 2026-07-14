@@ -20,9 +20,7 @@ export const Route = createFileRoute("/blog/search")({
   head: ({ loaderData }) => ({
     meta: [
       {
-        title: loaderData?.q
-          ? `Search: ${loaderData.q} — RRLabs Blog`
-          : "Search — RRLabs Blog",
+        title: loaderData?.q ? `Search: ${loaderData.q} — RRLabs Blog` : "Search — RRLabs Blog",
       },
       { name: "robots", content: "noindex" },
     ],
@@ -58,8 +56,7 @@ function SearchPage() {
         results.length ? (
           <>
             <p className="mb-6 text-sm text-muted-foreground">
-              {results.length} result{results.length === 1 ? "" : "s"} for
-              &ldquo;{q}&rdquo;
+              {results.length} result{results.length === 1 ? "" : "s"} for &ldquo;{q}&rdquo;
             </p>
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {results.map((p: BlogPostSummary) => (
@@ -73,9 +70,7 @@ function SearchPage() {
           </p>
         )
       ) : (
-        <p className="text-muted-foreground">
-          Enter a query above to search the archive.
-        </p>
+        <p className="text-muted-foreground">Enter a query above to search the archive.</p>
       )}
     </main>
   );

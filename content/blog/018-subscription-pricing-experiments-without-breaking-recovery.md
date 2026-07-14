@@ -2,7 +2,14 @@
 title: "Subscription Pricing Experiments Without Breaking Recovery"
 slug: "subscription-pricing-experiments-without-breaking-recovery"
 description: "How to run pricing tests on live subscription products without corrupting cohort analysis, breaking dunning cadences, or triggering chargebacks."
-keywords: ["subscription pricing experiments", "price testing saas", "grandfathering", "pricing ab test", "cohort analysis"]
+keywords:
+  [
+    "subscription pricing experiments",
+    "price testing saas",
+    "grandfathering",
+    "pricing ab test",
+    "cohort analysis",
+  ]
 category: "Pricing"
 tags: ["Pricing", "Experiments", "Retention", "Analytics"]
 author: "RRLabs Editorial"
@@ -22,13 +29,13 @@ Subscription pricing tests fail more often from operational sloppiness than from
 
 ## Rule 1: Grandfather aggressively
 
-Every user who signed up at a given price stays at that price *forever*, unless they voluntarily change plans. This is not a courtesy — it is an operational necessity:
+Every user who signed up at a given price stays at that price _forever_, unless they voluntarily change plans. This is not a courtesy — it is an operational necessity:
 
 - Grandfathering keeps cohort analysis clean. If prices change under a cohort, you cannot compare LTV across time.
 - It eliminates the largest single cause of subscription chargebacks: "the price went up and nobody told me."
 - It protects your fair-billing story with regulators. In several jurisdictions, changing recurring prices without explicit consent is unlawful.
 
-Store the customer's price at subscription creation. Reference *that* value for every renewal charge. Never read the current price from the plans table at charge time.
+Store the customer's price at subscription creation. Reference _that_ value for every renewal charge. Never read the current price from the plans table at charge time.
 
 ## Rule 2: Test on new signups only
 
@@ -79,7 +86,7 @@ The RRLabs engine picks cadence by expected recovery value, not by tier name. Th
 
 ## Rule 7: Watch chargebacks per cohort
 
-New pricing cohorts sometimes generate elevated chargebacks — new descriptor, new price, new customer expectations. Monitor chargebacks *per cohort*, not globally. A price test with 0.8% chargebacks in the test cohort but 0.3% overall is not "acceptable"; it is a leading indicator that will show up as a merchant-account review a quarter later.
+New pricing cohorts sometimes generate elevated chargebacks — new descriptor, new price, new customer expectations. Monitor chargebacks _per cohort_, not globally. A price test with 0.8% chargebacks in the test cohort but 0.3% overall is not "acceptable"; it is a leading indicator that will show up as a merchant-account review a quarter later.
 
 ## Rule 8: Kill switches, always
 
@@ -97,4 +104,4 @@ Charging different prices in different regions is a business decision, not an ex
 
 ## The RRLabs default
 
-The Revenue Recovery Labs engine reads each customer's signup price from an immutable field, calculates recovery economics per customer (not per plan), and integrates with feature-flag systems so pricing experiments do not leak into the recovery cadence. Grandfathering is enforced at the data model level, not by convention. Test pricing hard — but test it *carefully*.
+The Revenue Recovery Labs engine reads each customer's signup price from an immutable field, calculates recovery economics per customer (not per plan), and integrates with feature-flag systems so pricing experiments do not leak into the recovery cadence. Grandfathering is enforced at the data model level, not by convention. Test pricing hard — but test it _carefully_.

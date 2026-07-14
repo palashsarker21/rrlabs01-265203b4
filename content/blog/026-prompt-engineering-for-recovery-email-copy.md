@@ -2,7 +2,14 @@
 title: "Prompt Engineering for Recovery Email Copy"
 slug: "prompt-engineering-for-recovery-email-copy"
 description: "The exact prompts, guardrails, and evaluation harness we use to generate high-converting payment recovery emails with LLMs."
-keywords: ["prompt engineering", "recovery email copy", "llm email generation", "ai marketing copy", "generative email"]
+keywords:
+  [
+    "prompt engineering",
+    "recovery email copy",
+    "llm email generation",
+    "ai marketing copy",
+    "generative email",
+  ]
 category: "AI"
 tags: ["AI", "Prompts", "Email", "Copy"]
 author: "RRLabs Editorial"
@@ -90,13 +97,13 @@ Prompt changes look like improvements 60% of the time and are actually regressio
 - An LLM-as-judge scorer for tone match, factual accuracy, and constraint adherence.
 - A/B production tests as the final arbiter.
 
-New prompts must beat the current champion on the harness *and* in production. Regression in either kills the change. The engineering discipline is the difference between "we ship AI copy" and "we ship better copy than we did before AI."
+New prompts must beat the current champion on the harness _and_ in production. Regression in either kills the change. The engineering discipline is the difference between "we ship AI copy" and "we ship better copy than we did before AI."
 
 ## Locale is not translation
 
 Do not generate an English email and translate. Generate directly in the target locale. Reasons:
 
-- Idiom and register do not translate. "Hey" in English is "Hola" in Spanish but *not* "Bonjour" in French — the French equivalent of "Hey" is closer to "Salut."
+- Idiom and register do not translate. "Hey" in English is "Hola" in Spanish but _not_ "Bonjour" in French — the French equivalent of "Hey" is closer to "Salut."
 - Cultural payment conventions differ. In Germany, receipts should reference the SEPA mandate ID. In Brazil, they should reference the Pix key or invoice number.
 - Legal disclosures differ per market and cannot be translated on the fly.
 

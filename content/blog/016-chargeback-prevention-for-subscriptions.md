@@ -2,7 +2,14 @@
 title: "Chargeback Prevention for Subscriptions: A Practical Playbook"
 slug: "chargeback-prevention-for-subscriptions"
 description: "How to prevent, respond to, and reduce chargebacks on subscription businesses — descriptors, receipts, dispute evidence, and network programs."
-keywords: ["chargeback prevention", "subscription chargebacks", "dispute evidence", "visa cdrn", "mastercard ethoca"]
+keywords:
+  [
+    "chargeback prevention",
+    "subscription chargebacks",
+    "dispute evidence",
+    "visa cdrn",
+    "mastercard ethoca",
+  ]
 category: "Playbooks"
 tags: ["Chargebacks", "Disputes", "Risk", "Subscription"]
 author: "RRLabs Editorial"
@@ -51,7 +58,7 @@ Send an email receipt for **every** subscription renewal, not just the first one
 - A one-click "manage subscription" link.
 - A one-click cancellation link (yes, really).
 
-Customers who receive renewal receipts dispute charges at roughly **half** the rate of customers who don't. The cancellation link seems counterintuitive — surely it increases churn? — but the churn it causes is *voluntary* churn, which costs you nothing beyond the future MRR. The chargebacks it prevents cost you the disputed amount, fees, chargeback ratio, and merchant-account risk.
+Customers who receive renewal receipts dispute charges at roughly **half** the rate of customers who don't. The cancellation link seems counterintuitive — surely it increases churn? — but the churn it causes is _voluntary_ churn, which costs you nothing beyond the future MRR. The chargebacks it prevents cost you the disputed amount, fees, chargeback ratio, and merchant-account risk.
 
 ## Network alert programs
 

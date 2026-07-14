@@ -2,7 +2,14 @@
 title: "Deliverability for Dunning Emails: Getting Recovery Mail Into the Inbox"
 slug: "dunning-email-deliverability"
 description: "SPF, DKIM, DMARC, warm-up, list hygiene, and content rules that keep payment recovery emails out of spam and in the primary tab."
-keywords: ["email deliverability", "dunning email", "spf dkim dmarc", "transactional email", "payment recovery email"]
+keywords:
+  [
+    "email deliverability",
+    "dunning email",
+    "spf dkim dmarc",
+    "transactional email",
+    "payment recovery email",
+  ]
 category: "Deliverability"
 tags: ["Email", "Deliverability", "Dunning", "DMARC"]
 author: "RRLabs Editorial"
@@ -63,8 +70,8 @@ The RRLabs engine handles this automatically when you connect a new sending doma
 Dunning email is transactional, but hygiene still matters. Rules:
 
 - Never send to an address that has hard-bounced in the last 90 days.
-- Never send to an address that has marked *any* of your mail as spam.
-- Suppress addresses that have not opened *any* mail from you in 180 days, even transactional. Their engagement score is dragging your whole domain down.
+- Never send to an address that has marked _any_ of your mail as spam.
+- Suppress addresses that have not opened _any_ mail from you in 180 days, even transactional. Their engagement score is dragging your whole domain down.
 - Validate new addresses at signup (syntax + MX + disposable check).
 
 ## Content rules that survive filters

@@ -11,7 +11,10 @@ interface Props {
   message?: string;
 }
 
-const COPY: Record<DenyReason, { title: string; message: string; cta?: { to: string; label: string } }> = {
+const COPY: Record<
+  DenyReason,
+  { title: string; message: string; cta?: { to: string; label: string } }
+> = {
   unauthenticated: {
     title: "Sign in required",
     message: "You need to sign in to access this page.",

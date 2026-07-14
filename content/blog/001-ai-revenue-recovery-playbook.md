@@ -2,7 +2,14 @@
 title: "The AI Revenue Recovery Playbook: How Subscription Businesses Recover 30%+ of Failed Payments"
 slug: "ai-revenue-recovery-playbook"
 description: "A complete, engineering-grade playbook for using AI to recover failed subscription payments — cadence design, message generation, deliverability, and measurement."
-keywords: ["ai revenue recovery", "failed payment recovery", "dunning automation", "subscription retention", "involuntary churn"]
+keywords:
+  [
+    "ai revenue recovery",
+    "failed payment recovery",
+    "dunning automation",
+    "subscription retention",
+    "involuntary churn",
+  ]
 category: "Playbooks"
 tags: ["AI", "Dunning", "Revenue Recovery", "Subscription", "Retention"]
 author: "RRLabs Editorial"
@@ -39,12 +46,12 @@ Doing this by hand at scale is impossible. Doing it well at scale is what AI is 
 
 RRLabs' default cadence is deliberately simple. Complexity kills recovery.
 
-| Step | Timing | Channel | Purpose |
-| --- | --- | --- | --- |
-| T0 | Immediate | Email | Notify + one-tap update-payment link |
-| T1 | +24h | Email | Reframe: what's affected, what to do |
-| T2 | +72h | WhatsApp or Email | Human-tone reminder, retry manually |
-| T3 | +7d | Email | Last attempt, offer help, offer pause |
+| Step | Timing    | Channel           | Purpose                               |
+| ---- | --------- | ----------------- | ------------------------------------- |
+| T0   | Immediate | Email             | Notify + one-tap update-payment link  |
+| T1   | +24h      | Email             | Reframe: what's affected, what to do  |
+| T2   | +72h      | WhatsApp or Email | Human-tone reminder, retry manually   |
+| T3   | +7d       | Email             | Last attempt, offer help, offer pause |
 
 Every step is **AI-generated per customer**, not a template with `{{first_name}}` swaps. The model has:
 
@@ -113,4 +120,4 @@ That's the whole playbook. Everything else is refinement.
 
 ---
 
-*This article is part of the RRLabs Playbooks series. For a hands-on walkthrough with your own Stripe data, [start a workspace](/auth) — no card needed.*
+_This article is part of the RRLabs Playbooks series. For a hands-on walkthrough with your own Stripe data, [start a workspace](/auth) — no card needed._

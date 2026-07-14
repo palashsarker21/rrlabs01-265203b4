@@ -6,14 +6,14 @@ individually — everything reads from this module.
 
 ## Modules
 
-| File | Purpose |
-| --- | --- |
-| `config.ts` | Types, plan/role rank tables, `FEATURE_MIN_PLAN`, `ROUTE_REGISTRY` (single source of truth for every top-level route). |
-| `types.ts` | `AccessContext` snapshot shape + `ANONYMOUS_ACCESS`. |
-| `policy.ts` | Pure decision functions (`evaluate`, `hasRole`, `hasPlan`, `hasFeature`). Shared by client and server. |
-| `context.functions.ts` | `loadAccessContext` server fn — assembles the viewer's `AccessContext` from Supabase. |
-| `authorize.server.ts` | `authorize()` — the ONE backend gate used by every protected server function. Throws `AccessError`. |
-| `nav.ts` | `buildNavigation(ctx)` — builds navigation from the registry, filtered by permission. |
+| File                   | Purpose                                                                                                                |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `config.ts`            | Types, plan/role rank tables, `FEATURE_MIN_PLAN`, `ROUTE_REGISTRY` (single source of truth for every top-level route). |
+| `types.ts`             | `AccessContext` snapshot shape + `ANONYMOUS_ACCESS`.                                                                   |
+| `policy.ts`            | Pure decision functions (`evaluate`, `hasRole`, `hasPlan`, `hasFeature`). Shared by client and server.                 |
+| `context.functions.ts` | `loadAccessContext` server fn — assembles the viewer's `AccessContext` from Supabase.                                  |
+| `authorize.server.ts`  | `authorize()` — the ONE backend gate used by every protected server function. Throws `AccessError`.                    |
+| `nav.ts`               | `buildNavigation(ctx)` — builds navigation from the registry, filtered by permission.                                  |
 
 ## Client usage
 
@@ -70,14 +70,14 @@ Frontend checks are UX only. `authorize()` is the security boundary.
 
 `AccessDenied` component renders the correct screen from a `DenyReason`:
 
-| Reason | UX |
-| --- | --- |
-| `unauthenticated` | Redirect / sign-in CTA |
-| `forbidden` | Access denied |
-| `wrong_workspace` | Workspace not found |
-| `workspace_suspended` | Suspended screen |
-| `upgrade_required` | Upgrade plan screen (deep-links to `/pricing`) |
-| `maintenance` | Maintenance page |
+| Reason                | UX                                             |
+| --------------------- | ---------------------------------------------- |
+| `unauthenticated`     | Redirect / sign-in CTA                         |
+| `forbidden`           | Access denied                                  |
+| `wrong_workspace`     | Workspace not found                            |
+| `workspace_suspended` | Suspended screen                               |
+| `upgrade_required`    | Upgrade plan screen (deep-links to `/pricing`) |
+| `maintenance`         | Maintenance page                               |
 
 ## Adding a new route
 

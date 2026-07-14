@@ -20,11 +20,19 @@ function TermsPage() {
       <LegalPage title="Terms of Service" updated="July 2026">
         <p>By using RRLabs you agree to these terms. If you don't agree, don't use the service.</p>
         <h2>Service</h2>
-        <p>RRLabs provides an automated revenue recovery platform. We are not a payment processor and do not hold funds.</p>
+        <p>
+          RRLabs provides an automated revenue recovery platform. We are not a payment processor and
+          do not hold funds.
+        </p>
         <h2>Acceptable use</h2>
-        <p>No spam, no unlawful messaging, no bypassing carrier or provider policies. Compliance with CAN-SPAM, GDPR, and WhatsApp Business policy is your responsibility.</p>
+        <p>
+          No spam, no unlawful messaging, no bypassing carrier or provider policies. Compliance with
+          CAN-SPAM, GDPR, and WhatsApp Business policy is your responsibility.
+        </p>
         <h2>Fees</h2>
-        <p>Plans are billed monthly or annually in advance. Overages are billed monthly in arrears.</p>
+        <p>
+          Plans are billed monthly or annually in advance. Overages are billed monthly in arrears.
+        </p>
         <h2>Termination</h2>
         <p>Either party may terminate for material breach with 30 days' notice.</p>
         <h2>Liability</h2>

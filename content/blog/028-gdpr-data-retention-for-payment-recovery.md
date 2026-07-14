@@ -28,7 +28,7 @@ Practical implications:
 
 - You do not need marketing consent to send a "your card failed" email.
 - You cannot then send them promotional content in the same email — that reverts to consent basis.
-- You must offer opt-out from *non-essential* recovery channels (e.g., WhatsApp reminders when email would suffice) but not from the recovery notification itself.
+- You must offer opt-out from _non-essential_ recovery channels (e.g., WhatsApp reminders when email would suffice) but not from the recovery notification itself.
 
 Document the legal basis in your Article 30 records. Every data-processing activity is either contract, consent, legitimate interest, legal obligation, vital interest, or public task — pick the right one and stick to it.
 
@@ -36,18 +36,18 @@ Document the legal basis in your Article 30 records. Every data-processing activ
 
 Retention should be a matrix by data category, not a single "delete after N years" policy. A defensible matrix for a recovery system:
 
-| Data | Retention | Basis |
-| --- | --- | --- |
-| Full transaction history (amount, timestamp, status) | 7 years | Legal obligation (tax law, accounting standards) |
-| PSP token (opaque reference) | Lifetime of subscription + 30 days | Contract |
-| Last four digits of card + brand | Lifetime of subscription + 90 days | Contract, dispute defense |
-| Customer email | Lifetime of subscription + 30 days | Contract |
-| Customer phone | Lifetime of subscription + 30 days | Contract |
-| Recovery communication log (who, when, template) | 2 years | Legitimate interest, dispute defense |
-| Recovery outcome (recovered / churned / failed) | 7 years | Legal obligation, financial reporting |
-| IP address at signup | 12 months | Legitimate interest (fraud defense) |
-| IP address at payment attempt | 12 months | Legitimate interest (fraud defense) |
-| Dispute evidence PDF | 5 years | Legal obligation (network rules require it) |
+| Data                                                 | Retention                          | Basis                                            |
+| ---------------------------------------------------- | ---------------------------------- | ------------------------------------------------ |
+| Full transaction history (amount, timestamp, status) | 7 years                            | Legal obligation (tax law, accounting standards) |
+| PSP token (opaque reference)                         | Lifetime of subscription + 30 days | Contract                                         |
+| Last four digits of card + brand                     | Lifetime of subscription + 90 days | Contract, dispute defense                        |
+| Customer email                                       | Lifetime of subscription + 30 days | Contract                                         |
+| Customer phone                                       | Lifetime of subscription + 30 days | Contract                                         |
+| Recovery communication log (who, when, template)     | 2 years                            | Legitimate interest, dispute defense             |
+| Recovery outcome (recovered / churned / failed)      | 7 years                            | Legal obligation, financial reporting            |
+| IP address at signup                                 | 12 months                          | Legitimate interest (fraud defense)              |
+| IP address at payment attempt                        | 12 months                          | Legitimate interest (fraud defense)              |
+| Dispute evidence PDF                                 | 5 years                            | Legal obligation (network rules require it)      |
 
 Two rules that make this defensible:
 
@@ -87,7 +87,7 @@ A Data Protection Impact Assessment is mandatory under Art. 35 when processing i
 - Systematic monitoring on a large scale (large-scale IP fingerprinting — potentially).
 - Processing sensitive categories (health, biometric — not you, unless your product is in one of those verticals).
 
-For most recovery systems, a DPIA is *not* strictly mandatory, but you should still document a risk assessment. When a regulator asks, "did you consider the risks," having a two-page document that says "yes, and here's what we did" is dramatically better than "no."
+For most recovery systems, a DPIA is _not_ strictly mandatory, but you should still document a risk assessment. When a regulator asks, "did you consider the risks," having a two-page document that says "yes, and here's what we did" is dramatically better than "no."
 
 ## Cross-border transfers
 

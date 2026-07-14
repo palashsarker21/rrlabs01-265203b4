@@ -61,17 +61,17 @@ public/                         Static assets (favicon, robots.txt)
 
 ## Data model (public schema)
 
-| Table | Purpose |
-| --- | --- |
-| `profiles` | User profile, linked to `auth.users` |
-| `user_roles` | Role assignments (separate table — prevents privilege escalation) |
-| `organizations` | Top-level tenant |
-| `workspaces` | Recovery engine scope (integrations, events, templates) |
-| `workspace_members` | Membership + role per workspace |
-| `integrations` | Connected providers (Stripe, Resend, WhatsApp) with encrypted secrets |
-| `recovery_events` | Failed payments + cadence state (`cadence_step`, `next_run_at`) |
-| `recovery_templates` | Manager overrides per step + channel |
-| `audit_logs` | Immutable action trail |
+| Table                | Purpose                                                               |
+| -------------------- | --------------------------------------------------------------------- |
+| `profiles`           | User profile, linked to `auth.users`                                  |
+| `user_roles`         | Role assignments (separate table — prevents privilege escalation)     |
+| `organizations`      | Top-level tenant                                                      |
+| `workspaces`         | Recovery engine scope (integrations, events, templates)               |
+| `workspace_members`  | Membership + role per workspace                                       |
+| `integrations`       | Connected providers (Stripe, Resend, WhatsApp) with encrypted secrets |
+| `recovery_events`    | Failed payments + cadence state (`cadence_step`, `next_run_at`)       |
+| `recovery_templates` | Manager overrides per step + channel                                  |
+| `audit_logs`         | Immutable action trail                                                |
 
 Every table enforces **row-level security**. Grants are declared in the same migration as the table.
 

@@ -41,12 +41,8 @@ function TagPage() {
   return (
     <main className="mx-auto max-w-6xl px-6 py-14">
       <header className="mb-10">
-        <p className="text-xs uppercase tracking-widest text-muted-foreground">
-          Tag
-        </p>
-        <h1 className="mt-2 text-4xl font-semibold tracking-tight text-foreground">
-          #{name}
-        </h1>
+        <p className="text-xs uppercase tracking-widest text-muted-foreground">Tag</p>
+        <h1 className="mt-2 text-4xl font-semibold tracking-tight text-foreground">#{name}</h1>
         <p className="mt-2 text-muted-foreground">
           {posts.length} article{posts.length === 1 ? "" : "s"}
         </p>

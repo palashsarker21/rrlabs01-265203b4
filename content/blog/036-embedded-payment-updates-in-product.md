@@ -2,7 +2,14 @@
 title: "Embedded Payment Updates In-Product: Recovering Without Sending an Email"
 slug: "embedded-payment-updates-in-product"
 description: "The highest-converting payment recovery surface isn't email — it's the product itself. How to design non-hostile in-app payment prompts."
-keywords: ["in-app payment update", "product-led recovery", "billing banner", "payment reminder ui", "in-product dunning"]
+keywords:
+  [
+    "in-app payment update",
+    "product-led recovery",
+    "billing banner",
+    "payment reminder ui",
+    "in-product dunning",
+  ]
 category: "Product"
 tags: ["Product", "UX", "Recovery", "In-App", "Design"]
 author: "RRLabs Editorial"

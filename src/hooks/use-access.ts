@@ -10,12 +10,7 @@ import {
   hasPlan as _hasPlan,
   hasRole as _hasRole,
 } from "@/lib/access/policy";
-import type {
-  FeatureKey,
-  PlanCode,
-  RouteAccess,
-  WorkspaceRole,
-} from "@/lib/access/config";
+import type { FeatureKey, PlanCode, RouteAccess, WorkspaceRole } from "@/lib/access/config";
 
 /**
  * The one hook UI code calls to make permission decisions.

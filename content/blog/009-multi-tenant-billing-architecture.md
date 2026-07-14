@@ -2,7 +2,14 @@
 title: "Multi-Tenant Billing Architecture: How RRLabs Isolates Every Workspace's Payment Data"
 slug: "multi-tenant-billing-architecture"
 description: "A deep look at how RRLabs designs multi-tenant billing infrastructure — workspace scoping, row-level security, encrypted credentials, and the failure modes we design against."
-keywords: ["multi-tenant billing", "workspace isolation", "row level security", "saas architecture", "postgres rls"]
+keywords:
+  [
+    "multi-tenant billing",
+    "workspace isolation",
+    "row level security",
+    "saas architecture",
+    "postgres rls",
+  ]
 category: "Engineering"
 tags: ["Architecture", "Multi-Tenant", "Security", "Postgres", "RLS"]
 author: "RRLabs Engineering"

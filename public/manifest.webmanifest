@@ -10,8 +10,23 @@
   "orientation": "portrait",
   "categories": ["business", "finance", "productivity"],
   "icons": [
-    { "src": "/__l5e/assets-v1/4efa770f-edb2-4808-9857-034ea723042a/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "/__l5e/assets-v1/ec720ca3-6437-4cb5-b44f-6034d0dae045/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "/__l5e/assets-v1/fbeb3ec9-9e95-48e5-a471-0a4ca831773d/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "/__l5e/assets-v1/4efa770f-edb2-4808-9857-034ea723042a/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/__l5e/assets-v1/ec720ca3-6437-4cb5-b44f-6034d0dae045/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/__l5e/assets-v1/fbeb3ec9-9e95-48e5-a471-0a4ca831773d/maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
   ]
 }

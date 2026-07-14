@@ -2,7 +2,14 @@
 title: "Grace Periods That Reduce Churn Without Giving Away Revenue"
 slug: "grace-periods-that-reduce-churn"
 description: "How to design subscription grace periods that keep customers active during payment failures without training them to never pay on time."
-keywords: ["grace period", "subscription grace period", "involuntary churn", "payment failure ux", "dunning"]
+keywords:
+  [
+    "grace period",
+    "subscription grace period",
+    "involuntary churn",
+    "payment failure ux",
+    "dunning",
+  ]
 category: "Playbooks"
 tags: ["Grace Period", "Churn", "Retention", "Subscription"]
 author: "RRLabs Editorial"
@@ -22,7 +29,7 @@ A grace period is a **product decision disguised as a billing setting**. Do it w
 
 ## What a grace period is for
 
-The purpose of a grace period is to buy the recovery system enough time to resolve a **fixable** payment failure — an expired card, a temporary bank hold, a paycheck-timing issue — without punishing the customer for something that is usually not their fault. It is *not* a free trial extension, and it is not a negotiation tactic.
+The purpose of a grace period is to buy the recovery system enough time to resolve a **fixable** payment failure — an expired card, a temporary bank hold, a paycheck-timing issue — without punishing the customer for something that is usually not their fault. It is _not_ a free trial extension, and it is not a negotiation tactic.
 
 That framing decides everything else: length, feature gating, messaging tone, and reactivation flow.
 
@@ -42,19 +49,19 @@ Default recommendation:
 
 Do not turn off the product on day one. Do not leave it fully on until day seven. The right pattern is a **soft downgrade** that preserves value but adds friction:
 
-| Day | State | Customer experience |
-| --- | --- | --- |
-| 0 | Payment fails | Silent to the customer; recovery starts |
-| 1–3 | Full access | Passive banner: "We couldn't process your card" |
-| 4–5 | Full access | Modal on next login with one-click update |
-| 6–7 | Reduced access | Read-only, export enabled, new work disabled |
-| 8+ | Suspended | Reactivation flow only |
+| Day | State          | Customer experience                             |
+| --- | -------------- | ----------------------------------------------- |
+| 0   | Payment fails  | Silent to the customer; recovery starts         |
+| 1–3 | Full access    | Passive banner: "We couldn't process your card" |
+| 4–5 | Full access    | Modal on next login with one-click update       |
+| 6–7 | Reduced access | Read-only, export enabled, new work disabled    |
+| 8+  | Suspended      | Reactivation flow only                          |
 
 Read-only + export is the highest-leverage state. It communicates seriousness without deleting the customer's work, which is the single largest driver of "I'll never come back" churn.
 
 ## Messaging that assumes goodwill
 
-Every message in a grace period should assume the customer *wants* to keep paying and is just dealing with a real-world problem. Do not lead with threats. Do not use the word "delinquent." Do not surface an invoice number in the subject line.
+Every message in a grace period should assume the customer _wants_ to keep paying and is just dealing with a real-world problem. Do not lead with threats. Do not use the word "delinquent." Do not surface an invoice number in the subject line.
 
 Compare:
 

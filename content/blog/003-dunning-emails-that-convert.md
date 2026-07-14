@@ -2,7 +2,14 @@
 title: "Dunning Emails That Actually Convert: 12 Rules from 4M Recovery Sends"
 slug: "dunning-emails-that-convert"
 description: "The twelve rules RRLabs learned after sending millions of dunning emails — subject lines, framing, urgency, and the specific words that recover the most revenue."
-keywords: ["dunning email", "dunning email templates", "failed payment email", "payment recovery email", "email copywriting"]
+keywords:
+  [
+    "dunning email",
+    "dunning email templates",
+    "failed payment email",
+    "payment recovery email",
+    "email copywriting",
+  ]
 category: "Playbooks"
 tags: ["Dunning", "Email", "Copywriting", "Conversion", "Retention"]
 author: "RRLabs Editorial"

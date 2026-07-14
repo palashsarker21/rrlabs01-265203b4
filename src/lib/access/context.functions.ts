@@ -49,17 +49,16 @@ export const loadAccessContext = createServerFn({ method: "GET" }).handler(
     const userId = claims.sub;
     const email = (claims as { email?: string }).email ?? null;
 
-    const [{ data: superAdminData }, { data: adminData }, { data: memberRow }] =
-      await Promise.all([
-        supabase.rpc("is_super_admin", { _user_id: userId }),
-        supabase.rpc("has_role", { _user_id: userId, _role: "admin" }),
-        supabase
-          .from("workspace_members")
-          .select("workspace_id, role, workspaces!inner(id, status, recovery_engine_enabled)")
-          .eq("user_id", userId)
-          .limit(1)
-          .maybeSingle(),
-      ]);
+    const [{ data: superAdminData }, { data: adminData }, { data: memberRow }] = await Promise.all([
+      supabase.rpc("is_super_admin", { _user_id: userId }),
+      supabase.rpc("has_role", { _user_id: userId, _role: "admin" }),
+      supabase
+        .from("workspace_members")
+        .select("workspace_id, role, workspaces!inner(id, status, recovery_engine_enabled)")
+        .eq("user_id", userId)
+        .limit(1)
+        .maybeSingle(),
+    ]);
 
     const isSuperAdmin = Boolean(superAdminData);
     const isPlatformAdmin = Boolean(adminData) || isSuperAdmin;

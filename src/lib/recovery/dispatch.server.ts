@@ -37,7 +37,11 @@ export async function sendEmailViaResend(
   });
   const body = await res.json().catch(() => ({}));
   if (!res.ok) {
-    return { ok: false, error: `Resend ${res.status}: ${JSON.stringify(body).slice(0, 300)}`, raw: body };
+    return {
+      ok: false,
+      error: `Resend ${res.status}: ${JSON.stringify(body).slice(0, 300)}`,
+      raw: body,
+    };
   }
   return { ok: true, providerMessageId: (body as { id?: string }).id, raw: body };
 }
@@ -83,7 +87,8 @@ export async function sendEmailViaSendGrid(
 export async function sendEmailViaSmtp(): Promise<DispatchResult> {
   return {
     ok: false,
-    error: "SMTP dispatch is not supported from the edge runtime. Use Resend or SendGrid, or configure an SMTP-to-HTTP relay.",
+    error:
+      "SMTP dispatch is not supported from the edge runtime. Use Resend or SendGrid, or configure an SMTP-to-HTTP relay.",
   };
 }
 

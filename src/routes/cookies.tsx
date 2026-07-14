@@ -18,7 +18,10 @@ function CookiesPage() {
     <div className="min-h-screen bg-background">
       <MarketingHeader />
       <LegalPage title="Cookie Policy" updated="July 2026">
-        <p>We use cookies to keep you signed in, remember preferences, and measure aggregate usage. We don't use third-party advertising cookies.</p>
+        <p>
+          We use cookies to keep you signed in, remember preferences, and measure aggregate usage.
+          We don't use third-party advertising cookies.
+        </p>
         <h2>Essential</h2>
         <p>Session and CSRF cookies required for authentication.</p>
         <h2>Analytics</h2>

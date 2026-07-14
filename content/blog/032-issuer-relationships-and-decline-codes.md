@@ -2,7 +2,14 @@
 title: "Issuer Relationships and Decline Codes: The Bank Signals You Should Actually Read"
 slug: "issuer-relationships-and-decline-codes"
 description: "Decline codes carry more information than most billing teams use. How to read them, group them, and route retries based on issuer behavior."
-keywords: ["decline codes", "issuer decline", "stripe decline codes", "payment retry logic", "issuer relationships"]
+keywords:
+  [
+    "decline codes",
+    "issuer decline",
+    "stripe decline codes",
+    "payment retry logic",
+    "issuer relationships",
+  ]
 category: "Engineering"
 tags: ["Payments", "Cards", "Decline Codes", "Engineering", "Retries"]
 author: "RRLabs Engineering"

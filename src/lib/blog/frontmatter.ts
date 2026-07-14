@@ -19,10 +19,7 @@ export class FrontmatterParseError extends Error {
 
 function stripQuotes(v: string): string {
   const s = v.trim();
-  if (
-    (s.startsWith('"') && s.endsWith('"')) ||
-    (s.startsWith("'") && s.endsWith("'"))
-  ) {
+  if ((s.startsWith('"') && s.endsWith('"')) || (s.startsWith("'") && s.endsWith("'"))) {
     return s.slice(1, -1);
   }
   return s;
@@ -38,9 +35,7 @@ function coerce(raw: string): unknown {
   if (v.startsWith("[") && v.endsWith("]")) {
     const inner = v.slice(1, -1).trim();
     if (!inner) return [];
-    return inner
-      .split(",")
-      .map((s) => coerce(stripQuotes(s.trim())));
+    return inner.split(",").map((s) => coerce(stripQuotes(s.trim())));
   }
   // Number (but not dates like 2026-01-02)
   if (/^-?\d+(\.\d+)?$/.test(v)) return Number(v);
@@ -67,7 +62,10 @@ export function parseFrontmatter(raw: string): ParsedFrontmatter {
   }
 
   const fmLines = lines.slice(1, endIdx);
-  const content = lines.slice(endIdx + 1).join("\n").replace(/^\n+/, "");
+  const content = lines
+    .slice(endIdx + 1)
+    .join("\n")
+    .replace(/^\n+/, "");
 
   const data: Record<string, unknown> = {};
   let currentKey: string | null = null;
@@ -83,9 +81,7 @@ export function parseFrontmatter(raw: string): ParsedFrontmatter {
       continue;
     }
     if (arrayItem) {
-      throw new FrontmatterParseError(
-        `Unexpected list item on frontmatter line ${index + 2}.`,
-      );
+      throw new FrontmatterParseError(`Unexpected list item on frontmatter line ${index + 2}.`);
     }
 
     // Commit any pending block array before a new key
@@ -96,9 +92,7 @@ export function parseFrontmatter(raw: string): ParsedFrontmatter {
 
     const kv = line.match(/^([A-Za-z0-9_-]+)\s*:\s*(.*)$/);
     if (!kv) {
-      throw new FrontmatterParseError(
-        `Invalid frontmatter syntax on line ${index + 2}.`,
-      );
+      throw new FrontmatterParseError(`Invalid frontmatter syntax on line ${index + 2}.`);
     }
     const key = kv[1];
     const val = kv[2];

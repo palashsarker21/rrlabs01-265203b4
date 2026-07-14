@@ -67,8 +67,8 @@ function BlogIndex() {
           Revenue recovery, in the open.
         </h1>
         <p className="mt-4 text-lg text-muted-foreground">
-          Playbooks, benchmarks, and engineering notes on AI-powered dunning,
-          failed-payment automation, and subscription retention.
+          Playbooks, benchmarks, and engineering notes on AI-powered dunning, failed-payment
+          automation, and subscription retention.
         </p>
         <form action="/blog/search" className="mt-6 flex max-w-lg gap-2">
           <div className="relative flex-1">
@@ -172,10 +172,7 @@ function BlogIndex() {
                 </a>
               </li>
               <li>
-                <a
-                  href="/sitemap.xml"
-                  className="text-muted-foreground hover:text-primary"
-                >
+                <a href="/sitemap.xml" className="text-muted-foreground hover:text-primary">
                   Sitemap
                 </a>
               </li>

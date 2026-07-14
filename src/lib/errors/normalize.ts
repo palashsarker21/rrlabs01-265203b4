@@ -42,7 +42,14 @@ const TITLES: Record<ErrorKind, string> = {
   unknown: "Something went wrong",
 };
 
-const RETRYABLE: ErrorKind[] = ["network", "timeout", "provider", "database", "server", "rate_limit"];
+const RETRYABLE: ErrorKind[] = [
+  "network",
+  "timeout",
+  "provider",
+  "database",
+  "server",
+  "rate_limit",
+];
 
 function classifyStatus(status: number): ErrorKind {
   if (status === 400 || status === 422) return "validation";
@@ -58,15 +65,36 @@ function classifyStatus(status: number): ErrorKind {
 
 function classifyMessage(msg: string): ErrorKind | undefined {
   const m = msg.toLowerCase();
-  if (m.includes("unauthorized") || m.includes("jwt") || m.includes("no authorization")) return "authentication";
+  if (m.includes("unauthorized") || m.includes("jwt") || m.includes("no authorization"))
+    return "authentication";
   if (m.includes("forbidden") || m.includes("not authorized")) return "authorization";
   if (m.includes("not found")) return "not_found";
   if (m.includes("rate limit") || m.includes("too many")) return "rate_limit";
   if (m.includes("timeout") || m.includes("timed out") || m.includes("etimedout")) return "timeout";
-  if (m.includes("network") || m.includes("fetch failed") || m.includes("econnrefused") || m.includes("failed to fetch")) return "network";
+  if (
+    m.includes("network") ||
+    m.includes("fetch failed") ||
+    m.includes("econnrefused") ||
+    m.includes("failed to fetch")
+  )
+    return "network";
   if (m.includes("validation") || m.includes("invalid")) return "validation";
-  if (m.includes("supabase") || m.includes("postgres") || m.includes("row-level security") || m.includes("rls")) return "database";
-  if (m.includes("stripe") || m.includes("lemonsqueezy") || m.includes("resend") || m.includes("whatsapp") || m.includes("gemini") || m.includes("openai")) return "provider";
+  if (
+    m.includes("supabase") ||
+    m.includes("postgres") ||
+    m.includes("row-level security") ||
+    m.includes("rls")
+  )
+    return "database";
+  if (
+    m.includes("stripe") ||
+    m.includes("lemonsqueezy") ||
+    m.includes("resend") ||
+    m.includes("whatsapp") ||
+    m.includes("gemini") ||
+    m.includes("openai")
+  )
+    return "provider";
   return undefined;
 }
 
@@ -97,11 +125,10 @@ export function normalizeError(error: unknown): NormalizedError {
     const status = e.status ?? e.statusCode;
     const msg = typeof e.message === "string" ? e.message : "";
     const byMsg = classifyMessage(msg);
-    const kind =
-      typeof status === "number" ? classifyStatus(status) : byMsg ?? "unknown";
+    const kind = typeof status === "number" ? classifyStatus(status) : (byMsg ?? "unknown");
     return {
       kind,
-      code: e.code ?? (typeof status === "number" ? `HTTP_${status}` : e.name ?? "ERR_UNKNOWN"),
+      code: e.code ?? (typeof status === "number" ? `HTTP_${status}` : (e.name ?? "ERR_UNKNOWN")),
       status: status ?? 500,
       title: TITLES[kind],
       message: userSafeMessage(kind, msg),

@@ -3,7 +3,12 @@ import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-async function assertSuperAdmin(supabase: { rpc: (fn: string, args: Record<string, unknown>) => Promise<{ data: unknown; error: unknown }> }, userId: string) {
+async function assertSuperAdmin(
+  supabase: {
+    rpc: (fn: string, args: Record<string, unknown>) => Promise<{ data: unknown; error: unknown }>;
+  },
+  userId: string,
+) {
   const { data, error } = await supabase.rpc("is_super_admin", { _user_id: userId });
   if (error) throw new Error((error as Error).message ?? "Authorization failed.");
   if (!data) throw new Error("Super admin access required.");

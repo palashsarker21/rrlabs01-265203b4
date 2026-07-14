@@ -159,7 +159,9 @@ export const listPublicPlans = createServerFn({ method: "GET" }).handler(async (
   });
   const { data, error } = await client
     .from("plans")
-    .select("id, code, name, description, price_cents, currency, interval, trial_days, features, sort_order")
+    .select(
+      "id, code, name, description, price_cents, currency, interval, trial_days, features, sort_order",
+    )
     .eq("is_active", true)
     .order("sort_order", { ascending: true });
   if (error) throw error;

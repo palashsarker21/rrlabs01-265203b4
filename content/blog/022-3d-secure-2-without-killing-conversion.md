@@ -2,7 +2,8 @@
 title: "3D Secure 2.2 Without Killing Conversion"
 slug: "3d-secure-2-without-killing-conversion"
 description: "How to route challenges, use exemptions, and design fallbacks so 3DS 2.2 reduces fraud without dropping checkout conversion."
-keywords: ["3d secure 2", "3ds2 conversion", "psd2 sca", "3ds exemptions", "frictionless authentication"]
+keywords:
+  ["3d secure 2", "3ds2 conversion", "psd2 sca", "3ds exemptions", "frictionless authentication"]
 category: "Payments"
 tags: ["3DS", "SCA", "PSD2", "Conversion"]
 author: "RRLabs Editorial"
@@ -57,7 +58,7 @@ Request exemptions **before** falling back to a challenge. Use `exemptionRequest
 
 ## When to force a challenge
 
-For a small class of transactions, you *want* the challenge — it reduces fraud enough to justify the drop-off:
+For a small class of transactions, you _want_ the challenge — it reduces fraud enough to justify the drop-off:
 
 - First charge on a new account with high-risk signals (mismatched geo, VoIP number, disposable email).
 - Card added by a user with a recent chargeback.
@@ -77,7 +78,7 @@ Configure your PSP to send subscription renewals with the correct MIT flag (`rec
 Users abandon challenges. Some challenges timeout. Some issuers' ACS servers go down. Your checkout must handle it:
 
 1. Detect abandonment or timeout (5–7 minutes is a reasonable threshold).
-2. Show a specific error: *"Your bank couldn't verify the payment. Try again or use a different card."*
+2. Show a specific error: _"Your bank couldn't verify the payment. Try again or use a different card."_
 3. Retry with the same card once, requesting a fresh authentication.
 4. If that fails, prompt for a different payment method.
 
