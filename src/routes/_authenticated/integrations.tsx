@@ -61,6 +61,7 @@ export const Route = createFileRoute("/_authenticated/integrations")({
 
 type ProviderRow = Awaited<ReturnType<typeof listProviderCatalog>>[number];
 type IntegrationRow = Awaited<ReturnType<typeof listWorkspaceIntegrations>>[number];
+type ProviderStatusRow = Awaited<ReturnType<typeof listWorkspaceProviderStatuses>>[number];
 type SetupField = {
   key: string;
   label?: string;
