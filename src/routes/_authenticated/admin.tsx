@@ -352,6 +352,8 @@ function AdminConsole() {
           <ApiKeysPanel />
         ) : tab === "announcements" ? (
           <AnnouncementsPanel />
+        ) : tab === "incidents" ? (
+          <IncidentsPanel />
         ) : tab === "workspaces" ? (
           <section className="rounded-2xl border border-border/60 bg-card/50">
             <div className="overflow-x-auto">
