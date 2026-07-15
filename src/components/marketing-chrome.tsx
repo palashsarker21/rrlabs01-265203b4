@@ -300,7 +300,7 @@ export function MarketingFooter() {
           <div>
             © {new Date().getFullYear()} {BRAND.legalOwner}. All Rights Reserved.
           </div>
-          <div>Powered by AI-powered Revenue Recovery.</div>
+          <div>Powered by RRLabs AI.</div>
         </div>
       </div>
     </footer>
