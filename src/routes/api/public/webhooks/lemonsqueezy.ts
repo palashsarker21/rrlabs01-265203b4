@@ -354,7 +354,54 @@ async function onSubscriptionUpdated(payload: LSWebhookPayload): Promise<void> {
       })
       .eq("id", sub.workspace_id);
   }
+
+  // Fire billing notifications for terminal / recovery events.
+  if (sub?.workspace_id) {
+    const eventId = payload.meta?.webhook_id ?? String(payload.data?.id ?? "");
+    const { sendBillingNotification } = await import("@/lib/billing-notifications.server");
+    const commonData = {
+      event_id: eventId,
+      update_payment_url: extractUrl(attr, "update_payment_method"),
+      customer_portal_url: extractUrl(attr, "customer_portal"),
+      ends_at: asDate(attr.ends_at),
+      renews_at: asDate(attr.renews_at),
+    };
+    if (eventName === "subscription_payment_failed") {
+      await sendBillingNotification({
+        kind: "payment_failed",
+        workspaceId: sub.workspace_id,
+        subscriptionId: sub.id,
+        data: commonData,
+      });
+    } else if (eventName === "subscription_payment_success" && status === "active") {
+      // Send only when the previous status was past_due (recovery).
+      const prevStatus = (attr as { previous_status?: string }).previous_status;
+      if (prevStatus === "past_due" || prevStatus === "unpaid") {
+        await sendBillingNotification({
+          kind: "payment_recovered",
+          workspaceId: sub.workspace_id,
+          subscriptionId: sub.id,
+          data: commonData,
+        });
+      }
+    } else if (eventName === "subscription_cancelled") {
+      await sendBillingNotification({
+        kind: "cancellation_warning",
+        workspaceId: sub.workspace_id,
+        subscriptionId: sub.id,
+        data: commonData,
+      });
+    } else if (eventName === "subscription_expired") {
+      await sendBillingNotification({
+        kind: "subscription_cancelled",
+        workspaceId: sub.workspace_id,
+        subscriptionId: sub.id,
+        data: commonData,
+      });
+    }
+  }
 }
+
 
 function asDate(v: unknown): string | null {
   if (typeof v !== "string" || !v) return null;
