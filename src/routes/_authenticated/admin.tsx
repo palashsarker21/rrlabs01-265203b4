@@ -219,7 +219,9 @@ function AdminConsole() {
 
 
 
-        {tab === "workspaces" ? (
+        {tab === "pricing" ? (
+          <PricingConfigPanel data={pricing} />
+        ) : tab === "workspaces" ? (
           <section className="rounded-2xl border border-border/60 bg-card/50">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
