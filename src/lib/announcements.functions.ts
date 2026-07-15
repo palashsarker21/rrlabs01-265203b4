@@ -92,8 +92,9 @@ export const listActiveAnnouncements = createServerFn({ method: "GET" }).handler
       console.warn("[announcements] list failed", error.message);
       return [];
     }
-    return (data ?? []).filter((row) =>
-      row.audience === "all" || row.audience === "anonymous" || row.audience === "authenticated",
+    return (data ?? []).filter(
+      (row) =>
+        row.audience === "all" || row.audience === "anonymous" || row.audience === "authenticated",
     ) as ActiveAnnouncement[];
   },
 );
@@ -131,7 +132,15 @@ const upsertSchema = z.object({
   body: z.string().max(4000).default(""),
   kind: z.enum(["banner", "popup", "release_note", "maintenance"]),
   severity: z.enum(["info", "warning", "critical"]),
-  audience: z.enum(["all", "authenticated", "anonymous", "plan", "role", "workspace", "super_admin"]),
+  audience: z.enum([
+    "all",
+    "authenticated",
+    "anonymous",
+    "plan",
+    "role",
+    "workspace",
+    "super_admin",
+  ]),
   audience_filter: z.record(z.unknown()).default({}),
   cta_label: z.string().max(60).nullable().optional(),
   cta_href: z.string().url().max(500).nullable().optional(),
@@ -196,9 +205,7 @@ export const upsertAnnouncement = createServerFn({ method: "POST" })
 
 export const setAnnouncementPublished = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((raw) =>
-    z.object({ id: z.string().uuid(), published: z.boolean() }).parse(raw),
-  )
+  .inputValidator((raw) => z.object({ id: z.string().uuid(), published: z.boolean() }).parse(raw))
   .handler(async ({ data, context }) => {
     await assertSuperAdmin(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");

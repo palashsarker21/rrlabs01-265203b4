@@ -1894,7 +1894,10 @@ function AnnouncementEditor({
         <div className="space-y-3">
           <div>
             <label className="mb-1 block text-xs text-muted-foreground">Title</label>
-            <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
+            <Input
+              value={form.title}
+              onChange={(e) => setForm({ ...form, title: e.target.value })}
+            />
           </div>
           <div>
             <label className="mb-1 block text-xs text-muted-foreground">Body</label>
@@ -1910,7 +1913,9 @@ function AnnouncementEditor({
               <select
                 className="w-full rounded-md border border-border/60 bg-background/60 px-2 py-1.5 text-sm"
                 value={form.kind}
-                onChange={(e) => setForm({ ...form, kind: e.target.value as AnnouncementRow["kind"] })}
+                onChange={(e) =>
+                  setForm({ ...form, kind: e.target.value as AnnouncementRow["kind"] })
+                }
               >
                 <option value="banner">Banner</option>
                 <option value="popup">Popup</option>
@@ -2205,4 +2210,3 @@ export function AnnouncementsPanel() {
     />
   );
 }
-

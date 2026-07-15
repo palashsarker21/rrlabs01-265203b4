@@ -107,10 +107,8 @@ export function AnnouncementBanner() {
             "flex items-start gap-3 border-b px-4 py-2 text-sm",
             a.severity === "critical" &&
               "border-destructive/40 bg-destructive/10 text-destructive-foreground",
-            a.severity === "warning" &&
-              "border-amber-500/40 bg-amber-500/10 text-amber-100",
-            a.severity === "info" &&
-              "border-primary/30 bg-primary/10 text-foreground",
+            a.severity === "warning" && "border-amber-500/40 bg-amber-500/10 text-amber-100",
+            a.severity === "info" && "border-primary/30 bg-primary/10 text-foreground",
           )}
         >
           <span aria-hidden className="mt-0.5">
