@@ -22,22 +22,28 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
 
     const { data: plan, error: planErr } = await supabase
       .from("plans")
-      .select("id, code, name, ls_variant_id, price_cents, currency, trial_days, is_active")
+      .select(
+        "id, code, name, ls_variant_id, price_cents, currency, trial_days, is_active, is_contact_sales",
+      )
       .eq("id", data.planId)
       .maybeSingle();
     if (planErr || !plan || !plan.is_active) {
       throw new Error("Selected plan is not available.");
+    }
+    if (plan.is_contact_sales) {
+      throw new Error("This plan is only available through our sales team.");
     }
 
     // Resolve Lemon Squeezy variant ID: prefer per-plan env override, fall back to DB.
     const envVariantByCode: Record<string, string | undefined> = {
       starter: process.env.LEMONSQUEEZY_VARIANT_STARTER,
       growth: process.env.LEMONSQUEEZY_VARIANT_GROWTH,
+      business: process.env.LEMONSQUEEZY_VARIANT_BUSINESS,
       scale: process.env.LEMONSQUEEZY_VARIANT_SCALE,
     };
     const variantId = envVariantByCode[plan.code] ?? plan.ls_variant_id;
     if (!variantId || variantId.startsWith("ls_variant_")) {
-      throw new Error("This plan is not yet linked to a Lemon Squeezy variant.");
+      throw new Error("This plan isn't available for self-serve checkout yet. Please try again later or contact sales.");
     }
 
     const apiKey = process.env.LEMONSQUEEZY_API_KEY;
@@ -139,7 +145,11 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
     return { url: checkoutUrl, sessionId: session.id };
   });
 
-/** Public: list active plans for the pricing page (no auth required). */
+/**
+ * Public: list active plans + whether each has a working self-serve variant.
+ * Enterprise / contact-sales rows are included with `has_variant=false`.
+ * We never expose the raw variant ID to the client.
+ */
 export const listPublicPlans = createServerFn({ method: "GET" }).handler(async () => {
   const { createClient } = await import("@supabase/supabase-js");
   const url = process.env.SUPABASE_URL!;
@@ -160,10 +170,26 @@ export const listPublicPlans = createServerFn({ method: "GET" }).handler(async (
   const { data, error } = await client
     .from("plans")
     .select(
-      "id, code, name, description, price_cents, currency, interval, trial_days, features, sort_order",
+      "id, code, name, description, price_cents, currency, interval, trial_days, features, sort_order, success_fee_bps, is_contact_sales, starting_at_price_cents, ls_variant_id",
     )
     .eq("is_active", true)
     .order("sort_order", { ascending: true });
   if (error) throw error;
-  return data ?? [];
+
+  const envVariantByCode: Record<string, string | undefined> = {
+    starter: process.env.LEMONSQUEEZY_VARIANT_STARTER,
+    growth: process.env.LEMONSQUEEZY_VARIANT_GROWTH,
+    business: process.env.LEMONSQUEEZY_VARIANT_BUSINESS,
+    scale: process.env.LEMONSQUEEZY_VARIANT_SCALE,
+  };
+
+  return (data ?? []).map((p) => {
+    const envVariant = envVariantByCode[p.code];
+    const variantId = envVariant ?? p.ls_variant_id ?? null;
+    const hasVariant =
+      !p.is_contact_sales && !!variantId && !variantId.startsWith("ls_variant_");
+    // Strip the raw variant id from the public payload.
+    const { ls_variant_id: _drop, ...rest } = p;
+    return { ...rest, has_variant: hasVariant };
+  });
 });
