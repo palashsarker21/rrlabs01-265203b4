@@ -133,28 +133,19 @@ export const Route = createFileRoute("/api/public/webhooks/$provider/$integratio
           return new Response("invalid signature", { status: 401 });
         }
 
-        // Dispatch to the recovery engine if we have a hint of a failed payment.
-        if (
-          eventType &&
-          /fail|past_due|declined|payment_failed/i.test(eventType)
-        ) {
-          try {
-            const { ingestStripeFailure } = await import("@/lib/recovery/engine.server");
-            await ingestStripeFailure({
-              workspaceId: integration.workspace_id,
-              provider: integration.provider,
-              rawPayload: rawBody,
-            }).catch(() => undefined);
-          } catch {
-            // engine may be unavailable — the webhook_logs row still records receipt.
-          }
-        }
+        // Per-provider recovery dispatch is handled by the dedicated
+        // /webhooks/stripe and /webhooks/lemonsqueezy routes for those
+        // providers. This generic route is the ingestion + audit surface for
+        // every other provider; workspaces see the delivery in webhook_logs
+        // immediately and the recovery engine reads state through the
+        // provider status cache on its own poll cadence.
 
         return new Response("ok", { status: 200 });
       },
     },
   },
 });
+
 
 function hashOf(body: string): string {
   return createHash("sha256").update(body).digest("hex");
