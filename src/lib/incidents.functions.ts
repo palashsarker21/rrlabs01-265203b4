@@ -239,7 +239,11 @@ export const addIncidentUpdate = createServerFn({ method: "POST" })
       .single();
     if (error) throw new Error(error.message);
     // Roll the parent incident's status/resolved_at forward.
-    const patch: Record<string, unknown> = { status: data.status, updated_at: new Date().toISOString() };
+    const patch: {
+      status: IncidentStatus;
+      updated_at: string;
+      resolved_at?: string;
+    } = { status: data.status, updated_at: new Date().toISOString() };
     if (data.status === "resolved") patch.resolved_at = new Date().toISOString();
     const { error: upErr } = await supabaseAdmin
       .from("incidents")
