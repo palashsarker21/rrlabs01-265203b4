@@ -1505,7 +1505,9 @@ function CreateApiKeyDialog({ onCreated }: { onCreated: () => void }) {
         ) : (
           <div className="space-y-3">
             <div>
-              <label className="mb-1 block text-xs text-muted-foreground">Workspace ID (UUID)</label>
+              <label className="mb-1 block text-xs text-muted-foreground">
+                Workspace ID (UUID)
+              </label>
               <Input
                 value={workspaceId}
                 onChange={(e) => setWorkspaceId(e.target.value)}
@@ -1514,7 +1516,11 @@ function CreateApiKeyDialog({ onCreated }: { onCreated: () => void }) {
             </div>
             <div>
               <label className="mb-1 block text-xs text-muted-foreground">Name</label>
-              <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Production server" />
+              <Input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Production server"
+              />
             </div>
             <div>
               <label className="mb-1 block text-xs text-muted-foreground">Scopes</label>
@@ -1553,7 +1559,10 @@ function CreateApiKeyDialog({ onCreated }: { onCreated: () => void }) {
           {issuedToken ? (
             <Button onClick={() => setOpen(false)}>Done</Button>
           ) : (
-            <Button onClick={submit} disabled={busy || !workspaceId || !name || scopes.length === 0}>
+            <Button
+              onClick={submit}
+              disabled={busy || !workspaceId || !name || scopes.length === 0}
+            >
               {busy ? "Creating…" : "Create key"}
             </Button>
           )}
@@ -1628,7 +1637,11 @@ export function ApiKeysPanel() {
       key: "workspace_id",
       label: "Workspace",
       value: (r) => r.workspace_id,
-      cell: (r) => <span className="font-mono text-[10px] text-muted-foreground">{r.workspace_id.slice(0, 8)}…</span>,
+      cell: (r) => (
+        <span className="font-mono text-[10px] text-muted-foreground">
+          {r.workspace_id.slice(0, 8)}…
+        </span>
+      ),
     },
     {
       key: "scopes",
@@ -1655,10 +1668,34 @@ export function ApiKeysPanel() {
         </span>
       ),
     },
-    { key: "request_count", label: "Requests", align: "right", sortable: true, value: (r) => r.request_count },
-    { key: "last_used_at", label: "Last used", sortable: true, value: (r) => r.last_used_at ?? "", cell: (r) => fmt(r.last_used_at) },
-    { key: "expires_at", label: "Expires", sortable: true, value: (r) => r.expires_at ?? "", cell: (r) => fmt(r.expires_at) },
-    { key: "created_at", label: "Created", sortable: true, value: (r) => r.created_at, cell: (r) => fmt(r.created_at) },
+    {
+      key: "request_count",
+      label: "Requests",
+      align: "right",
+      sortable: true,
+      value: (r) => r.request_count,
+    },
+    {
+      key: "last_used_at",
+      label: "Last used",
+      sortable: true,
+      value: (r) => r.last_used_at ?? "",
+      cell: (r) => fmt(r.last_used_at),
+    },
+    {
+      key: "expires_at",
+      label: "Expires",
+      sortable: true,
+      value: (r) => r.expires_at ?? "",
+      cell: (r) => fmt(r.expires_at),
+    },
+    {
+      key: "created_at",
+      label: "Created",
+      sortable: true,
+      value: (r) => r.created_at,
+      cell: (r) => fmt(r.created_at),
+    },
   ];
 
   return (
@@ -1716,7 +1753,12 @@ export function ApiKeysPanel() {
             />
           )}
           {r.status === "disabled" && (
-            <Button variant="ghost" size="sm" className="gap-1" onClick={() => doToggle(r.id, false)}>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="gap-1"
+              onClick={() => doToggle(r.id, false)}
+            >
               <ShieldCheck className="size-3.5" /> Enable
             </Button>
           )}
@@ -1753,4 +1795,3 @@ export function ApiKeysPanel() {
     />
   );
 }
-

@@ -17,7 +17,10 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 async function assertSuperAdmin(context: { supabase: unknown; userId: string }) {
   const sb = context.supabase as {
-    rpc: (fn: "is_super_admin", args: { _user_id: string }) => Promise<{ data: unknown; error: unknown }>;
+    rpc: (
+      fn: "is_super_admin",
+      args: { _user_id: string },
+    ) => Promise<{ data: unknown; error: unknown }>;
   };
   const { data, error } = await sb.rpc("is_super_admin", { _user_id: context.userId });
   if (error) throw new Error((error as Error).message ?? "Authorization failed.");
@@ -180,9 +183,7 @@ export const rotateApiKey = createServerFn({ method: "POST" })
 /** Toggle disabled state. Disabled keys pass authentication checks against status='active'. */
 export const setApiKeyDisabled = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((raw) =>
-    z.object({ id: z.string().uuid(), disabled: z.boolean() }).parse(raw),
-  )
+  .inputValidator((raw) => z.object({ id: z.string().uuid(), disabled: z.boolean() }).parse(raw))
   .handler(async ({ data, context }) => {
     await assertSuperAdmin(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -209,9 +210,7 @@ export const setApiKeyDisabled = createServerFn({ method: "POST" })
 export const revokeApiKey = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((raw) =>
-    z
-      .object({ id: z.string().uuid(), reason: z.string().max(200).optional() })
-      .parse(raw),
+    z.object({ id: z.string().uuid(), reason: z.string().max(200).optional() }).parse(raw),
   )
   .handler(async ({ data, context }) => {
     await assertSuperAdmin(context);
