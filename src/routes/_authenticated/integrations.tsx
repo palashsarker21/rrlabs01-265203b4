@@ -196,6 +196,7 @@ function IntegrationCenter() {
     if (res.ok) toast.success(res.message);
     else toast.error(res.message);
     qc.invalidateQueries({ queryKey: ["integrations", workspace?.id] });
+    qc.invalidateQueries({ queryKey: ["provider-statuses", workspace?.id] });
   }
 
   async function onDisconnect(id: string) {
