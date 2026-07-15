@@ -345,8 +345,8 @@ export function IntegrationsPanel() {
 
   type Row = (typeof data)[number];
   const columns: Column<Row>[] = [
-    { key: "provider_code", label: "Provider", sortable: true, value: (r) => r.provider_code },
-    { key: "provider_kind", label: "Kind", sortable: true, value: (r) => r.provider_kind },
+    { key: "provider", label: "Provider", sortable: true, value: (r) => r.provider },
+    { key: "kind", label: "Kind", sortable: true, value: (r) => r.kind },
     {
       key: "status",
       label: "Status",
@@ -355,11 +355,18 @@ export function IntegrationsPanel() {
       cell: (r) => <span className="rounded bg-muted px-2 py-0.5 text-xs capitalize">{r.status}</span>,
     },
     {
-      key: "last_delivery_at",
-      label: "Last delivery",
+      key: "verification_status",
+      label: "Verification",
       sortable: true,
-      value: (r) => r.last_delivery_at,
-      cell: (r) => <span className="text-xs">{fmt(r.last_delivery_at)}</span>,
+      value: (r) => r.verification_status,
+      cell: (r) => <span className="text-xs capitalize">{r.verification_status}</span>,
+    },
+    {
+      key: "last_verified_at",
+      label: "Last verified",
+      sortable: true,
+      value: (r) => r.last_verified_at,
+      cell: (r) => <span className="text-xs">{fmt(r.last_verified_at)}</span>,
     },
     {
       key: "workspace_id",
