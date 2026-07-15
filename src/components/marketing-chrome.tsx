@@ -211,7 +211,7 @@ export function MarketingFooter() {
                   <br />
                   {address.line2}
                   <br />
-                  {address.city}, {address.region}
+                  {address.city}, {address.region} {address.postalCode ?? ""}
                   <br />
                   {address.country}
                 </address>
