@@ -516,6 +516,54 @@ export type Database = {
           },
         ]
       }
+      contact_leads: {
+        Row: {
+          arr_range: string | null
+          company: string | null
+          created_at: string
+          email: string
+          id: string
+          ip_hash: string | null
+          name: string
+          plan_code: string | null
+          role: string | null
+          seats: string | null
+          source: string | null
+          use_case: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          arr_range?: string | null
+          company?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          ip_hash?: string | null
+          name: string
+          plan_code?: string | null
+          role?: string | null
+          seats?: string | null
+          source?: string | null
+          use_case?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          arr_range?: string | null
+          company?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          ip_hash?: string | null
+          name?: string
+          plan_code?: string | null
+          role?: string | null
+          seats?: string | null
+          source?: string | null
+          use_case?: string | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       customers: {
         Row: {
           created_at: string
@@ -668,11 +716,14 @@ export type Database = {
           id: string
           interval: string
           is_active: boolean
+          is_contact_sales: boolean
           ls_product_id: string | null
-          ls_variant_id: string
+          ls_variant_id: string | null
           name: string
           price_cents: number
           sort_order: number
+          starting_at_price_cents: number | null
+          success_fee_bps: number | null
           trial_days: number
           updated_at: string
         }
@@ -685,11 +736,14 @@ export type Database = {
           id?: string
           interval?: string
           is_active?: boolean
+          is_contact_sales?: boolean
           ls_product_id?: string | null
-          ls_variant_id: string
+          ls_variant_id?: string | null
           name: string
           price_cents?: number
           sort_order?: number
+          starting_at_price_cents?: number | null
+          success_fee_bps?: number | null
           trial_days?: number
           updated_at?: string
         }
@@ -702,11 +756,14 @@ export type Database = {
           id?: string
           interval?: string
           is_active?: boolean
+          is_contact_sales?: boolean
           ls_product_id?: string | null
-          ls_variant_id?: string
+          ls_variant_id?: string | null
           name?: string
           price_cents?: number
           sort_order?: number
+          starting_at_price_cents?: number | null
+          success_fee_bps?: number | null
           trial_days?: number
           updated_at?: string
         }
