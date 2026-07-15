@@ -155,7 +155,6 @@ function loadBlogCache(): BlogCache {
   if (issues.length > 0) {
     // Log server-side only. Never expose loader failures to end users.
     for (const issue of issues) {
-      // eslint-disable-next-line no-console
       console.warn(`[blog] Skipped ${issue.filepath}: ${issue.reason}`);
     }
   }

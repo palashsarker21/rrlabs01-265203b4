@@ -86,7 +86,6 @@ function BlogIndex() {
         </form>
       </header>
 
-
       {featured.length > 0 && (
         <section className="mb-14">
           <div className="mb-4 flex items-baseline justify-between">

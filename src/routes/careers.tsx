@@ -37,8 +37,8 @@ function CareersPage() {
         Careers at {BRAND.name}
       </h1>
       <p className="mt-4 text-lg text-muted-foreground">
-        We are a small, distributed team building the infrastructure subscription businesses rely
-        on to recover failed payments and reduce involuntary churn.
+        We are a small, distributed team building the infrastructure subscription businesses rely on
+        to recover failed payments and reduce involuntary churn.
       </p>
 
       <section className="mt-12">

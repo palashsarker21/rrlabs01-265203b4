@@ -21,7 +21,6 @@ export const subscribeToNewsletter = createServerFn({ method: "POST" })
       );
 
     if (error) {
-      // eslint-disable-next-line no-console
       console.error("[newsletter] subscribe failed", { message: error.message });
       throw new Error("Subscription failed. Please try again shortly.");
     }

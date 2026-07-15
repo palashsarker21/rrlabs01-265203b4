@@ -43,9 +43,7 @@ export function NewsletterSignup({ source = "blog" }: NewsletterSignupProps) {
           <Mail className="h-4 w-4" />
         </div>
         <div className="flex-1">
-          <h2 className="text-lg font-semibold text-foreground">
-            The RRLabs recovery newsletter
-          </h2>
+          <h2 className="text-lg font-semibold text-foreground">The RRLabs recovery newsletter</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             One deep piece a week on failed-payment recovery, subscription retention, and billing
             infrastructure. No spam. Unsubscribe any time.

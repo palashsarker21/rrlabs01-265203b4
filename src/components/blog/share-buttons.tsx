@@ -49,12 +49,7 @@ export function ShareButtons({ url, title }: ShareButtonsProps) {
       >
         <Linkedin className="h-3.5 w-3.5" /> LinkedIn
       </a>
-      <button
-        type="button"
-        onClick={handleCopy}
-        className={btn}
-        aria-label="Copy link to article"
-      >
+      <button type="button" onClick={handleCopy} className={btn} aria-label="Copy link to article">
         {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
         {copied ? "Copied" : "Copy link"}
       </button>
