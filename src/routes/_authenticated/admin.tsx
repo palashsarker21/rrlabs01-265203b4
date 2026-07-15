@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Shield, Power, ArrowLeft, ScrollText, Building2, ToggleLeft, Plug } from "lucide-react";
+import { Shield, Power, ArrowLeft, ScrollText, Building2, ToggleLeft, Plug, DollarSign, Check, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { BrandLockup } from "@/components/brand-mark";
@@ -19,6 +19,8 @@ import {
   listProvidersAdmin,
   setProviderEnabled,
 } from "@/lib/admin-features.functions";
+import { getAdminPricingSnapshot } from "@/lib/admin-pricing.functions";
+import { formatSuccessFeeBps } from "@/lib/pricing";
 
 
 export const Route = createFileRoute("/_authenticated/admin")({
@@ -40,7 +42,8 @@ function AdminConsole() {
   const audit = useServerFn(listAuditLogs);
   const setEngine = useServerFn(adminSetEngine);
   const metricsFn = useServerFn(getBillingMetrics);
-  const [tab, setTab] = useState<"workspaces" | "audit">("workspaces");
+  const pricingFn = useServerFn(getAdminPricingSnapshot);
+  const [tab, setTab] = useState<"workspaces" | "audit" | "pricing">("workspaces");
 
   const { data: me, isLoading: meLoading } = useQuery({
     queryKey: ["admin-status"],
@@ -71,6 +74,12 @@ function AdminConsole() {
     queryKey: ["admin-billing-metrics"],
     queryFn: () => metricsFn({}),
     refetchInterval: 60000,
+  });
+
+  const { data: pricing } = useQuery({
+    enabled: !!me?.isSuperAdmin && tab === "pricing",
+    queryKey: ["admin-pricing"],
+    queryFn: () => pricingFn({}),
   });
 
   const totals = useMemo(() => {
@@ -203,9 +212,16 @@ function AdminConsole() {
           <TabButton active={tab === "audit"} onClick={() => setTab("audit")}>
             <ScrollText className="mr-2 h-4 w-4" /> Audit log
           </TabButton>
+          <TabButton active={tab === "pricing"} onClick={() => setTab("pricing")}>
+            <DollarSign className="mr-2 h-4 w-4" /> Pricing config
+          </TabButton>
         </div>
 
-        {tab === "workspaces" ? (
+
+
+        {tab === "pricing" ? (
+          <PricingConfigPanel data={pricing} />
+        ) : tab === "workspaces" ? (
           <section className="rounded-2xl border border-border/60 bg-card/50">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
@@ -363,3 +379,169 @@ function TabButton({
     </button>
   );
 }
+
+function PricingConfigPanel({
+  data,
+}: {
+  data:
+    | Awaited<ReturnType<typeof getAdminPricingSnapshot>>
+    | undefined;
+}) {
+  if (!data) {
+    return (
+      <section className="rounded-2xl border border-border/60 bg-card/50 p-8 text-sm text-muted-foreground">
+        Loading pricing configuration…
+      </section>
+    );
+  }
+  return (
+    <section className="space-y-4">
+      <div className="rounded-2xl border border-border/60 bg-card/50 p-6">
+        <div className="flex flex-wrap items-center gap-6 text-sm">
+          <div>
+            <div className="text-xs uppercase tracking-wider text-muted-foreground">Trial length</div>
+            <div className="mt-1 font-medium text-foreground">{data.trialDays} days</div>
+          </div>
+          <div>
+            <div className="text-xs uppercase tracking-wider text-muted-foreground">
+              Lemon Squeezy store
+            </div>
+            <div className="mt-1 font-medium text-foreground">
+              {data.storeId ? data.storeId : <span className="text-rose-500">Not configured</span>}
+            </div>
+          </div>
+          <div>
+            <div className="text-xs uppercase tracking-wider text-muted-foreground">
+              Webhook secret
+            </div>
+            <div className="mt-1 font-medium">
+              {data.webhookSecretConfigured ? (
+                <span className="inline-flex items-center gap-1 text-emerald-500">
+                  <Check className="h-4 w-4" /> Configured
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 text-rose-500">
+                  <X className="h-4 w-4" /> Missing
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+        <p className="mt-4 text-xs text-muted-foreground">
+          Display copy comes from <code className="font-mono">src/lib/pricing.ts</code> (PLANS).
+          Checkout binds to the <code className="font-mono">plans</code> table by{" "}
+          <code className="font-mono">code</code>; the resolved LS variant id is read from the
+          matching environment variable.
+        </p>
+      </div>
+
+      <div className="rounded-2xl border border-border/60 bg-card/50">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-background/40 text-xs uppercase tracking-wider text-muted-foreground">
+              <tr>
+                <th className="px-4 py-3 text-left">Code</th>
+                <th className="px-4 py-3 text-left">Name</th>
+                <th className="px-4 py-3 text-left">Display price</th>
+                <th className="px-4 py-3 text-left">Success fee</th>
+                <th className="px-4 py-3 text-left">CTA</th>
+                <th className="px-4 py-3 text-left">DB plan</th>
+                <th className="px-4 py-3 text-left">LS variant</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.rows.map(({ plan, dbPlan, lsVariantEnvKey, lsVariantConfigured }) => {
+                const dbMatches =
+                  dbPlan &&
+                  dbPlan.code === plan.code &&
+                  (plan.monthlyBaseCents == null ||
+                    dbPlan.price_cents === plan.monthlyBaseCents) &&
+                  (plan.successFeeBps == null ||
+                    dbPlan.success_fee_bps === plan.successFeeBps);
+                return (
+                  <tr key={plan.code} className="border-t border-border/60 align-top">
+                    <td className="px-4 py-3 font-mono text-xs">{plan.code}</td>
+                    <td className="px-4 py-3">
+                      <div className="font-medium text-foreground">{plan.name}</div>
+                      <div className="text-xs text-muted-foreground">{plan.tagline}</div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="font-medium">
+                        {plan.price}
+                        {plan.priceSuffix ?? ""}
+                      </div>
+                      {plan.priceLead ? (
+                        <div className="text-xs text-muted-foreground">{plan.priceLead}</div>
+                      ) : null}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div>{formatSuccessFeeBps(plan.successFeeBps)}</div>
+                      <div className="text-xs text-muted-foreground">{plan.successFee}</div>
+                    </td>
+                    <td className="px-4 py-3 text-xs">
+                      <div className="font-mono">{plan.cta.kind}</div>
+                      <div className="text-muted-foreground">{plan.cta.label}</div>
+                    </td>
+                    <td className="px-4 py-3 text-xs">
+                      {dbPlan ? (
+                        <div className="space-y-1">
+                          <div className="inline-flex items-center gap-1">
+                            {dbMatches ? (
+                              <Check className="h-3.5 w-3.5 text-emerald-500" />
+                            ) : (
+                              <X className="h-3.5 w-3.5 text-amber-500" />
+                            )}
+                            <span className="font-mono">{dbPlan.code}</span>
+                          </div>
+                          <div className="text-muted-foreground">
+                            {(dbPlan.price_cents / 100).toLocaleString(undefined, {
+                              style: "currency",
+                              currency: "USD",
+                            })}
+                            {" · "}
+                            {formatSuccessFeeBps(dbPlan.success_fee_bps)}
+                            {" · trial "}
+                            {dbPlan.trial_days}d
+                          </div>
+                          {!dbPlan.is_active ? (
+                            <div className="text-amber-500">inactive</div>
+                          ) : null}
+                        </div>
+                      ) : (
+                        <span className="text-rose-500">Missing row</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-xs">
+                      {lsVariantEnvKey ? (
+                        <div className="space-y-1">
+                          <div className="font-mono">{lsVariantEnvKey}</div>
+                          <div>
+                            {lsVariantConfigured ? (
+                              <span className="inline-flex items-center gap-1 text-emerald-500">
+                                <Check className="h-3.5 w-3.5" /> configured
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 text-rose-500">
+                                <X className="h-3.5 w-3.5" /> missing env
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-muted-foreground">
+                            db id: {dbPlan?.ls_variant_id ?? "—"}
+                          </div>
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground">n/a (contact sales)</span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  );
+}
+
