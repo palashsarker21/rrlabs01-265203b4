@@ -76,6 +76,12 @@ function AdminConsole() {
     refetchInterval: 60000,
   });
 
+  const { data: pricing } = useQuery({
+    enabled: !!me?.isSuperAdmin && tab === "pricing",
+    queryKey: ["admin-pricing"],
+    queryFn: () => pricingFn({}),
+  });
+
   const totals = useMemo(() => {
     const list = workspaces ?? [];
     return {
