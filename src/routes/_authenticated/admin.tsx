@@ -32,6 +32,7 @@ function AdminConsole() {
   const overview = useServerFn(getAdminOverview);
   const audit = useServerFn(listAuditLogs);
   const setEngine = useServerFn(adminSetEngine);
+  const metricsFn = useServerFn(getBillingMetrics);
   const [tab, setTab] = useState<"workspaces" | "audit">("workspaces");
 
   const { data: me, isLoading: meLoading } = useQuery({
