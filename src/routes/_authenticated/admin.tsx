@@ -289,25 +289,48 @@ function AdminConsole() {
           </section>
         ) : null}
 
-        <div className="flex items-center gap-2 border-b border-border/60">
-          <TabButton active={tab === "workspaces"} onClick={() => setTab("workspaces")}>
-            <Building2 className="mr-2 h-4 w-4" /> Workspaces
-          </TabButton>
-          <TabButton active={tab === "audit"} onClick={() => setTab("audit")}>
-            <ScrollText className="mr-2 h-4 w-4" /> Audit log
-          </TabButton>
-          <TabButton active={tab === "pricing"} onClick={() => setTab("pricing")}>
-            <DollarSign className="mr-2 h-4 w-4" /> Pricing config
-          </TabButton>
-          <TabButton active={tab === "features"} onClick={() => setTab("features")}>
-            <Sparkles className="mr-2 h-4 w-4" /> Features & providers
-          </TabButton>
+        <div className="flex flex-wrap items-center gap-1 border-b border-border/60">
+          {TABS.map((t) => (
+            <TabButton key={t.key} active={tab === t.key} onClick={() => setTab(t.key)}>
+              <t.icon className="mr-2 h-4 w-4" /> {t.label}
+            </TabButton>
+          ))}
         </div>
 
-        {tab === "features" ? (
+        {tab === "analytics" ? (
+          <AnalyticsPanel />
+        ) : tab === "features" ? (
           <FeatureControlPanel workspaces={workspaces ?? []} />
         ) : tab === "pricing" ? (
           <PricingConfigPanel data={pricing} />
+        ) : tab === "users" ? (
+          <UsersPanel />
+        ) : tab === "subscriptions" ? (
+          <SubscriptionsPanel />
+        ) : tab === "billing" ? (
+          <BillingEventsPanel />
+        ) : tab === "webhooks" ? (
+          <WebhookMonitorPanel />
+        ) : tab === "integrations" ? (
+          <IntegrationsPanel />
+        ) : tab === "recovery" ? (
+          <RecoveryPanel />
+        ) : tab === "email" ? (
+          <NotificationsPanel channel="email" />
+        ) : tab === "whatsapp" ? (
+          <NotificationsPanel channel="whatsapp" />
+        ) : tab === "security" ? (
+          <SecurityCenterPanel />
+        ) : tab === "support" ? (
+          <SupportPanel />
+        ) : tab === "blog" ? (
+          <BlogModerationPanel />
+        ) : tab === "health" ? (
+          <SystemHealthPanel />
+        ) : tab === "settings" ? (
+          <SettingsPanel />
+        ) : tab === "maintenance" ? (
+          <MaintenancePanel />
         ) : tab === "workspaces" ? (
           <section className="rounded-2xl border border-border/60 bg-card/50">
             <div className="overflow-x-auto">
