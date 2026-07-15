@@ -296,7 +296,6 @@ function IntegrationCenter() {
               statuses={statuses}
               onActivate={onActivate}
             />
-
           )}
         </div>
 
@@ -945,7 +944,6 @@ function ActivationReview({
     },
   ];
   const requiredOk = checks.filter((c) => !c.optional).every((c) => c.ok);
-
 
   return (
     <div className="rounded-2xl border border-border/60 bg-card/50 p-6">

@@ -530,4 +530,3 @@ export function getAdapter(provider: string): Adapter {
   if (!a) throw new Error(`Unknown integration provider: ${provider}`);
   return a;
 }
-

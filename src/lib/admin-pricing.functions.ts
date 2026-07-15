@@ -47,7 +47,9 @@ export const getAdminPricingSnapshot = createServerFn({ method: "POST" })
 
     const { data: dbPlans, error } = await supabase
       .from("plans")
-      .select("id, code, name, price_cents, success_fee_bps, ls_variant_id, ls_product_id, is_active, trial_days");
+      .select(
+        "id, code, name, price_cents, success_fee_bps, ls_variant_id, ls_product_id, is_active, trial_days",
+      );
     if (error) throw new Error(error.message);
 
     const byCode = new Map<string, AdminPricingRow["dbPlan"]>();

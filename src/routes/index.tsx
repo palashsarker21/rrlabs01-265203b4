@@ -312,7 +312,6 @@ function Landing() {
               Compare all plans →
             </Link>
           </div>
-
         </div>
       </section>
 
@@ -500,7 +499,6 @@ const INTEGRATIONS = [
   "SMTP",
   "API",
 ];
-
 
 const TESTIMONIALS = [
   {
