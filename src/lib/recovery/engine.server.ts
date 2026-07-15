@@ -393,6 +393,21 @@ export async function ingestStripeFailure(args: IngestArgs): Promise<string | nu
     .maybeSingle();
   if (existing) return existing.id;
 
+  // Server-side usage enforcement — never trust the client.
+  const { assertWithinUsageLimit, UsageLimitError } = await import("@/lib/usage-limits.server");
+  try {
+    await assertWithinUsageLimit(workspaceId);
+  } catch (err) {
+    if (err instanceof UsageLimitError) {
+      console.warn(
+        `[recovery] usage limit reached for workspace ${workspaceId}: ${err.used}/${err.limit}`,
+      );
+      return null;
+    }
+    throw err;
+  }
+
+
   // Resolve customer identity from the Stripe object.
   const customerId =
     (object.customer as string | undefined) ??
