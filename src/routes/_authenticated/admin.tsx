@@ -217,14 +217,6 @@ function AdminConsole() {
           </TabButton>
         </div>
 
-        {tab === "pricing" ? (
-          <PricingConfigPanel data={pricing} />
-        ) : tab === "workspaces" ? (
-          <WorkspacesPanelMarker />
-        ) : (
-          <AuditPanelMarker />
-        )}
-        {false && (<>
 
 
         {tab === "workspaces" ? (
