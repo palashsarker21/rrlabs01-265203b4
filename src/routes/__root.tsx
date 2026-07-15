@@ -175,6 +175,7 @@ function RootComponent() {
       <ErrorBoundary boundary="root_client_boundary">
         <Outlet />
       </ErrorBoundary>
+      <GlobalDebugOverlay />
       <Toaster position="top-right" richColors closeButton />
     </QueryClientProvider>
   );
