@@ -1,8 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Shield, Power, ArrowLeft, ScrollText, Building2 } from "lucide-react";
+import { Shield, Power, ArrowLeft, ScrollText, Building2, ToggleLeft, Plug } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { BrandLockup } from "@/components/brand-mark";
@@ -13,6 +13,13 @@ import {
   listAuditLogs,
 } from "@/lib/admin.functions";
 import { getBillingMetrics } from "@/lib/billing-summary.functions";
+import {
+  listFeatureFlags,
+  setFeatureFlag,
+  listProvidersAdmin,
+  setProviderEnabled,
+} from "@/lib/admin-features.functions";
+
 
 export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminConsole,

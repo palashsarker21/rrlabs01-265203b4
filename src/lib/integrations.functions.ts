@@ -1,13 +1,17 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { randomBytes } from "node:crypto";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { ADAPTERS, getAdapterInfo } from "./integrations/catalog";
+import { assertCanConnect, PlanLimitError } from "./plan-limits.server";
+import { integrationKindFor, type ProviderKind } from "./providers/kinds";
 
 const workspaceIdSchema = z.object({ workspaceId: z.string().uuid() });
 
-/** Public catalog — safe metadata, no secrets. */
+/** Public catalog — safe metadata, no secrets. Legacy in-code catalog. */
 export const listAdapterCatalog = createServerFn({ method: "GET" }).handler(async () => ADAPTERS);
+
 
 /** List a workspace's integrations (no secrets — only public config + status). */
 export const listWorkspaceIntegrations = createServerFn({ method: "POST" })
@@ -18,13 +22,14 @@ export const listWorkspaceIntegrations = createServerFn({ method: "POST" })
     const { data: rows, error } = await supabase
       .from("integrations")
       .select(
-        "id, workspace_id, kind, provider, display_name, status, config, health, last_verified_at, last_error, created_at, updated_at",
+        "id, workspace_id, kind, provider, provider_account_id, display_name, status, config, health, verification_status, last_verified_at, last_test_at, last_test_ok, last_error, created_at, updated_at",
       )
       .eq("workspace_id", data.workspaceId)
       .order("created_at", { ascending: true });
     if (error) throw new Error(error.message);
     return rows ?? [];
   });
+
 
 const saveInput = z.object({
   workspaceId: z.string().uuid(),
@@ -43,8 +48,56 @@ export const saveIntegration = createServerFn({ method: "POST" })
   .inputValidator((raw) => saveInput.parse(raw))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    const info = getAdapterInfo(data.provider);
-    if (!info) throw new Error(`Unknown integration: ${data.provider}`);
+
+    // Resolve provider metadata: prefer DB catalog (source of truth); fall
+    // back to in-code catalog for legacy providers not yet in the DB.
+    const { data: catRow, error: catErr } = await supabase
+      .from("provider_catalog")
+      .select("code, kind, name, enabled, setup_fields")
+      .eq("code", data.provider)
+      .maybeSingle();
+    if (catErr) throw new Error(catErr.message);
+
+    let providerName: string;
+    let providerCode: string;
+    let iKind: "store" | "payment_gateway" | "communication";
+    let providerKind: ProviderKind;
+    let requiredKeys: string[] = [];
+
+    if (catRow) {
+      if (!catRow.enabled) throw new Error(`Provider "${catRow.name}" is currently disabled.`);
+      providerName = catRow.name;
+      providerCode = catRow.code;
+      providerKind = catRow.kind as ProviderKind;
+      iKind = integrationKindFor(providerKind);
+      const fields = Array.isArray(catRow.setup_fields) ? catRow.setup_fields : [];
+      requiredKeys = fields
+        .filter((f): f is { key: string; required?: boolean; label?: string } =>
+          typeof f === "object" && f !== null && "key" in f,
+        )
+        .filter((f) => f.required === true)
+        .map((f) => f.key);
+      // Also validate label-based required from in-code catalog for consistency.
+      const legacy = getAdapterInfo(data.provider);
+      if (legacy) {
+        for (const f of legacy.fields) {
+          if (f.required && !requiredKeys.includes(f.key)) requiredKeys.push(f.key);
+        }
+      }
+    } else {
+      const info = getAdapterInfo(data.provider);
+      if (!info) throw new Error(`Unknown integration: ${data.provider}`);
+      providerName = info.name;
+      providerCode = info.provider;
+      iKind = info.kind;
+      providerKind =
+        info.kind === "store"
+          ? "store"
+          : info.kind === "payment_gateway"
+            ? "gateway"
+            : "email"; // best guess for legacy comms — plan limit still applies
+      requiredKeys = info.fields.filter((f) => f.required).map((f) => f.key);
+    }
 
     // Authorization: caller must be a workspace member with manage rights.
     const { data: canManage, error: roleErr } = await supabase.rpc("can_manage_workspace", {
@@ -55,57 +108,125 @@ export const saveIntegration = createServerFn({ method: "POST" })
     if (!canManage)
       throw new Error("You do not have permission to change integrations for this workspace.");
 
-    // Validate required fields per catalog.
-    for (const field of info.fields) {
-      if (field.required && !data.credentials[field.key]?.trim()) {
-        throw new Error(`${field.label} is required.`);
+    // Validate required fields.
+    for (const key of requiredKeys) {
+      if (!data.credentials[key]?.toString().trim()) {
+        throw new Error(`${key} is required.`);
       }
     }
 
     // Test against upstream provider.
     const { getAdapter } = await import("./integrations/registry.server");
-    const adapter = getAdapter(data.provider);
+    const adapter = getAdapter(providerCode);
     const result = await adapter.test(data.credentials);
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const nowIso = new Date().toISOString();
 
+    // Derive a stable account id from the public config to allow multiple
+    // integrations of the same provider under one workspace.
+    const cfg = (result.publicConfig ?? {}) as Record<string, unknown>;
+    const accountId = String(
+      cfg.account_id ??
+        cfg.shop_domain ??
+        cfg.store_id ??
+        cfg.phone_number_id ??
+        cfg.account_sid ??
+        cfg.from_domain ??
+        cfg.merchant_account ??
+        cfg.site_url ??
+        cfg.store_url ??
+        cfg.base_url ??
+        data.credentials.shop_domain ??
+        data.credentials.site_url ??
+        data.credentials.from_domain ??
+        data.credentials.phone_number_id ??
+        data.credentials.account_sid ??
+        data.credentials.merchant_account ??
+        "default",
+    ).slice(0, 200);
+
     if (!result.ok) {
-      // Persist failure so the operator sees the last error without leaking secrets.
+      // Enforce plan limit on new failed attempts too, so a Starter workspace
+      // can't stack error rows past their allotment.
+      const { count } = await supabase
+        .from("integrations")
+        .select("id", { count: "exact", head: true })
+        .eq("workspace_id", data.workspaceId)
+        .eq("kind", iKind)
+        .eq("provider", providerCode)
+        .eq("provider_account_id", accountId);
+      if ((count ?? 0) === 0) {
+        try {
+          await assertCanConnect(supabase, data.workspaceId, providerKind, userId);
+        } catch (e) {
+          if (e instanceof PlanLimitError) return { ok: false as const, message: e.message };
+          throw e;
+        }
+      }
+
       await supabaseAdmin.from("integrations").upsert(
         {
           workspace_id: data.workspaceId,
-          kind: info.kind,
-          provider: info.provider,
-          display_name: data.displayName ?? info.name,
+          kind: iKind,
+          provider: providerCode,
+          provider_account_id: accountId,
+          display_name: data.displayName ?? providerName,
           status: "error",
           health: "unhealthy",
           last_error: result.message,
           config: {},
+          verification_status: "failed",
+          last_test_at: nowIso,
+          last_test_ok: false,
         },
-        { onConflict: "workspace_id,kind,provider" },
+        { onConflict: "workspace_id,kind,provider,provider_account_id" },
       );
       return { ok: false as const, message: result.message };
     }
 
-    // Encrypt credentials.
+    // For successful connections, enforce plan limit if this is a NEW row.
+    const { data: existing } = await supabase
+      .from("integrations")
+      .select("id, webhook_secret, webhook_verify_token")
+      .eq("workspace_id", data.workspaceId)
+      .eq("kind", iKind)
+      .eq("provider", providerCode)
+      .eq("provider_account_id", accountId)
+      .maybeSingle();
+
+    if (!existing) {
+      await assertCanConnect(supabase, data.workspaceId, providerKind, userId);
+    }
+
+    // Encrypt credentials + generate webhook secret & verify token if needed.
     const { encryptJSON } = await import("./crypto.server");
     const ciphertext = encryptJSON(data.credentials);
+    const webhookSecret = existing?.webhook_secret ?? randomBytes(24).toString("base64url");
+    const webhookVerifyToken =
+      existing?.webhook_verify_token ??
+      (data.credentials.verify_token?.toString().trim() || randomBytes(16).toString("hex"));
 
     const { error: upErr } = await supabaseAdmin.from("integrations").upsert(
       {
         workspace_id: data.workspaceId,
-        kind: info.kind,
-        provider: info.provider,
-        display_name: data.displayName ?? info.name,
+        kind: iKind,
+        provider: providerCode,
+        provider_account_id: accountId,
+        display_name: data.displayName ?? providerName,
         status: "connected",
         health: "healthy",
         config: (result.publicConfig ?? {}) as never,
         credentials_ciphertext: ciphertext,
+        webhook_secret: webhookSecret,
+        webhook_verify_token: webhookVerifyToken,
+        verification_status: "verified",
         last_verified_at: nowIso,
+        last_test_at: nowIso,
+        last_test_ok: true,
         last_error: null,
       },
-      { onConflict: "workspace_id,kind,provider" },
+      { onConflict: "workspace_id,kind,provider,provider_account_id" },
     );
     if (upErr) throw new Error(upErr.message);
 
@@ -116,12 +237,13 @@ export const saveIntegration = createServerFn({ method: "POST" })
       actorEmail: (context.claims as { email?: string })?.email ?? null,
       action: "integration.connected",
       targetType: "integration",
-      targetId: `${info.kind}:${info.provider}`,
-      details: { provider: info.provider, kind: info.kind },
+      targetId: `${iKind}:${providerCode}:${accountId}`,
+      details: { provider: providerCode, kind: iKind, account: accountId },
     });
 
     return { ok: true as const, message: result.message };
   });
+
 
 const idInput = z.object({ integrationId: z.string().uuid() });
 

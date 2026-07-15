@@ -1,101 +1,90 @@
+# Integration Center — Production Rebuild
 
-# Pricing System Redesign — RRLabs
+Replace the single-page Stripe onboarding wizard with a config-driven Integration Center. All providers, limits, and feature toggles come from the database — no hardcoded provider logic in components.
 
-## 1. Database (migration)
+## 1. Database (new tables + migrations)
 
-- Add `success_fee_bps INT` column to `plans` (basis points; 300 = 3%).
-- Add `is_contact_sales BOOLEAN DEFAULT false` and `starting_at_price_cents INT` for Enterprise.
-- Upsert 4 canonical plan rows by `code`:
-  - `starter` — $29, 300 bps, LS variant from `LEMONSQUEEZY_VARIANT_STARTER`
-  - `growth` — $99, 250 bps, LS variant from `LEMONSQUEEZY_VARIANT_GROWTH` (MOST POPULAR)
-  - `business` — $299, 200 bps, LS variant from new `LEMONSQUEEZY_VARIANT_BUSINESS`
-  - `enterprise` — starting $999, 200 bps, `is_contact_sales=true`, no LS variant
-- Retire `scale` code (soft: set `is_active=false`).
-- Create `contact_leads` table (name, email, company, seats, arr_range, use_case, source, created_at) with RLS: insert-anon-allowed, select service_role/super_admin only. GRANTs included.
+All in `public`, with GRANTs, RLS, and `service_role` write access.
 
-## 2. New `LEMONSQUEEZY_VARIANT_BUSINESS` secret
+- `provider_catalog` — canonical registry of every provider we support.
+  Columns: `id`, `code` (unique, e.g. `shopify`, `stripe`, `resend`), `kind` (`store`|`gateway`|`email`|`messaging`), `name`, `description`, `logo_url`, `setup_instructions` (md), `required_scopes` (jsonb), `setup_fields` (jsonb — declares api_key/domain/phone_id/etc), `webhook_events` (jsonb), `docs_url`, `enabled` (bool, admin-toggleable), `beta` (bool), `sort_order`, timestamps.
+- `provider_limits` — plan → provider kind → max count.
+  Columns: `plan_code` (fk to `plans.code`), `provider_kind`, `max_count` (null = unlimited). Seeded from Starter=1/1/1/1, Growth=3/3/∞/∞, Business/Enterprise=∞.
+- `feature_flags` — global toggles.
+  Columns: `key` (unique), `label`, `description`, `enabled`, `beta`, `maintenance_mode` (bool). Read-only for authenticated; write via super_admin RPC.
+- `workspace_feature_overrides` — per-workspace overrides.
+  Columns: `workspace_id`, `feature_key`, `enabled`, `limit_override` (int, nullable), `notes`, super-admin managed.
+- `webhook_logs` — every inbound webhook.
+  Columns: `id`, `workspace_id`, `integration_id`, `provider_code`, `event_type`, `signature_valid` (bool), `status_code`, `payload_hash`, `error`, `received_at`, `processed_at`, `attempt_count`. Indexed on `(integration_id, received_at desc)`.
+- `provider_status` — cached last-known health per integration.
+  Columns: `integration_id` (pk), `last_delivery_at`, `last_success_at`, `last_error`, `retry_count`, `verification_status` (`pending`|`verified`|`failed`), `updated_at`.
 
-Request via `add_secret`. Until set, Business CTA renders **"Coming Soon"** and is disabled per spec.
+Extend existing `integrations` table with: `webhook_secret` (text, encrypted), `webhook_verify_token` (text), `provider_account_id` (text), `verification_status` (text), `last_test_at`, `last_test_ok` (bool). Keep credentials encrypted via existing `RRLABS_ENCRYPTION_KEY`.
 
-## 3. Centralized config
+Seed `provider_catalog` in-migration with all 20 providers listed in the request. Seed `provider_limits` from PLANS.
 
-- `src/lib/pricing.ts` — SSOT for **display** (copy, features, badges, CTA labels, comparison-table matrix, FAQ, success-fee %, trust badges).
-  - `type Plan`, `PLANS: Plan[]`, `getPlanByCode`, `formatSuccessFee`, `TRIAL_DAYS=14`.
-- `src/lib/billing.ts` — client-side CTA routing helper:
-  - `resolveCta({ planCode, session, subscription })` → `{ kind: "signup" | "checkout" | "manage" | "contact_sales" | "coming_soon", href }`.
-  - Uses existing `createCheckoutSession` server fn for Starter/Growth/Business; routes Enterprise → `/contact-sales?plan=enterprise`; routes unauthenticated → `/auth?next=/checkout?plan=<id>`.
-- No hardcoded prices or checkout URLs in components — all read from `PLANS` + DB variant.
+## 2. Provider abstraction
 
-## 4. Server function updates
+`src/lib/providers/registry.server.ts` — reads `provider_catalog` and returns typed provider descriptors. No provider name is ever hardcoded in components.
 
-- `src/lib/billing.functions.ts`
-  - Extend `createCheckoutSession` to reject `is_contact_sales` plans and to short-circuit with a friendly "Coming Soon" error when variant is missing/placeholder.
-  - `listPublicPlans` already exists — extend select to include `success_fee_bps`, `starting_at_price_cents`, `is_contact_sales`.
-- New `submitContactLead` server fn (public, Zod-validated, rate-limited by IP hash) → inserts into `contact_leads`.
+Per-provider handler modules under `src/lib/providers/<code>/` implementing a common interface:
+```
+connect(fields) → { account_id, webhook_secret }
+test(integration) → { ok, message }
+webhook(payload, signature) → { event, valid }
+disconnect(integration) → void
+```
+Providers stubbed for now: `paddle`, `paypal`, `adyen`, `sendgrid`, `mailgun`, `postmark`, `smtp`, `twilio_sms`, `twilio_wa`, `meta_wa`, `woocommerce`, `edd`, `memberpress`, `surecart`, `custom_store`, `custom_gateway`. Existing `stripe`, `lemonsqueezy`, `shopify`, `resend` wired to real logic where already implemented; the rest expose a working connect form + webhook URL + verification flow, with provider API calls returning a typed "coming soon" from `test()` so the UI is honest rather than fake.
 
-## 5. Pricing page (`src/routes/pricing.tsx`)
+## 3. Webhook infrastructure
 
-Full rebuild, light-mode enterprise aesthetic:
-- Hero + trust strip (No Credit Card · 14-Day Free Trial · Cancel Anytime · SOC2-ready · AI-Powered).
-- 4-column plan grid with Growth featured (MOST POPULAR) and Enterprise (ENTERPRISE badge).
-- CTA per plan wired through `resolveCta`.
-- Success fee shown under price on every card.
-- ROI calculator section (client component) — inputs: monthly failed payments, AOV, recovery rate; outputs: recovered revenue, platform fee, net revenue, ROI multiple. Live update.
-- Full comparison table (responsive: table on md+, stacked accordion on mobile).
-- FAQ (6 Qs from spec) using shadcn Accordion.
-- Money-back / secure-checkout / trusted-by strip near CTAs.
+- Generic public route: `src/routes/api/public/webhooks/$provider.$integrationId.ts` — resolves the integration, verifies signature via the provider handler, writes to `webhook_logs`, updates `provider_status`, dispatches to the recovery engine. Existing `/webhooks/stripe` and `/webhooks/lemonsqueezy` remain as compat shims that redirect.
+- `getWebhookUrl(integration)` helper returns `https://<published-host>/api/public/webhooks/<code>/<id>`.
+- Server fns: `rotateWebhookSecret`, `testIntegration`, `getWebhookLogs(integrationId)`.
 
-## 6. Reusable components
+## 4. Integration Center UI
 
-- `src/components/pricing/plan-card.tsx`
-- `src/components/pricing/pricing-grid.tsx`
-- `src/components/pricing/comparison-table.tsx`
-- `src/components/pricing/roi-calculator.tsx`
-- `src/components/pricing/pricing-faq.tsx`
-- `src/components/pricing/trust-strip.tsx`
-- `src/components/pricing/cta-button.tsx` (single component that renders correct CTA based on `resolveCta`; handles "Coming Soon" disabled state and Enterprise → `/contact-sales`).
+Replace `src/routes/_authenticated/onboarding.tsx` and `src/routes/_authenticated/setup.tsx` (or add `/integrations`) with a stepper:
 
-## 7. `/contact-sales` route
+Step 1 Store → Step 2 Gateway → Step 3 Email → Step 4 Messaging → Step 5 Activation Review.
 
-- New `src/routes/contact-sales.tsx` — enterprise lead form (company, name, email, role, seats, ARR range, use case, plan preselect from `?plan=enterprise`). Submits via `submitContactLead`. Success state with confirmation and calendar-link CTA (mailto for now).
-- SEO head: title/description/canonical + JSON-LD `ContactPage`.
+One component `<ProviderCard provider={...} integration={...} />` renders every card, driven entirely by `provider_catalog`. Fields shown per spec: logo, description, status, connect/disconnect/reconnect, webhook URL + copy, webhook secret + rotate, last delivery, verification, test, setup instructions, account ID, timestamps. Locked cards (over plan limit or `enabled=false`) show an "Upgrade Required" badge with reason + current plan + required plan + upgrade CTA — never hidden.
 
-## 8. Site-wide CTA updates
+Activation Review reads live from `provider_status` + `integrations` and only enables "Activate Recovery Engine" when all required checks pass.
 
-Rewire every "Start Free Trial" / pricing CTA to import from `pricing.ts` + `resolveCta`:
-- `src/routes/index.tsx` (homepage hero + pricing teaser)
-- `src/routes/features.tsx`
-- `src/routes/about.tsx`
-- `src/routes/faq.tsx`
-- `src/routes/docs.tsx`
-- `src/components/marketing-chrome.tsx` (header + footer CTAs)
-- `src/routes/_authenticated/upgrade.tsx` (rebuild against new plans + resolveCta with subscription awareness)
-- `src/routes/_authenticated/checkout.tsx` (use `PLANS` display copy; block enterprise; show Coming Soon for Business until variant set)
-- `src/routes/_authenticated/app.tsx` — Current Plan card (plan name, status, renewal, usage placeholder, Upgrade/Downgrade/Manage Billing buttons). Manage Billing is a stub button that toasts "Coming soon" if no LS customer portal URL yet.
+Keep the existing visual design tokens — no restyling.
 
-## 9. Design constraints
+## 5. Plan enforcement (server-side)
 
-- Light mode only. White / off-white surfaces (`bg-background`, `bg-card`), subtle borders (`border-border/60`), no glassmorphism, no neon, no gradients beyond one accent used sparingly. Existing tokens in `src/styles.css` reused; no new colors hardcoded.
-- Typography and spacing match current marketing chrome (`MarketingHeader` / `MarketingFooter`).
+`src/lib/plan-limits.server.ts`:
+- `getEffectiveLimits(workspaceId)` — joins current plan → `provider_limits` → `workspace_feature_overrides`.
+- `assertCanConnect(workspaceId, kind)` — throws 402 when at limit. Super admin bypass.
+Called inside every provider `connect` server fn. Frontend also reads the same limits to render locked states — but never trusts them.
 
-## 10. Validation
+## 6. Super Admin Feature Manager
 
-- `bun run typecheck` clean.
-- `bun run lint` clean.
-- `bun run build` clean.
-- Manual verification via preview screenshots (pricing page, /contact-sales, dashboard upgrade, homepage CTA).
-- A11y: buttons have accessible labels, table has `<caption>`/`scope`, form inputs labelled, focus rings visible.
-- SEO: unique `<title>`, meta description, canonical, JSON-LD `Product`/`Offer` on pricing.
+New tab under `/admin` → "Features & Providers":
+- Toggle feature flags, maintenance mode, beta features.
+- Enable/disable providers in `provider_catalog`.
+- Per-workspace overrides (grant extra stores/gateways, unlock features).
+All via super-admin-only server fns (`has_role(_, 'super_admin')`).
 
-## Technical notes
+## 7. Verification
 
-- `resolveCta` runs client-side; the auth state comes from `supabase.auth.getSession()` cached in a small `useSession` hook (already present pattern in codebase). Subscription state read from `workspaces` row via existing query. Loaders on public routes remain unauth.
-- `submitContactLead` is a `createServerFn` **without** `requireSupabaseAuth` (public) — Zod validates, and we insert via server publishable client behind a narrow `TO anon` INSERT policy scoped to `contact_leads` only.
-- Business plan gating: `PLANS.business.ctaState` is derived at build/render time from `plan.ls_variant_id` returned by `listPublicPlans`; if null/placeholder → `coming_soon`.
-- No changes to webhooks, RLS on user/workspace tables, migrations for existing tables beyond additive columns.
+Typecheck (`bunx tsgo --noEmit`), ESLint, and build must pass. Final report lists new providers, webhook route, feature-lock surfaces, plan-limit call sites, admin tab, and DB tables — with a grep confirmation that no provider `code` string appears in a component conditional.
 
-## Out of scope (this turn)
+## Out of scope (explicit)
 
-- Actual metered billing of success fees (display only for now; column stored).
-- Stripe customer portal integration (Manage Billing button stubbed).
-- Multi-currency.
+- Not implementing real API integrations for the 16 stub providers this pass — they get working shells + webhook URLs + admin toggles, so adding a real implementation later is a per-file drop-in. Confirm if you want any specific one fully wired now (e.g. WooCommerce, Meta WhatsApp Cloud, Twilio).
+- Not touching pricing/landing copy — already synchronized in the previous pass.
+
+## Files (new / changed)
+
+New: 1 migration, ~18 provider modules, `providers/registry.server.ts`, generic webhook route, `plan-limits.server.ts`, `integration-center/*` components, admin `features-tab.tsx`, `webhook-logs.tsx`.
+Changed: `onboarding.tsx`, `setup.tsx`, `admin.tsx`, `types.ts` (auto), route tree (auto).
+
+## Confirm before I start
+
+1. **Stub scope** — OK to ship 16 providers as working shells (real UI + webhook URL + connect form + admin toggle, but their `test()` returns "coming soon" until API code is added), or do you want a subset fully wired now?
+2. **Route** — replace `onboarding.tsx` in place, or add `/integrations` and keep onboarding as a redirect?
+3. **Encryption** — reuse `RRLABS_ENCRYPTION_KEY` for provider credentials at rest (already used elsewhere)?

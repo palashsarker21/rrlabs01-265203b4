@@ -35,6 +35,7 @@ import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as AuthenticatedUpgradeRouteImport } from './routes/_authenticated/upgrade'
 import { Route as AuthenticatedSetupRouteImport } from './routes/_authenticated/setup'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
+import { Route as AuthenticatedIntegrationsRouteImport } from './routes/_authenticated/integrations'
 import { Route as AuthenticatedCheckoutRouteImport } from './routes/_authenticated/checkout'
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
@@ -44,6 +45,7 @@ import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
 import { Route as ApiPublicWebhooksStripeRouteImport } from './routes/api/public/webhooks/stripe'
 import { Route as ApiPublicWebhooksLemonsqueezyRouteImport } from './routes/api/public/webhooks/lemonsqueezy'
 import { Route as ApiPublicHooksRecoveryCadenceRouteImport } from './routes/api/public/hooks/recovery-cadence'
+import { Route as ApiPublicWebhooksProviderIntegrationIdRouteImport } from './routes/api/public/webhooks/$provider.$integrationId'
 
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
@@ -174,6 +176,12 @@ const AuthenticatedOnboardingRoute = AuthenticatedOnboardingRouteImport.update({
   path: '/onboarding',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedIntegrationsRoute =
+  AuthenticatedIntegrationsRouteImport.update({
+    id: '/integrations',
+    path: '/integrations',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedCheckoutRoute = AuthenticatedCheckoutRouteImport.update({
   id: '/checkout',
   path: '/checkout',
@@ -221,6 +229,12 @@ const ApiPublicHooksRecoveryCadenceRoute =
     path: '/api/public/hooks/recovery-cadence',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicWebhooksProviderIntegrationIdRoute =
+  ApiPublicWebhooksProviderIntegrationIdRouteImport.update({
+    id: '/api/public/webhooks/$provider/$integrationId',
+    path: '/api/public/webhooks/$provider/$integrationId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -244,6 +258,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRoute
   '/app': typeof AuthenticatedAppRoute
   '/checkout': typeof AuthenticatedCheckoutRoute
+  '/integrations': typeof AuthenticatedIntegrationsRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/setup': typeof AuthenticatedSetupRoute
   '/upgrade': typeof AuthenticatedUpgradeRoute
@@ -257,6 +272,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/recovery-cadence': typeof ApiPublicHooksRecoveryCadenceRoute
   '/api/public/webhooks/lemonsqueezy': typeof ApiPublicWebhooksLemonsqueezyRoute
   '/api/public/webhooks/stripe': typeof ApiPublicWebhooksStripeRoute
+  '/api/public/webhooks/$provider/$integrationId': typeof ApiPublicWebhooksProviderIntegrationIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -279,6 +295,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminRoute
   '/app': typeof AuthenticatedAppRoute
   '/checkout': typeof AuthenticatedCheckoutRoute
+  '/integrations': typeof AuthenticatedIntegrationsRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/setup': typeof AuthenticatedSetupRoute
   '/upgrade': typeof AuthenticatedUpgradeRoute
@@ -292,6 +309,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/recovery-cadence': typeof ApiPublicHooksRecoveryCadenceRoute
   '/api/public/webhooks/lemonsqueezy': typeof ApiPublicWebhooksLemonsqueezyRoute
   '/api/public/webhooks/stripe': typeof ApiPublicWebhooksStripeRoute
+  '/api/public/webhooks/$provider/$integrationId': typeof ApiPublicWebhooksProviderIntegrationIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -317,6 +335,7 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/app': typeof AuthenticatedAppRoute
   '/_authenticated/checkout': typeof AuthenticatedCheckoutRoute
+  '/_authenticated/integrations': typeof AuthenticatedIntegrationsRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/setup': typeof AuthenticatedSetupRoute
   '/_authenticated/upgrade': typeof AuthenticatedUpgradeRoute
@@ -330,6 +349,7 @@ export interface FileRoutesById {
   '/api/public/hooks/recovery-cadence': typeof ApiPublicHooksRecoveryCadenceRoute
   '/api/public/webhooks/lemonsqueezy': typeof ApiPublicWebhooksLemonsqueezyRoute
   '/api/public/webhooks/stripe': typeof ApiPublicWebhooksStripeRoute
+  '/api/public/webhooks/$provider/$integrationId': typeof ApiPublicWebhooksProviderIntegrationIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -355,6 +375,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/app'
     | '/checkout'
+    | '/integrations'
     | '/onboarding'
     | '/setup'
     | '/upgrade'
@@ -368,6 +389,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/recovery-cadence'
     | '/api/public/webhooks/lemonsqueezy'
     | '/api/public/webhooks/stripe'
+    | '/api/public/webhooks/$provider/$integrationId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -390,6 +412,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/app'
     | '/checkout'
+    | '/integrations'
     | '/onboarding'
     | '/setup'
     | '/upgrade'
@@ -403,6 +426,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/recovery-cadence'
     | '/api/public/webhooks/lemonsqueezy'
     | '/api/public/webhooks/stripe'
+    | '/api/public/webhooks/$provider/$integrationId'
   id:
     | '__root__'
     | '/'
@@ -427,6 +451,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/app'
     | '/_authenticated/checkout'
+    | '/_authenticated/integrations'
     | '/_authenticated/onboarding'
     | '/_authenticated/setup'
     | '/_authenticated/upgrade'
@@ -440,6 +465,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/recovery-cadence'
     | '/api/public/webhooks/lemonsqueezy'
     | '/api/public/webhooks/stripe'
+    | '/api/public/webhooks/$provider/$integrationId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -467,6 +493,7 @@ export interface RootRouteChildren {
   ApiPublicHooksRecoveryCadenceRoute: typeof ApiPublicHooksRecoveryCadenceRoute
   ApiPublicWebhooksLemonsqueezyRoute: typeof ApiPublicWebhooksLemonsqueezyRoute
   ApiPublicWebhooksStripeRoute: typeof ApiPublicWebhooksStripeRoute
+  ApiPublicWebhooksProviderIntegrationIdRoute: typeof ApiPublicWebhooksProviderIntegrationIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -653,6 +680,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOnboardingRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/integrations': {
+      id: '/_authenticated/integrations'
+      path: '/integrations'
+      fullPath: '/integrations'
+      preLoaderRoute: typeof AuthenticatedIntegrationsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/checkout': {
       id: '/_authenticated/checkout'
       path: '/checkout'
@@ -716,6 +750,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksRecoveryCadenceRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/webhooks/$provider/$integrationId': {
+      id: '/api/public/webhooks/$provider/$integrationId'
+      path: '/api/public/webhooks/$provider/$integrationId'
+      fullPath: '/api/public/webhooks/$provider/$integrationId'
+      preLoaderRoute: typeof ApiPublicWebhooksProviderIntegrationIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -723,6 +764,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedAppRoute: typeof AuthenticatedAppRoute
   AuthenticatedCheckoutRoute: typeof AuthenticatedCheckoutRoute
+  AuthenticatedIntegrationsRoute: typeof AuthenticatedIntegrationsRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedSetupRoute: typeof AuthenticatedSetupRoute
   AuthenticatedUpgradeRoute: typeof AuthenticatedUpgradeRoute
@@ -732,6 +774,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedAppRoute: AuthenticatedAppRoute,
   AuthenticatedCheckoutRoute: AuthenticatedCheckoutRoute,
+  AuthenticatedIntegrationsRoute: AuthenticatedIntegrationsRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedSetupRoute: AuthenticatedSetupRoute,
   AuthenticatedUpgradeRoute: AuthenticatedUpgradeRoute,
@@ -783,17 +826,9 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksRecoveryCadenceRoute: ApiPublicHooksRecoveryCadenceRoute,
   ApiPublicWebhooksLemonsqueezyRoute: ApiPublicWebhooksLemonsqueezyRoute,
   ApiPublicWebhooksStripeRoute: ApiPublicWebhooksStripeRoute,
+  ApiPublicWebhooksProviderIntegrationIdRoute:
+    ApiPublicWebhooksProviderIntegrationIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
