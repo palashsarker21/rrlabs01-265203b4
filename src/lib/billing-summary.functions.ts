@@ -119,10 +119,41 @@ export const getBillingMetrics = createServerFn({ method: "GET" })
       .from("recovery_events")
       .select("amount_cents")
       .eq("status", "recovered");
-    const recoveredCents = (recovered ?? []).reduce(
-      (sum, r) => sum + (r.amount_cents ?? 0),
-      0,
-    );
+    const recoveredCents = (recovered ?? []).reduce((sum, r) => sum + (r.amount_cents ?? 0), 0);
+
+    // Webhook health — last 24h of billing_events.
+    const oneDayAgo = new Date(now.getTime() - 24 * 3600 * 1000).toISOString();
+    const { count: webhooksTotal } = await supabaseAdmin
+      .from("billing_events")
+      .select("id", { head: true, count: "exact" })
+      .gte("created_at", oneDayAgo);
+    const { count: webhooksProcessed } = await supabaseAdmin
+      .from("billing_events")
+      .select("id", { head: true, count: "exact" })
+      .gte("created_at", oneDayAgo)
+      .not("processed_at", "is", null);
+    const { count: webhooksFailed } = await supabaseAdmin
+      .from("billing_events")
+      .select("id", { head: true, count: "exact" })
+      .gte("created_at", oneDayAgo)
+      .not("error", "is", null);
+
+    // Checkout success rate — last 30d.
+    const { count: checkoutsTotal } = await supabaseAdmin
+      .from("checkout_sessions")
+      .select("id", { head: true, count: "exact" })
+      .gte("created_at", thirtyDaysAgo);
+    const { count: checkoutsCompleted } = await supabaseAdmin
+      .from("checkout_sessions")
+      .select("id", { head: true, count: "exact" })
+      .gte("created_at", thirtyDaysAgo)
+      .eq("status", "completed");
+
+    // Payment failures currently outstanding.
+    const { count: pastDueCount } = await supabaseAdmin
+      .from("subscriptions")
+      .select("id", { head: true, count: "exact" })
+      .eq("status", "past_due");
 
     return {
       mrrCents,
@@ -133,5 +164,21 @@ export const getBillingMetrics = createServerFn({ method: "GET" })
       conversionRate,
       recoveredCents,
       currency: "USD",
+      webhooks: {
+        total24h: webhooksTotal ?? 0,
+        processed24h: webhooksProcessed ?? 0,
+        pending24h: Math.max(
+          0,
+          (webhooksTotal ?? 0) - (webhooksProcessed ?? 0) - (webhooksFailed ?? 0),
+        ),
+        failed24h: webhooksFailed ?? 0,
+      },
+      checkout: {
+        total30d: checkoutsTotal ?? 0,
+        completed30d: checkoutsCompleted ?? 0,
+        successRate:
+          checkoutsTotal && checkoutsTotal > 0 ? (checkoutsCompleted ?? 0) / checkoutsTotal : 0,
+      },
+      pastDueCount: pastDueCount ?? 0,
     };
   });
