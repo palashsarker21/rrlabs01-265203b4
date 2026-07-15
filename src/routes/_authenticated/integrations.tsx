@@ -740,11 +740,22 @@ function ConnectedRow({
             {url || "…"}
           </code>
           <button
-            className="rounded p-1 hover:bg-card/70"
-            onClick={() => copy(url, "Webhook URL")}
+            className="inline-flex items-center gap-1 rounded p-1 hover:bg-card/70"
+            onClick={async () => {
+              await copy(url, "Webhook URL");
+              setCopiedUrl(true);
+              setTimeout(() => setCopiedUrl(false), 2000);
+            }}
             title="Copy webhook URL"
           >
-            <Copy className="h-3 w-3" />
+            {copiedUrl ? (
+              <>
+                <Check className="h-3 w-3 text-emerald-500" />
+                <span className="text-[10px] text-emerald-500">Copied</span>
+              </>
+            ) : (
+              <Copy className="h-3 w-3" />
+            )}
           </button>
         </div>
 
