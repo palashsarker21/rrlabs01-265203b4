@@ -31,6 +31,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as ErrorCodeRouteImport } from './routes/error.$code'
+import { Route as DocsApiRouteImport } from './routes/docs.api'
 import { Route as BlogSearchRouteImport } from './routes/blog.search'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as AuthenticatedUpgradeRouteImport } from './routes/_authenticated/upgrade'
@@ -157,6 +158,11 @@ const ErrorCodeRoute = ErrorCodeRouteImport.update({
   path: '/error/$code',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DocsApiRoute = DocsApiRouteImport.update({
+  id: '/api',
+  path: '/api',
+  getParentRoute: () => DocsRoute,
+} as any)
 const BlogSearchRoute = BlogSearchRouteImport.update({
   id: '/search',
   path: '/search',
@@ -251,7 +257,7 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/contact-sales': typeof ContactSalesRoute
   '/cookies': typeof CookiesRoute
-  '/docs': typeof DocsRoute
+  '/docs': typeof DocsRouteWithChildren
   '/faq': typeof FaqRoute
   '/features': typeof FeaturesRoute
   '/pricing': typeof PricingRoute
@@ -271,6 +277,7 @@ export interface FileRoutesByFullPath {
   '/upgrade': typeof AuthenticatedUpgradeRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/blog/search': typeof BlogSearchRoute
+  '/docs/api': typeof DocsApiRoute
   '/error/$code': typeof ErrorCodeRoute
   '/blog/': typeof BlogIndexRoute
   '/api/public/health': typeof ApiPublicHealthRoute
@@ -289,7 +296,7 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/contact-sales': typeof ContactSalesRoute
   '/cookies': typeof CookiesRoute
-  '/docs': typeof DocsRoute
+  '/docs': typeof DocsRouteWithChildren
   '/faq': typeof FaqRoute
   '/features': typeof FeaturesRoute
   '/pricing': typeof PricingRoute
@@ -309,6 +316,7 @@ export interface FileRoutesByTo {
   '/upgrade': typeof AuthenticatedUpgradeRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/blog/search': typeof BlogSearchRoute
+  '/docs/api': typeof DocsApiRoute
   '/error/$code': typeof ErrorCodeRoute
   '/blog': typeof BlogIndexRoute
   '/api/public/health': typeof ApiPublicHealthRoute
@@ -330,7 +338,7 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/contact-sales': typeof ContactSalesRoute
   '/cookies': typeof CookiesRoute
-  '/docs': typeof DocsRoute
+  '/docs': typeof DocsRouteWithChildren
   '/faq': typeof FaqRoute
   '/features': typeof FeaturesRoute
   '/pricing': typeof PricingRoute
@@ -350,6 +358,7 @@ export interface FileRoutesById {
   '/_authenticated/upgrade': typeof AuthenticatedUpgradeRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/blog/search': typeof BlogSearchRoute
+  '/docs/api': typeof DocsApiRoute
   '/error/$code': typeof ErrorCodeRoute
   '/blog/': typeof BlogIndexRoute
   '/api/public/health': typeof ApiPublicHealthRoute
@@ -391,6 +400,7 @@ export interface FileRouteTypes {
     | '/upgrade'
     | '/blog/$slug'
     | '/blog/search'
+    | '/docs/api'
     | '/error/$code'
     | '/blog/'
     | '/api/public/health'
@@ -429,6 +439,7 @@ export interface FileRouteTypes {
     | '/upgrade'
     | '/blog/$slug'
     | '/blog/search'
+    | '/docs/api'
     | '/error/$code'
     | '/blog'
     | '/api/public/health'
@@ -469,6 +480,7 @@ export interface FileRouteTypes {
     | '/_authenticated/upgrade'
     | '/blog/$slug'
     | '/blog/search'
+    | '/docs/api'
     | '/error/$code'
     | '/blog/'
     | '/api/public/health'
@@ -490,7 +502,7 @@ export interface RootRouteChildren {
   ContactRoute: typeof ContactRoute
   ContactSalesRoute: typeof ContactSalesRoute
   CookiesRoute: typeof CookiesRoute
-  DocsRoute: typeof DocsRoute
+  DocsRoute: typeof DocsRouteWithChildren
   FaqRoute: typeof FaqRoute
   FeaturesRoute: typeof FeaturesRoute
   PricingRoute: typeof PricingRoute
@@ -665,6 +677,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ErrorCodeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/docs/api': {
+      id: '/docs/api'
+      path: '/api'
+      fullPath: '/docs/api'
+      preLoaderRoute: typeof DocsApiRouteImport
+      parentRoute: typeof DocsRoute
+    }
     '/blog/search': {
       id: '/blog/search'
       path: '/search'
@@ -821,6 +840,16 @@ const BlogRouteChildren: BlogRouteChildren = {
 
 const BlogRouteWithChildren = BlogRoute._addFileChildren(BlogRouteChildren)
 
+interface DocsRouteChildren {
+  DocsApiRoute: typeof DocsApiRoute
+}
+
+const DocsRouteChildren: DocsRouteChildren = {
+  DocsApiRoute: DocsApiRoute,
+}
+
+const DocsRouteWithChildren = DocsRoute._addFileChildren(DocsRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
@@ -831,7 +860,7 @@ const rootRouteChildren: RootRouteChildren = {
   ContactRoute: ContactRoute,
   ContactSalesRoute: ContactSalesRoute,
   CookiesRoute: CookiesRoute,
-  DocsRoute: DocsRoute,
+  DocsRoute: DocsRouteWithChildren,
   FaqRoute: FaqRoute,
   FeaturesRoute: FeaturesRoute,
   PricingRoute: PricingRoute,
