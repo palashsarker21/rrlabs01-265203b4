@@ -85,10 +85,7 @@ export function UsersPanel() {
         (r.roles ?? []).length ? (
           <div className="flex flex-wrap gap-1">
             {r.roles.map((role) => (
-              <span
-                key={role}
-                className="rounded bg-primary/10 px-2 py-0.5 text-xs text-primary"
-              >
+              <span key={role} className="rounded bg-primary/10 px-2 py-0.5 text-xs text-primary">
                 {role}
               </span>
             ))}
@@ -123,7 +120,11 @@ export function UsersPanel() {
             <ConfirmDialog
               trigger={
                 <Button size="sm" variant="outline" className="h-7">
-                  {isAdmin ? <ShieldOff className="h-3.5 w-3.5" /> : <ShieldCheck className="h-3.5 w-3.5" />}
+                  {isAdmin ? (
+                    <ShieldOff className="h-3.5 w-3.5" />
+                  ) : (
+                    <ShieldCheck className="h-3.5 w-3.5" />
+                  )}
                   <span className="ml-1 text-xs">{isAdmin ? "Revoke admin" : "Grant admin"}</span>
                 </Button>
               }
@@ -135,7 +136,11 @@ export function UsersPanel() {
             <ConfirmDialog
               trigger={
                 <Button size="sm" variant="outline" className="h-7">
-                  {isSuper ? <ShieldOff className="h-3.5 w-3.5" /> : <ShieldCheck className="h-3.5 w-3.5" />}
+                  {isSuper ? (
+                    <ShieldOff className="h-3.5 w-3.5" />
+                  ) : (
+                    <ShieldCheck className="h-3.5 w-3.5" />
+                  )}
                   <span className="ml-1 text-xs">{isSuper ? "Revoke super" : "Grant super"}</span>
                 </Button>
               }
@@ -185,7 +190,8 @@ export function SubscriptionsPanel() {
         <div>
           <div className="font-medium">{r.plan?.name ?? "—"}</div>
           <div className="text-xs text-muted-foreground">
-            {r.plan ? money(r.plan.price_cents, r.plan.currency ?? "USD") : "—"} / {r.plan?.interval ?? "?"}
+            {r.plan ? money(r.plan.price_cents, r.plan.currency ?? "USD") : "—"} /{" "}
+            {r.plan?.interval ?? "?"}
           </div>
         </div>
       ),
@@ -195,7 +201,9 @@ export function SubscriptionsPanel() {
       label: "Status",
       sortable: true,
       value: (r) => r.status,
-      cell: (r) => <span className="rounded bg-muted px-2 py-0.5 text-xs capitalize">{r.status}</span>,
+      cell: (r) => (
+        <span className="rounded bg-muted px-2 py-0.5 text-xs capitalize">{r.status}</span>
+      ),
     },
     {
       key: "card",
@@ -352,7 +360,9 @@ export function IntegrationsPanel() {
       label: "Status",
       sortable: true,
       value: (r) => r.status,
-      cell: (r) => <span className="rounded bg-muted px-2 py-0.5 text-xs capitalize">{r.status}</span>,
+      cell: (r) => (
+        <span className="rounded bg-muted px-2 py-0.5 text-xs capitalize">{r.status}</span>
+      ),
     },
     {
       key: "verification_status",
@@ -444,7 +454,9 @@ export function RecoveryPanel() {
       label: "Status",
       sortable: true,
       value: (r) => r.status,
-      cell: (r) => <span className="rounded bg-muted px-2 py-0.5 text-xs capitalize">{r.status}</span>,
+      cell: (r) => (
+        <span className="rounded bg-muted px-2 py-0.5 text-xs capitalize">{r.status}</span>
+      ),
     },
     {
       key: "recovered_at",
@@ -534,7 +546,9 @@ export function NotificationsPanel({ channel }: { channel: "email" | "whatsapp" 
       key: "error",
       label: "Error",
       value: (r) => r.error,
-      cell: (r) => <span className="text-xs text-rose-500">{r.error ? r.error.slice(0, 60) : "—"}</span>,
+      cell: (r) => (
+        <span className="text-xs text-rose-500">{r.error ? r.error.slice(0, 60) : "—"}</span>
+      ),
     },
   ];
 
@@ -780,7 +794,15 @@ export function SystemHealthPanel() {
   );
 }
 
-function HealthStat({ label, value, good }: { label: string; value: React.ReactNode; good: boolean }) {
+function HealthStat({
+  label,
+  value,
+  good,
+}: {
+  label: string;
+  value: React.ReactNode;
+  good: boolean;
+}) {
   return (
     <div
       className={`rounded-xl border p-4 ${
@@ -912,7 +934,9 @@ export function MaintenancePanel() {
           />
         </div>
         {lastResult && (
-          <div className="rounded-lg bg-emerald-500/10 p-3 text-sm text-emerald-500">{lastResult}</div>
+          <div className="rounded-lg bg-emerald-500/10 p-3 text-sm text-emerald-500">
+            {lastResult}
+          </div>
         )}
       </div>
     </section>
@@ -1000,10 +1024,15 @@ export function SecurityCenterPanel() {
       <div className="rounded-2xl border border-border/60 bg-card/50 p-6">
         <h3 className="text-sm font-semibold text-foreground">Security center</h3>
         <p className="text-xs text-muted-foreground">
-          Elevated-role inventory and platform hardening summary. Detailed vulnerability scans are surfaced by the security scanner in the More menu.
+          Elevated-role inventory and platform hardening summary. Detailed vulnerability scans are
+          surfaced by the security scanner in the More menu.
         </p>
         <div className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-4">
-          <HealthStat label="Super admins" value={superAdmins.length} good={superAdmins.length <= 3} />
+          <HealthStat
+            label="Super admins"
+            value={superAdmins.length}
+            good={superAdmins.length <= 3}
+          />
           <HealthStat label="Admins" value={admins.length} good={true} />
           <HealthStat label="Total users" value={allUsers.length} good={true} />
           <HealthStat
@@ -1047,7 +1076,10 @@ export function SecurityCenterPanel() {
                   <td className="px-4 py-2 font-medium">{u.email}</td>
                   <td className="px-4 py-2">
                     {u.roles.map((r) => (
-                      <span key={r} className="mr-1 rounded bg-primary/10 px-2 py-0.5 text-xs text-primary">
+                      <span
+                        key={r}
+                        className="mr-1 rounded bg-primary/10 px-2 py-0.5 text-xs text-primary"
+                      >
                         {r}
                       </span>
                     ))}
@@ -1111,15 +1143,15 @@ export function AnalyticsPanel() {
             good={stats.recoveryRate > 0.3}
           />
           <HealthStat label="Recovered events" value={stats.recoveredCount} good={true} />
-          <HealthStat label="Failed events" value={stats.failedCount} good={stats.failedCount === 0} />
+          <HealthStat
+            label="Failed events"
+            value={stats.failedCount}
+            good={stats.failedCount === 0}
+          />
           <HealthStat label="Active subs" value={stats.activeSubs} good={stats.activeSubs > 0} />
           <HealthStat label="Trials" value={stats.trialSubs} good={true} />
           <HealthStat label="Cancelled" value={stats.cancelled} good={true} />
-          <HealthStat
-            label="Total events"
-            value={recovery.length}
-            good={true}
-          />
+          <HealthStat label="Total events" value={recovery.length} good={true} />
         </div>
       </div>
     </section>
@@ -1137,22 +1169,91 @@ const GOD_MODE_SWITCHES: Array<{
   dangerousWhenOn?: boolean;
   group: "emergency" | "auth" | "billing" | "engine" | "channels" | "infra";
 }> = [
-  { key: "god_mode", label: "God Mode", description: "Master switch. When ON, super admin bypasses read-only and lockdown.", dangerousWhenOn: true, group: "emergency" },
-  { key: "read_only_mode", label: "Read-Only Mode", description: "Rejects all write endpoints platform-wide.", dangerousWhenOn: true, group: "emergency" },
-  { key: "lockdown_mode", label: "Emergency Lockdown", description: "Blocks all non-admin traffic.", dangerousWhenOn: true, group: "emergency" },
-  { key: "maintenance_mode", label: "Maintenance Mode", description: "Shows maintenance banner to non-admins.", dangerousWhenOn: true, group: "emergency" },
-  { key: "signups_enabled", label: "Signups", description: "New account registration.", group: "auth" },
+  {
+    key: "god_mode",
+    label: "God Mode",
+    description: "Master switch. When ON, super admin bypasses read-only and lockdown.",
+    dangerousWhenOn: true,
+    group: "emergency",
+  },
+  {
+    key: "read_only_mode",
+    label: "Read-Only Mode",
+    description: "Rejects all write endpoints platform-wide.",
+    dangerousWhenOn: true,
+    group: "emergency",
+  },
+  {
+    key: "lockdown_mode",
+    label: "Emergency Lockdown",
+    description: "Blocks all non-admin traffic.",
+    dangerousWhenOn: true,
+    group: "emergency",
+  },
+  {
+    key: "maintenance_mode",
+    label: "Maintenance Mode",
+    description: "Shows maintenance banner to non-admins.",
+    dangerousWhenOn: true,
+    group: "emergency",
+  },
+  {
+    key: "signups_enabled",
+    label: "Signups",
+    description: "New account registration.",
+    group: "auth",
+  },
   { key: "logins_enabled", label: "Logins", description: "Existing user sign-in.", group: "auth" },
-  { key: "billing_enabled", label: "Billing", description: "Billing endpoints and webhooks.", group: "billing" },
-  { key: "checkout_enabled", label: "Checkout", description: "Checkout session creation.", group: "billing" },
-  { key: "recovery_engine_enabled", label: "Recovery Engine", description: "Global recovery orchestrator.", group: "engine" },
-  { key: "ai_enabled", label: "AI Features", description: "All AI Gateway usage.", group: "engine" },
-  { key: "webhooks_enabled", label: "Inbound Webhooks", description: "Provider webhook ingestion.", group: "engine" },
+  {
+    key: "billing_enabled",
+    label: "Billing",
+    description: "Billing endpoints and webhooks.",
+    group: "billing",
+  },
+  {
+    key: "checkout_enabled",
+    label: "Checkout",
+    description: "Checkout session creation.",
+    group: "billing",
+  },
+  {
+    key: "recovery_engine_enabled",
+    label: "Recovery Engine",
+    description: "Global recovery orchestrator.",
+    group: "engine",
+  },
+  {
+    key: "ai_enabled",
+    label: "AI Features",
+    description: "All AI Gateway usage.",
+    group: "engine",
+  },
+  {
+    key: "webhooks_enabled",
+    label: "Inbound Webhooks",
+    description: "Provider webhook ingestion.",
+    group: "engine",
+  },
   { key: "api_enabled", label: "Public API", description: "External API access.", group: "engine" },
-  { key: "email_enabled", label: "Email", description: "Outbound email dispatch.", group: "channels" },
-  { key: "whatsapp_enabled", label: "WhatsApp", description: "Outbound WhatsApp dispatch.", group: "channels" },
+  {
+    key: "email_enabled",
+    label: "Email",
+    description: "Outbound email dispatch.",
+    group: "channels",
+  },
+  {
+    key: "whatsapp_enabled",
+    label: "WhatsApp",
+    description: "Outbound WhatsApp dispatch.",
+    group: "channels",
+  },
   { key: "sms_enabled", label: "SMS", description: "Outbound SMS dispatch.", group: "channels" },
-  { key: "background_jobs_enabled", label: "Background Jobs", description: "Queue workers.", group: "infra" },
+  {
+    key: "background_jobs_enabled",
+    label: "Background Jobs",
+    description: "Queue workers.",
+    group: "infra",
+  },
   { key: "cron_enabled", label: "Cron", description: "Scheduled jobs.", group: "infra" },
 ];
 
@@ -1207,10 +1308,12 @@ export function GodModePanel() {
         <div className="flex items-start gap-3">
           <ShieldOff className="mt-0.5 h-5 w-5 text-destructive" />
           <div>
-            <h3 className="text-sm font-semibold text-foreground">God Mode — Platform kill switches</h3>
+            <h3 className="text-sm font-semibold text-foreground">
+              God Mode — Platform kill switches
+            </h3>
             <p className="text-xs text-muted-foreground">
-              Every toggle takes effect immediately and is audit-logged. Confirmation is required for
-              each change. Use only during incidents or planned maintenance.
+              Every toggle takes effect immediately and is audit-logged. Confirmation is required
+              for each change. Use only during incidents or planned maintenance.
             </p>
           </div>
         </div>
@@ -1281,4 +1384,3 @@ export function GodModePanel() {
     </section>
   );
 }
-
