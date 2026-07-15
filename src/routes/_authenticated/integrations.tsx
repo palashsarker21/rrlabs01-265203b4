@@ -352,19 +352,35 @@ function Stepper({ steps, current }: { steps: string[]; current: number }) {
 function ProviderCard({
   provider,
   integrations,
+  statusByIntegration,
   overLimit,
   onSave,
   onTest,
   onDisconnect,
   onRotate,
+  onFetchLogs,
+  onReveal,
 }: {
   provider: ProviderRow;
   integrations: IntegrationRow[];
+  statusByIntegration: Map<string, ProviderStatusRow>;
   overLimit: boolean;
   onSave: (provider: string, creds: Record<string, string>) => Promise<boolean>;
   onTest: (id: string) => Promise<void>;
   onDisconnect: (id: string) => Promise<void>;
   onRotate: (id: string) => Promise<string | undefined>;
+  onFetchLogs: (id: string) => Promise<
+    {
+      id: string;
+      event_type: string | null;
+      status_code: number | null;
+      signature_valid: boolean;
+      error: string | null;
+      received_at: string;
+      attempt_count: number;
+    }[]
+  >;
+  onReveal: (id: string) => Promise<{ secret: string | null; verifyToken: string | null }>;
 }) {
   const [expanded, setExpanded] = useState(integrations.length === 0);
   const [values, setValues] = useState<Record<string, string>>({});
