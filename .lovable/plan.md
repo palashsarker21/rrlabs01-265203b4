@@ -1,90 +1,112 @@
-# Integration Center — Production Rebuild
 
-Replace the single-page Stripe onboarding wizard with a config-driven Integration Center. All providers, limits, and feature toggles come from the database — no hardcoded provider logic in components.
+# Integration Center — Phased Completion
 
-## 1. Database (new tables + migrations)
+Foundation already in place from the previous pass and NOT to be redone:
+`provider_catalog`, `provider_limits`, `feature_flags`,
+`workspace_feature_overrides`, `webhook_logs`, `provider_status`,
+`workspace_provider_limit()` RPC, `/api/public/webhooks/$provider.$integrationId`,
+`plan-limits.server.ts`, `providers.functions.ts`, `admin-features.functions.ts`,
+`/integrations` route with stepper + provider cards, admin "Features & Providers"
+tab, `/setup → /integrations` redirect.
 
-All in `public`, with GRANTs, RLS, and `service_role` write access.
+I will proceed one phase at a time and wait for your explicit approval
+before starting the next. No UI redesign; existing shadcn tokens only.
 
-- `provider_catalog` — canonical registry of every provider we support.
-  Columns: `id`, `code` (unique, e.g. `shopify`, `stripe`, `resend`), `kind` (`store`|`gateway`|`email`|`messaging`), `name`, `description`, `logo_url`, `setup_instructions` (md), `required_scopes` (jsonb), `setup_fields` (jsonb — declares api_key/domain/phone_id/etc), `webhook_events` (jsonb), `docs_url`, `enabled` (bool, admin-toggleable), `beta` (bool), `sort_order`, timestamps.
-- `provider_limits` — plan → provider kind → max count.
-  Columns: `plan_code` (fk to `plans.code`), `provider_kind`, `max_count` (null = unlimited). Seeded from Starter=1/1/1/1, Growth=3/3/∞/∞, Business/Enterprise=∞.
-- `feature_flags` — global toggles.
-  Columns: `key` (unique), `label`, `description`, `enabled`, `beta`, `maintenance_mode` (bool). Read-only for authenticated; write via super_admin RPC.
-- `workspace_feature_overrides` — per-workspace overrides.
-  Columns: `workspace_id`, `feature_key`, `enabled`, `limit_override` (int, nullable), `notes`, super-admin managed.
-- `webhook_logs` — every inbound webhook.
-  Columns: `id`, `workspace_id`, `integration_id`, `provider_code`, `event_type`, `signature_valid` (bool), `status_code`, `payload_hash`, `error`, `received_at`, `processed_at`, `attempt_count`. Indexed on `(integration_id, received_at desc)`.
-- `provider_status` — cached last-known health per integration.
-  Columns: `integration_id` (pk), `last_delivery_at`, `last_success_at`, `last_error`, `retry_count`, `verification_status` (`pending`|`verified`|`failed`), `updated_at`.
+## Phase 1 — Per-card webhook & lifecycle actions (client + server)
 
-Extend existing `integrations` table with: `webhook_secret` (text, encrypted), `webhook_verify_token` (text), `provider_account_id` (text), `verification_status` (text), `last_test_at`, `last_test_ok` (bool). Keep credentials encrypted via existing `RRLABS_ENCRYPTION_KEY`.
+Every store / gateway / messaging / email card gains the full contract:
 
-Seed `provider_catalog` in-migration with all 20 providers listed in the request. Seed `provider_limits` from PLANS.
+- Connection status pill (disconnected / pending / connected / error)
+- Webhook URL row with Copy button (built from `webhook-url.ts`)
+- Webhook secret: reveal-once, Rotate button (returns new value, writes to
+  `integrations.webhook_secret`, records audit event)
+- Verify Token row for Meta WhatsApp / custom providers (from
+  `provider_catalog.webhook_events` + setup_fields)
+- Last delivery / last success / retry count / verification status — read
+  from `webhook_logs` + `provider_status`
+- "View logs" drawer showing last 20 `webhook_logs` rows (event, status,
+  latency, error)
+- Test Connection button → server fn `testIntegration(id)`; result written
+  to `provider_status.last_test_ok` and surfaced inline
+- Disconnect / Reconnect buttons routed through existing `providers.functions.ts`
+- Setup instructions + required scopes rendered from
+  `provider_catalog.setup_instructions` / `required_scopes`
 
-## 2. Provider abstraction
+Server work: extend `providers.functions.ts` with `rotateWebhookSecret`,
+`getWebhookLogs`, `testIntegration`, `reconnectIntegration`; all guarded by
+`requireSupabaseAuth` + workspace-role check. No provider-specific branches
+in components — everything reads `provider_catalog`.
 
-`src/lib/providers/registry.server.ts` — reads `provider_catalog` and returns typed provider descriptors. No provider name is ever hardcoded in components.
+## Phase 2 — Provider-specific setup fields & tests
 
-Per-provider handler modules under `src/lib/providers/<code>/` implementing a common interface:
-```
-connect(fields) → { account_id, webhook_secret }
-test(integration) → { ok, message }
-webhook(payload, signature) → { event, valid }
-disconnect(integration) → void
-```
-Providers stubbed for now: `paddle`, `paypal`, `adyen`, `sendgrid`, `mailgun`, `postmark`, `smtp`, `twilio_sms`, `twilio_wa`, `meta_wa`, `woocommerce`, `edd`, `memberpress`, `surecart`, `custom_store`, `custom_gateway`. Existing `stripe`, `lemonsqueezy`, `shopify`, `resend` wired to real logic where already implemented; the rest expose a working connect form + webhook URL + verification flow, with provider API calls returning a typed "coming soon" from `test()` so the UI is honest rather than fake.
+For each kind, the connect form renders inputs from
+`provider_catalog.setup_fields` (already JSON-driven). Real `test()`
+implementations wired for the providers we already ship credentials for:
 
-## 3. Webhook infrastructure
+- Store: Shopify (existing), WooCommerce (REST /wp-json/wc/v3/system_status),
+  EDD, MemberPress, SureCart, custom → HEAD ping
+- Gateway: Stripe (accounts/retrieve), Lemon Squeezy (existing), Paddle
+  (auth ping), PayPal (OAuth token), Adyen (accountHolder ping), custom → HEAD
+- Email: Resend (existing), SendGrid (v3/scopes), SMTP (nodemailer verify),
+  Mailgun (domains list), Postmark (server info)
+- Messaging: Twilio SMS / WA (Accounts.json), Meta WA Cloud (phone_numbers)
 
-- Generic public route: `src/routes/api/public/webhooks/$provider.$integrationId.ts` — resolves the integration, verifies signature via the provider handler, writes to `webhook_logs`, updates `provider_status`, dispatches to the recovery engine. Existing `/webhooks/stripe` and `/webhooks/lemonsqueezy` remain as compat shims that redirect.
-- `getWebhookUrl(integration)` helper returns `https://<published-host>/api/public/webhooks/<code>/<id>`.
-- Server fns: `rotateWebhookSecret`, `testIntegration`, `getWebhookLogs(integrationId)`.
+All calls happen in `providers/<code>/adapter.server.ts`; the generic
+`testIntegration` server fn dispatches by `provider_catalog.code`. Keys
+encrypted at rest with `RRLABS_ENCRYPTION_KEY` (reusing existing helper).
+Any provider without credentials remains a working shell with a "coming
+soon" test result — never hidden.
 
-## 4. Integration Center UI
+## Phase 3 — Activation Review & Recovery Engine gate
 
-Replace `src/routes/_authenticated/onboarding.tsx` and `src/routes/_authenticated/setup.tsx` (or add `/integrations`) with a stepper:
+New "Activation Review" step in the stepper reads:
 
-Step 1 Store → Step 2 Gateway → Step 3 Email → Step 4 Messaging → Step 5 Activation Review.
+- ≥1 connected store, ≥1 connected gateway, ≥1 connected email OR
+  messaging provider (from `integrations`)
+- All those integrations have `verification_status = 'verified'` and
+  `provider_status.last_test_ok = true`
+- No `webhook_logs` failures in the last 24h for those integrations
 
-One component `<ProviderCard provider={...} integration={...} />` renders every card, driven entirely by `provider_catalog`. Fields shown per spec: logo, description, status, connect/disconnect/reconnect, webhook URL + copy, webhook secret + rotate, last delivery, verification, test, setup instructions, account ID, timestamps. Locked cards (over plan limit or `enabled=false`) show an "Upgrade Required" badge with reason + current plan + required plan + upgrade CTA — never hidden.
+Only when every check passes does the "Activate Recovery Engine" button
+enable and call an existing `setWorkspaceEngine(true)` server fn. Otherwise
+the row shows what's missing with a link to the failing card.
 
-Activation Review reads live from `provider_status` + `integrations` and only enables "Activate Recovery Engine" when all required checks pass.
+## Phase 4 — Plan limits UX + super-admin overrides
 
-Keep the existing visual design tokens — no restyling.
+- Locked provider cards render an "Upgrade Required" badge with current
+  plan, required plan, and CTA to `/upgrade` (feature never hidden).
+  `getEffectiveLimits(workspaceId)` already exists — wire it into the
+  integrations page for count-based limits per `provider_kind`.
+- Admin "Features & Providers" tab gains:
+  - Per-workspace limit override editor (writes
+    `workspace_feature_overrides.limit_override` keyed
+    `limit:<kind>`)
+  - Global maintenance-mode toggle (feature_flag `maintenance_mode`)
+  - Beta-features toggle per provider (`provider_catalog.beta`)
+- Frontend never trusts limits; every mutating server fn re-checks via
+  `assertCanConnect()`.
 
-## 5. Plan enforcement (server-side)
+## Phase 5 — Verification & report
 
-`src/lib/plan-limits.server.ts`:
-- `getEffectiveLimits(workspaceId)` — joins current plan → `provider_limits` → `workspace_feature_overrides`.
-- `assertCanConnect(workspaceId, kind)` — throws 402 when at limit. Super admin bypass.
-Called inside every provider `connect` server fn. Frontend also reads the same limits to render locked states — but never trusts them.
+Run typecheck, ESLint, build. Produce a final report listing:
 
-## 6. Super Admin Feature Manager
+1. New providers registered (from `provider_catalog` seed)
+2. Webhook manager surface (per-card actions + logs drawer)
+3. Feature-lock surfaces (which cards, which limits)
+4. Plan-restriction call sites (`assertCanConnect` usage)
+5. Admin feature manager additions
+6. DB changes recap (already-migrated tables + any Phase-4 addendum)
+7. `rg` output confirming zero hardcoded provider codes in components
+   under `src/routes/_authenticated/integrations.tsx` and children
 
-New tab under `/admin` → "Features & Providers":
-- Toggle feature flags, maintenance mode, beta features.
-- Enable/disable providers in `provider_catalog`.
-- Per-workspace overrides (grant extra stores/gateways, unlock features).
-All via super-admin-only server fns (`has_role(_, 'super_admin')`).
+## Out of scope
 
-## 7. Verification
+- Any visual redesign of existing components
+- Pricing/landing copy (already synchronized)
+- Rewriting the managed `_authenticated/route.tsx` gate
+- Full SMTP relay infrastructure — we only verify creds, not host our own
 
-Typecheck (`bunx tsgo --noEmit`), ESLint, and build must pass. Final report lists new providers, webhook route, feature-lock surfaces, plan-limit call sites, admin tab, and DB tables — with a grep confirmation that no provider `code` string appears in a component conditional.
+## Approval gate
 
-## Out of scope (explicit)
-
-- Not implementing real API integrations for the 16 stub providers this pass — they get working shells + webhook URLs + admin toggles, so adding a real implementation later is a per-file drop-in. Confirm if you want any specific one fully wired now (e.g. WooCommerce, Meta WhatsApp Cloud, Twilio).
-- Not touching pricing/landing copy — already synchronized in the previous pass.
-
-## Files (new / changed)
-
-New: 1 migration, ~18 provider modules, `providers/registry.server.ts`, generic webhook route, `plan-limits.server.ts`, `integration-center/*` components, admin `features-tab.tsx`, `webhook-logs.tsx`.
-Changed: `onboarding.tsx`, `setup.tsx`, `admin.tsx`, `types.ts` (auto), route tree (auto).
-
-## Confirm before I start
-
-1. **Stub scope** — OK to ship 16 providers as working shells (real UI + webhook URL + connect form + admin toggle, but their `test()` returns "coming soon" until API code is added), or do you want a subset fully wired now?
-2. **Route** — replace `onboarding.tsx` in place, or add `/integrations` and keep onboarding as a redirect?
-3. **Encryption** — reuse `RRLABS_ENCRYPTION_KEY` for provider credentials at rest (already used elsewhere)?
+Reply "approve phase 1" (or with edits) and I'll start. After each phase I
+will stop and wait for the next approval before continuing.
