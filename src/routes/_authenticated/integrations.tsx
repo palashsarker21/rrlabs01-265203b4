@@ -896,11 +896,13 @@ function ActivationReview({
   integrations,
   limits,
   catalog,
+  statuses,
   onActivate,
 }: {
   integrations: IntegrationRow[];
   limits: { kind: ProviderKind; used: number; max: number | null }[];
   catalog: ProviderRow[];
+  statuses: ProviderStatusRow[];
   onActivate: () => void;
 }) {
   const codesByKind = (kind: ProviderKind) =>
@@ -910,6 +912,12 @@ function ActivationReview({
     return integrations.filter((i) => i.status === "connected" && codes.includes(i.provider))
       .length;
   };
+  const connectedIds = new Set(
+    integrations.filter((i) => i.status === "connected").map((i) => i.id),
+  );
+  const failingStatuses = statuses.filter(
+    (s) => connectedIds.has(s.integration_id) && (s.retry_count ?? 0) > 0,
+  );
   const checks = [
     { label: "Store connected", ok: connectedCount("store") > 0 },
     { label: "Payment gateway connected", ok: connectedCount("gateway") > 0 },
@@ -931,8 +939,13 @@ function ActivationReview({
         integrations.filter((i) => i.status === "connected").length > 0 &&
         integrations.filter((i) => i.status === "connected").every((i) => i.last_test_ok === true),
     },
+    {
+      label: "No recent webhook failures",
+      ok: failingStatuses.length === 0,
+    },
   ];
   const requiredOk = checks.filter((c) => !c.optional).every((c) => c.ok);
+
 
   return (
     <div className="rounded-2xl border border-border/60 bg-card/50 p-6">
