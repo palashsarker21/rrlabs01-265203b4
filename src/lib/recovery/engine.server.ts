@@ -407,7 +407,6 @@ export async function ingestStripeFailure(args: IngestArgs): Promise<string | nu
     throw err;
   }
 
-
   // Resolve customer identity from the Stripe object.
   const customerId =
     (object.customer as string | undefined) ??

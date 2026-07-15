@@ -134,16 +134,12 @@ function AdminConsole() {
           </div>
         </section>
 
-
-
         {billing ? (
           <section className="rounded-2xl border border-border/60 bg-card/50 p-8">
             <div className="mb-4 flex items-center justify-between">
               <div>
                 <h2 className="text-lg font-semibold text-foreground">Billing health</h2>
-                <p className="text-sm text-muted-foreground">
-                  Lemon Squeezy — updated every 60s.
-                </p>
+                <p className="text-sm text-muted-foreground">Lemon Squeezy — updated every 60s.</p>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
@@ -152,10 +148,7 @@ function AdminConsole() {
               <Stat label="Active customers" value={billing.activeCount} />
               <Stat label="Trials" value={billing.trialCount} />
               <Stat label="Cancelled (30d)" value={billing.cancelled30dCount} />
-              <Stat
-                label="Trial → paid"
-                value={`${Math.round(billing.conversionRate * 100)}%`}
-              />
+              <Stat label="Trial → paid" value={`${Math.round(billing.conversionRate * 100)}%`} />
               <Stat label="Recovered revenue" value={money(billing.recoveredCents)} />
               <Stat label="Past due" value={billing.pastDueCount} />
             </div>

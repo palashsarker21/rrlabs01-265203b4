@@ -119,10 +119,7 @@ export const getBillingMetrics = createServerFn({ method: "GET" })
       .from("recovery_events")
       .select("amount_cents")
       .eq("status", "recovered");
-    const recoveredCents = (recovered ?? []).reduce(
-      (sum, r) => sum + (r.amount_cents ?? 0),
-      0,
-    );
+    const recoveredCents = (recovered ?? []).reduce((sum, r) => sum + (r.amount_cents ?? 0), 0);
 
     // Webhook health — last 24h of billing_events.
     const oneDayAgo = new Date(now.getTime() - 24 * 3600 * 1000).toISOString();
@@ -180,9 +177,7 @@ export const getBillingMetrics = createServerFn({ method: "GET" })
         total30d: checkoutsTotal ?? 0,
         completed30d: checkoutsCompleted ?? 0,
         successRate:
-          checkoutsTotal && checkoutsTotal > 0
-            ? (checkoutsCompleted ?? 0) / checkoutsTotal
-            : 0,
+          checkoutsTotal && checkoutsTotal > 0 ? (checkoutsCompleted ?? 0) / checkoutsTotal : 0,
       },
       pastDueCount: pastDueCount ?? 0,
     };

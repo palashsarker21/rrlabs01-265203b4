@@ -341,9 +341,7 @@ async function onSubscriptionUpdated(payload: LSWebhookPayload): Promise<void> {
             : undefined;
 
     const engineChange =
-      status === "active" || status === "on_trial"
-        ? {}
-        : { recovery_engine_enabled: false };
+      status === "active" || status === "on_trial" ? {} : { recovery_engine_enabled: false };
 
     await supabaseAdmin
       .from("workspaces")
@@ -401,7 +399,6 @@ async function onSubscriptionUpdated(payload: LSWebhookPayload): Promise<void> {
     }
   }
 }
-
 
 function asDate(v: unknown): string | null {
   if (typeof v !== "string" || !v) return null;

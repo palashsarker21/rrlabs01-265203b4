@@ -79,9 +79,7 @@ export async function getWorkspaceUsage(workspaceId: string): Promise<UsageSnaps
     .maybeSingle();
 
   const planCode = sub?.plan?.code ?? null;
-  const limit = bypass
-    ? null
-    : (sub?.plan?.monthly_event_limit ?? FALLBACK_LIMIT);
+  const limit = bypass ? null : (sub?.plan?.monthly_event_limit ?? FALLBACK_LIMIT);
 
   const { count } = await supabaseAdmin
     .from("recovery_events")
