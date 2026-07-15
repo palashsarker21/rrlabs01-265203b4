@@ -384,10 +384,25 @@ function ProviderCard({
   const [expanded, setExpanded] = useState(integrations.length === 0);
   const [values, setValues] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
+  const [copiedPreview, setCopiedPreview] = useState(false);
   const disabled = !provider.enabled;
   const setupFields = Array.isArray(provider.setup_fields)
     ? (provider.setup_fields as unknown as SetupField[])
     : [];
+  const origin = getBrowserOrigin();
+  const previewUrl = origin ? `${origin}/api/public/webhooks/${provider.code}` : "";
+
+  async function copyPreview() {
+    if (!previewUrl) return;
+    try {
+      await navigator.clipboard.writeText(previewUrl);
+      setCopiedPreview(true);
+      toast.success("Webhook URL copied.");
+      setTimeout(() => setCopiedPreview(false), 2000);
+    } catch {
+      toast.error("Could not copy to clipboard.");
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
