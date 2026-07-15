@@ -642,6 +642,7 @@ function ConnectedRow({
   onReveal: (id: string) => Promise<{ secret: string | null; verifyToken: string | null }>;
 }) {
   const [testing, setTesting] = useState(false);
+  const [copiedUrl, setCopiedUrl] = useState(false);
   const [rotating, setRotating] = useState(false);
   const [revealed, setRevealed] = useState<{
     secret: string | null;
