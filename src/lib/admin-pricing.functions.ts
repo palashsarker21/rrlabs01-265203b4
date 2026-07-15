@@ -11,10 +11,12 @@ export type AdminPricingRow = {
     id: string;
     code: string;
     name: string;
-    monthly_price_cents: number | null;
+    price_cents: number;
     success_fee_bps: number | null;
     ls_variant_id: string | null;
-    active: boolean;
+    ls_product_id: string | null;
+    is_active: boolean;
+    trial_days: number;
   } | null;
 };
 
