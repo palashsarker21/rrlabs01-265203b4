@@ -256,7 +256,7 @@ function Landing() {
           <div className="mx-auto mt-14 grid max-w-6xl gap-6 md:grid-cols-2 lg:grid-cols-4">
             {PLANS.map((plan) => {
               const server = serverPlans?.find((s) => s.code === plan.code);
-              const hasVariant = server ? server.hasVariant : true;
+              const hasVariant = server ? server.has_variant : true;
               return (
                 <div
                   key={plan.code}
