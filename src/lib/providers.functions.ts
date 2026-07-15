@@ -120,7 +120,10 @@ export const listWebhookLogs = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((raw) =>
     z
-      .object({ integrationId: z.string().uuid(), limit: z.number().int().min(1).max(200).default(50) })
+      .object({
+        integrationId: z.string().uuid(),
+        limit: z.number().int().min(1).max(200).default(50),
+      })
       .parse(raw),
   )
   .handler(async ({ data, context }) => {
@@ -132,6 +135,52 @@ export const listWebhookLogs = createServerFn({ method: "POST" })
       .limit(data.limit);
     if (error) throw new Error(error.message);
     return rows ?? [];
+  });
+
+/** Provider status rows for every integration in a workspace (one call). */
+export const listWorkspaceProviderStatuses = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((raw) => workspaceIdSchema.parse(raw))
+  .handler(async ({ data, context }) => {
+    const { data: rows, error } = await context.supabase
+      .from("provider_status")
+      .select(
+        "integration_id, last_delivery_at, last_success_at, last_error, retry_count, verification_status, updated_at, integrations!inner(workspace_id)",
+      )
+      .eq("integrations.workspace_id", data.workspaceId);
+    if (error) throw new Error(error.message);
+    return (rows ?? []).map((r) => ({
+      integration_id: r.integration_id,
+      last_delivery_at: r.last_delivery_at,
+      last_success_at: r.last_success_at,
+      last_error: r.last_error,
+      retry_count: r.retry_count,
+      verification_status: r.verification_status,
+      updated_at: r.updated_at,
+    }));
+  });
+
+/** Reveal the current webhook signing secret. Requires manage permission. */
+export const revealWebhookSecret = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((raw) => integrationIdSchema.parse(raw))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { data: row } = await supabase
+      .from("integrations")
+      .select("id, workspace_id, webhook_secret, webhook_verify_token")
+      .eq("id", data.integrationId)
+      .maybeSingle();
+    if (!row) throw new Error("Integration not found.");
+    const { data: canManage } = await supabase.rpc("can_manage_workspace", {
+      _workspace_id: row.workspace_id,
+      _user_id: userId,
+    });
+    if (!canManage) throw new Error("You do not have permission.");
+    return {
+      secret: row.webhook_secret ?? null,
+      verifyToken: row.webhook_verify_token ?? null,
+    };
   });
 
 // -----------------------------------------------------------------
