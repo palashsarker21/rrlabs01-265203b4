@@ -551,3 +551,248 @@ function PricingConfigPanel({
   );
 }
 
+type WorkspaceOverviewRow = Awaited<ReturnType<typeof getAdminOverview>>[number];
+
+function FeatureControlPanel({ workspaces }: { workspaces: WorkspaceOverviewRow[] }) {
+  const qc = useQueryClient();
+  const flagsFn = useServerFn(listFeatureFlags);
+  const setFlagFn = useServerFn(setFeatureFlag);
+  const provsFn = useServerFn(listProvidersAdmin);
+  const setProvFn = useServerFn(setProviderEnabled);
+  const setOverrideFn = useServerFn(setWorkspaceOverride);
+
+  const { data: flags = [] } = useQuery({
+    queryKey: ["admin-feature-flags"],
+    queryFn: () => flagsFn({}),
+  });
+  const { data: providers = [] } = useQuery({
+    queryKey: ["admin-providers"],
+    queryFn: () => provsFn({}),
+  });
+
+  const [ov, setOv] = useState({
+    workspaceId: "",
+    featureKey: "limit:store",
+    enabled: "" as "" | "true" | "false",
+    limitOverride: "",
+  });
+
+  async function updateFlag(
+    key: string,
+    patch: { enabled?: boolean; beta?: boolean; maintenance_mode?: boolean },
+  ) {
+    const { toast } = await import("sonner");
+    try {
+      await setFlagFn({ data: { key, ...patch } });
+      qc.invalidateQueries({ queryKey: ["admin-feature-flags"] });
+      toast.success("Flag updated.");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Update failed.");
+    }
+  }
+
+  async function updateProvider(code: string, patch: { enabled?: boolean; beta?: boolean }) {
+    const { toast } = await import("sonner");
+    try {
+      const enabled = patch.enabled ?? providers.find((p) => p.code === code)?.enabled ?? true;
+      await setProvFn({ data: { code, enabled, beta: patch.beta } });
+      qc.invalidateQueries({ queryKey: ["admin-providers"] });
+      toast.success("Provider updated.");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Update failed.");
+    }
+  }
+
+  async function submitOverride(e: React.FormEvent) {
+    e.preventDefault();
+    const { toast } = await import("sonner");
+    if (!ov.workspaceId || !ov.featureKey) {
+      toast.error("Workspace and feature key are required.");
+      return;
+    }
+    try {
+      await setOverrideFn({
+        data: {
+          workspaceId: ov.workspaceId,
+          featureKey: ov.featureKey,
+          enabled: ov.enabled === "" ? null : ov.enabled === "true",
+          limitOverride: ov.limitOverride === "" ? null : Number(ov.limitOverride),
+        },
+      });
+      toast.success("Workspace override saved.");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Override failed.");
+    }
+  }
+
+  return (
+    <section className="space-y-6">
+      <div className="rounded-2xl border border-border/60 bg-card/50">
+        <div className="border-b border-border/60 p-4">
+          <h3 className="text-sm font-semibold text-foreground">Feature flags</h3>
+          <p className="text-xs text-muted-foreground">
+            Global toggles for beta features and maintenance windows. Applies to every workspace.
+          </p>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-background/40 text-xs uppercase tracking-wider text-muted-foreground">
+              <tr>
+                <th className="px-4 py-2 text-left">Key</th>
+                <th className="px-4 py-2 text-left">Label</th>
+                <th className="px-4 py-2 text-center">Enabled</th>
+                <th className="px-4 py-2 text-center">Beta</th>
+                <th className="px-4 py-2 text-center">Maintenance</th>
+              </tr>
+            </thead>
+            <tbody>
+              {flags.map((f) => (
+                <tr key={f.key} className="border-t border-border/60">
+                  <td className="px-4 py-2 font-mono text-xs">{f.key}</td>
+                  <td className="px-4 py-2">
+                    <div className="text-foreground">{f.label}</div>
+                    <div className="text-xs text-muted-foreground">{f.description}</div>
+                  </td>
+                  <td className="px-4 py-2 text-center">
+                    <input
+                      type="checkbox"
+                      checked={f.enabled}
+                      onChange={(e) => updateFlag(f.key, { enabled: e.target.checked })}
+                    />
+                  </td>
+                  <td className="px-4 py-2 text-center">
+                    <input
+                      type="checkbox"
+                      checked={f.beta}
+                      onChange={(e) => updateFlag(f.key, { beta: e.target.checked })}
+                    />
+                  </td>
+                  <td className="px-4 py-2 text-center">
+                    <input
+                      type="checkbox"
+                      checked={f.maintenance_mode}
+                      onChange={(e) => updateFlag(f.key, { maintenance_mode: e.target.checked })}
+                    />
+                  </td>
+                </tr>
+              ))}
+              {flags.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
+                    No feature flags defined.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-border/60 bg-card/50">
+        <div className="border-b border-border/60 p-4">
+          <h3 className="text-sm font-semibold text-foreground">Providers</h3>
+          <p className="text-xs text-muted-foreground">
+            Enable or disable providers globally. Disabled providers appear locked in the
+            Integration Center.
+          </p>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-background/40 text-xs uppercase tracking-wider text-muted-foreground">
+              <tr>
+                <th className="px-4 py-2 text-left">Code</th>
+                <th className="px-4 py-2 text-left">Name</th>
+                <th className="px-4 py-2 text-left">Kind</th>
+                <th className="px-4 py-2 text-center">Enabled</th>
+                <th className="px-4 py-2 text-center">Beta</th>
+              </tr>
+            </thead>
+            <tbody>
+              {providers.map((p) => (
+                <tr key={p.code} className="border-t border-border/60">
+                  <td className="px-4 py-2 font-mono text-xs">{p.code}</td>
+                  <td className="px-4 py-2 text-foreground">{p.name}</td>
+                  <td className="px-4 py-2 text-xs text-muted-foreground">{p.kind}</td>
+                  <td className="px-4 py-2 text-center">
+                    <input
+                      type="checkbox"
+                      checked={p.enabled}
+                      onChange={(e) => updateProvider(p.code, { enabled: e.target.checked })}
+                    />
+                  </td>
+                  <td className="px-4 py-2 text-center">
+                    <input
+                      type="checkbox"
+                      checked={p.beta}
+                      onChange={(e) => updateProvider(p.code, { beta: e.target.checked })}
+                    />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-border/60 bg-card/50 p-4">
+        <h3 className="text-sm font-semibold text-foreground">Workspace override</h3>
+        <p className="mb-3 text-xs text-muted-foreground">
+          Grant a workspace a raised limit or force-enable/disable a feature. Overrides win over
+          plan defaults.
+        </p>
+        <form onSubmit={submitOverride} className="grid grid-cols-1 gap-3 md:grid-cols-5">
+          <select
+            className="rounded-md border border-border/60 bg-background px-3 py-2 text-sm"
+            value={ov.workspaceId}
+            onChange={(e) => setOv((v) => ({ ...v, workspaceId: e.target.value }))}
+          >
+            <option value="">Select workspace…</option>
+            {workspaces.map((w) => (
+              <option key={w.workspace_id} value={w.workspace_id}>
+                {w.workspace_name}
+              </option>
+            ))}
+          </select>
+          <select
+            className="rounded-md border border-border/60 bg-background px-3 py-2 text-sm"
+            value={ov.featureKey}
+            onChange={(e) => setOv((v) => ({ ...v, featureKey: e.target.value }))}
+          >
+            <option value="limit:store">limit:store</option>
+            <option value="limit:gateway">limit:gateway</option>
+            <option value="limit:email">limit:email</option>
+            <option value="limit:messaging">limit:messaging</option>
+            {flags.map((f) => (
+              <option key={f.key} value={f.key}>
+                flag:{f.key}
+              </option>
+            ))}
+          </select>
+          <select
+            className="rounded-md border border-border/60 bg-background px-3 py-2 text-sm"
+            value={ov.enabled}
+            onChange={(e) =>
+              setOv((v) => ({ ...v, enabled: e.target.value as "" | "true" | "false" }))
+            }
+          >
+            <option value="">— enabled: inherit —</option>
+            <option value="true">Force enabled</option>
+            <option value="false">Force disabled</option>
+          </select>
+          <input
+            type="number"
+            min={0}
+            placeholder="Limit override (blank = inherit)"
+            className="rounded-md border border-border/60 bg-background px-3 py-2 text-sm"
+            value={ov.limitOverride}
+            onChange={(e) => setOv((v) => ({ ...v, limitOverride: e.target.value }))}
+          />
+          <Button type="submit" size="sm">
+            Save override
+          </Button>
+        </form>
+      </div>
+    </section>
+  );
+}
+
