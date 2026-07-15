@@ -42,7 +42,8 @@ function AdminConsole() {
   const audit = useServerFn(listAuditLogs);
   const setEngine = useServerFn(adminSetEngine);
   const metricsFn = useServerFn(getBillingMetrics);
-  const [tab, setTab] = useState<"workspaces" | "audit">("workspaces");
+  const pricingFn = useServerFn(getAdminPricingSnapshot);
+  const [tab, setTab] = useState<"workspaces" | "audit" | "pricing">("workspaces");
 
   const { data: me, isLoading: meLoading } = useQuery({
     queryKey: ["admin-status"],
