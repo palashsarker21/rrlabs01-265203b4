@@ -39,7 +39,8 @@ export const PROVIDER_STEP_ORDER: {
   {
     kind: "gateway",
     title: "Payment gateway",
-    description: "Connect the processor that charges your customers so we can hear failed payments.",
+    description:
+      "Connect the processor that charges your customers so we can hear failed payments.",
   },
   {
     kind: "email",

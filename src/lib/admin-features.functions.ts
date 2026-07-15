@@ -49,10 +49,7 @@ export const setFeatureFlag = createServerFn({ method: "POST" })
     if (data.enabled !== undefined) patch.enabled = data.enabled;
     if (data.beta !== undefined) patch.beta = data.beta;
     if (data.maintenance_mode !== undefined) patch.maintenance_mode = data.maintenance_mode;
-    const { error } = await supabaseAdmin
-      .from("feature_flags")
-      .update(patch)
-      .eq("key", data.key);
+    const { error } = await supabaseAdmin.from("feature_flags").update(patch).eq("key", data.key);
     if (error) throw new Error(error.message);
     return { ok: true as const };
   });
@@ -72,7 +69,9 @@ export const listProvidersAdmin = createServerFn({ method: "GET" })
 export const setProviderEnabled = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((raw) =>
-    z.object({ code: z.string().min(1), enabled: z.boolean(), beta: z.boolean().optional() }).parse(raw),
+    z
+      .object({ code: z.string().min(1), enabled: z.boolean(), beta: z.boolean().optional() })
+      .parse(raw),
   )
   .handler(async ({ data, context }) => {
     await requireSuperAdmin(context);

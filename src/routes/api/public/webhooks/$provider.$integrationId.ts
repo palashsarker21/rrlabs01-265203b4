@@ -146,7 +146,6 @@ export const Route = createFileRoute("/api/public/webhooks/$provider/$integratio
   },
 });
 
-
 function hashOf(body: string): string {
   return createHash("sha256").update(body).digest("hex");
 }

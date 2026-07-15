@@ -12,7 +12,6 @@ const workspaceIdSchema = z.object({ workspaceId: z.string().uuid() });
 /** Public catalog — safe metadata, no secrets. Legacy in-code catalog. */
 export const listAdapterCatalog = createServerFn({ method: "GET" }).handler(async () => ADAPTERS);
 
-
 /** List a workspace's integrations (no secrets — only public config + status). */
 export const listWorkspaceIntegrations = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -29,7 +28,6 @@ export const listWorkspaceIntegrations = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return rows ?? [];
   });
-
 
 const saveInput = z.object({
   workspaceId: z.string().uuid(),
@@ -72,8 +70,9 @@ export const saveIntegration = createServerFn({ method: "POST" })
       iKind = integrationKindFor(providerKind);
       const fields = Array.isArray(catRow.setup_fields) ? catRow.setup_fields : [];
       requiredKeys = fields
-        .filter((f): f is { key: string; required?: boolean; label?: string } =>
-          typeof f === "object" && f !== null && "key" in f,
+        .filter(
+          (f): f is { key: string; required?: boolean; label?: string } =>
+            typeof f === "object" && f !== null && "key" in f,
         )
         .filter((f) => f.required === true)
         .map((f) => f.key);
@@ -91,11 +90,7 @@ export const saveIntegration = createServerFn({ method: "POST" })
       providerCode = info.provider;
       iKind = info.kind;
       providerKind =
-        info.kind === "store"
-          ? "store"
-          : info.kind === "payment_gateway"
-            ? "gateway"
-            : "email"; // best guess for legacy comms — plan limit still applies
+        info.kind === "store" ? "store" : info.kind === "payment_gateway" ? "gateway" : "email"; // best guess for legacy comms — plan limit still applies
       requiredKeys = info.fields.filter((f) => f.required).map((f) => f.key);
     }
 
@@ -243,7 +238,6 @@ export const saveIntegration = createServerFn({ method: "POST" })
 
     return { ok: true as const, message: result.message };
   });
-
 
 const idInput = z.object({ integrationId: z.string().uuid() });
 

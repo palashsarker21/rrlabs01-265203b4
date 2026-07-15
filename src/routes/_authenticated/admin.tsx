@@ -2,7 +2,19 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Shield, Power, ArrowLeft, ScrollText, Building2, ToggleLeft, Plug, DollarSign, Check, X, Sparkles } from "lucide-react";
+import {
+  Shield,
+  Power,
+  ArrowLeft,
+  ScrollText,
+  Building2,
+  ToggleLeft,
+  Plug,
+  DollarSign,
+  Check,
+  X,
+  Sparkles,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { BrandLockup } from "@/components/brand-mark";
@@ -22,7 +34,6 @@ import {
 } from "@/lib/admin-features.functions";
 import { getAdminPricingSnapshot } from "@/lib/admin-pricing.functions";
 import { formatSuccessFeeBps } from "@/lib/pricing";
-
 
 export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminConsole,
@@ -221,8 +232,6 @@ function AdminConsole() {
           </TabButton>
         </div>
 
-
-
         {tab === "features" ? (
           <FeatureControlPanel workspaces={workspaces ?? []} />
         ) : tab === "pricing" ? (
@@ -389,9 +398,7 @@ function TabButton({
 function PricingConfigPanel({
   data,
 }: {
-  data:
-    | Awaited<ReturnType<typeof getAdminPricingSnapshot>>
-    | undefined;
+  data: Awaited<ReturnType<typeof getAdminPricingSnapshot>> | undefined;
 }) {
   if (!data) {
     return (
@@ -405,7 +412,9 @@ function PricingConfigPanel({
       <div className="rounded-2xl border border-border/60 bg-card/50 p-6">
         <div className="flex flex-wrap items-center gap-6 text-sm">
           <div>
-            <div className="text-xs uppercase tracking-wider text-muted-foreground">Trial length</div>
+            <div className="text-xs uppercase tracking-wider text-muted-foreground">
+              Trial length
+            </div>
             <div className="mt-1 font-medium text-foreground">{data.trialDays} days</div>
           </div>
           <div>
@@ -460,10 +469,8 @@ function PricingConfigPanel({
                 const dbMatches =
                   dbPlan &&
                   dbPlan.code === plan.code &&
-                  (plan.monthlyBaseCents == null ||
-                    dbPlan.price_cents === plan.monthlyBaseCents) &&
-                  (plan.successFeeBps == null ||
-                    dbPlan.success_fee_bps === plan.successFeeBps);
+                  (plan.monthlyBaseCents == null || dbPlan.price_cents === plan.monthlyBaseCents) &&
+                  (plan.successFeeBps == null || dbPlan.success_fee_bps === plan.successFeeBps);
                 return (
                   <tr key={plan.code} className="border-t border-border/60 align-top">
                     <td className="px-4 py-3 font-mono text-xs">{plan.code}</td>
@@ -795,4 +802,3 @@ function FeatureControlPanel({ workspaces }: { workspaces: WorkspaceOverviewRow[
     </section>
   );
 }
-

@@ -24,9 +24,7 @@ export class PlanLimitError extends Error {
     public used: number,
     public max: number,
   ) {
-    super(
-      `Your plan allows ${max} ${kind}${max === 1 ? "" : "s"}. Upgrade to connect another.`,
-    );
+    super(`Your plan allows ${max} ${kind}${max === 1 ? "" : "s"}. Upgrade to connect another.`);
   }
 }
 
