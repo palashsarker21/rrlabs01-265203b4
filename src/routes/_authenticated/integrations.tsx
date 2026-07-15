@@ -456,9 +456,12 @@ function ProviderCard({
               key={i.id}
               integration={i}
               provider={provider}
+              status={statusByIntegration.get(i.id)}
               onTest={onTest}
               onDisconnect={onDisconnect}
               onRotate={onRotate}
+              onFetchLogs={onFetchLogs}
+              onReveal={onReveal}
             />
           ))}
         </div>
