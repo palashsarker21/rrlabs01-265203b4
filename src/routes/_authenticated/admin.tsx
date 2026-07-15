@@ -29,6 +29,7 @@ import {
   Receipt,
   KeyRound,
   Megaphone,
+  AlertTriangle,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -67,6 +68,7 @@ import {
   GodModePanel,
   ApiKeysPanel,
   AnnouncementsPanel,
+  IncidentsPanel,
 } from "@/components/admin/panels";
 
 type TabKey =
@@ -91,6 +93,7 @@ type TabKey =
   | "godmode"
   | "apikeys"
   | "announcements"
+  | "incidents"
   | "analytics";
 
 const TABS: { key: TabKey; label: string; icon: typeof Shield }[] = [
@@ -116,6 +119,7 @@ const TABS: { key: TabKey; label: string; icon: typeof Shield }[] = [
   { key: "godmode", label: "God Mode", icon: Power },
   { key: "apikeys", label: "API keys", icon: KeyRound },
   { key: "announcements", label: "Announcements", icon: Megaphone },
+  { key: "incidents", label: "Incidents", icon: AlertTriangle },
 ];
 
 export const Route = createFileRoute("/_authenticated/admin")({
@@ -348,6 +352,8 @@ function AdminConsole() {
           <ApiKeysPanel />
         ) : tab === "announcements" ? (
           <AnnouncementsPanel />
+        ) : tab === "incidents" ? (
+          <IncidentsPanel />
         ) : tab === "workspaces" ? (
           <section className="rounded-2xl border border-border/60 bg-card/50">
             <div className="overflow-x-auto">

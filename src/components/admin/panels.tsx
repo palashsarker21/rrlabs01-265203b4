@@ -2210,3 +2210,462 @@ export function AnnouncementsPanel() {
     />
   );
 }
+
+// ============================================================
+// INCIDENTS
+// ============================================================
+import {
+  listAdminIncidents,
+  listAdminIncidentUpdates,
+  upsertIncident,
+  addIncidentUpdate,
+  deleteIncident,
+  type IncidentStatus,
+  type IncidentImpact,
+} from "@/lib/incidents.functions";
+import { AlertTriangle, MessageSquarePlus } from "lucide-react";
+
+type IncidentRow = {
+  id: string;
+  title: string;
+  summary: string | null;
+  status: IncidentStatus;
+  impact: IncidentImpact;
+  affected_components: string[];
+  started_at: string;
+  resolved_at: string | null;
+  is_public: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+const INCIDENT_STATUSES: IncidentStatus[] = [
+  "investigating",
+  "identified",
+  "monitoring",
+  "resolved",
+];
+const INCIDENT_IMPACTS: IncidentImpact[] = ["none", "minor", "major", "critical"];
+
+function IncidentEditor({
+  initial,
+  onSaved,
+  trigger,
+}: {
+  initial?: Partial<IncidentRow> & { id?: string };
+  onSaved: () => void;
+  trigger: React.ReactNode;
+}) {
+  const upsert = useServerFn(upsertIncident);
+  const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [form, setForm] = useState({
+    id: initial?.id,
+    title: initial?.title ?? "",
+    summary: initial?.summary ?? "",
+    status: (initial?.status ?? "investigating") as IncidentStatus,
+    impact: (initial?.impact ?? "minor") as IncidentImpact,
+    affected_components: (initial?.affected_components ?? []).join(", "),
+    started_at: initial?.started_at ?? "",
+    resolved_at: initial?.resolved_at ?? "",
+    is_public: initial?.is_public ?? true,
+  });
+
+  async function submit() {
+    setBusy(true);
+    try {
+      await upsert({
+        data: {
+          id: form.id,
+          title: form.title,
+          summary: form.summary || null,
+          status: form.status,
+          impact: form.impact,
+          affected_components: form.affected_components
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean),
+          started_at: form.started_at ? new Date(form.started_at).toISOString() : undefined,
+          resolved_at: form.resolved_at ? new Date(form.resolved_at).toISOString() : null,
+          is_public: form.is_public,
+        },
+      });
+      toast.success(form.id ? "Incident updated." : "Incident created.");
+      onSaved();
+      setOpen(false);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Save failed.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      <DialogContent className="max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>{form.id ? "Edit incident" : "New incident"}</DialogTitle>
+          <DialogDescription>
+            Incidents appear on the public status page when marked public.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-3">
+          <div>
+            <label className="mb-1 block text-xs text-muted-foreground">Title</label>
+            <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs text-muted-foreground">Summary</label>
+            <Textarea
+              rows={3}
+              value={form.summary}
+              onChange={(e) => setForm({ ...form, summary: e.target.value })}
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="mb-1 block text-xs text-muted-foreground">Status</label>
+              <select
+                className="w-full rounded-md border border-border/60 bg-background/60 px-2 py-1.5 text-sm"
+                value={form.status}
+                onChange={(e) => setForm({ ...form, status: e.target.value as IncidentStatus })}
+              >
+                {INCIDENT_STATUSES.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="mb-1 block text-xs text-muted-foreground">Impact</label>
+              <select
+                className="w-full rounded-md border border-border/60 bg-background/60 px-2 py-1.5 text-sm"
+                value={form.impact}
+                onChange={(e) => setForm({ ...form, impact: e.target.value as IncidentImpact })}
+              >
+                {INCIDENT_IMPACTS.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <div>
+            <label className="mb-1 block text-xs text-muted-foreground">
+              Affected components (comma separated)
+            </label>
+            <Input
+              value={form.affected_components}
+              onChange={(e) => setForm({ ...form, affected_components: e.target.value })}
+              placeholder="API Server, Database"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="mb-1 block text-xs text-muted-foreground">Started at</label>
+              <Input
+                type="datetime-local"
+                value={form.started_at ? form.started_at.slice(0, 16) : ""}
+                onChange={(e) => setForm({ ...form, started_at: e.target.value })}
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs text-muted-foreground">Resolved at</label>
+              <Input
+                type="datetime-local"
+                value={form.resolved_at ? form.resolved_at.slice(0, 16) : ""}
+                onChange={(e) => setForm({ ...form, resolved_at: e.target.value })}
+              />
+            </div>
+          </div>
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={form.is_public}
+              onChange={(e) => setForm({ ...form, is_public: e.target.checked })}
+            />
+            Public (visible on status page)
+          </label>
+        </div>
+        <DialogFooter>
+          <Button onClick={submit} disabled={busy || !form.title.trim()}>
+            {busy ? "Saving…" : "Save"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function IncidentUpdateDialog({
+  incidentId,
+  onSaved,
+  trigger,
+}: {
+  incidentId: string;
+  onSaved: () => void;
+  trigger: React.ReactNode;
+}) {
+  const add = useServerFn(addIncidentUpdate);
+  const listUpdates = useServerFn(listAdminIncidentUpdates);
+  const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [status, setStatus] = useState<IncidentStatus>("investigating");
+  const [message, setMessage] = useState("");
+
+  const { data: updates = [], refetch } = useQuery({
+    enabled: open,
+    queryKey: ["admin-incident-updates", incidentId],
+    queryFn: () => listUpdates({ data: { incidentId } }),
+  });
+
+  async function submit() {
+    setBusy(true);
+    try {
+      await add({ data: { incidentId, status, message } });
+      toast.success("Update posted.");
+      setMessage("");
+      await refetch();
+      onSaved();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Post failed.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      <DialogContent className="max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Post incident update</DialogTitle>
+          <DialogDescription>
+            Timeline entries are appended and immediately visible on the status page.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-3">
+          <div>
+            <label className="mb-1 block text-xs text-muted-foreground">Status</label>
+            <select
+              className="w-full rounded-md border border-border/60 bg-background/60 px-2 py-1.5 text-sm"
+              value={status}
+              onChange={(e) => setStatus(e.target.value as IncidentStatus)}
+            >
+              {INCIDENT_STATUSES.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="mb-1 block text-xs text-muted-foreground">Message</label>
+            <Textarea rows={4} value={message} onChange={(e) => setMessage(e.target.value)} />
+          </div>
+          <Button onClick={submit} disabled={busy || message.trim().length < 2}>
+            {busy ? "Posting…" : "Post update"}
+          </Button>
+          <div className="border-t border-border/60 pt-3">
+            <div className="mb-2 text-xs uppercase tracking-wider text-muted-foreground">
+              Timeline
+            </div>
+            <div className="space-y-2 text-sm">
+              {(updates as Array<{
+                id: string;
+                status: string;
+                message: string;
+                created_at: string;
+              }>).map((u) => (
+                <div key={u.id} className="rounded border border-border/60 p-2">
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <span className="font-mono uppercase">{u.status}</span>
+                    <span>{fmt(u.created_at)}</span>
+                  </div>
+                  <div className="mt-1 whitespace-pre-wrap">{u.message}</div>
+                </div>
+              ))}
+              {updates.length === 0 && (
+                <div className="text-xs text-muted-foreground">No updates yet.</div>
+              )}
+            </div>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+export function IncidentsPanel() {
+  const qc = useQueryClient();
+  const list = useServerFn(listAdminIncidents);
+  const del = useServerFn(deleteIncident);
+  const [statusFilter, setStatusFilter] = useState("");
+  const [impactFilter, setImpactFilter] = useState("");
+
+  const { data = [] } = useQuery<IncidentRow[]>({
+    queryKey: ["admin-incidents"],
+    queryFn: () => list({}) as Promise<IncidentRow[]>,
+  });
+
+  const invalidate = () => {
+    qc.invalidateQueries({ queryKey: ["admin-incidents"] });
+    qc.invalidateQueries({ queryKey: ["public-incidents"] });
+  };
+
+  async function doDelete(id: string) {
+    try {
+      await del({ data: { id } });
+      toast.success("Incident deleted.");
+      invalidate();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Delete failed.");
+    }
+  }
+
+  const filtered = data.filter(
+    (r) => (!statusFilter || r.status === statusFilter) && (!impactFilter || r.impact === impactFilter),
+  );
+
+  const columns: Column<IncidentRow>[] = [
+    { key: "title", label: "Title", sortable: true, value: (r) => r.title },
+    {
+      key: "status",
+      label: "Status",
+      sortable: true,
+      value: (r) => r.status,
+      cell: (r) => (
+        <span
+          className={
+            r.status === "resolved"
+              ? "text-emerald-500"
+              : r.status === "monitoring"
+                ? "text-sky-500"
+                : "text-amber-500"
+          }
+        >
+          {r.status}
+        </span>
+      ),
+    },
+    {
+      key: "impact",
+      label: "Impact",
+      sortable: true,
+      value: (r) => r.impact,
+      cell: (r) => (
+        <span className={r.impact === "critical" || r.impact === "major" ? "text-destructive" : ""}>
+          {r.impact}
+        </span>
+      ),
+    },
+    {
+      key: "affected_components",
+      label: "Components",
+      value: (r) => (r.affected_components ?? []).join(", "),
+    },
+    {
+      key: "is_public",
+      label: "Public",
+      sortable: true,
+      value: (r) => (r.is_public ? "yes" : "no"),
+      cell: (r) => (r.is_public ? <span className="text-emerald-500">yes</span> : "no"),
+    },
+    {
+      key: "started_at",
+      label: "Started",
+      sortable: true,
+      value: (r) => r.started_at,
+      cell: (r) => fmt(r.started_at),
+    },
+    {
+      key: "resolved_at",
+      label: "Resolved",
+      sortable: true,
+      value: (r) => r.resolved_at ?? "",
+      cell: (r) => fmt(r.resolved_at),
+    },
+  ];
+
+  return (
+    <AdminDataTable<IncidentRow>
+      title="Incidents"
+      description="Status-page incidents with public timeline updates."
+      rows={filtered}
+      columns={columns}
+      getRowId={(r) => r.id}
+      searchKeys={["title", "summary"]}
+      filters={[
+        {
+          key: "status",
+          label: "Status",
+          value: statusFilter,
+          onChange: setStatusFilter,
+          options: [
+            { value: "", label: "All" },
+            ...INCIDENT_STATUSES.map((s) => ({ value: s, label: s })),
+          ],
+        },
+        {
+          key: "impact",
+          label: "Impact",
+          value: impactFilter,
+          onChange: setImpactFilter,
+          options: [
+            { value: "", label: "Any" },
+            ...INCIDENT_IMPACTS.map((s) => ({ value: s, label: s })),
+          ],
+        },
+      ]}
+      exportFilename="incidents"
+      toolbarExtra={
+        <IncidentEditor
+          onSaved={invalidate}
+          trigger={
+            <Button size="sm" className="gap-1">
+              <AlertTriangle className="size-3.5" /> New incident
+            </Button>
+          }
+        />
+      }
+      rowActions={(r) => (
+        <div className="flex items-center gap-1">
+          <IncidentUpdateDialog
+            incidentId={r.id}
+            onSaved={invalidate}
+            trigger={
+              <Button variant="ghost" size="sm" className="gap-1">
+                <MessageSquarePlus className="size-3.5" /> Update
+              </Button>
+            }
+          />
+          <IncidentEditor
+            initial={r}
+            onSaved={invalidate}
+            trigger={
+              <Button variant="ghost" size="sm">
+                Edit
+              </Button>
+            }
+          />
+          <ConfirmDialog
+            trigger={
+              <Button variant="ghost" size="sm" className="gap-1 text-destructive">
+                <Trash2 className="size-3.5" /> Delete
+              </Button>
+            }
+            title="Delete incident"
+            description="Permanent. Timeline updates will cascade."
+            confirmLabel="Delete"
+            destructive
+            onConfirm={() => doDelete(r.id)}
+          />
+        </div>
+      )}
+    />
+  );
+}
+

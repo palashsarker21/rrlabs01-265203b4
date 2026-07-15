@@ -831,6 +831,86 @@ export type Database = {
         }
         Relationships: []
       }
+      incident_updates: {
+        Row: {
+          author_id: string | null
+          created_at: string
+          id: string
+          incident_id: string
+          message: string
+          status: Database["public"]["Enums"]["incident_status"]
+        }
+        Insert: {
+          author_id?: string | null
+          created_at?: string
+          id?: string
+          incident_id: string
+          message: string
+          status: Database["public"]["Enums"]["incident_status"]
+        }
+        Update: {
+          author_id?: string | null
+          created_at?: string
+          id?: string
+          incident_id?: string
+          message?: string
+          status?: Database["public"]["Enums"]["incident_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incident_updates_incident_id_fkey"
+            columns: ["incident_id"]
+            isOneToOne: false
+            referencedRelation: "incidents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      incidents: {
+        Row: {
+          affected_components: string[]
+          created_at: string
+          created_by: string | null
+          id: string
+          impact: Database["public"]["Enums"]["incident_impact"]
+          is_public: boolean
+          resolved_at: string | null
+          started_at: string
+          status: Database["public"]["Enums"]["incident_status"]
+          summary: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          affected_components?: string[]
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          impact?: Database["public"]["Enums"]["incident_impact"]
+          is_public?: boolean
+          resolved_at?: string | null
+          started_at?: string
+          status?: Database["public"]["Enums"]["incident_status"]
+          summary?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          affected_components?: string[]
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          impact?: Database["public"]["Enums"]["incident_impact"]
+          is_public?: boolean
+          resolved_at?: string | null
+          started_at?: string
+          status?: Database["public"]["Enums"]["incident_status"]
+          summary?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       integrations: {
         Row: {
           config: Json
@@ -1851,6 +1931,12 @@ export type Database = {
     Enums: {
       app_role: "super_admin" | "admin" | "user"
       blog_post_status: "draft" | "scheduled" | "published" | "archived"
+      incident_impact: "none" | "minor" | "major" | "critical"
+      incident_status:
+        | "investigating"
+        | "identified"
+        | "monitoring"
+        | "resolved"
       integration_kind: "store" | "payment_gateway" | "communication"
       integration_status: "pending" | "connected" | "error" | "disconnected"
       recovery_attempt_status:
@@ -2017,6 +2103,13 @@ export const Constants = {
     Enums: {
       app_role: ["super_admin", "admin", "user"],
       blog_post_status: ["draft", "scheduled", "published", "archived"],
+      incident_impact: ["none", "minor", "major", "critical"],
+      incident_status: [
+        "investigating",
+        "identified",
+        "monitoring",
+        "resolved",
+      ],
       integration_kind: ["store", "payment_gateway", "communication"],
       integration_status: ["pending", "connected", "error", "disconnected"],
       recovery_attempt_status: [
