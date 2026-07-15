@@ -134,7 +134,7 @@ function AdminConsole() {
           </div>
         </section>
 
-        </section>
+
 
         {billing ? (
           <section className="rounded-2xl border border-border/60 bg-card/50 p-8">
