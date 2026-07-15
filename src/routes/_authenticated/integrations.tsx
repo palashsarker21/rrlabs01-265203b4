@@ -272,11 +272,14 @@ function IntegrationCenter() {
                       key={p.code}
                       provider={p}
                       integrations={rows}
+                      statusByIntegration={statusByIntegration}
                       overLimit={overLimit && rows.length === 0}
                       onSave={onSave}
                       onTest={onTest}
                       onDisconnect={onDisconnect}
                       onRotate={onRotate}
+                      onFetchLogs={(id) => logsFn({ data: { integrationId: id, limit: 20 } })}
+                      onReveal={(id) => revealFn({ data: { integrationId: id } })}
                     />
                   );
                 })}
