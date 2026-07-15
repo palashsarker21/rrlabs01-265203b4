@@ -1,68 +1,87 @@
-# Production Readiness Audit & Completion
 
-This is a large multi-phase job. To keep it safe and reviewable, I will execute it in ordered phases, auditing first, then fixing. No redesign, no removal of working features, no placeholders.
+# Super Admin Console — Production Expansion Plan
 
-## Phase A — Audit (read-only)
-Sweep the codebase and produce a written baseline in `.lovable/production-audit.md`:
-1. Brand token scan: grep for `Revenue Recovery`, `Recovery Labs`, `Revenue Labs`, `RevenueRecovery`, `RRLABS`, stray casings, and any hard-coded company names outside `src/lib/brand.ts`.
-2. Asset scan: enumerate `src/assets/brand/*.asset.json`, `public/manifest.webmanifest`, favicons, OG/Twitter images, `browserconfig.xml`, mstile, apple-touch-icon. Confirm every referenced URL resolves.
-3. Head-meta scan: every route file's `head()` — title, description, canonical, og:*, twitter:*, JSON-LD. Flag defaults ("Lovable App", "Lovable Generated Project"), missing per-route metadata, root-level `og:image` leakage.
-4. Legal/company content scan: About, Contact, Privacy, Terms, Refund, Cookies, Security, FAQ, Status, Docs, Blog. Confirm no lorem ipsum, no TODO, no dummy addresses.
-5. Header/footer: confirm `MarketingHeader`/`MarketingFooter` render brand tokens from `src/lib/brand.ts` only.
-6. PWA: manifest fields, maskable icons, theme_color/background_color, shortcuts, offline page (only if already present — per no-redesign rule).
-7. SEO plumbing: `robots.txt`, `sitemap.xml`, JSON-LD types on Home/Pricing/About/Contact/FAQ/Blog/Post, breadcrumbs, `<h1>` uniqueness, image alt coverage.
-8. Cleanup targets: dead code, duplicate implementations, orphan routes, broken internal links.
-9. Build health: typecheck, lint, `bun run build` (production).
+Expand the existing Admin Console (`/admin`, current tabs: Workspaces, Audit, Pricing, Features) into a full enterprise operations center with 20 modules, without redesigning the UI shell or breaking existing tabs.
 
-Deliverable: `.lovable/production-audit.md` with PASS/WARN/FAIL per category, file:line evidence.
+## Approach
 
-## Phase B — Brand standardization
-Fixes derived from Phase A #1, #5:
-- Any string not sourced from `src/lib/brand.ts` gets rewritten to use `BRAND.name` ("RRLabs") or `BRAND.company` ("Revenue Recovery Labs").
-- Update page titles, emails, PWA manifest name/short_name, error/loading/offline copy, invoice/receipt strings, admin console labels.
-- Single source of truth remains `src/lib/brand.ts`; no new brand constants.
+- **Reuse the existing tabbed shell** in `src/routes/_authenticated/admin.tsx`. Each new module is a new tab (or grouped sub-tab), rendered as a lazy component under `src/components/admin/<module>/`.
+- **All data server-driven** via new `*.functions.ts` files with `requireSupabaseAuth` + `assertSuperAdmin` on every read/write. No hardcoded rows.
+- **Shared primitives** (`src/components/admin/_shared/`):
+  - `DataTable` — search, column filters, sort, pagination (server- or client-side), CSV/XLSX export via a tiny in-house csv encoder (no new deps beyond `xlsx` if excel is required — else CSV only).
+  - `ConfirmDialog` — required wrapper for every destructive action.
+  - `AuditedButton` — writes to `audit_logs` via `writeAuditLog` on click.
+- **RBAC/RLS preserved** — every server fn re-checks `is_super_admin`; no bypass of RLS except through existing `supabaseAdmin` for read-only aggregations and moderation writes that already have policies.
 
-## Phase C — Assets & PWA
-- Verify each `*.asset.json` resolves; regenerate missing icon sizes only if a reference exists but the asset is broken.
-- Fix manifest.webmanifest fields (name, short_name, theme_color, background_color, icons array with `purpose: "any maskable"`, start_url, scope, display).
-- Ensure `<link rel="apple-touch-icon">`, favicon links, and `theme-color` meta are set in `__root.tsx`.
-- Keep existing service-worker posture; do NOT add a new SW unless one already exists (rule from PWA skill).
+## Modules (20)
 
-## Phase D — SEO / AEO / GEO / LLMO / AIO / SXO
-- Per-route `head()` in every public route: unique title (<60 chars), description (<160), canonical (leaf-only), og:title/description/type/url, twitter:card.
-- Add JSON-LD: Organization + WebSite at root; SoftwareApplication on `/`; Product/Offer on `/pricing`; FAQPage on `/faq`; Article + BreadcrumbList on blog posts; ContactPage on `/contact`; AboutPage on `/about`.
-- `robots.txt`: `Allow: /`, sitemap directive.
-- `sitemap.xml` server route: enumerate every public route + published blog slugs from `content/blog/*.md`.
-- Breadcrumbs on nested pages, semantic `<h1>` per page, image alt audit.
-- AEO: ensure FAQ/Docs pages have question-first H2s and direct-answer paragraphs (only where content already exists — no fabrication).
-- GEO/LLMO: entity consistency (RRLabs, Revenue Recovery Labs, product taxonomy), stable internal linking. No new marketing pages.
+Each ships as a tab with list + detail drawer, standardized toolbar (search / filter / sort / paginate / export), and audit-logged mutations.
 
-## Phase E — Legal & company content
-Where existing pages have thin/placeholder copy, extend to enterprise-grade content: Privacy, Terms, Refund, Cookies, Security, DPA, Subprocessors, Acceptable Use, Accessibility Statement, Responsible Disclosure, Data Retention. Cross-link between them. Contact info sourced from `src/lib/brand.ts` `CONTACT`.
+1. **Workspaces** — extend current tab: add filter by status/plan, per-row detail drawer with members, integrations, subs, engine toggle, suspend, impersonate-view (read-only).
+2. **Users & Roles** — list `profiles` + `user_roles`, grant/revoke `super_admin`/`admin`, force sign-out, delete user (admin API).
+3. **Subscriptions** — `subscriptions` join `plans` + `workspaces`, filter by status, cancel/reactivate, sync-from-LemonSqueezy button.
+4. **Billing Ops** — `billing_events` + `checkout_sessions`, replay failed webhooks, refund lookup, MRR/ARR panel (already partially exists).
+5. **Webhook Monitor** — `webhook_logs` + `billing_events`, filter provider/status, retry button, payload viewer.
+6. **Integrations** — `integrations` cross-workspace, filter provider/status, force-disconnect, rotate secret.
+7. **Recovery Engine** — `recovery_events` + `recovery_attempts`, per-workspace throughput, pause/resume, requeue.
+8. **AI Usage** — aggregate from `ai_gateway` logs via existing tool (read-only panel).
+9. **Email Queue** — `notification_logs` where channel=email, retry, view body.
+10. **WhatsApp Queue** — `notification_logs` where channel=whatsapp, retry, view body.
+11. **Audit Logs** — extend current tab with search/filter by action/actor/workspace/date, CSV export.
+12. **Security Center** — surfaces `security--get_scan_results` + user_roles anomalies + failed sign-ins summary.
+13. **Support Center** — `contact_leads` inbox, assign/close, notes.
+14. **Blog & CMS** — link out to existing blog admin; add moderation queue (`blog_posts` where status=pending).
+15. **System Health** — `provider_status`, DB latency, edge fn health, cron heartbeat.
+16. **Global Settings** — new `admin_settings` key/value table (migration), edited via form.
+17. **Feature Flags** — extend current tab with per-workspace overrides UI, search.
+18. **Provider Catalog** — extend current tab with sort_order editor, beta toggle, docs URL edit.
+19. **Maintenance** — `maintenance_mode` flag, cache invalidate, expire trial workspaces (call existing `expire_trial_workspaces` RPC).
+20. **Analytics** — MRR/ARR/churn/recovered revenue/webhook health (extend existing billing metrics panel).
 
-New files only if missing: `/dpa`, `/subprocessors`, `/acceptable-use`, `/accessibility`, `/responsible-disclosure`, `/data-retention`. Otherwise edit in place.
+## New database objects (single migration)
 
-## Phase F — Cleanup
-- Remove lorem ipsum, TODO markers, dummy data (search for `TODO`, `FIXME`, `lorem`, `placeholder`).
-- Remove dead exports / duplicate helpers surfaced in Phase A.
-- Do NOT remove working functionality.
+- `admin_settings` (key text pk, value jsonb, updated_at, updated_by) — for Global Settings module.
+- No new columns on existing tables. All other modules read tables that already exist.
+- GRANTs to `service_role` only; RLS: super_admin read/write via `is_super_admin(auth.uid())`.
 
-## Phase G — Final validation
-- `tsgo` typecheck
-- `bun run lint`
-- `bun run build`
-- Playwright smoke: `/`, `/pricing`, `/blog`, `/faq`, `/contact`, `/auth`, `/app` (screenshots + console errors)
-- Verify `/robots.txt`, `/sitemap.xml`, `/manifest.webmanifest` respond 200 with correct content-type.
+## New server functions
 
-## Phase H — Final report
-Write `.lovable/production-audit-final.md` with PASS/WARN/FAIL matrix for all 24 categories in the request, list of files changed, and confirmation that no placeholders/TODOs/duplicates remain.
+Grouped under `src/lib/admin/`:
 
-## Approval model
-Given the scope, I'll pause for approval after **Phase A (audit)** so we can review scope and priorities before making changes. After approval I'll run B→H sequentially, reporting a short delta after each.
+- `users.functions.ts` — `listUsers`, `grantRole`, `revokeRole`, `forceSignOut`, `deleteUser`.
+- `subscriptions.functions.ts` — `listSubscriptions`, `cancelSubscription`, `reactivateSubscription`, `syncFromLemonSqueezy`.
+- `webhooks.functions.ts` — `listWebhookLogs`, `retryWebhook`.
+- `integrations.functions.ts` — `listAllIntegrations`, `forceDisconnect`.
+- `recovery.functions.ts` — `listRecoveryEvents`, `requeueAttempt`, `pauseWorkspaceEngine`.
+- `notifications.functions.ts` — `listNotifications`, `retryNotification`.
+- `support.functions.ts` — `listContactLeads`, `updateLeadStatus`.
+- `health.functions.ts` — `getSystemHealth`.
+- `settings.functions.ts` — `getSettings`, `setSetting`.
+- `maintenance.functions.ts` — `setMaintenanceMode`, `expireTrials`, `invalidateCache`.
 
-## Non-goals (explicit)
-- No visual redesign.
-- No new architecture, no framework swap.
-- No removal of working features (integration center, admin, billing, blog, etc.).
-- No new SaaS pricing/plan changes.
-- No new external dependencies unless required to fix a broken asset.
+Every fn: `requireSupabaseAuth` middleware → `assertSuperAdmin` guard → paginated query → returns `{ rows, total }`.
+
+## Shared UI
+
+- `src/components/admin/_shared/data-table.tsx` — column defs, server pagination, CSV export.
+- `src/components/admin/_shared/confirm-dialog.tsx` — used by all destructive actions.
+- `src/components/admin/_shared/export-menu.tsx` — CSV (always) + XLSX (via `xlsx` dep, added).
+
+## Non-goals
+
+- No visual redesign — same header, tab strip, table styling, colors.
+- No new pricing plans, no changes to customer-facing flows.
+- No changes to RLS policies of existing tables (only add policies on new `admin_settings`).
+- No removal of any working feature.
+
+## Verification
+
+- `bunx tsgo --noEmit` clean.
+- `bun run build` clean.
+- Manual spot-check via preview: each tab loads, search/filter works, CSV export downloads, confirm dialog blocks destructive click.
+
+## Scope note
+
+This is roughly **~40 new files (~4-5K LOC)** and **1 migration**. It will take multiple turns to implement. I'll ship module-by-module with the shared table primitive first, then modules 1-5, 6-10, 11-15, 16-20 as batches. Nothing user-facing changes until the first batch merges.
+
+Approve to proceed with **Batch 1: shared primitives + migration + modules 1-5 (Workspaces detail, Users, Subscriptions, Billing Ops, Webhook Monitor)**.
