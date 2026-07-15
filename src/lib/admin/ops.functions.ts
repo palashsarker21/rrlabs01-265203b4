@@ -14,15 +14,11 @@ import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-async function assertSuperAdmin(context: {
-  supabase: {
-    rpc: (fn: string, args: Record<string, unknown>) => Promise<{ data: unknown; error: unknown }>;
+async function assertSuperAdmin(context: { supabase: unknown; userId: string }) {
+  const sb = context.supabase as {
+    rpc: (fn: "is_super_admin", args: { _user_id: string }) => Promise<{ data: unknown; error: unknown }>;
   };
-  userId: string;
-}) {
-  const { data, error } = await context.supabase.rpc("is_super_admin", {
-    _user_id: context.userId,
-  });
+  const { data, error } = await sb.rpc("is_super_admin", { _user_id: context.userId });
   if (error) throw new Error((error as Error).message ?? "Authorization failed.");
   if (!data) throw new Error("Super admin access required.");
 }
@@ -33,7 +29,7 @@ async function audit(
   details: Record<string, unknown>,
   target?: { type: string; id: string; workspaceId?: string | null },
 ) {
-  const { writeAuditLog } = await import("./audit.server");
+  const { writeAuditLog } = await import("../audit.server");
   await writeAuditLog({
     workspaceId: target?.workspaceId ?? null,
     actorId: context.userId,
