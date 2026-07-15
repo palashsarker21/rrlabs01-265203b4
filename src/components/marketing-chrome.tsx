@@ -146,7 +146,7 @@ const FOOTER_COLS: { title: string; items: FooterItem[] }[] = [
     items: [
       { label: "About", to: "/about" },
       { label: "Contact", to: "/contact" },
-      { label: "Careers", to: "/contact", badge: "Coming Soon" },
+      { label: "Careers", href: "/careers" },
       { label: "Blog", to: "/blog" },
     ],
   },
@@ -156,16 +156,16 @@ const FOOTER_COLS: { title: string; items: FooterItem[] }[] = [
       { label: "Features", to: "/features" },
       { label: "Pricing", to: "/pricing" },
       { label: "Documentation", to: "/docs" },
-      { label: "Integrations", to: "/features" },
+      { label: "Integrations", href: "/integrations" },
     ],
   },
   {
     title: "Resources",
     items: [
       { label: "Help Center", to: "/faq" },
-      { label: "FAQ", to: "/faq" },
       { label: "Status", to: "/status" },
-      { label: "API Documentation", to: "/docs", badge: "Coming Soon" },
+      { label: "API Documentation", href: "/docs/api" },
+      { label: "Security", to: "/security" },
     ],
   },
   {
@@ -175,7 +175,6 @@ const FOOTER_COLS: { title: string; items: FooterItem[] }[] = [
       { label: "Terms of Service", to: "/terms" },
       { label: "Refund Policy", to: "/refund" },
       { label: "Cookie Policy", to: "/cookies" },
-      { label: "Security", to: "/security" },
     ],
   },
 ];
