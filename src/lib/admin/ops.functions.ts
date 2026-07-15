@@ -177,7 +177,7 @@ export const listAdminRecoveryEvents = createServerFn({ method: "POST" })
     const { data, error } = await context.supabase
       .from("recovery_events")
       .select(
-        "id, workspace_id, status, amount_cents, currency, customer_email, provider_code, created_at, recovered_at",
+        "id, workspace_id, status, amount_cents, currency, provider, external_object_id, failure_message, failure_category, attempts_count, created_at, recovered_at",
       )
       .order("created_at", { ascending: false })
       .limit(500);
