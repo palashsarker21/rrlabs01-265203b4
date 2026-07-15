@@ -296,8 +296,17 @@ async function onSubscriptionUpdated(payload: LSWebhookPayload): Promise<void> {
   const lsSubscriptionId = String(payload.data?.id ?? "");
   if (!lsSubscriptionId) throw new Error("Missing subscription id");
 
+  const eventName = payload.meta?.event_name ?? "";
   const statusStr = String(attr.status ?? "");
-  const status: SubscriptionStatus | undefined = STATUS_MAP[statusStr];
+  let status: SubscriptionStatus | undefined = STATUS_MAP[statusStr];
+
+  // Event-name overrides for accuracy when `attr.status` lags.
+  if (eventName === "subscription_payment_failed") status = "past_due";
+  if (eventName === "subscription_paused") status = "paused";
+  if (eventName === "subscription_unpaused") status = status ?? "active";
+  if (eventName === "subscription_resumed") status = "active";
+  if (eventName === "subscription_cancelled") status = "cancelled";
+  if (eventName === "subscription_expired") status = "expired";
 
   const { data: sub } = await supabaseAdmin
     .from("subscriptions")
@@ -312,7 +321,7 @@ async function onSubscriptionUpdated(payload: LSWebhookPayload): Promise<void> {
       trial_ends_at: asDate(attr.trial_ends_at),
       renews_at: asDate(attr.renews_at),
       ends_at: asDate(attr.ends_at),
-      cancelled_at: attr.cancelled ? new Date().toISOString() : null,
+      cancelled_at: attr.cancelled || status === "cancelled" ? new Date().toISOString() : null,
       update_payment_url: extractUrl(attr, "update_payment_method"),
       customer_portal_url: extractUrl(attr, "customer_portal"),
       card_brand: (attr.card_brand as string | null) ?? null,
@@ -322,19 +331,26 @@ async function onSubscriptionUpdated(payload: LSWebhookPayload): Promise<void> {
     .eq("ls_subscription_id", lsSubscriptionId);
 
   if (sub?.workspace_id && status) {
-    // Suspend workspace when subscription lapses; reactivate when good.
     const wsStatus =
       status === "cancelled" || status === "expired"
         ? "cancelled"
         : status === "past_due" || status === "unpaid" || status === "paused"
           ? "suspended"
-          : undefined;
+          : status === "active" || status === "on_trial"
+            ? "active"
+            : undefined;
+
+    const engineChange =
+      status === "active" || status === "on_trial"
+        ? {}
+        : { recovery_engine_enabled: false };
 
     await supabaseAdmin
       .from("workspaces")
       .update({
         subscription_status: status,
-        ...(wsStatus ? { status: wsStatus, recovery_engine_enabled: false } : {}),
+        ...(wsStatus ? { status: wsStatus } : {}),
+        ...engineChange,
       })
       .eq("id", sub.workspace_id);
   }
