@@ -86,7 +86,8 @@ function Landing() {
               churn into recovered revenue.
             </p>
             <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
-              <Link to="/auth" search={{ redirect: "/app" }}>
+              <Link to="/auth" search={{ redirect: "/checkout" }}>
+
                 <Button size="lg">
                   Start free — no card required
                   <ArrowRight className="ml-2 h-4 w-4" />
@@ -330,13 +331,14 @@ function Landing() {
             Free 14-day trial. No credit card. Connect your billing provider in minutes.
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
-            <Link to="/auth" search={{ redirect: "/app" }}>
+            <Link to="/auth" search={{ redirect: "/checkout" }}>
               <Button size="lg">
-                Get started free
+                Start Free Trial
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>
-            <Link to="/contact">
+            <Link to="/contact-sales">
+
               <Button size="lg" variant="outline">
                 Talk to sales
               </Button>

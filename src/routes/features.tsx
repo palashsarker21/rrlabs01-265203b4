@@ -106,7 +106,7 @@ function FeaturesPage() {
         </div>
 
         <div className="mt-16 flex flex-wrap gap-3">
-          <Link to="/auth" search={{ redirect: "/app" }}>
+          <Link to="/auth" search={{ redirect: "/checkout" }}>
             <Button size="lg">
               Start recovering revenue
               <ArrowRight className="ml-2 h-4 w-4" />
