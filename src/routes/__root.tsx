@@ -17,6 +17,7 @@ import { ErrorPage } from "../components/error-page";
 import { ErrorBoundary } from "../components/error-boundary";
 import { DebugErrorPanel } from "../components/debug-error-panel";
 import { GlobalDebugOverlay } from "../components/global-debug-overlay";
+import { AnnouncementBanner } from "../components/announcement-banner";
 import { isDebugMode } from "../lib/debug-mode";
 
 function NotFoundComponent() {
@@ -169,6 +170,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <ErrorBoundary boundary="root_client_boundary">
+        <AnnouncementBanner />
         <Outlet />
       </ErrorBoundary>
       <GlobalDebugOverlay />

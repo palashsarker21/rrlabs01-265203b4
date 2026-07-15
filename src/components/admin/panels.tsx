@@ -1795,3 +1795,418 @@ export function ApiKeysPanel() {
     />
   );
 }
+
+// ============================================================
+// ANNOUNCEMENTS
+// ============================================================
+import {
+  listAdminAnnouncements,
+  upsertAnnouncement,
+  setAnnouncementPublished,
+  deleteAnnouncement,
+} from "@/lib/announcements.functions";
+import { Megaphone, Eye, EyeOff } from "lucide-react";
+
+type AnnouncementRow = {
+  id: string;
+  title: string;
+  body: string;
+  kind: "banner" | "popup" | "release_note" | "maintenance";
+  severity: "info" | "warning" | "critical";
+  audience: string;
+  cta_label: string | null;
+  cta_href: string | null;
+  starts_at: string | null;
+  ends_at: string | null;
+  dismissible: boolean;
+  published: boolean;
+  published_at: string | null;
+  created_at: string;
+};
+
+function AnnouncementEditor({
+  initial,
+  onSaved,
+  trigger,
+}: {
+  initial?: Partial<AnnouncementRow> & { id?: string };
+  onSaved: () => void;
+  trigger: React.ReactNode;
+}) {
+  const upsert = useServerFn(upsertAnnouncement);
+  const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [form, setForm] = useState({
+    id: initial?.id,
+    title: initial?.title ?? "",
+    body: initial?.body ?? "",
+    kind: (initial?.kind ?? "banner") as AnnouncementRow["kind"],
+    severity: (initial?.severity ?? "info") as AnnouncementRow["severity"],
+    audience: initial?.audience ?? "all",
+    cta_label: initial?.cta_label ?? "",
+    cta_href: initial?.cta_href ?? "",
+    starts_at: initial?.starts_at ?? "",
+    ends_at: initial?.ends_at ?? "",
+    dismissible: initial?.dismissible ?? true,
+    published: initial?.published ?? false,
+  });
+
+  async function submit() {
+    setBusy(true);
+    try {
+      await upsert({
+        data: {
+          id: form.id,
+          title: form.title,
+          body: form.body,
+          kind: form.kind,
+          severity: form.severity,
+          audience: form.audience as "all" | "authenticated" | "anonymous",
+          audience_filter: {},
+          cta_label: form.cta_label || null,
+          cta_href: form.cta_href || null,
+          starts_at: form.starts_at ? new Date(form.starts_at).toISOString() : null,
+          ends_at: form.ends_at ? new Date(form.ends_at).toISOString() : null,
+          dismissible: form.dismissible,
+          published: form.published,
+        },
+      });
+      toast.success(form.id ? "Announcement updated." : "Announcement created.");
+      onSaved();
+      setOpen(false);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Save failed.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      <DialogContent className="max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>{form.id ? "Edit announcement" : "New announcement"}</DialogTitle>
+          <DialogDescription>
+            Banners appear site-wide. Publishing is required for anything to display.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-3">
+          <div>
+            <label className="mb-1 block text-xs text-muted-foreground">Title</label>
+            <Input
+              value={form.title}
+              onChange={(e) => setForm({ ...form, title: e.target.value })}
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs text-muted-foreground">Body</label>
+            <Textarea
+              rows={3}
+              value={form.body}
+              onChange={(e) => setForm({ ...form, body: e.target.value })}
+            />
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            <div>
+              <label className="mb-1 block text-xs text-muted-foreground">Kind</label>
+              <select
+                className="w-full rounded-md border border-border/60 bg-background/60 px-2 py-1.5 text-sm"
+                value={form.kind}
+                onChange={(e) =>
+                  setForm({ ...form, kind: e.target.value as AnnouncementRow["kind"] })
+                }
+              >
+                <option value="banner">Banner</option>
+                <option value="popup">Popup</option>
+                <option value="release_note">Release note</option>
+                <option value="maintenance">Maintenance</option>
+              </select>
+            </div>
+            <div>
+              <label className="mb-1 block text-xs text-muted-foreground">Severity</label>
+              <select
+                className="w-full rounded-md border border-border/60 bg-background/60 px-2 py-1.5 text-sm"
+                value={form.severity}
+                onChange={(e) =>
+                  setForm({ ...form, severity: e.target.value as AnnouncementRow["severity"] })
+                }
+              >
+                <option value="info">Info</option>
+                <option value="warning">Warning</option>
+                <option value="critical">Critical</option>
+              </select>
+            </div>
+            <div>
+              <label className="mb-1 block text-xs text-muted-foreground">Audience</label>
+              <select
+                className="w-full rounded-md border border-border/60 bg-background/60 px-2 py-1.5 text-sm"
+                value={form.audience}
+                onChange={(e) => setForm({ ...form, audience: e.target.value })}
+              >
+                <option value="all">Everyone</option>
+                <option value="authenticated">Signed in</option>
+                <option value="anonymous">Signed out</option>
+              </select>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="mb-1 block text-xs text-muted-foreground">CTA label</label>
+              <Input
+                value={form.cta_label}
+                onChange={(e) => setForm({ ...form, cta_label: e.target.value })}
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs text-muted-foreground">CTA URL</label>
+              <Input
+                value={form.cta_href}
+                onChange={(e) => setForm({ ...form, cta_href: e.target.value })}
+                placeholder="https://…"
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="mb-1 block text-xs text-muted-foreground">Starts at</label>
+              <Input
+                type="datetime-local"
+                value={form.starts_at ? form.starts_at.slice(0, 16) : ""}
+                onChange={(e) => setForm({ ...form, starts_at: e.target.value })}
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs text-muted-foreground">Ends at</label>
+              <Input
+                type="datetime-local"
+                value={form.ends_at ? form.ends_at.slice(0, 16) : ""}
+                onChange={(e) => setForm({ ...form, ends_at: e.target.value })}
+              />
+            </div>
+          </div>
+          <div className="flex items-center gap-4 text-sm">
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={form.dismissible}
+                onChange={(e) => setForm({ ...form, dismissible: e.target.checked })}
+              />
+              Dismissible
+            </label>
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={form.published}
+                onChange={(e) => setForm({ ...form, published: e.target.checked })}
+              />
+              Published
+            </label>
+          </div>
+        </div>
+        <DialogFooter>
+          <Button onClick={submit} disabled={busy || !form.title.trim()}>
+            {busy ? "Saving…" : "Save"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+export function AnnouncementsPanel() {
+  const qc = useQueryClient();
+  const list = useServerFn(listAdminAnnouncements);
+  const setPublished = useServerFn(setAnnouncementPublished);
+  const del = useServerFn(deleteAnnouncement);
+  const [statusFilter, setStatusFilter] = useState("");
+  const [kindFilter, setKindFilter] = useState("");
+
+  const { data = [] } = useQuery<AnnouncementRow[]>({
+    queryKey: ["admin-announcements"],
+    queryFn: () => list({}) as Promise<AnnouncementRow[]>,
+  });
+
+  const invalidate = () => {
+    qc.invalidateQueries({ queryKey: ["admin-announcements"] });
+    qc.invalidateQueries({ queryKey: ["announcements-active"] });
+  };
+
+  async function togglePublished(id: string, published: boolean) {
+    try {
+      await setPublished({ data: { id, published } });
+      toast.success(published ? "Published." : "Unpublished.");
+      invalidate();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Update failed.");
+    }
+  }
+  async function doDelete(id: string) {
+    try {
+      await del({ data: { id } });
+      toast.success("Deleted.");
+      invalidate();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Delete failed.");
+    }
+  }
+
+  const filtered = data.filter(
+    (r) =>
+      (!statusFilter || (statusFilter === "published" ? r.published : !r.published)) &&
+      (!kindFilter || r.kind === kindFilter),
+  );
+
+  const columns: Column<AnnouncementRow>[] = [
+    { key: "title", label: "Title", sortable: true, value: (r) => r.title },
+    { key: "kind", label: "Kind", sortable: true, value: (r) => r.kind },
+    {
+      key: "severity",
+      label: "Severity",
+      sortable: true,
+      value: (r) => r.severity,
+      cell: (r) => (
+        <span
+          className={
+            r.severity === "critical"
+              ? "text-destructive"
+              : r.severity === "warning"
+                ? "text-amber-500"
+                : "text-muted-foreground"
+          }
+        >
+          {r.severity}
+        </span>
+      ),
+    },
+    { key: "audience", label: "Audience", value: (r) => r.audience },
+    {
+      key: "published",
+      label: "Published",
+      sortable: true,
+      value: (r) => (r.published ? "yes" : "no"),
+      cell: (r) => (r.published ? <span className="text-emerald-500">yes</span> : "no"),
+    },
+    {
+      key: "starts_at",
+      label: "Starts",
+      sortable: true,
+      value: (r) => r.starts_at ?? "",
+      cell: (r) => fmt(r.starts_at),
+    },
+    {
+      key: "ends_at",
+      label: "Ends",
+      sortable: true,
+      value: (r) => r.ends_at ?? "",
+      cell: (r) => fmt(r.ends_at),
+    },
+    {
+      key: "created_at",
+      label: "Created",
+      sortable: true,
+      value: (r) => r.created_at,
+      cell: (r) => fmt(r.created_at),
+    },
+  ];
+
+  return (
+    <AdminDataTable<AnnouncementRow>
+      title="Announcements"
+      description="Site-wide banners, popups, release notes, and maintenance notices."
+      rows={filtered}
+      columns={columns}
+      getRowId={(r) => r.id}
+      searchKeys={["title", "body"]}
+      filters={[
+        {
+          key: "status",
+          label: "Status",
+          value: statusFilter,
+          onChange: setStatusFilter,
+          options: [
+            { value: "", label: "All" },
+            { value: "published", label: "Published" },
+            { value: "draft", label: "Draft" },
+          ],
+        },
+        {
+          key: "kind",
+          label: "Kind",
+          value: kindFilter,
+          onChange: setKindFilter,
+          options: [
+            { value: "", label: "Any" },
+            { value: "banner", label: "Banner" },
+            { value: "popup", label: "Popup" },
+            { value: "release_note", label: "Release note" },
+            { value: "maintenance", label: "Maintenance" },
+          ],
+        },
+      ]}
+      exportFilename="announcements"
+      toolbarExtra={
+        <AnnouncementEditor
+          onSaved={invalidate}
+          trigger={
+            <Button size="sm" className="gap-1">
+              <Megaphone className="size-3.5" /> New announcement
+            </Button>
+          }
+        />
+      }
+      rowActions={(r) => (
+        <div className="flex items-center gap-1">
+          <AnnouncementEditor
+            initial={r}
+            onSaved={invalidate}
+            trigger={
+              <Button variant="ghost" size="sm">
+                Edit
+              </Button>
+            }
+          />
+          {r.published ? (
+            <ConfirmDialog
+              trigger={
+                <Button variant="ghost" size="sm" className="gap-1">
+                  <EyeOff className="size-3.5" /> Unpublish
+                </Button>
+              }
+              title="Unpublish announcement"
+              description="It will stop showing to users immediately."
+              confirmLabel="Unpublish"
+              destructive={false}
+              onConfirm={() => togglePublished(r.id, false)}
+            />
+          ) : (
+            <ConfirmDialog
+              trigger={
+                <Button variant="ghost" size="sm" className="gap-1">
+                  <Eye className="size-3.5" /> Publish
+                </Button>
+              }
+              title="Publish announcement"
+              description="It will become visible to the selected audience within the active window."
+              confirmLabel="Publish"
+              destructive={false}
+              onConfirm={() => togglePublished(r.id, true)}
+            />
+          )}
+          <ConfirmDialog
+            trigger={
+              <Button variant="ghost" size="sm" className="gap-1 text-destructive">
+                <Trash2 className="size-3.5" /> Delete
+              </Button>
+            }
+            title="Delete announcement"
+            description="Permanent. Dismissal history is preserved via cascade."
+            confirmLabel="Delete"
+            destructive
+            onConfirm={() => doDelete(r.id)}
+          />
+        </div>
+      )}
+    />
+  );
+}
