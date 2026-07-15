@@ -55,6 +55,12 @@ export const Route = createFileRoute("/")({
 });
 
 function Landing() {
+  const authed = useIsAuthed();
+  const { data: serverPlans } = useQuery({
+    queryKey: ["public-plans"],
+    queryFn: () => listPublicPlans(),
+    staleTime: 60_000,
+  });
   return (
     <div className="min-h-screen bg-background">
       {/* Announcement */}
