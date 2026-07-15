@@ -152,8 +152,27 @@ function loadBlogCache(): BlogCache {
   }
 
   posts.sort((a, b) => (a.publishDate < b.publishDate ? 1 : -1));
+  if (issues.length > 0) {
+    // Log server-side only. Never expose loader failures to end users.
+    for (const issue of issues) {
+      console.warn(`[blog] Skipped ${issue.filepath}: ${issue.reason}`);
+    }
+  }
   cache = { posts, issues };
   return cache;
+}
+
+export function getAdjacentPosts(slug: string): {
+  previous: BlogPostSummary | null;
+  next: BlogPostSummary | null;
+} {
+  const posts = loadAllPosts();
+  const idx = posts.findIndex((p) => p.slug === slug);
+  if (idx === -1) return { previous: null, next: null };
+  // Posts sorted newest -> oldest. "Previous" = older (higher index), "Next" = newer (lower index).
+  const previous = idx < posts.length - 1 ? toSummary(posts[idx + 1]) : null;
+  const next = idx > 0 ? toSummary(posts[idx - 1]) : null;
+  return { previous, next };
 }
 
 function loadAllPosts(): BlogPost[] {

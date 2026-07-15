@@ -26,7 +26,7 @@ export function BrandLockup({ size = 32 }: { size?: number }) {
       <div className="flex flex-col leading-none">
         <span className="text-sm font-bold tracking-tight text-foreground">{BRAND.name}</span>
         <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
-          Revenue Recovery
+          Revenue Recovery Labs
         </span>
       </div>
     </div>

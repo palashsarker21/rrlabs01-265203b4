@@ -86,12 +86,6 @@ function BlogIndex() {
         </form>
       </header>
 
-      {loadIssues.length > 0 && (
-        <div className="mb-8 rounded-lg border border-warning/30 bg-warning/10 px-4 py-3 text-sm text-foreground">
-          Some articles could not be loaded and are temporarily hidden while we fix their content.
-        </div>
-      )}
-
       {featured.length > 0 && (
         <section className="mb-14">
           <div className="mb-4 flex items-baseline justify-between">
