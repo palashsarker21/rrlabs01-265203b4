@@ -125,6 +125,18 @@ function IntegrationCenter() {
     queryFn: () => fetchLimits({ data: { workspaceId: workspace!.id } }),
   });
 
+  const { data: statuses = [] } = useQuery({
+    queryKey: ["provider-statuses", workspace?.id],
+    enabled: Boolean(workspace?.id),
+    queryFn: () => statusesFn({ data: { workspaceId: workspace!.id } }),
+    refetchInterval: 15_000,
+  });
+  const statusByIntegration = useMemo(() => {
+    const m = new Map<string, ProviderStatusRow>();
+    for (const s of statuses) m.set(s.integration_id, s);
+    return m;
+  }, [statuses]);
+
   const currentStep = PROVIDER_STEP_ORDER[stepIndex];
   const currentKind = currentStep?.kind;
 
