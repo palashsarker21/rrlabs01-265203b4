@@ -394,7 +394,7 @@ export function IntegrationsPanel() {
             </Button>
           }
           title="Force disconnect?"
-          description={`This will disconnect the ${r.provider_code} integration. The workspace will need to reconnect it manually.`}
+          description={`This will disconnect the ${r.provider} integration. The workspace will need to reconnect it manually.`}
           confirmLabel="Disconnect"
           onConfirm={() => handleDisconnect(r.id)}
         />
