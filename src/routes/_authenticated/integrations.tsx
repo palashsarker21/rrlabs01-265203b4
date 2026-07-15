@@ -10,6 +10,9 @@ import {
   CheckCircle2,
   Copy,
   ExternalLink,
+  Eye,
+  EyeOff,
+  FileText,
   Loader2,
   Lock,
   LogOut,
@@ -17,6 +20,7 @@ import {
   RefreshCw,
   ShieldCheck,
   Trash2,
+  XCircle,
 } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
