@@ -26,10 +26,11 @@ export const CONTACT = {
   supportEmail: "support@rrlabs.online",
   phones: ["+8801323405346", "+8801934857886"] as const,
   address: {
-    line1: "60, Chowhaddi, Dotto Kendua-7901",
+    line1: "60, Chowhaddi, Dotto Kendua",
     line2: "Madaripur Sadar",
     city: "Madaripur",
     region: "Dhaka",
+    postalCode: "7901",
     country: "Bangladesh",
   },
   website: SITE_URL,
