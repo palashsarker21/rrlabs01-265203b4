@@ -8,12 +8,25 @@ import {
   ArrowLeft,
   ScrollText,
   Building2,
-  ToggleLeft,
   Plug,
   DollarSign,
   Check,
   X,
   Sparkles,
+  Users,
+  CreditCard,
+  Webhook,
+  Zap,
+  Mail,
+  MessageSquare,
+  Activity,
+  Settings,
+  Wrench,
+  BarChart3,
+  Lock,
+  LifeBuoy,
+  FileText,
+  Receipt,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -34,6 +47,65 @@ import {
 } from "@/lib/admin-features.functions";
 import { getAdminPricingSnapshot } from "@/lib/admin-pricing.functions";
 import { formatSuccessFeeBps } from "@/lib/pricing";
+import {
+  UsersPanel,
+  SubscriptionsPanel,
+  WebhookMonitorPanel,
+  IntegrationsPanel,
+  RecoveryPanel,
+  NotificationsPanel,
+  BillingEventsPanel,
+  SupportPanel,
+  SystemHealthPanel,
+  SettingsPanel,
+  MaintenancePanel,
+  BlogModerationPanel,
+  SecurityCenterPanel,
+  AnalyticsPanel,
+} from "@/components/admin/panels";
+
+type TabKey =
+  | "workspaces"
+  | "users"
+  | "subscriptions"
+  | "billing"
+  | "webhooks"
+  | "integrations"
+  | "recovery"
+  | "email"
+  | "whatsapp"
+  | "audit"
+  | "security"
+  | "support"
+  | "blog"
+  | "health"
+  | "settings"
+  | "features"
+  | "pricing"
+  | "maintenance"
+  | "analytics";
+
+const TABS: { key: TabKey; label: string; icon: typeof Shield }[] = [
+  { key: "analytics", label: "Analytics", icon: BarChart3 },
+  { key: "workspaces", label: "Workspaces", icon: Building2 },
+  { key: "users", label: "Users & roles", icon: Users },
+  { key: "subscriptions", label: "Subscriptions", icon: CreditCard },
+  { key: "billing", label: "Billing events", icon: Receipt },
+  { key: "webhooks", label: "Webhooks", icon: Webhook },
+  { key: "integrations", label: "Integrations", icon: Plug },
+  { key: "recovery", label: "Recovery engine", icon: Zap },
+  { key: "email", label: "Email queue", icon: Mail },
+  { key: "whatsapp", label: "WhatsApp queue", icon: MessageSquare },
+  { key: "audit", label: "Audit log", icon: ScrollText },
+  { key: "security", label: "Security", icon: Lock },
+  { key: "support", label: "Support", icon: LifeBuoy },
+  { key: "blog", label: "Blog CMS", icon: FileText },
+  { key: "health", label: "System health", icon: Activity },
+  { key: "features", label: "Feature flags", icon: Sparkles },
+  { key: "pricing", label: "Pricing config", icon: DollarSign },
+  { key: "settings", label: "Global settings", icon: Settings },
+  { key: "maintenance", label: "Maintenance", icon: Wrench },
+];
 
 export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminConsole,
@@ -55,7 +127,7 @@ function AdminConsole() {
   const setEngine = useServerFn(adminSetEngine);
   const metricsFn = useServerFn(getBillingMetrics);
   const pricingFn = useServerFn(getAdminPricingSnapshot);
-  const [tab, setTab] = useState<"workspaces" | "audit" | "pricing" | "features">("workspaces");
+  const [tab, setTab] = useState<TabKey>("analytics");
 
   const { data: me, isLoading: meLoading } = useQuery({
     queryKey: ["admin-status"],
