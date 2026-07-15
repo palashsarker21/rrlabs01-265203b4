@@ -62,6 +62,7 @@ import {
   BlogModerationPanel,
   SecurityCenterPanel,
   AnalyticsPanel,
+  GodModePanel,
 } from "@/components/admin/panels";
 
 type TabKey =
