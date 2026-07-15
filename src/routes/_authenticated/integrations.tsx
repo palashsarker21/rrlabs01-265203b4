@@ -83,6 +83,9 @@ function IntegrationCenter() {
   const testFn = useServerFn(testIntegration);
   const disconnectFn = useServerFn(disconnectIntegration);
   const rotateFn = useServerFn(rotateWebhookSecret);
+  const statusesFn = useServerFn(listWorkspaceProviderStatuses);
+  const logsFn = useServerFn(listWebhookLogs);
+  const revealFn = useServerFn(revealWebhookSecret);
   const activateFn = useServerFn(activateWorkspace);
   const stepFn = useServerFn(setSetupStep);
 
