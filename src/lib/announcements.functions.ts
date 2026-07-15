@@ -66,7 +66,6 @@ export type ActiveAnnouncement = {
   kind: "banner" | "popup" | "release_note" | "maintenance";
   severity: "info" | "warning" | "critical";
   audience: string;
-  audience_filter: Record<string, unknown>;
   cta_label: string | null;
   cta_href: string | null;
   starts_at: string | null;
