@@ -253,34 +253,66 @@ function Landing() {
               Start free. Pay only when we recover revenue for you.
             </p>
           </div>
-          <div className="mx-auto mt-14 grid max-w-5xl gap-6 md:grid-cols-3">
-            {PLANS.map((p) => (
-              <div
-                key={p.name}
-                className={`rounded-2xl border p-8 ${p.featured ? "border-foreground bg-card shadow-sm" : "border-border/60 bg-card"}`}
-              >
-                <h3 className="text-lg font-semibold text-foreground">{p.name}</h3>
-                <div className="mt-4 flex items-baseline gap-1">
-                  <span className="text-4xl font-semibold text-foreground">{p.price}</span>
-                  <span className="text-sm text-muted-foreground">{p.period}</span>
+          <div className="mx-auto mt-14 grid max-w-6xl gap-6 md:grid-cols-2 lg:grid-cols-4">
+            {PLANS.map((plan) => {
+              const server = serverPlans?.find((s) => s.code === plan.code);
+              const hasVariant = server ? server.hasVariant : true;
+              return (
+                <div
+                  key={plan.code}
+                  className={`relative flex flex-col rounded-2xl border p-8 ${plan.highlight ? "border-foreground bg-card shadow-sm" : "border-border/60 bg-card"}`}
+                >
+                  {plan.highlight ? (
+                    <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-foreground px-3 py-1 text-xs font-medium text-background">
+                      Most Popular
+                    </span>
+                  ) : null}
+                  <h3 className="text-lg font-semibold text-foreground">{plan.name}</h3>
+                  {plan.priceLead ? (
+                    <p className="mt-2 text-xs text-muted-foreground">{plan.priceLead}</p>
+                  ) : null}
+                  <div className="mt-2 flex items-baseline gap-1">
+                    <span className="text-4xl font-semibold text-foreground">{plan.price}</span>
+                    {plan.priceSuffix ? (
+                      <span className="text-sm text-muted-foreground">{plan.priceSuffix}</span>
+                    ) : null}
+                  </div>
+                  <p className="mt-1 text-xs font-medium text-foreground">{plan.successFee}</p>
+                  <p className="mt-2 text-sm text-muted-foreground">{plan.tagline}</p>
+                  <ul className="mt-6 flex-1 space-y-3">
+                    {plan.features.slice(0, 5).map((f) => (
+                      <li key={f} className="flex items-start gap-2 text-sm text-foreground">
+                        <Check className="mt-0.5 h-4 w-4 shrink-0 text-foreground" />
+                        <span>{f}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="mt-8">
+                    <CtaButton
+                      plan={plan}
+                      isAuthenticated={!!authed}
+                      hasCheckoutVariant={hasVariant}
+                      planIdForCheckout={server?.id ?? null}
+                      variant={plan.highlight ? "primary" : "outline"}
+                      fullWidth
+                    />
+                  </div>
                 </div>
-                <p className="mt-2 text-sm text-muted-foreground">{p.tagline}</p>
-                <ul className="mt-6 space-y-3">
-                  {p.features.map((f) => (
-                    <li key={f} className="flex items-start gap-2 text-sm text-foreground">
-                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-foreground" />
-                      <span>{f}</span>
-                    </li>
-                  ))}
-                </ul>
-                <Link to="/pricing" className="mt-8 block">
-                  <Button variant={p.featured ? "default" : "outline"} className="w-full">
-                    {p.cta}
-                  </Button>
-                </Link>
-              </div>
-            ))}
+              );
+            })}
           </div>
+          <p className="mt-6 text-center text-xs text-muted-foreground">
+            {TRIAL_DAYS}-day free trial · No credit card required · Cancel anytime
+          </p>
+          <div className="mt-6 text-center">
+            <Link
+              to="/pricing"
+              className="text-sm font-medium text-foreground underline-offset-4 hover:underline"
+            >
+              Compare all plans →
+            </Link>
+          </div>
+
         </div>
       </section>
 
