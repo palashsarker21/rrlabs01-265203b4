@@ -429,8 +429,8 @@ export function RecoveryPanel() {
       value: (r) => r.created_at,
       cell: (r) => <span className="text-xs">{fmt(r.created_at)}</span>,
     },
-    { key: "provider_code", label: "Provider", sortable: true, value: (r) => r.provider_code },
-    { key: "customer_email", label: "Customer", value: (r) => r.customer_email ?? "" },
+    { key: "provider", label: "Provider", sortable: true, value: (r) => r.provider },
+    { key: "failure_category", label: "Failure", value: (r) => r.failure_category ?? "" },
     {
       key: "amount_cents",
       label: "Amount",
