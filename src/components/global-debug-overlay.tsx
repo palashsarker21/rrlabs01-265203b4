@@ -30,7 +30,6 @@ export function GlobalDebugOverlay() {
   useEffect(() => {
     if (!enabled) return;
     const push = (error: unknown, boundary: string) => {
-      // eslint-disable-next-line no-console
       console.error(`[RRLabs ${boundary}]`, error);
       setEntries((prev) => [...prev.slice(-4), { id: nextId++, error, boundary }]);
     };

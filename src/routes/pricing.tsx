@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   ArrowRight,
   Check,
@@ -8,11 +9,16 @@ import {
   BadgeCheck,
   CreditCard,
   ChevronDown,
+  Lock,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { MarketingHeader, MarketingFooter } from "@/components/marketing-chrome";
 import { SITE_URL } from "@/lib/brand";
+import { PLANS, COMPARE_ROWS, PRICING_FAQ, TRIAL_DAYS, type PricingPlan } from "@/lib/pricing";
+import { listPublicPlans } from "@/lib/billing.functions";
+import { CtaButton } from "@/components/pricing/cta-button";
+import { useIsAuthed } from "@/hooks/use-is-authed";
 
 export const Route = createFileRoute("/pricing")({
   head: () => ({
@@ -20,14 +26,12 @@ export const Route = createFileRoute("/pricing")({
       { title: "Pricing — Enterprise plans that grow with your revenue | RRLabs" },
       {
         name: "description",
-        content:
-          "Enterprise pricing for AI-powered revenue recovery. Start free with a 14-day trial. Upgrade only when you're ready.",
+        content: `Enterprise pricing for AI-powered revenue recovery. Starter $29, Growth $99, Business $299. ${TRIAL_DAYS}-day free trial. No credit card required.`,
       },
       { property: "og:title", content: "RRLabs Pricing" },
       {
         property: "og:description",
-        content:
-          "Enterprise pricing that grows with your revenue. 14-day free trial. No credit card required.",
+        content: `Enterprise pricing that grows with your revenue. ${TRIAL_DAYS}-day free trial. No credit card required.`,
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: `${SITE_URL}/pricing` },
@@ -38,173 +42,36 @@ export const Route = createFileRoute("/pricing")({
   component: PricingPage,
 });
 
-type Plan = {
-  code: "starter" | "growth" | "business" | "enterprise";
-  name: string;
-  price: string;
-  priceSuffix?: string;
-  priceLead?: string;
-  fee: string;
-  feeLead?: string;
-  tagline: string;
-  featuresLead?: string;
-  features: string[];
-  cta: string;
-  ctaTo: "/auth" | "/contact";
-  highlight?: boolean;
-};
-
-const PLANS: Plan[] = [
-  {
-    code: "starter",
-    name: "Starter",
-    price: "$29",
-    priceSuffix: "/month",
-    fee: "+5% success fee",
-    tagline: "Perfect for startups.",
-    features: [
-      "AI Recovery",
-      "Email Recovery",
-      "WhatsApp Recovery",
-      "Stripe",
-      "Shopify",
-      "WooCommerce",
-      "Dashboard",
-      "Analytics",
-      "API",
-      "Community Support",
-    ],
-    cta: "Start Free Trial",
-    ctaTo: "/auth",
-  },
-  {
-    code: "growth",
-    name: "Growth",
-    price: "$99",
-    priceSuffix: "/month",
-    fee: "+4% success fee",
-    tagline: "For growing subscription businesses.",
-    featuresLead: "Everything in Starter, plus",
-    features: [
-      "Advanced Analytics",
-      "Customer Segmentation",
-      "AI Recommendations",
-      "Workflow Automation",
-      "Unlimited Integrations",
-      "Priority Support",
-    ],
-    cta: "Start Free Trial",
-    ctaTo: "/auth",
-    highlight: true,
-  },
-  {
-    code: "business",
-    name: "Business",
-    price: "$299",
-    priceSuffix: "/month",
-    fee: "+3% success fee",
-    tagline: "Built for high-volume SaaS.",
-    featuresLead: "Everything in Growth, plus",
-    features: [
-      "Executive Dashboard",
-      "Revenue Intelligence",
-      "Predictive Analytics",
-      "SSO Ready",
-      "Enterprise Security",
-      "Dedicated Success Manager",
-    ],
-    cta: "Start Free Trial",
-    ctaTo: "/auth",
-  },
-  {
-    code: "enterprise",
-    name: "Enterprise",
-    price: "Custom",
-    priceLead: "Starting from $999/month",
-    fee: "Starting from 2% success fee",
-    tagline: "For enterprises with advanced requirements.",
-    features: [
-      "White Label",
-      "Custom Domain",
-      "Dedicated Infrastructure",
-      "Dedicated AI",
-      "Custom Integrations",
-      "Enterprise SLA",
-      "Professional Services",
-      "Dedicated Engineer",
-    ],
-    cta: "Contact Sales",
-    ctaTo: "/contact",
-  },
-];
-
 const TRUST = [
-  { icon: Sparkles, label: "14-Day Free Trial" },
+  { icon: Sparkles, label: `${TRIAL_DAYS}-Day Free Trial` },
   { icon: CreditCard, label: "No Credit Card Required" },
   { icon: BadgeCheck, label: "AI Powered" },
   { icon: ShieldCheck, label: "Enterprise Ready" },
 ];
 
-type CompareValue = boolean | string;
-const COMPARE_ROWS: {
-  label: string;
-  values: [CompareValue, CompareValue, CompareValue, CompareValue];
-}[] = [
-  { label: "AI Recovery", values: [true, true, true, true] },
-  { label: "Analytics", values: ["Basic", "Advanced", "Advanced", "Custom"] },
-  { label: "Revenue Intelligence", values: [false, false, true, true] },
-  { label: "Workflow Automation", values: [false, true, true, true] },
-  { label: "API", values: [true, true, true, true] },
-  { label: "Webhooks", values: [true, true, true, true] },
-  { label: "SSO", values: [false, false, true, true] },
-  { label: "White Label", values: [false, false, false, true] },
-  { label: "Support", values: ["Community", "Priority", "Dedicated CSM", "Dedicated Engineer"] },
-  {
-    label: "Communication Channels",
-    values: [
-      "Email + WhatsApp",
-      "Email + WhatsApp",
-      "Email + WhatsApp",
-      "Email + WhatsApp + Custom",
-    ],
-  },
-];
-
-const FAQS = [
-  {
-    q: "What is the success fee?",
-    a: "A small percentage of revenue we recover for you. No recovery, no fee.",
-  },
-  {
-    q: "Do I need a credit card to start?",
-    a: "No. The 14-day trial requires no card.",
-  },
-  {
-    q: "Can I change plans later?",
-    a: "Yes. Upgrade, downgrade, or cancel anytime from your dashboard.",
-  },
-  {
-    q: "Which channels are supported?",
-    a: "Email and WhatsApp Business API on all plans.",
-  },
-  {
-    q: "How does billing work?",
-    a: "A fixed monthly subscription plus a small success fee on recovered revenue.",
-  },
-  {
-    q: "Is my data secure?",
-    a: "Encrypted in transit and at rest, with role-based access and audit logs.",
-  },
-];
+type ServerPlan = Awaited<ReturnType<typeof listPublicPlans>>[number];
 
 function PricingPage() {
+  const authed = useIsAuthed();
+  const { data: serverPlans } = useQuery({
+    queryKey: ["public-plans"],
+    queryFn: () => listPublicPlans(),
+    staleTime: 60_000,
+  });
+
+  const byCode = useMemo(() => {
+    const m = new Map<string, ServerPlan>();
+    (serverPlans ?? []).forEach((p) => m.set(p.code, p));
+    return m;
+  }, [serverPlans]);
+
   return (
     <div className="min-h-screen bg-white text-neutral-900">
       <MarketingHeader />
       <Hero />
-      <PlanGrid />
+      <PlanGrid isAuthenticated={!!authed} byCode={byCode} />
       <ComparisonTable />
-      <ROICalculator />
+      <ROICalculator isAuthenticated={!!authed} byCode={byCode} />
       <FAQ />
       <FinalCTA />
       <StickyMobileCTA />
@@ -226,11 +93,11 @@ function Hero() {
           Enterprise pricing that grows with your revenue.
         </h1>
         <p className="mx-auto mt-5 max-w-2xl text-pretty text-base leading-relaxed text-neutral-600 sm:text-lg">
-          Recover failed payments automatically using AI-powered Email and WhatsApp recovery. Start
-          free with a 14-day trial. Upgrade only when you're ready.
+          Recover failed payments automatically with AI-powered Email and WhatsApp recovery. Start
+          free with a {TRIAL_DAYS}-day trial. Upgrade only when you're ready.
         </p>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-          <Link to="/auth">
+          <Link to="/auth" search={{ redirect: "/checkout" }}>
             <Button
               size="lg"
               className="rounded-full bg-emerald-600 px-6 text-white hover:bg-emerald-700"
@@ -239,7 +106,7 @@ function Hero() {
               <ArrowRight className="ml-1.5 h-4 w-4" />
             </Button>
           </Link>
-          <Link to="/contact">
+          <Link to="/contact-sales">
             <Button
               size="lg"
               variant="outline"
@@ -265,23 +132,45 @@ function Hero() {
   );
 }
 
-function PlanGrid() {
+function PlanGrid({
+  isAuthenticated,
+  byCode,
+}: {
+  isAuthenticated: boolean;
+  byCode: Map<string, ServerPlan>;
+}) {
   return (
     <section className="mx-auto max-w-7xl px-6 py-16">
       <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
         {PLANS.map((p) => (
-          <PlanCard key={p.code} plan={p} />
+          <PlanCard
+            key={p.code}
+            plan={p}
+            isAuthenticated={isAuthenticated}
+            server={byCode.get(p.code)}
+          />
         ))}
       </div>
       <p className="mt-6 text-center text-xs text-neutral-500">
-        14-day free trial on all plans. No credit card required.
+        {TRIAL_DAYS}-day free trial on all plans. No credit card required. Cancel anytime.
       </p>
     </section>
   );
 }
 
-function PlanCard({ plan }: { plan: Plan }) {
+function PlanCard({
+  plan,
+  isAuthenticated,
+  server,
+}: {
+  plan: PricingPlan;
+  isAuthenticated: boolean;
+  server?: ServerPlan;
+}) {
   const highlight = !!plan.highlight;
+  const enterprise = !!plan.enterprise;
+  // Default to true while server data loads to avoid flashing "Coming Soon".
+  const hasCheckoutVariant = server ? !!server.has_variant : true;
   return (
     <div
       className={
@@ -296,6 +185,11 @@ function PlanCard({ plan }: { plan: Plan }) {
           Most Popular
         </div>
       )}
+      {enterprise && (
+        <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full border border-neutral-900 bg-neutral-900 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-white">
+          Enterprise
+        </div>
+      )}
 
       <div>
         <h3 className="text-lg font-semibold text-neutral-950">{plan.name}</h3>
@@ -303,14 +197,14 @@ function PlanCard({ plan }: { plan: Plan }) {
       </div>
 
       <div className="mt-6 min-h-[92px]">
+        {plan.priceLead && <p className="text-xs text-neutral-500">{plan.priceLead}</p>}
         <div className="flex items-baseline gap-1">
           <span className="text-4xl font-semibold tracking-tight text-neutral-950">
             {plan.price}
           </span>
           {plan.priceSuffix && <span className="text-sm text-neutral-500">{plan.priceSuffix}</span>}
         </div>
-        {plan.priceLead && <p className="mt-1 text-xs text-neutral-500">{plan.priceLead}</p>}
-        <p className="mt-1 text-xs font-medium text-emerald-700">{plan.fee}</p>
+        <p className="mt-1 text-xs font-medium text-emerald-700">{plan.successFee}</p>
       </div>
 
       <div className="my-6 h-px bg-neutral-200" />
@@ -330,19 +224,14 @@ function PlanCard({ plan }: { plan: Plan }) {
       </div>
 
       <div className="mt-8">
-        <Link to={plan.ctaTo} className="block">
-          <Button
-            className={
-              "w-full rounded-full transition-colors " +
-              (highlight
-                ? "bg-emerald-600 text-white hover:bg-emerald-700"
-                : "bg-white text-neutral-900 border border-neutral-300 hover:bg-neutral-100")
-            }
-          >
-            {plan.cta}
-            <ArrowRight className="ml-1.5 h-4 w-4" />
-          </Button>
-        </Link>
+        <CtaButton
+          plan={plan}
+          isAuthenticated={isAuthenticated}
+          hasCheckoutVariant={hasCheckoutVariant}
+          planIdForCheckout={server?.id ?? null}
+          variant={highlight ? "primary" : "outline"}
+          fullWidth
+        />
       </div>
     </div>
   );
@@ -364,11 +253,18 @@ function ComparisonTable() {
       <div className="mt-10 overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[720px] text-sm">
+            <caption className="sr-only">RRLabs plan feature comparison</caption>
             <thead>
               <tr className="border-b border-neutral-200 bg-neutral-50/70">
-                <th className="p-4 text-left font-medium text-neutral-500">Feature</th>
+                <th scope="col" className="p-4 text-left font-medium text-neutral-500">
+                  Feature
+                </th>
                 {PLANS.map((p) => (
-                  <th key={p.code} className="p-4 text-center font-semibold text-neutral-950">
+                  <th
+                    scope="col"
+                    key={p.code}
+                    className="p-4 text-center font-semibold text-neutral-950"
+                  >
                     {p.name}
                     {p.highlight && (
                       <span className="ml-1.5 rounded-full bg-emerald-600 px-1.5 py-0.5 align-middle text-[9px] font-medium uppercase tracking-wider text-white">
@@ -382,7 +278,9 @@ function ComparisonTable() {
             <tbody>
               {COMPARE_ROWS.map((row, i) => (
                 <tr key={row.label} className={i % 2 === 1 ? "bg-neutral-50/40" : ""}>
-                  <td className="p-4 text-neutral-800">{row.label}</td>
+                  <th scope="row" className="p-4 text-left font-normal text-neutral-800">
+                    {row.label}
+                  </th>
                   {row.values.map((v, idx) => (
                     <td key={idx} className="p-4 text-center">
                       {typeof v === "boolean" ? (
@@ -409,21 +307,29 @@ function ComparisonTable() {
   );
 }
 
-function ROICalculator() {
-  const [revenue, setRevenue] = useState(50000);
-  const [failedPct, setFailedPct] = useState(8);
+function ROICalculator({
+  isAuthenticated,
+  byCode,
+}: {
+  isAuthenticated: boolean;
+  byCode: Map<string, ServerPlan>;
+}) {
+  const [failedPayments, setFailedPayments] = useState(200);
   const [aov, setAov] = useState(49);
   const [recoveryRate, setRecoveryRate] = useState(35);
 
+  const growth = PLANS.find((p) => p.code === "growth")!;
+
   const results = useMemo(() => {
-    const failedRevenue = revenue * (failedPct / 100);
+    const failedRevenue = failedPayments * aov;
     const recovered = failedRevenue * (recoveryRate / 100);
-    const platformCost = 99 + recovered * 0.04;
-    const monthlyGain = recovered - platformCost;
-    const annualGain = monthlyGain * 12;
-    const roi = platformCost > 0 ? (monthlyGain / platformCost) * 100 : 0;
-    return { recovered, monthlyGain, annualGain, platformCost, roi };
-  }, [revenue, failedPct, recoveryRate]);
+    const successFee = recovered * (growth.successFeeBps / 10000);
+    const platformCost = (growth.monthlyBaseCents ?? 9900) / 100 + successFee;
+    const netGain = recovered - platformCost;
+    const annualGain = netGain * 12;
+    const roi = platformCost > 0 ? (netGain / platformCost) * 100 : 0;
+    return { recovered, successFee, platformCost, netGain, annualGain, roi };
+  }, [failedPayments, aov, recoveryRate, growth.successFeeBps, growth.monthlyBaseCents]);
 
   const fmt = (n: number) =>
     n.toLocaleString("en-US", {
@@ -431,9 +337,6 @@ function ROICalculator() {
       currency: "USD",
       maximumFractionDigits: 0,
     });
-
-  // aov is a UX input; not directly used in the simplified formula but shown as context
-  void aov;
 
   return (
     <section className="mx-auto max-w-7xl px-6 pb-16">
@@ -448,25 +351,15 @@ function ROICalculator() {
             </p>
             <div className="mt-8 space-y-6">
               <NumberField
-                label="Monthly Revenue"
-                prefix="$"
-                value={revenue}
-                min={1000}
-                max={2000000}
-                step={1000}
-                onChange={setRevenue}
-              />
-              <NumberField
-                label="Failed Payments"
-                suffix="%"
-                value={failedPct}
+                label="Monthly failed payments"
+                value={failedPayments}
                 min={0}
-                max={30}
-                step={0.5}
-                onChange={setFailedPct}
+                max={20000}
+                step={10}
+                onChange={setFailedPayments}
               />
               <NumberField
-                label="Average Order Value"
+                label="Average order value"
                 prefix="$"
                 value={aov}
                 min={1}
@@ -475,7 +368,7 @@ function ROICalculator() {
                 onChange={setAov}
               />
               <NumberField
-                label="Expected Recovery Rate"
+                label="Expected recovery rate"
                 suffix="%"
                 value={recoveryRate}
                 min={0}
@@ -492,28 +385,31 @@ function ROICalculator() {
             </p>
             <div className="mt-6 grid grid-cols-2 gap-6">
               <Result label="Recovered Revenue" value={fmt(results.recovered)} />
-              <Result label="Monthly Gain" value={fmt(results.monthlyGain)} accent />
-              <Result label="Annual Gain" value={fmt(results.annualGain)} accent />
-              <Result label="Platform Cost" value={fmt(results.platformCost)} />
+              <Result label="Platform Fee" value={fmt(results.platformCost)} />
+              <Result label="Net Revenue" value={fmt(results.netGain)} accent />
+              <Result label="Annual Net Gain" value={fmt(results.annualGain)} accent />
               <div className="col-span-2 rounded-xl border border-emerald-200 bg-emerald-50 p-5">
                 <p className="text-xs font-medium uppercase tracking-widest text-emerald-800">
-                  ROI
+                  Estimated ROI
                 </p>
                 <p className="mt-1 text-4xl font-semibold tracking-tight text-emerald-700">
-                  {results.roi.toFixed(0)}%
+                  {Number.isFinite(results.roi) ? `${results.roi.toFixed(0)}%` : "—"}
                 </p>
               </div>
             </div>
             <p className="mt-6 text-xs text-neutral-500">
-              Based on the Growth plan ($99/mo + 4% success fee). Estimates vary by industry and
-              payment mix.
+              Based on the Growth plan ({growth.price}
+              {growth.priceSuffix} · {growth.successFee}). Estimates vary by industry and payment
+              mix.
             </p>
-            <Link to="/auth" className="mt-6 inline-block">
-              <Button className="rounded-full bg-emerald-600 text-white hover:bg-emerald-700">
-                Start Free Trial
-                <ArrowRight className="ml-1.5 h-4 w-4" />
-              </Button>
-            </Link>
+            <div className="mt-6">
+              <CtaButton
+                plan={growth}
+                isAuthenticated={isAuthenticated}
+                hasCheckoutVariant={byCode.get("growth")?.has_variant ?? false}
+                planIdForCheckout={byCode.get("growth")?.id ?? null}
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -602,8 +498,8 @@ function FAQ() {
         </h2>
       </div>
       <div className="mt-10 divide-y divide-neutral-200 rounded-2xl border border-neutral-200 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
-        {FAQS.map((item, i) => (
-          <FAQItem key={i} q={item.q} a={item.a} defaultOpen={i === 0} />
+        {PRICING_FAQ.map((item, i) => (
+          <FAQItem key={item.q} q={item.q} a={item.a} defaultOpen={i === 0} />
         ))}
       </div>
     </section>
@@ -644,7 +540,7 @@ function FinalCTA() {
           Start free in minutes. Upgrade only when you're ready.
         </p>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-          <Link to="/auth">
+          <Link to="/auth" search={{ redirect: "/checkout" }}>
             <Button
               size="lg"
               className="rounded-full bg-emerald-600 px-6 text-white hover:bg-emerald-700"
@@ -653,7 +549,7 @@ function FinalCTA() {
               <ArrowRight className="ml-1.5 h-4 w-4" />
             </Button>
           </Link>
-          <Link to="/contact">
+          <Link to="/contact-sales">
             <Button
               size="lg"
               variant="outline"
@@ -662,6 +558,10 @@ function FinalCTA() {
               Talk to Sales
             </Button>
           </Link>
+        </div>
+        <div className="mt-6 inline-flex items-center gap-1.5 text-xs text-neutral-500">
+          <Lock className="h-3.5 w-3.5" />
+          Secure checkout · Powered by Lemon Squeezy
         </div>
       </div>
     </section>
@@ -672,7 +572,7 @@ function StickyMobileCTA() {
   return (
     <div className="fixed inset-x-0 bottom-0 z-30 border-t border-neutral-200 bg-white/95 p-3 backdrop-blur md:hidden">
       <div className="mx-auto flex max-w-lg items-center gap-2">
-        <Link to="/contact" className="flex-1">
+        <Link to="/contact-sales" className="flex-1">
           <Button
             variant="outline"
             className="w-full rounded-full border-neutral-300 bg-white text-neutral-900"
@@ -680,7 +580,7 @@ function StickyMobileCTA() {
             Talk to Sales
           </Button>
         </Link>
-        <Link to="/auth" className="flex-1">
+        <Link to="/auth" search={{ redirect: "/checkout" }} className="flex-1">
           <Button className="w-full rounded-full bg-emerald-600 text-white hover:bg-emerald-700">
             Start Free Trial
           </Button>

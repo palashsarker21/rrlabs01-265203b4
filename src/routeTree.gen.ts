@@ -21,6 +21,7 @@ import { Route as FeaturesRouteImport } from './routes/features'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as DocsRouteImport } from './routes/docs'
 import { Route as CookiesRouteImport } from './routes/cookies'
+import { Route as ContactSalesRouteImport } from './routes/contact-sales'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as BlogRouteImport } from './routes/blog'
 import { Route as AuthRouteImport } from './routes/auth'
@@ -102,6 +103,11 @@ const DocsRoute = DocsRouteImport.update({
 const CookiesRoute = CookiesRouteImport.update({
   id: '/cookies',
   path: '/cookies',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactSalesRoute = ContactSalesRouteImport.update({
+  id: '/contact-sales',
+  path: '/contact-sales',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ContactRoute = ContactRouteImport.update({
@@ -222,6 +228,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/blog': typeof BlogRouteWithChildren
   '/contact': typeof ContactRoute
+  '/contact-sales': typeof ContactSalesRoute
   '/cookies': typeof CookiesRoute
   '/docs': typeof DocsRoute
   '/faq': typeof FaqRoute
@@ -256,6 +263,7 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
+  '/contact-sales': typeof ContactSalesRoute
   '/cookies': typeof CookiesRoute
   '/docs': typeof DocsRoute
   '/faq': typeof FaqRoute
@@ -293,6 +301,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/blog': typeof BlogRouteWithChildren
   '/contact': typeof ContactRoute
+  '/contact-sales': typeof ContactSalesRoute
   '/cookies': typeof CookiesRoute
   '/docs': typeof DocsRoute
   '/faq': typeof FaqRoute
@@ -330,6 +339,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/blog'
     | '/contact'
+    | '/contact-sales'
     | '/cookies'
     | '/docs'
     | '/faq'
@@ -364,6 +374,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/auth'
     | '/contact'
+    | '/contact-sales'
     | '/cookies'
     | '/docs'
     | '/faq'
@@ -400,6 +411,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/blog'
     | '/contact'
+    | '/contact-sales'
     | '/cookies'
     | '/docs'
     | '/faq'
@@ -437,6 +449,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   BlogRoute: typeof BlogRouteWithChildren
   ContactRoute: typeof ContactRoute
+  ContactSalesRoute: typeof ContactSalesRoute
   CookiesRoute: typeof CookiesRoute
   DocsRoute: typeof DocsRoute
   FaqRoute: typeof FaqRoute
@@ -540,6 +553,13 @@ declare module '@tanstack/react-router' {
       path: '/cookies'
       fullPath: '/cookies'
       preLoaderRoute: typeof CookiesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contact-sales': {
+      id: '/contact-sales'
+      path: '/contact-sales'
+      fullPath: '/contact-sales'
+      preLoaderRoute: typeof ContactSalesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/contact': {
@@ -745,6 +765,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   BlogRoute: BlogRouteWithChildren,
   ContactRoute: ContactRoute,
+  ContactSalesRoute: ContactSalesRoute,
   CookiesRoute: CookiesRoute,
   DocsRoute: DocsRoute,
   FaqRoute: FaqRoute,

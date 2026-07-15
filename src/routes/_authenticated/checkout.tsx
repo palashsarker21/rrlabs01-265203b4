@@ -4,14 +4,14 @@ import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
-import { ArrowRight, Loader2 } from "lucide-react";
+import { ArrowRight, Loader2, Lock } from "lucide-react";
 
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { BrandLockup } from "@/components/brand-mark";
-import { createCheckoutSession } from "@/lib/billing.functions";
+import { createCheckoutSession, listPublicPlans } from "@/lib/billing.functions";
+import { getPlanByCode, TRIAL_DAYS } from "@/lib/pricing";
 
 const searchSchema = z.object({
   plan: z.string().uuid().optional(),
@@ -36,22 +36,29 @@ function CheckoutPage() {
   const startCheckout = useServerFn(createCheckoutSession);
 
   const { data: plans, isLoading } = useQuery({
-    queryKey: ["plans"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("plans")
-        .select("id, code, name, description, price_cents, currency, interval, trial_days")
-        .eq("is_active", true)
-        .order("sort_order", { ascending: true });
-      if (error) throw error;
-      return data ?? [];
-    },
+    queryKey: ["public-plans"],
+    queryFn: () => listPublicPlans(),
+    staleTime: 60_000,
   });
+
+  // Enterprise/contact-sales rows never appear as a self-serve option here.
+  const selfServePlans = (plans ?? []).filter((p) => !p.is_contact_sales);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!selectedPlanId || !orgName.trim() || !wsName.trim()) {
       toast.error("Please fill in every field.");
+      return;
+    }
+    const chosen = selfServePlans.find((p) => p.id === selectedPlanId);
+    if (!chosen) {
+      toast.error("Please pick a plan.");
+      return;
+    }
+    if (!chosen.has_variant) {
+      toast.error(
+        "This plan isn't available for self-serve checkout yet. Contact sales to get set up.",
+      );
       return;
     }
     setSubmitting(true);
@@ -86,6 +93,7 @@ function CheckoutPage() {
         <h1 className="text-3xl font-bold tracking-tight text-foreground">Create your workspace</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Pick a plan and name your company. We'll create your workspace after payment confirms.
+          Every plan starts with a {TRIAL_DAYS}-day free trial.
         </p>
 
         <form onSubmit={handleSubmit} className="mt-10 space-y-8">
@@ -95,24 +103,44 @@ function CheckoutPage() {
               <div className="mt-2 h-24 animate-pulse rounded-lg border border-border/60 bg-card/40" />
             ) : (
               <div className="mt-2 grid gap-3 sm:grid-cols-3">
-                {plans?.map((p) => {
+                {selfServePlans.map((p) => {
                   const active = selectedPlanId === p.id;
+                  const display = getPlanByCode(p.code);
+                  const disabled = !p.has_variant;
                   return (
                     <button
                       type="button"
                       key={p.id}
-                      onClick={() => setSelectedPlanId(p.id)}
+                      onClick={() => !disabled && setSelectedPlanId(p.id)}
+                      disabled={disabled}
                       className={
                         "rounded-xl border p-4 text-left transition-colors " +
-                        (active
-                          ? "border-primary bg-primary/5"
-                          : "border-border/60 bg-card/40 hover:bg-card/60")
+                        (disabled
+                          ? "cursor-not-allowed border-border/40 bg-muted/30 opacity-60"
+                          : active
+                            ? "border-primary bg-primary/5"
+                            : "border-border/60 bg-card/40 hover:bg-card/60")
                       }
                     >
-                      <div className="text-sm font-semibold text-foreground">{p.name}</div>
-                      <div className="mt-1 text-xs text-muted-foreground">
-                        ${(p.price_cents / 100).toFixed(0)}/{p.interval} · {p.trial_days}d trial
+                      <div className="flex items-center justify-between">
+                        <div className="text-sm font-semibold text-foreground">{p.name}</div>
+                        {disabled && (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                            <Lock className="h-3 w-3" />
+                            Coming Soon
+                          </span>
+                        )}
                       </div>
+                      <div className="mt-1 text-xs text-muted-foreground">
+                        {p.price_cents != null
+                          ? `$${(p.price_cents / 100).toFixed(0)}/${p.interval} · ${p.trial_days}d trial`
+                          : "Custom pricing"}
+                      </div>
+                      {display && (
+                        <div className="mt-1 text-[11px] font-medium text-emerald-700">
+                          {display.successFee}
+                        </div>
+                      )}
                     </button>
                   );
                 })}

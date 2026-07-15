@@ -1,12 +1,13 @@
 import { createFileRoute, Link, useSearch } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
-import { ArrowRight, Check, Sparkles } from "lucide-react";
+import { ArrowRight, Check, Lock, Sparkles } from "lucide-react";
 
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { BrandLockup } from "@/components/brand-mark";
 import { cn } from "@/lib/utils";
+import { listPublicPlans } from "@/lib/billing.functions";
+import { getPlanByCode } from "@/lib/pricing";
 
 const searchSchema = z.object({
   reason: z.enum(["trial_expired", "feature_locked", "manual"]).optional(),
@@ -34,17 +35,8 @@ function UpgradePage() {
 
   const { data: plans } = useQuery({
     queryKey: ["public-plans"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("plans")
-        .select(
-          "id, code, name, description, price_cents, currency, interval, features, sort_order",
-        )
-        .eq("is_active", true)
-        .order("sort_order", { ascending: true });
-      if (error) throw error;
-      return data ?? [];
-    },
+    queryFn: () => listPublicPlans(),
+    staleTime: 60_000,
   });
 
   const heading =
@@ -71,7 +63,7 @@ function UpgradePage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-5xl px-6 py-12">
+      <main className="mx-auto max-w-6xl px-6 py-12">
         <div className="text-center">
           <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
             <Sparkles className="h-3 w-3" />
@@ -81,12 +73,16 @@ function UpgradePage() {
           <p className="mx-auto mt-3 max-w-xl text-sm text-muted-foreground">{sub}</p>
         </div>
 
-        <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {(plans ?? []).map((plan, i) => {
-            const featured = i === 1;
-            const features = Array.isArray(plan.features)
-              ? (plan.features as unknown[]).filter((f): f is string => typeof f === "string")
-              : [];
+        <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          {(plans ?? []).map((plan) => {
+            const display = getPlanByCode(plan.code);
+            const featured = display?.highlight;
+            const enterprise = plan.is_contact_sales;
+            const features =
+              display?.features ??
+              (Array.isArray(plan.features)
+                ? (plan.features as unknown[]).filter((f): f is string => typeof f === "string")
+                : []);
             return (
               <div
                 key={plan.id}
@@ -103,21 +99,46 @@ function UpgradePage() {
                     <span className="rounded-full bg-primary px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-primary-foreground">
                       Popular
                     </span>
+                  ) : enterprise ? (
+                    <span className="rounded-full bg-foreground px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-background">
+                      Enterprise
+                    </span>
                   ) : null}
                 </div>
                 {plan.description ? (
                   <p className="mt-1 text-sm text-muted-foreground">{plan.description}</p>
                 ) : null}
                 <div className="mt-4">
-                  <span className="text-3xl font-semibold text-foreground">
-                    {money(plan.price_cents ?? 0, plan.currency ?? "USD")}
-                  </span>
-                  <span className="text-sm text-muted-foreground">/{plan.interval ?? "month"}</span>
+                  {enterprise && plan.starting_at_price_cents ? (
+                    <>
+                      <span className="text-xs text-muted-foreground">Starting at </span>
+                      <span className="text-3xl font-semibold text-foreground">
+                        {money(plan.starting_at_price_cents, plan.currency ?? "USD")}
+                      </span>
+                      <span className="text-sm text-muted-foreground">
+                        /{plan.interval ?? "month"}
+                      </span>
+                    </>
+                  ) : plan.price_cents != null ? (
+                    <>
+                      <span className="text-3xl font-semibold text-foreground">
+                        {money(plan.price_cents, plan.currency ?? "USD")}
+                      </span>
+                      <span className="text-sm text-muted-foreground">
+                        /{plan.interval ?? "month"}
+                      </span>
+                    </>
+                  ) : (
+                    <span className="text-3xl font-semibold text-foreground">Custom</span>
+                  )}
                 </div>
+                {display?.successFee && (
+                  <p className="mt-1 text-xs font-medium text-emerald-700">{display.successFee}</p>
+                )}
 
                 {features.length > 0 ? (
                   <ul className="mt-5 space-y-2 text-sm">
-                    {features.slice(0, 6).map((f) => (
+                    {features.slice(0, 7).map((f) => (
                       <li key={f} className="flex items-start gap-2 text-foreground/90">
                         <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                         <span>{f}</span>
@@ -127,12 +148,26 @@ function UpgradePage() {
                 ) : null}
 
                 <div className="mt-6">
-                  <Button asChild className="w-full" variant={featured ? "default" : "outline"}>
-                    <Link to="/checkout" search={{ plan: plan.id }}>
-                      Upgrade to {plan.name}
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </Link>
-                  </Button>
+                  {enterprise ? (
+                    <Button asChild className="w-full" variant="outline">
+                      <Link to="/contact-sales" search={{ plan: plan.code }}>
+                        Talk to Sales
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </Link>
+                    </Button>
+                  ) : !plan.has_variant ? (
+                    <Button disabled className="w-full">
+                      <Lock className="mr-2 h-4 w-4" />
+                      Coming Soon
+                    </Button>
+                  ) : (
+                    <Button asChild className="w-full" variant={featured ? "default" : "outline"}>
+                      <Link to="/checkout" search={{ plan: plan.id }}>
+                        Upgrade to {plan.name}
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </Link>
+                    </Button>
+                  )}
                 </div>
               </div>
             );

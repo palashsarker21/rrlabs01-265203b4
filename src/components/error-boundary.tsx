@@ -30,7 +30,6 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
-    // eslint-disable-next-line no-console
     console.error(`[RRLabs ${this.props.boundary ?? "boundary"}]`, error, info);
     this.setState({ componentStack: info.componentStack ?? undefined });
     reportLovableError(error, {
