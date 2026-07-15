@@ -250,7 +250,7 @@ export const getSystemHealth = createServerFn({ method: "POST" })
     const dbLatency = Date.now() - start;
     const { data: providers } = await supabaseAdmin
       .from("provider_status")
-      .select("provider_code, status, last_ping_at, message")
+      .select("integration_id, verification_status, last_delivery_at, last_success_at, last_error, retry_count")
       .limit(50);
     const oneHourAgo = new Date(Date.now() - 3600_000).toISOString();
     const { count: webhookErrors } = await supabaseAdmin
