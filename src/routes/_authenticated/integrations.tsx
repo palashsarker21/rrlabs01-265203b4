@@ -293,8 +293,10 @@ function IntegrationCenter() {
               integrations={integrations}
               limits={limits}
               catalog={catalog}
+              statuses={statuses}
               onActivate={onActivate}
             />
+
           )}
         </div>
 
