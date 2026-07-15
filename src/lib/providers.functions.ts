@@ -178,6 +178,9 @@ export const revealWebhookSecret = createServerFn({ method: "POST" })
       secret: row.webhook_secret ?? null,
       verifyToken: row.webhook_verify_token ?? null,
     };
+  });
+
+
 
 
 // -----------------------------------------------------------------
