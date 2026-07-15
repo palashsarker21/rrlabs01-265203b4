@@ -62,6 +62,7 @@ import {
   BlogModerationPanel,
   SecurityCenterPanel,
   AnalyticsPanel,
+  GodModePanel,
 } from "@/components/admin/panels";
 
 type TabKey =
@@ -83,6 +84,7 @@ type TabKey =
   | "features"
   | "pricing"
   | "maintenance"
+  | "godmode"
   | "analytics";
 
 const TABS: { key: TabKey; label: string; icon: typeof Shield }[] = [
@@ -105,6 +107,7 @@ const TABS: { key: TabKey; label: string; icon: typeof Shield }[] = [
   { key: "pricing", label: "Pricing config", icon: DollarSign },
   { key: "settings", label: "Global settings", icon: Settings },
   { key: "maintenance", label: "Maintenance", icon: Wrench },
+  { key: "godmode", label: "God Mode", icon: Power },
 ];
 
 export const Route = createFileRoute("/_authenticated/admin")({
@@ -331,6 +334,8 @@ function AdminConsole() {
           <SettingsPanel />
         ) : tab === "maintenance" ? (
           <MaintenancePanel />
+        ) : tab === "godmode" ? (
+          <GodModePanel />
         ) : tab === "workspaces" ? (
           <section className="rounded-2xl border border-border/60 bg-card/50">
             <div className="overflow-x-auto">
