@@ -12,6 +12,7 @@ import {
   adminSetEngine,
   listAuditLogs,
 } from "@/lib/admin.functions";
+import { getBillingMetrics } from "@/lib/billing-summary.functions";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminConsole,
