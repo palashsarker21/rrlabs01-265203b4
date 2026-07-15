@@ -346,18 +346,56 @@ export const activateWorkspace = createServerFn({ method: "POST" })
     });
     if (!canManage) throw new Error("You do not have permission to activate this workspace.");
 
-    // Require at least one payment_gateway AND one communication channel connected.
+    // Full activation gate: ≥1 verified store + gateway + email, every
+    // connected integration must have last_test_ok=true and verification_status='verified',
+    // and no webhook failures in the last 24 hours.
     const { data: integrations, error } = await supabase
       .from("integrations")
-      .select("kind, status")
+      .select("id, kind, provider, status, verification_status, last_test_ok")
       .eq("workspace_id", data.workspaceId);
     if (error) throw new Error(error.message);
 
+    const { data: catalog, error: catErr } = await supabase
+      .from("provider_catalog")
+      .select("code, kind");
+    if (catErr) throw new Error(catErr.message);
+    const kindByCode = new Map<string, string>(
+      (catalog ?? []).map((c) => [c.code, c.kind as string]),
+    );
+
     const connected = (integrations ?? []).filter((i) => i.status === "connected");
-    const hasPayment = connected.some((i) => i.kind === "payment_gateway");
-    const hasComms = connected.some((i) => i.kind === "communication");
-    if (!hasPayment) throw new Error("Connect a payment gateway before activating.");
-    if (!hasComms) throw new Error("Connect at least one communication channel before activating.");
+    const hasStore = connected.some((i) => kindByCode.get(i.provider) === "store");
+    const hasGateway = connected.some((i) => kindByCode.get(i.provider) === "gateway");
+    const hasEmail = connected.some((i) => kindByCode.get(i.provider) === "email");
+    if (!hasStore) throw new Error("Connect a store before activating.");
+    if (!hasGateway) throw new Error("Connect a payment gateway before activating.");
+    if (!hasEmail) throw new Error("Connect an email delivery provider before activating.");
+
+    const notVerified = connected.filter(
+      (i) => i.verification_status !== "verified" || i.last_test_ok !== true,
+    );
+    if (notVerified.length > 0) {
+      throw new Error(
+        `Every connection must be verified with a passing test. ${notVerified.length} still need attention.`,
+      );
+    }
+
+    const connectedIds = connected.map((i) => i.id);
+    if (connectedIds.length > 0) {
+      const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      const { count: failures, error: whErr } = await supabase
+        .from("webhook_logs")
+        .select("id", { count: "exact", head: true })
+        .in("integration_id", connectedIds)
+        .gte("received_at", since)
+        .or("signature_valid.eq.false,status_code.gte.400");
+      if (whErr) throw new Error(whErr.message);
+      if ((failures ?? 0) > 0) {
+        throw new Error(
+          `Resolve the ${failures} webhook failure(s) in the last 24h before activating.`,
+        );
+      }
+    }
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error: upErr } = await supabaseAdmin
