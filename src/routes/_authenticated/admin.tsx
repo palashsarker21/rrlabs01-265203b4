@@ -28,6 +28,7 @@ import {
   FileText,
   Receipt,
   KeyRound,
+  Megaphone,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
