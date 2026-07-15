@@ -384,10 +384,25 @@ function ProviderCard({
   const [expanded, setExpanded] = useState(integrations.length === 0);
   const [values, setValues] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
+  const [copiedPreview, setCopiedPreview] = useState(false);
   const disabled = !provider.enabled;
   const setupFields = Array.isArray(provider.setup_fields)
     ? (provider.setup_fields as unknown as SetupField[])
     : [];
+  const origin = getBrowserOrigin();
+  const previewUrl = origin ? `${origin}/api/public/webhooks/${provider.code}` : "";
+
+  async function copyPreview() {
+    if (!previewUrl) return;
+    try {
+      await navigator.clipboard.writeText(previewUrl);
+      setCopiedPreview(true);
+      toast.success("Webhook URL copied.");
+      setTimeout(() => setCopiedPreview(false), 2000);
+    } catch {
+      toast.error("Could not copy to clipboard.");
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -476,6 +491,60 @@ function ProviderCard({
           </button>
           {expanded && (
             <form onSubmit={handleSubmit} className="mt-3 space-y-3">
+              <div className="rounded-lg border border-primary/25 bg-primary/5 p-3 space-y-2">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-primary">
+                  Webhook URL
+                </p>
+                <div className="flex items-center gap-1">
+                  <code className="flex-1 truncate rounded bg-background/60 px-2 py-1 text-[11px] font-mono text-foreground">
+                    {previewUrl || "…"}
+                  </code>
+                  <button
+                    type="button"
+                    onClick={copyPreview}
+                    className="inline-flex items-center gap-1 rounded border border-border/60 bg-background/60 px-2 py-1 text-[11px] hover:bg-background"
+                    title="Copy webhook URL"
+                  >
+                    {copiedPreview ? (
+                      <>
+                        <Check className="h-3 w-3 text-emerald-500" />
+                        <span className="text-emerald-500">Copied</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="h-3 w-3" />
+                        <span>Copy</span>
+                      </>
+                    )}
+                  </button>
+                  {provider.docs_url && (
+                    <a
+                      href={provider.docs_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1 rounded border border-border/60 bg-background/60 px-2 py-1 text-[11px] hover:bg-background"
+                      title="Open docs"
+                    >
+                      <ExternalLink className="h-3 w-3" />
+                      <span>Docs</span>
+                    </a>
+                  )}
+                </div>
+                <p className="text-[10px] text-muted-foreground">
+                  A unique signed webhook URL is issued per connection after you save. Use the URL
+                  above during initial provider setup.
+                </p>
+              </div>
+
+              <ol className="space-y-1 rounded-md border border-border/60 bg-background/40 p-3 text-[11px] text-muted-foreground list-decimal list-inside">
+                <li>Copy the webhook URL above.</li>
+                <li>Paste it into your {provider.name} dashboard.</li>
+                <li>Generate a webhook signing secret in {provider.name}.</li>
+                <li>Paste the secret and required credentials below.</li>
+                <li>Save to receive your unique signed URL and test the connection.</li>
+                <li>Activate the workspace once tests pass.</li>
+              </ol>
+
               {provider.setup_instructions && (
                 <p className="rounded-md bg-background/40 p-3 text-xs text-muted-foreground">
                   {provider.setup_instructions}
@@ -573,6 +642,7 @@ function ConnectedRow({
   onReveal: (id: string) => Promise<{ secret: string | null; verifyToken: string | null }>;
 }) {
   const [testing, setTesting] = useState(false);
+  const [copiedUrl, setCopiedUrl] = useState(false);
   const [rotating, setRotating] = useState(false);
   const [revealed, setRevealed] = useState<{
     secret: string | null;
@@ -671,11 +741,22 @@ function ConnectedRow({
             {url || "…"}
           </code>
           <button
-            className="rounded p-1 hover:bg-card/70"
-            onClick={() => copy(url, "Webhook URL")}
+            className="inline-flex items-center gap-1 rounded p-1 hover:bg-card/70"
+            onClick={async () => {
+              await copy(url, "Webhook URL");
+              setCopiedUrl(true);
+              setTimeout(() => setCopiedUrl(false), 2000);
+            }}
             title="Copy webhook URL"
           >
-            <Copy className="h-3 w-3" />
+            {copiedUrl ? (
+              <>
+                <Check className="h-3 w-3 text-emerald-500" />
+                <span className="text-[10px] text-emerald-500">Copied</span>
+              </>
+            ) : (
+              <Copy className="h-3 w-3" />
+            )}
           </button>
         </div>
 
