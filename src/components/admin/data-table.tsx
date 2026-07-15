@@ -40,7 +40,7 @@ type Props<T> = {
   emptyMessage?: string;
 };
 
-export function AdminDataTable<T extends Record<string, unknown>>({
+export function AdminDataTable<T>({
   title,
   description,
   rows,
