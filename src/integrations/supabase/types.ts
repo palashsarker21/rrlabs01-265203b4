@@ -617,6 +617,42 @@ export type Database = {
           },
         ]
       }
+      feature_flags: {
+        Row: {
+          beta: boolean
+          created_at: string
+          description: string
+          enabled: boolean
+          id: string
+          key: string
+          label: string
+          maintenance_mode: boolean
+          updated_at: string
+        }
+        Insert: {
+          beta?: boolean
+          created_at?: string
+          description?: string
+          enabled?: boolean
+          id?: string
+          key: string
+          label: string
+          maintenance_mode?: boolean
+          updated_at?: string
+        }
+        Update: {
+          beta?: boolean
+          created_at?: string
+          description?: string
+          enabled?: boolean
+          id?: string
+          key?: string
+          label?: string
+          maintenance_mode?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       integrations: {
         Row: {
           config: Json
@@ -627,10 +663,16 @@ export type Database = {
           id: string
           kind: Database["public"]["Enums"]["integration_kind"]
           last_error: string | null
+          last_test_at: string | null
+          last_test_ok: boolean | null
           last_verified_at: string | null
           provider: string
+          provider_account_id: string | null
           status: Database["public"]["Enums"]["integration_status"]
           updated_at: string
+          verification_status: string
+          webhook_secret: string | null
+          webhook_verify_token: string | null
           workspace_id: string
         }
         Insert: {
@@ -642,10 +684,16 @@ export type Database = {
           id?: string
           kind: Database["public"]["Enums"]["integration_kind"]
           last_error?: string | null
+          last_test_at?: string | null
+          last_test_ok?: boolean | null
           last_verified_at?: string | null
           provider: string
+          provider_account_id?: string | null
           status?: Database["public"]["Enums"]["integration_status"]
           updated_at?: string
+          verification_status?: string
+          webhook_secret?: string | null
+          webhook_verify_token?: string | null
           workspace_id: string
         }
         Update: {
@@ -657,10 +705,16 @@ export type Database = {
           id?: string
           kind?: Database["public"]["Enums"]["integration_kind"]
           last_error?: string | null
+          last_test_at?: string | null
+          last_test_ok?: boolean | null
           last_verified_at?: string | null
           provider?: string
+          provider_account_id?: string | null
           status?: Database["public"]["Enums"]["integration_status"]
           updated_at?: string
+          verification_status?: string
+          webhook_secret?: string | null
+          webhook_verify_token?: string | null
           workspace_id?: string
         }
         Relationships: [
@@ -855,6 +909,128 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      provider_catalog: {
+        Row: {
+          beta: boolean
+          code: string
+          created_at: string
+          description: string
+          docs_url: string | null
+          enabled: boolean
+          id: string
+          kind: string
+          logo_url: string | null
+          name: string
+          required_scopes: Json
+          setup_fields: Json
+          setup_instructions: string
+          sort_order: number
+          updated_at: string
+          webhook_events: Json
+        }
+        Insert: {
+          beta?: boolean
+          code: string
+          created_at?: string
+          description?: string
+          docs_url?: string | null
+          enabled?: boolean
+          id?: string
+          kind: string
+          logo_url?: string | null
+          name: string
+          required_scopes?: Json
+          setup_fields?: Json
+          setup_instructions?: string
+          sort_order?: number
+          updated_at?: string
+          webhook_events?: Json
+        }
+        Update: {
+          beta?: boolean
+          code?: string
+          created_at?: string
+          description?: string
+          docs_url?: string | null
+          enabled?: boolean
+          id?: string
+          kind?: string
+          logo_url?: string | null
+          name?: string
+          required_scopes?: Json
+          setup_fields?: Json
+          setup_instructions?: string
+          sort_order?: number
+          updated_at?: string
+          webhook_events?: Json
+        }
+        Relationships: []
+      }
+      provider_limits: {
+        Row: {
+          created_at: string
+          id: string
+          max_count: number | null
+          plan_code: string
+          provider_kind: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          max_count?: number | null
+          plan_code: string
+          provider_kind: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          max_count?: number | null
+          plan_code?: string
+          provider_kind?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      provider_status: {
+        Row: {
+          integration_id: string
+          last_delivery_at: string | null
+          last_error: string | null
+          last_success_at: string | null
+          retry_count: number
+          updated_at: string
+          verification_status: string
+        }
+        Insert: {
+          integration_id: string
+          last_delivery_at?: string | null
+          last_error?: string | null
+          last_success_at?: string | null
+          retry_count?: number
+          updated_at?: string
+          verification_status?: string
+        }
+        Update: {
+          integration_id?: string
+          last_delivery_at?: string | null
+          last_error?: string | null
+          last_success_at?: string | null
+          retry_count?: number
+          updated_at?: string
+          verification_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "provider_status_integration_id_fkey"
+            columns: ["integration_id"]
+            isOneToOne: true
+            referencedRelation: "integrations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       recovery_attempts: {
         Row: {
@@ -1194,6 +1370,107 @@ export type Database = {
         }
         Relationships: []
       }
+      webhook_logs: {
+        Row: {
+          attempt_count: number
+          error: string | null
+          event_type: string | null
+          id: string
+          integration_id: string | null
+          payload_hash: string | null
+          processed_at: string | null
+          provider_code: string
+          received_at: string
+          signature_valid: boolean
+          status_code: number | null
+          workspace_id: string | null
+        }
+        Insert: {
+          attempt_count?: number
+          error?: string | null
+          event_type?: string | null
+          id?: string
+          integration_id?: string | null
+          payload_hash?: string | null
+          processed_at?: string | null
+          provider_code: string
+          received_at?: string
+          signature_valid?: boolean
+          status_code?: number | null
+          workspace_id?: string | null
+        }
+        Update: {
+          attempt_count?: number
+          error?: string | null
+          event_type?: string | null
+          id?: string
+          integration_id?: string | null
+          payload_hash?: string | null
+          processed_at?: string | null
+          provider_code?: string
+          received_at?: string
+          signature_valid?: boolean
+          status_code?: number | null
+          workspace_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webhook_logs_integration_id_fkey"
+            columns: ["integration_id"]
+            isOneToOne: false
+            referencedRelation: "integrations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "webhook_logs_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workspace_feature_overrides: {
+        Row: {
+          created_at: string
+          enabled: boolean | null
+          feature_key: string
+          id: string
+          limit_override: number | null
+          notes: string | null
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean | null
+          feature_key: string
+          id?: string
+          limit_override?: number | null
+          notes?: string | null
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean | null
+          feature_key?: string
+          id?: string
+          limit_override?: number | null
+          notes?: string | null
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_feature_overrides_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workspace_members: {
         Row: {
           created_at: string
@@ -1354,6 +1631,10 @@ export type Database = {
         }[]
       }
       workspace_can_send: { Args: { _workspace_id: string }; Returns: boolean }
+      workspace_provider_limit: {
+        Args: { _kind: string; _workspace_id: string }
+        Returns: number
+      }
       workspace_role_of: {
         Args: { _user_id: string; _workspace_id: string }
         Returns: Database["public"]["Enums"]["workspace_role"]

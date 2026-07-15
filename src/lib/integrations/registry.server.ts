@@ -490,10 +490,24 @@ const whatsappCloudAdapter: Adapter = {
   },
 };
 
+import {
+  eddAdapter,
+  memberpressAdapter,
+  surecartAdapter,
+  mailgunAdapter,
+  postmarkAdapter,
+  metaWhatsAppAdapter,
+  twilioSmsAdapter,
+  twilioWhatsAppAdapter,
+} from "@/lib/providers/registry-stubs.server";
+
 const REGISTRY: Record<string, Adapter> = {
   shopify: shopifyAdapter,
   woocommerce: wooCommerceAdapter,
   custom_store: customStoreAdapter,
+  edd: eddAdapter,
+  memberpress: memberpressAdapter,
+  surecart: surecartAdapter,
   stripe: stripeAdapter,
   paypal: paypalAdapter,
   paddle: paddleAdapter,
@@ -503,7 +517,12 @@ const REGISTRY: Record<string, Adapter> = {
   resend: resendAdapter,
   sendgrid: sendgridAdapter,
   smtp: smtpAdapter,
-  whatsapp_cloud: whatsappCloudAdapter,
+  mailgun: mailgunAdapter,
+  postmark: postmarkAdapter,
+  meta_wa: metaWhatsAppAdapter,
+  whatsapp_cloud: metaWhatsAppAdapter, // legacy alias
+  twilio_sms: twilioSmsAdapter,
+  twilio_wa: twilioWhatsAppAdapter,
 };
 
 export function getAdapter(provider: string): Adapter {
@@ -511,3 +530,4 @@ export function getAdapter(provider: string): Adapter {
   if (!a) throw new Error(`Unknown integration provider: ${provider}`);
   return a;
 }
+

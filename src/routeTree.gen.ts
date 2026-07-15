@@ -44,6 +44,7 @@ import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
 import { Route as ApiPublicWebhooksStripeRouteImport } from './routes/api/public/webhooks/stripe'
 import { Route as ApiPublicWebhooksLemonsqueezyRouteImport } from './routes/api/public/webhooks/lemonsqueezy'
 import { Route as ApiPublicHooksRecoveryCadenceRouteImport } from './routes/api/public/hooks/recovery-cadence'
+import { Route as ApiPublicWebhooksProviderIntegrationIdRouteImport } from './routes/api/public/webhooks/$provider.$integrationId'
 
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
@@ -221,6 +222,12 @@ const ApiPublicHooksRecoveryCadenceRoute =
     path: '/api/public/hooks/recovery-cadence',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicWebhooksProviderIntegrationIdRoute =
+  ApiPublicWebhooksProviderIntegrationIdRouteImport.update({
+    id: '/api/public/webhooks/$provider/$integrationId',
+    path: '/api/public/webhooks/$provider/$integrationId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -257,6 +264,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/recovery-cadence': typeof ApiPublicHooksRecoveryCadenceRoute
   '/api/public/webhooks/lemonsqueezy': typeof ApiPublicWebhooksLemonsqueezyRoute
   '/api/public/webhooks/stripe': typeof ApiPublicWebhooksStripeRoute
+  '/api/public/webhooks/$provider/$integrationId': typeof ApiPublicWebhooksProviderIntegrationIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -292,6 +300,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/recovery-cadence': typeof ApiPublicHooksRecoveryCadenceRoute
   '/api/public/webhooks/lemonsqueezy': typeof ApiPublicWebhooksLemonsqueezyRoute
   '/api/public/webhooks/stripe': typeof ApiPublicWebhooksStripeRoute
+  '/api/public/webhooks/$provider/$integrationId': typeof ApiPublicWebhooksProviderIntegrationIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -330,6 +339,7 @@ export interface FileRoutesById {
   '/api/public/hooks/recovery-cadence': typeof ApiPublicHooksRecoveryCadenceRoute
   '/api/public/webhooks/lemonsqueezy': typeof ApiPublicWebhooksLemonsqueezyRoute
   '/api/public/webhooks/stripe': typeof ApiPublicWebhooksStripeRoute
+  '/api/public/webhooks/$provider/$integrationId': typeof ApiPublicWebhooksProviderIntegrationIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -368,6 +378,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/recovery-cadence'
     | '/api/public/webhooks/lemonsqueezy'
     | '/api/public/webhooks/stripe'
+    | '/api/public/webhooks/$provider/$integrationId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -403,6 +414,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/recovery-cadence'
     | '/api/public/webhooks/lemonsqueezy'
     | '/api/public/webhooks/stripe'
+    | '/api/public/webhooks/$provider/$integrationId'
   id:
     | '__root__'
     | '/'
@@ -440,6 +452,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/recovery-cadence'
     | '/api/public/webhooks/lemonsqueezy'
     | '/api/public/webhooks/stripe'
+    | '/api/public/webhooks/$provider/$integrationId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -467,6 +480,7 @@ export interface RootRouteChildren {
   ApiPublicHooksRecoveryCadenceRoute: typeof ApiPublicHooksRecoveryCadenceRoute
   ApiPublicWebhooksLemonsqueezyRoute: typeof ApiPublicWebhooksLemonsqueezyRoute
   ApiPublicWebhooksStripeRoute: typeof ApiPublicWebhooksStripeRoute
+  ApiPublicWebhooksProviderIntegrationIdRoute: typeof ApiPublicWebhooksProviderIntegrationIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -716,6 +730,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksRecoveryCadenceRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/webhooks/$provider/$integrationId': {
+      id: '/api/public/webhooks/$provider/$integrationId'
+      path: '/api/public/webhooks/$provider/$integrationId'
+      fullPath: '/api/public/webhooks/$provider/$integrationId'
+      preLoaderRoute: typeof ApiPublicWebhooksProviderIntegrationIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -783,17 +804,9 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksRecoveryCadenceRoute: ApiPublicHooksRecoveryCadenceRoute,
   ApiPublicWebhooksLemonsqueezyRoute: ApiPublicWebhooksLemonsqueezyRoute,
   ApiPublicWebhooksStripeRoute: ApiPublicWebhooksStripeRoute,
+  ApiPublicWebhooksProviderIntegrationIdRoute:
+    ApiPublicWebhooksProviderIntegrationIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
