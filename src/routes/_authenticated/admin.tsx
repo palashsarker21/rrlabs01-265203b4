@@ -59,6 +59,13 @@ function AdminConsole() {
     refetchInterval: 30000,
   });
 
+  const { data: billing } = useQuery({
+    enabled: !!me?.isSuperAdmin,
+    queryKey: ["admin-billing-metrics"],
+    queryFn: () => metricsFn({}),
+    refetchInterval: 60000,
+  });
+
   const totals = useMemo(() => {
     const list = workspaces ?? [];
     return {
