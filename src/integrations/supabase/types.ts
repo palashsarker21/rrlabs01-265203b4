@@ -673,6 +673,60 @@ export type Database = {
           },
         ]
       }
+      notification_logs: {
+        Row: {
+          channel: string
+          created_at: string
+          error: string | null
+          id: string
+          kind: string
+          payload: Json
+          recipient: string | null
+          status: string
+          subscription_id: string | null
+          workspace_id: string | null
+        }
+        Insert: {
+          channel?: string
+          created_at?: string
+          error?: string | null
+          id?: string
+          kind: string
+          payload?: Json
+          recipient?: string | null
+          status?: string
+          subscription_id?: string | null
+          workspace_id?: string | null
+        }
+        Update: {
+          channel?: string
+          created_at?: string
+          error?: string | null
+          id?: string
+          kind?: string
+          payload?: Json
+          recipient?: string | null
+          status?: string
+          subscription_id?: string | null
+          workspace_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_logs_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_logs_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organizations: {
         Row: {
           billing_email: string | null
@@ -719,6 +773,7 @@ export type Database = {
           is_contact_sales: boolean
           ls_product_id: string | null
           ls_variant_id: string | null
+          monthly_event_limit: number | null
           name: string
           price_cents: number
           sort_order: number
@@ -739,6 +794,7 @@ export type Database = {
           is_contact_sales?: boolean
           ls_product_id?: string | null
           ls_variant_id?: string | null
+          monthly_event_limit?: number | null
           name: string
           price_cents?: number
           sort_order?: number
@@ -759,6 +815,7 @@ export type Database = {
           is_contact_sales?: boolean
           ls_product_id?: string | null
           ls_variant_id?: string | null
+          monthly_event_limit?: number | null
           name?: string
           price_cents?: number
           sort_order?: number
