@@ -50,7 +50,9 @@ async function trySendEmail(
   data: Record<string, unknown>,
 ): Promise<{ ok: true } | { ok: false; error: string; skipped?: boolean }> {
   try {
-    const mod = (await import("@/lib/email-templates/send-email").catch(() => null)) as
+    // Optional dynamic import — email templates may not be scaffolded yet.
+    const modPath = "@/lib/email-templates/send-email";
+    const mod = (await import(/* @vite-ignore */ modPath).catch(() => null)) as
       | { sendTemplateEmail?: (name: string, to: string, opts: unknown) => Promise<unknown> }
       | null;
     if (!mod?.sendTemplateEmail) {
