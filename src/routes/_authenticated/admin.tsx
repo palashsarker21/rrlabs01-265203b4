@@ -134,6 +134,68 @@ function AdminConsole() {
           </div>
         </section>
 
+        </section>
+
+        {billing ? (
+          <section className="rounded-2xl border border-border/60 bg-card/50 p-8">
+            <div className="mb-4 flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-semibold text-foreground">Billing health</h2>
+                <p className="text-sm text-muted-foreground">
+                  Lemon Squeezy — updated every 60s.
+                </p>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+              <Stat label="MRR" value={money(billing.mrrCents)} accent />
+              <Stat label="ARR" value={money(billing.arrCents)} />
+              <Stat label="Active customers" value={billing.activeCount} />
+              <Stat label="Trials" value={billing.trialCount} />
+              <Stat label="Cancelled (30d)" value={billing.cancelled30dCount} />
+              <Stat
+                label="Trial → paid"
+                value={`${Math.round(billing.conversionRate * 100)}%`}
+              />
+              <Stat label="Recovered revenue" value={money(billing.recoveredCents)} />
+              <Stat label="Past due" value={billing.pastDueCount} />
+            </div>
+            <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="rounded-xl border border-border/60 bg-background/30 p-4">
+                <div className="text-xs uppercase tracking-wider text-muted-foreground">
+                  Webhooks (24h)
+                </div>
+                <div className="mt-2 flex flex-wrap gap-4 text-sm">
+                  <span>
+                    <span className="font-medium">{billing.webhooks.total24h}</span> received
+                  </span>
+                  <span className="text-emerald-600 dark:text-emerald-400">
+                    {billing.webhooks.processed24h} processed
+                  </span>
+                  <span className="text-amber-600 dark:text-amber-400">
+                    {billing.webhooks.pending24h} pending
+                  </span>
+                  <span className="text-rose-600 dark:text-rose-400">
+                    {billing.webhooks.failed24h} failed
+                  </span>
+                </div>
+              </div>
+              <div className="rounded-xl border border-border/60 bg-background/30 p-4">
+                <div className="text-xs uppercase tracking-wider text-muted-foreground">
+                  Checkout success rate (30d)
+                </div>
+                <div className="mt-2 text-sm">
+                  <span className="font-medium">
+                    {Math.round(billing.checkout.successRate * 100)}%
+                  </span>{" "}
+                  <span className="text-muted-foreground">
+                    ({billing.checkout.completed30d}/{billing.checkout.total30d})
+                  </span>
+                </div>
+              </div>
+            </div>
+          </section>
+        ) : null}
+
         <div className="flex items-center gap-2 border-b border-border/60">
           <TabButton active={tab === "workspaces"} onClick={() => setTab("workspaces")}>
             <Building2 className="mr-2 h-4 w-4" /> Workspaces
