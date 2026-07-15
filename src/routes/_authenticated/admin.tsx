@@ -212,7 +212,20 @@ function AdminConsole() {
           <TabButton active={tab === "audit"} onClick={() => setTab("audit")}>
             <ScrollText className="mr-2 h-4 w-4" /> Audit log
           </TabButton>
+          <TabButton active={tab === "pricing"} onClick={() => setTab("pricing")}>
+            <DollarSign className="mr-2 h-4 w-4" /> Pricing config
+          </TabButton>
         </div>
+
+        {tab === "pricing" ? (
+          <PricingConfigPanel data={pricing} />
+        ) : tab === "workspaces" ? (
+          <WorkspacesPanelMarker />
+        ) : (
+          <AuditPanelMarker />
+        )}
+        {false && (<>
+
 
         {tab === "workspaces" ? (
           <section className="rounded-2xl border border-border/60 bg-card/50">
