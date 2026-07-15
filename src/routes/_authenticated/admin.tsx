@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Shield, Power, ArrowLeft, ScrollText, Building2, ToggleLeft, Plug } from "lucide-react";
+import { Shield, Power, ArrowLeft, ScrollText, Building2, ToggleLeft, Plug, DollarSign, Check, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { BrandLockup } from "@/components/brand-mark";
