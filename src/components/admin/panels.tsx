@@ -745,29 +745,31 @@ export function SystemHealthPanel() {
           <table className="w-full text-sm">
             <thead className="bg-background/40 text-xs uppercase text-muted-foreground">
               <tr>
-                <th className="px-4 py-2 text-left">Provider</th>
-                <th className="px-4 py-2 text-left">Status</th>
-                <th className="px-4 py-2 text-left">Last ping</th>
-                <th className="px-4 py-2 text-left">Message</th>
+                <th className="px-4 py-2 text-left">Integration</th>
+                <th className="px-4 py-2 text-left">Verification</th>
+                <th className="px-4 py-2 text-left">Last delivery</th>
+                <th className="px-4 py-2 text-left">Last error</th>
+                <th className="px-4 py-2 text-right">Retries</th>
               </tr>
             </thead>
             <tbody>
               {data.providers.map((p) => (
-                <tr key={p.provider_code} className="border-t border-border/60">
-                  <td className="px-4 py-2 font-mono text-xs">{p.provider_code}</td>
+                <tr key={p.integration_id} className="border-t border-border/60">
+                  <td className="px-4 py-2 font-mono text-xs">{p.integration_id.slice(0, 8)}</td>
                   <td className="px-4 py-2">
                     <span
                       className={`rounded px-2 py-0.5 text-xs capitalize ${
-                        p.status === "operational"
+                        p.verification_status === "verified"
                           ? "bg-emerald-500/15 text-emerald-500"
-                          : "bg-rose-500/15 text-rose-500"
+                          : "bg-amber-500/15 text-amber-500"
                       }`}
                     >
-                      {p.status}
+                      {p.verification_status}
                     </span>
                   </td>
-                  <td className="px-4 py-2 text-xs">{fmt(p.last_ping_at)}</td>
-                  <td className="px-4 py-2 text-xs text-muted-foreground">{p.message ?? "—"}</td>
+                  <td className="px-4 py-2 text-xs">{fmt(p.last_delivery_at)}</td>
+                  <td className="px-4 py-2 text-xs text-rose-500">{p.last_error ?? "—"}</td>
+                  <td className="px-4 py-2 text-right text-xs">{p.retry_count}</td>
                 </tr>
               ))}
             </tbody>
