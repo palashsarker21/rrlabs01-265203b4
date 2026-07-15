@@ -15,27 +15,37 @@ import { supabase } from "../integrations/supabase/client";
 import { BRAND, SITE_URL, LOGO, absoluteUrl } from "../lib/brand";
 import { ErrorPage } from "../components/error-page";
 import { ErrorBoundary } from "../components/error-boundary";
+import { DebugErrorPanel } from "../components/debug-error-panel";
+import { GlobalDebugOverlay } from "../components/global-debug-overlay";
+import { isDebugMode } from "../lib/debug-mode";
 
 function NotFoundComponent() {
   return <ErrorPage code={404} />;
 }
 
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
-  console.error(error);
+  console.error("[RRLabs tanstack_root_error_component]", error);
   const router = useRouter();
   useEffect(() => {
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
   }, [error]);
 
-  return (
-    <ErrorPage
-      code={500}
-      onRetry={() => {
-        router.invalidate();
-        reset();
-      }}
-    />
-  );
+  const retry = () => {
+    router.invalidate();
+    reset();
+  };
+
+  if (isDebugMode()) {
+    return (
+      <DebugErrorPanel
+        error={error}
+        boundary="tanstack_root_error_component"
+        onRetry={retry}
+      />
+    );
+  }
+
+  return <ErrorPage code={500} onRetry={retry} />;
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
@@ -165,6 +175,7 @@ function RootComponent() {
       <ErrorBoundary boundary="root_client_boundary">
         <Outlet />
       </ErrorBoundary>
+      <GlobalDebugOverlay />
       <Toaster position="top-right" richColors closeButton />
     </QueryClientProvider>
   );
