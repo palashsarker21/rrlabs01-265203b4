@@ -216,6 +216,9 @@ function AdminConsole() {
           <TabButton active={tab === "pricing"} onClick={() => setTab("pricing")}>
             <DollarSign className="mr-2 h-4 w-4" /> Pricing config
           </TabButton>
+          <TabButton active={tab === "features"} onClick={() => setTab("features")}>
+            <Sparkles className="mr-2 h-4 w-4" /> Features & providers
+          </TabButton>
         </div>
 
 
