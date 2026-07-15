@@ -120,7 +120,10 @@ export const listWebhookLogs = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((raw) =>
     z
-      .object({ integrationId: z.string().uuid(), limit: z.number().int().min(1).max(200).default(50) })
+      .object({
+        integrationId: z.string().uuid(),
+        limit: z.number().int().min(1).max(200).default(50),
+      })
       .parse(raw),
   )
   .handler(async ({ data, context }) => {
@@ -179,9 +182,6 @@ export const revealWebhookSecret = createServerFn({ method: "POST" })
       verifyToken: row.webhook_verify_token ?? null,
     };
   });
-
-
-
 
 // -----------------------------------------------------------------
 // Helper: a publishable-key server client for public catalog reads.

@@ -51,10 +51,7 @@ import { webhookUrl, getBrowserOrigin } from "@/lib/providers/webhook-url";
 
 export const Route = createFileRoute("/_authenticated/integrations")({
   head: () => ({
-    meta: [
-      { title: "Integration Center — RRLabs" },
-      { name: "robots", content: "noindex" },
-    ],
+    meta: [{ title: "Integration Center — RRLabs" }, { name: "robots", content: "noindex" }],
   }),
   component: IntegrationCenter,
 });
@@ -238,9 +235,7 @@ function IntegrationCenter() {
       </header>
 
       <main className="mx-auto max-w-5xl px-6 py-10">
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">
-          Integration Center
-        </h1>
+        <h1 className="text-3xl font-bold tracking-tight text-foreground">Integration Center</h1>
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
           Connect a store, a payment gateway, an email service, and (optionally) WhatsApp or SMS.
           Every credential is encrypted at rest and each connection gets its own signed webhook URL.
@@ -266,7 +261,9 @@ function IntegrationCenter() {
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 {providersForKind.map((p) => {
                   const rows = integrations.filter(
-                    (i) => i.provider === p.code && i.kind === integrationKindFor(p.kind as ProviderKind),
+                    (i) =>
+                      i.provider === p.code &&
+                      i.kind === integrationKindFor(p.kind as ProviderKind),
                   );
                   return (
                     <ProviderCard
@@ -387,9 +384,9 @@ function ProviderCard({
   const [values, setValues] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const disabled = !provider.enabled;
-  const setupFields = (Array.isArray(provider.setup_fields)
+  const setupFields = Array.isArray(provider.setup_fields)
     ? (provider.setup_fields as unknown as SetupField[])
-    : []);
+    : [];
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -493,9 +490,7 @@ function ProviderCard({
                     <select
                       id={`${provider.code}-${f.key}`}
                       value={values[f.key] ?? ""}
-                      onChange={(e) =>
-                        setValues((v) => ({ ...v, [f.key]: e.target.value }))
-                      }
+                      onChange={(e) => setValues((v) => ({ ...v, [f.key]: e.target.value }))}
                       className="mt-1 w-full rounded-md border border-border/60 bg-background px-3 py-2 text-sm"
                     >
                       <option value="">Select…</option>
@@ -578,9 +573,10 @@ function ConnectedRow({
 }) {
   const [testing, setTesting] = useState(false);
   const [rotating, setRotating] = useState(false);
-  const [revealed, setRevealed] = useState<{ secret: string | null; verifyToken: string | null } | null>(
-    null,
-  );
+  const [revealed, setRevealed] = useState<{
+    secret: string | null;
+    verifyToken: string | null;
+  } | null>(null);
   const [revealing, setRevealing] = useState(false);
   const [logsOpen, setLogsOpen] = useState(false);
   const [logs, setLogs] = useState<
@@ -670,7 +666,9 @@ function ConnectedRow({
       <div className="mt-3 space-y-2 text-[11px]">
         <div className="flex items-center gap-1">
           <span className="text-muted-foreground">Webhook URL:</span>
-          <code className="flex-1 truncate rounded bg-card/60 px-2 py-1 font-mono">{url || "…"}</code>
+          <code className="flex-1 truncate rounded bg-card/60 px-2 py-1 font-mono">
+            {url || "…"}
+          </code>
           <button
             className="rounded p-1 hover:bg-card/70"
             onClick={() => copy(url, "Webhook URL")}
@@ -738,9 +736,7 @@ function ConnectedRow({
           {lastDelivery && <span>· Last delivery {timeAgo(lastDelivery)}</span>}
           {lastSuccess && <span>· Last success {timeAgo(lastSuccess)}</span>}
           {integration.last_test_at && <span>· Tested {timeAgo(integration.last_test_at)}</span>}
-          {retryCount > 0 && (
-            <span className="text-amber-500">· {retryCount} retries</span>
-          )}
+          {retryCount > 0 && <span className="text-amber-500">· {retryCount} retries</span>}
         </div>
 
         {requiredScopes.length > 0 && (
@@ -825,12 +821,8 @@ function ConnectedRow({
                   </span>
                   <span className="w-32 shrink-0 truncate">{l.event_type ?? "—"}</span>
                   <span className="w-10 shrink-0">{l.status_code ?? "—"}</span>
-                  <span className="w-14 shrink-0 text-muted-foreground">
-                    x{l.attempt_count}
-                  </span>
-                  {l.error && (
-                    <span className="flex-1 truncate text-destructive">{l.error}</span>
-                  )}
+                  <span className="w-14 shrink-0 text-muted-foreground">x{l.attempt_count}</span>
+                  {l.error && <span className="flex-1 truncate text-destructive">{l.error}</span>}
                 </li>
               ))}
             </ul>
@@ -842,7 +834,6 @@ function ConnectedRow({
     </div>
   );
 }
-
 
 function StatusChip({
   integration,
@@ -910,16 +901,22 @@ function ActivationReview({
   catalog: ProviderRow[];
   onActivate: () => void;
 }) {
-  const codesByKind = (kind: ProviderKind) => catalog.filter((c) => c.kind === kind).map((c) => c.code);
+  const codesByKind = (kind: ProviderKind) =>
+    catalog.filter((c) => c.kind === kind).map((c) => c.code);
   const connectedCount = (kind: ProviderKind) => {
     const codes = codesByKind(kind);
-    return integrations.filter((i) => i.status === "connected" && codes.includes(i.provider)).length;
+    return integrations.filter((i) => i.status === "connected" && codes.includes(i.provider))
+      .length;
   };
   const checks = [
     { label: "Store connected", ok: connectedCount("store") > 0 },
     { label: "Payment gateway connected", ok: connectedCount("gateway") > 0 },
     { label: "Email connected", ok: connectedCount("email") > 0 },
-    { label: "WhatsApp / SMS connected (optional)", ok: connectedCount("messaging") > 0, optional: true },
+    {
+      label: "WhatsApp / SMS connected (optional)",
+      ok: connectedCount("messaging") > 0,
+      optional: true,
+    },
     {
       label: "Webhooks verified",
       ok: integrations.some(
@@ -930,9 +927,7 @@ function ActivationReview({
       label: "Test passed on every connection",
       ok:
         integrations.filter((i) => i.status === "connected").length > 0 &&
-        integrations
-          .filter((i) => i.status === "connected")
-          .every((i) => i.last_test_ok === true),
+        integrations.filter((i) => i.status === "connected").every((i) => i.last_test_ok === true),
     },
   ];
   const requiredOk = checks.filter((c) => !c.optional).every((c) => c.ok);
@@ -948,10 +943,7 @@ function ActivationReview({
         {checks.map((c) => (
           <li key={c.label} className="flex items-center gap-3">
             <CheckCircle2
-              className={cn(
-                "h-4 w-4",
-                c.ok ? "text-emerald-500" : "text-muted-foreground/40",
-              )}
+              className={cn("h-4 w-4", c.ok ? "text-emerald-500" : "text-muted-foreground/40")}
             />
             <span className="text-foreground">{c.label}</span>
             {c.optional && (
