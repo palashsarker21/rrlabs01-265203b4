@@ -84,7 +84,7 @@ export const listActiveAnnouncements = createServerFn({ method: "GET" }).handler
     const { data, error } = await supabase
       .from("announcements")
       .select(
-        "id, title, body, kind, severity, audience, audience_filter, cta_label, cta_href, starts_at, ends_at, dismissible, published_at",
+        "id, title, body, kind, severity, audience, cta_label, cta_href, starts_at, ends_at, dismissible, published_at",
       )
       .order("published_at", { ascending: false })
       .limit(20);
