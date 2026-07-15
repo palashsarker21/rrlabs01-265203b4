@@ -86,6 +86,7 @@ type TabKey =
   | "pricing"
   | "maintenance"
   | "godmode"
+  | "apikeys"
   | "analytics";
 
 const TABS: { key: TabKey; label: string; icon: typeof Shield }[] = [
