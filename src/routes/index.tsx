@@ -501,50 +501,6 @@ const INTEGRATIONS = [
   "API",
 ];
 
-const PLANS = [
-  {
-    name: "Starter",
-    price: "$0",
-    period: "/mo",
-    tagline: "For teams testing the water.",
-    cta: "Start free",
-    features: [
-      "Up to 100 recoveries/mo",
-      "Email + AI copywriter",
-      "Basic dashboard",
-      "Community support",
-    ],
-    featured: false,
-  },
-  {
-    name: "Growth",
-    price: "$149",
-    period: "/mo",
-    tagline: "Scale recovery with confidence.",
-    cta: "Start Growth",
-    features: [
-      "Up to 5,000 recoveries/mo",
-      "Email + WhatsApp + SMS",
-      "Full analytics",
-      "Priority support",
-    ],
-    featured: true,
-  },
-  {
-    name: "Business",
-    price: "$499",
-    period: "/mo",
-    tagline: "For high-volume subscription businesses.",
-    cta: "Contact sales",
-    features: [
-      "Unlimited recoveries",
-      "Custom workflows",
-      "Advanced analytics + export",
-      "Dedicated CSM",
-    ],
-    featured: false,
-  },
-];
 
 const TESTIMONIALS = [
   {
