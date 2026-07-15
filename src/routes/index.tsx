@@ -87,7 +87,6 @@ function Landing() {
             </p>
             <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
               <Link to="/auth" search={{ redirect: "/checkout" }}>
-
                 <Button size="lg">
                   Start free — no card required
                   <ArrowRight className="ml-2 h-4 w-4" />
@@ -338,7 +337,6 @@ function Landing() {
               </Button>
             </Link>
             <Link to="/contact-sales">
-
               <Button size="lg" variant="outline">
                 Talk to sales
               </Button>

@@ -53,7 +53,8 @@ type DebugFields = {
   raw: unknown;
 };
 
-const STACK_FRAME_RE = /at\s+(?:(?<fn>[^\s()]+)\s+)?\(?(?<file>[^\s()]+):(?<line>\d+):(?<col>\d+)\)?/;
+const STACK_FRAME_RE =
+  /at\s+(?:(?<fn>[^\s()]+)\s+)?\(?(?<file>[^\s()]+):(?<line>\d+):(?<col>\d+)\)?/;
 
 function parseTopFrame(stack?: string) {
   if (!stack) return {};
@@ -273,13 +274,12 @@ export function DebugErrorPanel({
   // Log the full error to browser console + network response (visible in
   // devtools) as required by production debug mode.
   if (typeof window !== "undefined") {
-    // eslint-disable-next-line no-console
     console.group(`%c[RRLabs Debug] ${fields.name ?? "Error"}: ${fields.message}`, "color:#ef4444");
-    // eslint-disable-next-line no-console
+
     console.error(fields.raw);
     if (fields.stack) console.error(fields.stack);
     if (fields.componentStack) console.error("Component stack:", fields.componentStack);
-    // eslint-disable-next-line no-console
+
     console.groupEnd();
   }
 

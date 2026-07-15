@@ -54,7 +54,6 @@ function AboutPage() {
               Talk to Sales
             </Button>
           </Link>
-
         </div>
       </main>
       <MarketingFooter />

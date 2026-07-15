@@ -78,9 +78,11 @@ function UpgradePage() {
             const display = getPlanByCode(plan.code);
             const featured = display?.highlight;
             const enterprise = plan.is_contact_sales;
-            const features = display?.features ?? (Array.isArray(plan.features)
-              ? (plan.features as unknown[]).filter((f): f is string => typeof f === "string")
-              : []);
+            const features =
+              display?.features ??
+              (Array.isArray(plan.features)
+                ? (plan.features as unknown[]).filter((f): f is string => typeof f === "string")
+                : []);
             return (
               <div
                 key={plan.id}
@@ -159,11 +161,7 @@ function UpgradePage() {
                       Coming Soon
                     </Button>
                   ) : (
-                    <Button
-                      asChild
-                      className="w-full"
-                      variant={featured ? "default" : "outline"}
-                    >
+                    <Button asChild className="w-full" variant={featured ? "default" : "outline"}>
                       <Link to="/checkout" search={{ plan: plan.id }}>
                         Upgrade to {plan.name}
                         <ArrowRight className="ml-2 h-4 w-4" />

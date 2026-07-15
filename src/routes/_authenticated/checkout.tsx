@@ -56,7 +56,9 @@ function CheckoutPage() {
       return;
     }
     if (!chosen.has_variant) {
-      toast.error("This plan isn't available for self-serve checkout yet. Contact sales to get set up.");
+      toast.error(
+        "This plan isn't available for self-serve checkout yet. Contact sales to get set up.",
+      );
       return;
     }
     setSubmitting(true);

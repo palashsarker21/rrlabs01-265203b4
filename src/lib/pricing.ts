@@ -41,7 +41,11 @@ export type PricingPlan = {
   /** Whether this plan is marketed as "ENTERPRISE". */
   enterprise?: boolean;
   /** Env-var name whose value is the LS variant id (server-side check). */
-  lsVariantEnvKey?: "LEMONSQUEEZY_VARIANT_STARTER" | "LEMONSQUEEZY_VARIANT_GROWTH" | "LEMONSQUEEZY_VARIANT_BUSINESS" | "LEMONSQUEEZY_VARIANT_SCALE";
+  lsVariantEnvKey?:
+    | "LEMONSQUEEZY_VARIANT_STARTER"
+    | "LEMONSQUEEZY_VARIANT_GROWTH"
+    | "LEMONSQUEEZY_VARIANT_BUSINESS"
+    | "LEMONSQUEEZY_VARIANT_SCALE";
 };
 
 export const PLANS: PricingPlan[] = [

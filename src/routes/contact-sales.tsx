@@ -42,13 +42,7 @@ export const Route = createFileRoute("/contact-sales")({
   component: ContactSalesPage,
 });
 
-const ARR_RANGES = [
-  "Under $1M",
-  "$1M – $5M",
-  "$5M – $25M",
-  "$25M – $100M",
-  "$100M+",
-];
+const ARR_RANGES = ["Under $1M", "$1M – $5M", "$5M – $25M", "$25M – $100M", "$100M+"];
 const SEAT_RANGES = ["1 – 10", "11 – 50", "51 – 200", "200 – 1000", "1000+"];
 
 function ContactSalesPage() {

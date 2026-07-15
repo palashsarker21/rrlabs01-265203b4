@@ -37,11 +37,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 
   if (isDebugMode()) {
     return (
-      <DebugErrorPanel
-        error={error}
-        boundary="tanstack_root_error_component"
-        onRetry={retry}
-      />
+      <DebugErrorPanel error={error} boundary="tanstack_root_error_component" onRetry={retry} />
     );
   }
 

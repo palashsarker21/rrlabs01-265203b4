@@ -43,7 +43,9 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
     };
     const variantId = envVariantByCode[plan.code] ?? plan.ls_variant_id;
     if (!variantId || variantId.startsWith("ls_variant_")) {
-      throw new Error("This plan isn't available for self-serve checkout yet. Please try again later or contact sales.");
+      throw new Error(
+        "This plan isn't available for self-serve checkout yet. Please try again later or contact sales.",
+      );
     }
 
     const apiKey = process.env.LEMONSQUEEZY_API_KEY;
@@ -186,8 +188,7 @@ export const listPublicPlans = createServerFn({ method: "GET" }).handler(async (
   return (data ?? []).map((p) => {
     const envVariant = envVariantByCode[p.code];
     const variantId = envVariant ?? p.ls_variant_id ?? null;
-    const hasVariant =
-      !p.is_contact_sales && !!variantId && !variantId.startsWith("ls_variant_");
+    const hasVariant = !p.is_contact_sales && !!variantId && !variantId.startsWith("ls_variant_");
     // Strip the raw variant id from the public payload.
     const { ls_variant_id: _drop, ...rest } = p;
     return { ...rest, has_variant: hasVariant };
