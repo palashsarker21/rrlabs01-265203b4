@@ -168,7 +168,7 @@ export const upsertAnnouncement = createServerFn({ method: "POST" })
       kind: data.kind,
       severity: data.severity,
       audience: data.audience,
-      audience_filter: data.audience_filter,
+      audience_filter: data.audience_filter as never,
       cta_label: data.cta_label ?? null,
       cta_href: data.cta_href ?? null,
       starts_at: data.starts_at ?? null,
