@@ -169,7 +169,8 @@ function PlanCard({
 }) {
   const highlight = !!plan.highlight;
   const enterprise = !!plan.enterprise;
-  const hasCheckoutVariant = server?.has_variant ?? plan.cta.kind !== "trial" ? true : !!server?.has_variant;
+  // Default to true while server data loads to avoid flashing "Coming Soon".
+  const hasCheckoutVariant = server ? !!server.has_variant : true;
   return (
     <div
       className={
