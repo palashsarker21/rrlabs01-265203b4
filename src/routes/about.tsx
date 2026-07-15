@@ -43,17 +43,18 @@ function AboutPage() {
           <p>The Recovery Engine is the product. The marketing site is just how you find it.</p>
         </div>
         <div className="mt-12 flex flex-wrap gap-3">
-          <Link to="/auth" search={{ redirect: "/app" }}>
+          <Link to="/auth" search={{ redirect: "/checkout" }}>
             <Button size="lg">
-              Start free
+              Start Free Trial
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </Link>
-          <Link to="/contact">
+          <Link to="/contact-sales">
             <Button size="lg" variant="outline">
-              Talk to us
+              Talk to Sales
             </Button>
           </Link>
+
         </div>
       </main>
       <MarketingFooter />
