@@ -63,6 +63,7 @@ import {
   SecurityCenterPanel,
   AnalyticsPanel,
   GodModePanel,
+  ApiKeysPanel,
 } from "@/components/admin/panels";
 
 type TabKey =
