@@ -119,6 +119,7 @@ const TABS: { key: TabKey; label: string; icon: typeof Shield }[] = [
   { key: "godmode", label: "God Mode", icon: Power },
   { key: "apikeys", label: "API keys", icon: KeyRound },
   { key: "announcements", label: "Announcements", icon: Megaphone },
+  { key: "incidents", label: "Incidents", icon: AlertTriangle },
 ];
 
 export const Route = createFileRoute("/_authenticated/admin")({
