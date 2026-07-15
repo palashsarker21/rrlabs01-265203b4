@@ -68,6 +68,7 @@ import {
   GodModePanel,
   ApiKeysPanel,
   AnnouncementsPanel,
+  IncidentsPanel,
 } from "@/components/admin/panels";
 
 type TabKey =
