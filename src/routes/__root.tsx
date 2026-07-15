@@ -169,6 +169,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <ErrorBoundary boundary="root_client_boundary">
+        <AnnouncementBanner />
         <Outlet />
       </ErrorBoundary>
       <GlobalDebugOverlay />
