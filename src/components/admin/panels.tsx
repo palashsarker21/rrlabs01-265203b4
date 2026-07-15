@@ -1384,3 +1384,414 @@ export function GodModePanel() {
     </section>
   );
 }
+
+// ============================================================
+// API KEYS
+// ============================================================
+import {
+  listAdminApiKeys,
+  createApiKey,
+  rotateApiKey,
+  setApiKeyDisabled,
+  revokeApiKey,
+  deleteApiKey,
+  API_KEY_SCOPES,
+} from "@/lib/admin/api-keys.functions";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Copy, KeyRound, Ban } from "lucide-react";
+
+type ApiKeyRow = {
+  id: string;
+  workspace_id: string;
+  name: string;
+  key_prefix: string;
+  scopes: string[];
+  status: "active" | "disabled" | "revoked";
+  last_used_at: string | null;
+  last_used_ip: string | null;
+  expires_at: string | null;
+  disabled_at: string | null;
+  revoked_at: string | null;
+  revoked_reason: string | null;
+  request_count: number;
+  created_at: string;
+  created_by: string | null;
+};
+
+function CreateApiKeyDialog({ onCreated }: { onCreated: () => void }) {
+  const create = useServerFn(createApiKey);
+  const [open, setOpen] = useState(false);
+  const [workspaceId, setWorkspaceId] = useState("");
+  const [name, setName] = useState("");
+  const [scopes, setScopes] = useState<string[]>(["read:workspace"]);
+  const [expiresInDays, setExpiresInDays] = useState<string>("");
+  const [issuedToken, setIssuedToken] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  async function submit() {
+    setBusy(true);
+    try {
+      const res = await create({
+        data: {
+          workspaceId,
+          name,
+          scopes: scopes as (typeof API_KEY_SCOPES)[number][],
+          expiresInDays: expiresInDays ? Number(expiresInDays) : null,
+        },
+      });
+      setIssuedToken(res.token);
+      onCreated();
+      toast.success("API key created. Copy it now — it won't be shown again.");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to create key.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function reset() {
+    setWorkspaceId("");
+    setName("");
+    setScopes(["read:workspace"]);
+    setExpiresInDays("");
+    setIssuedToken(null);
+  }
+
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(o) => {
+        setOpen(o);
+        if (!o) reset();
+      }}
+    >
+      <DialogTrigger asChild>
+        <Button size="sm" className="gap-1">
+          <KeyRound className="size-3.5" /> New API key
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Create API key</DialogTitle>
+          <DialogDescription>
+            The raw token is shown exactly once. Store it in a password manager immediately.
+          </DialogDescription>
+        </DialogHeader>
+        {issuedToken ? (
+          <div className="space-y-3">
+            <div className="rounded-md border border-border/60 bg-background/60 p-3 font-mono text-xs break-all">
+              {issuedToken}
+            </div>
+            <Button
+              size="sm"
+              variant="secondary"
+              className="gap-1"
+              onClick={() => {
+                void navigator.clipboard.writeText(issuedToken);
+                toast.success("Copied.");
+              }}
+            >
+              <Copy className="size-3.5" /> Copy to clipboard
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <div>
+              <label className="mb-1 block text-xs text-muted-foreground">
+                Workspace ID (UUID)
+              </label>
+              <Input
+                value={workspaceId}
+                onChange={(e) => setWorkspaceId(e.target.value)}
+                placeholder="00000000-0000-0000-0000-000000000000"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs text-muted-foreground">Name</label>
+              <Input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Production server"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs text-muted-foreground">Scopes</label>
+              <div className="grid grid-cols-2 gap-1 text-xs">
+                {API_KEY_SCOPES.map((s) => (
+                  <label key={s} className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={scopes.includes(s)}
+                      onChange={(e) =>
+                        setScopes((prev) =>
+                          e.target.checked ? [...prev, s] : prev.filter((x) => x !== s),
+                        )
+                      }
+                    />
+                    <span className="font-mono">{s}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+            <div>
+              <label className="mb-1 block text-xs text-muted-foreground">
+                Expires in days (blank = never)
+              </label>
+              <Input
+                type="number"
+                min="1"
+                max="3650"
+                value={expiresInDays}
+                onChange={(e) => setExpiresInDays(e.target.value)}
+              />
+            </div>
+          </div>
+        )}
+        <DialogFooter>
+          {issuedToken ? (
+            <Button onClick={() => setOpen(false)}>Done</Button>
+          ) : (
+            <Button
+              onClick={submit}
+              disabled={busy || !workspaceId || !name || scopes.length === 0}
+            >
+              {busy ? "Creating…" : "Create key"}
+            </Button>
+          )}
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+export function ApiKeysPanel() {
+  const qc = useQueryClient();
+  const list = useServerFn(listAdminApiKeys);
+  const rotate = useServerFn(rotateApiKey);
+  const setDisabled = useServerFn(setApiKeyDisabled);
+  const revoke = useServerFn(revokeApiKey);
+  const del = useServerFn(deleteApiKey);
+  const [statusFilter, setStatusFilter] = useState("");
+  const { data = [] } = useQuery<ApiKeyRow[]>({
+    queryKey: ["admin-api-keys"],
+    queryFn: () => list({}) as Promise<ApiKeyRow[]>,
+  });
+
+  const invalidate = () => qc.invalidateQueries({ queryKey: ["admin-api-keys"] });
+
+  async function doRotate(id: string) {
+    try {
+      const res = await rotate({ data: { id } });
+      await navigator.clipboard.writeText(res.token).catch(() => undefined);
+      toast.success("Rotated. New key copied to clipboard.");
+      invalidate();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Rotation failed.");
+    }
+  }
+  async function doToggle(id: string, disabled: boolean) {
+    try {
+      await setDisabled({ data: { id, disabled } });
+      toast.success(disabled ? "Key disabled." : "Key enabled.");
+      invalidate();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Update failed.");
+    }
+  }
+  async function doRevoke(id: string) {
+    try {
+      await revoke({ data: { id } });
+      toast.success("Key revoked.");
+      invalidate();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Revoke failed.");
+    }
+  }
+  async function doDelete(id: string) {
+    try {
+      await del({ data: { id } });
+      toast.success("Key deleted.");
+      invalidate();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Delete failed.");
+    }
+  }
+
+  const columns: Column<ApiKeyRow>[] = [
+    { key: "name", label: "Name", sortable: true, value: (r) => r.name },
+    {
+      key: "prefix",
+      label: "Prefix",
+      value: (r) => r.key_prefix,
+      cell: (r) => <span className="font-mono text-xs">{r.key_prefix}…</span>,
+    },
+    {
+      key: "workspace_id",
+      label: "Workspace",
+      value: (r) => r.workspace_id,
+      cell: (r) => (
+        <span className="font-mono text-[10px] text-muted-foreground">
+          {r.workspace_id.slice(0, 8)}…
+        </span>
+      ),
+    },
+    {
+      key: "scopes",
+      label: "Scopes",
+      value: (r) => r.scopes.join(" "),
+      cell: (r) => <span className="font-mono text-[10px]">{r.scopes.join(" ")}</span>,
+    },
+    {
+      key: "status",
+      label: "Status",
+      sortable: true,
+      value: (r) => r.status,
+      cell: (r) => (
+        <span
+          className={
+            r.status === "active"
+              ? "text-emerald-500"
+              : r.status === "disabled"
+                ? "text-amber-500"
+                : "text-destructive"
+          }
+        >
+          {r.status}
+        </span>
+      ),
+    },
+    {
+      key: "request_count",
+      label: "Requests",
+      align: "right",
+      sortable: true,
+      value: (r) => r.request_count,
+    },
+    {
+      key: "last_used_at",
+      label: "Last used",
+      sortable: true,
+      value: (r) => r.last_used_at ?? "",
+      cell: (r) => fmt(r.last_used_at),
+    },
+    {
+      key: "expires_at",
+      label: "Expires",
+      sortable: true,
+      value: (r) => r.expires_at ?? "",
+      cell: (r) => fmt(r.expires_at),
+    },
+    {
+      key: "created_at",
+      label: "Created",
+      sortable: true,
+      value: (r) => r.created_at,
+      cell: (r) => fmt(r.created_at),
+    },
+  ];
+
+  return (
+    <AdminDataTable<ApiKeyRow>
+      title="API Keys"
+      description="Cryptographically hashed. Raw values are shown only at creation and never stored."
+      rows={data}
+      columns={columns}
+      getRowId={(r) => r.id}
+      searchKeys={["name", "key_prefix", "workspace_id"]}
+      filters={[
+        {
+          key: "status",
+          label: "Status",
+          value: statusFilter,
+          onChange: setStatusFilter,
+          options: [
+            { value: "", label: "All" },
+            { value: "active", label: "Active" },
+            { value: "disabled", label: "Disabled" },
+            { value: "revoked", label: "Revoked" },
+          ],
+        },
+      ]}
+      exportFilename="api-keys"
+      toolbarExtra={<CreateApiKeyDialog onCreated={invalidate} />}
+      rowActions={(r) => (
+        <div className="flex items-center gap-1">
+          {r.status !== "revoked" && (
+            <ConfirmDialog
+              trigger={
+                <Button variant="ghost" size="sm" className="gap-1">
+                  <RefreshCw className="size-3.5" /> Rotate
+                </Button>
+              }
+              title="Rotate API key"
+              description="A new key will be issued and this one will be revoked immediately. Any service still using the old key will break."
+              confirmLabel="Rotate"
+              destructive
+              onConfirm={() => doRotate(r.id)}
+            />
+          )}
+          {r.status === "active" && (
+            <ConfirmDialog
+              trigger={
+                <Button variant="ghost" size="sm" className="gap-1">
+                  <ShieldOff className="size-3.5" /> Disable
+                </Button>
+              }
+              title="Disable API key"
+              description="The key will stop authenticating until re-enabled. No data is lost."
+              confirmLabel="Disable"
+              destructive
+              onConfirm={() => doToggle(r.id, true)}
+            />
+          )}
+          {r.status === "disabled" && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="gap-1"
+              onClick={() => doToggle(r.id, false)}
+            >
+              <ShieldCheck className="size-3.5" /> Enable
+            </Button>
+          )}
+          {r.status !== "revoked" && (
+            <ConfirmDialog
+              trigger={
+                <Button variant="ghost" size="sm" className="gap-1 text-destructive">
+                  <Ban className="size-3.5" /> Revoke
+                </Button>
+              }
+              title="Revoke API key"
+              description="Permanently invalidates this key. Cannot be undone."
+              confirmLabel="Revoke"
+              destructive
+              onConfirm={() => doRevoke(r.id)}
+            />
+          )}
+          {r.status === "revoked" && (
+            <ConfirmDialog
+              trigger={
+                <Button variant="ghost" size="sm" className="gap-1 text-destructive">
+                  <Trash2 className="size-3.5" /> Delete
+                </Button>
+              }
+              title="Delete revoked API key"
+              description="Removes the row entirely. Audit history is preserved separately."
+              confirmLabel="Delete"
+              destructive
+              onConfirm={() => doDelete(r.id)}
+            />
+          )}
+        </div>
+      )}
+    />
+  );
+}
