@@ -1,112 +1,68 @@
+# Production Readiness Audit & Completion
 
-# Integration Center — Phased Completion
+This is a large multi-phase job. To keep it safe and reviewable, I will execute it in ordered phases, auditing first, then fixing. No redesign, no removal of working features, no placeholders.
 
-Foundation already in place from the previous pass and NOT to be redone:
-`provider_catalog`, `provider_limits`, `feature_flags`,
-`workspace_feature_overrides`, `webhook_logs`, `provider_status`,
-`workspace_provider_limit()` RPC, `/api/public/webhooks/$provider.$integrationId`,
-`plan-limits.server.ts`, `providers.functions.ts`, `admin-features.functions.ts`,
-`/integrations` route with stepper + provider cards, admin "Features & Providers"
-tab, `/setup → /integrations` redirect.
+## Phase A — Audit (read-only)
+Sweep the codebase and produce a written baseline in `.lovable/production-audit.md`:
+1. Brand token scan: grep for `Revenue Recovery`, `Recovery Labs`, `Revenue Labs`, `RevenueRecovery`, `RRLABS`, stray casings, and any hard-coded company names outside `src/lib/brand.ts`.
+2. Asset scan: enumerate `src/assets/brand/*.asset.json`, `public/manifest.webmanifest`, favicons, OG/Twitter images, `browserconfig.xml`, mstile, apple-touch-icon. Confirm every referenced URL resolves.
+3. Head-meta scan: every route file's `head()` — title, description, canonical, og:*, twitter:*, JSON-LD. Flag defaults ("Lovable App", "Lovable Generated Project"), missing per-route metadata, root-level `og:image` leakage.
+4. Legal/company content scan: About, Contact, Privacy, Terms, Refund, Cookies, Security, FAQ, Status, Docs, Blog. Confirm no lorem ipsum, no TODO, no dummy addresses.
+5. Header/footer: confirm `MarketingHeader`/`MarketingFooter` render brand tokens from `src/lib/brand.ts` only.
+6. PWA: manifest fields, maskable icons, theme_color/background_color, shortcuts, offline page (only if already present — per no-redesign rule).
+7. SEO plumbing: `robots.txt`, `sitemap.xml`, JSON-LD types on Home/Pricing/About/Contact/FAQ/Blog/Post, breadcrumbs, `<h1>` uniqueness, image alt coverage.
+8. Cleanup targets: dead code, duplicate implementations, orphan routes, broken internal links.
+9. Build health: typecheck, lint, `bun run build` (production).
 
-I will proceed one phase at a time and wait for your explicit approval
-before starting the next. No UI redesign; existing shadcn tokens only.
+Deliverable: `.lovable/production-audit.md` with PASS/WARN/FAIL per category, file:line evidence.
 
-## Phase 1 — Per-card webhook & lifecycle actions (client + server)
+## Phase B — Brand standardization
+Fixes derived from Phase A #1, #5:
+- Any string not sourced from `src/lib/brand.ts` gets rewritten to use `BRAND.name` ("RRLabs") or `BRAND.company` ("Revenue Recovery Labs").
+- Update page titles, emails, PWA manifest name/short_name, error/loading/offline copy, invoice/receipt strings, admin console labels.
+- Single source of truth remains `src/lib/brand.ts`; no new brand constants.
 
-Every store / gateway / messaging / email card gains the full contract:
+## Phase C — Assets & PWA
+- Verify each `*.asset.json` resolves; regenerate missing icon sizes only if a reference exists but the asset is broken.
+- Fix manifest.webmanifest fields (name, short_name, theme_color, background_color, icons array with `purpose: "any maskable"`, start_url, scope, display).
+- Ensure `<link rel="apple-touch-icon">`, favicon links, and `theme-color` meta are set in `__root.tsx`.
+- Keep existing service-worker posture; do NOT add a new SW unless one already exists (rule from PWA skill).
 
-- Connection status pill (disconnected / pending / connected / error)
-- Webhook URL row with Copy button (built from `webhook-url.ts`)
-- Webhook secret: reveal-once, Rotate button (returns new value, writes to
-  `integrations.webhook_secret`, records audit event)
-- Verify Token row for Meta WhatsApp / custom providers (from
-  `provider_catalog.webhook_events` + setup_fields)
-- Last delivery / last success / retry count / verification status — read
-  from `webhook_logs` + `provider_status`
-- "View logs" drawer showing last 20 `webhook_logs` rows (event, status,
-  latency, error)
-- Test Connection button → server fn `testIntegration(id)`; result written
-  to `provider_status.last_test_ok` and surfaced inline
-- Disconnect / Reconnect buttons routed through existing `providers.functions.ts`
-- Setup instructions + required scopes rendered from
-  `provider_catalog.setup_instructions` / `required_scopes`
+## Phase D — SEO / AEO / GEO / LLMO / AIO / SXO
+- Per-route `head()` in every public route: unique title (<60 chars), description (<160), canonical (leaf-only), og:title/description/type/url, twitter:card.
+- Add JSON-LD: Organization + WebSite at root; SoftwareApplication on `/`; Product/Offer on `/pricing`; FAQPage on `/faq`; Article + BreadcrumbList on blog posts; ContactPage on `/contact`; AboutPage on `/about`.
+- `robots.txt`: `Allow: /`, sitemap directive.
+- `sitemap.xml` server route: enumerate every public route + published blog slugs from `content/blog/*.md`.
+- Breadcrumbs on nested pages, semantic `<h1>` per page, image alt audit.
+- AEO: ensure FAQ/Docs pages have question-first H2s and direct-answer paragraphs (only where content already exists — no fabrication).
+- GEO/LLMO: entity consistency (RRLabs, Revenue Recovery Labs, product taxonomy), stable internal linking. No new marketing pages.
 
-Server work: extend `providers.functions.ts` with `rotateWebhookSecret`,
-`getWebhookLogs`, `testIntegration`, `reconnectIntegration`; all guarded by
-`requireSupabaseAuth` + workspace-role check. No provider-specific branches
-in components — everything reads `provider_catalog`.
+## Phase E — Legal & company content
+Where existing pages have thin/placeholder copy, extend to enterprise-grade content: Privacy, Terms, Refund, Cookies, Security, DPA, Subprocessors, Acceptable Use, Accessibility Statement, Responsible Disclosure, Data Retention. Cross-link between them. Contact info sourced from `src/lib/brand.ts` `CONTACT`.
 
-## Phase 2 — Provider-specific setup fields & tests
+New files only if missing: `/dpa`, `/subprocessors`, `/acceptable-use`, `/accessibility`, `/responsible-disclosure`, `/data-retention`. Otherwise edit in place.
 
-For each kind, the connect form renders inputs from
-`provider_catalog.setup_fields` (already JSON-driven). Real `test()`
-implementations wired for the providers we already ship credentials for:
+## Phase F — Cleanup
+- Remove lorem ipsum, TODO markers, dummy data (search for `TODO`, `FIXME`, `lorem`, `placeholder`).
+- Remove dead exports / duplicate helpers surfaced in Phase A.
+- Do NOT remove working functionality.
 
-- Store: Shopify (existing), WooCommerce (REST /wp-json/wc/v3/system_status),
-  EDD, MemberPress, SureCart, custom → HEAD ping
-- Gateway: Stripe (accounts/retrieve), Lemon Squeezy (existing), Paddle
-  (auth ping), PayPal (OAuth token), Adyen (accountHolder ping), custom → HEAD
-- Email: Resend (existing), SendGrid (v3/scopes), SMTP (nodemailer verify),
-  Mailgun (domains list), Postmark (server info)
-- Messaging: Twilio SMS / WA (Accounts.json), Meta WA Cloud (phone_numbers)
+## Phase G — Final validation
+- `tsgo` typecheck
+- `bun run lint`
+- `bun run build`
+- Playwright smoke: `/`, `/pricing`, `/blog`, `/faq`, `/contact`, `/auth`, `/app` (screenshots + console errors)
+- Verify `/robots.txt`, `/sitemap.xml`, `/manifest.webmanifest` respond 200 with correct content-type.
 
-All calls happen in `providers/<code>/adapter.server.ts`; the generic
-`testIntegration` server fn dispatches by `provider_catalog.code`. Keys
-encrypted at rest with `RRLABS_ENCRYPTION_KEY` (reusing existing helper).
-Any provider without credentials remains a working shell with a "coming
-soon" test result — never hidden.
+## Phase H — Final report
+Write `.lovable/production-audit-final.md` with PASS/WARN/FAIL matrix for all 24 categories in the request, list of files changed, and confirmation that no placeholders/TODOs/duplicates remain.
 
-## Phase 3 — Activation Review & Recovery Engine gate
+## Approval model
+Given the scope, I'll pause for approval after **Phase A (audit)** so we can review scope and priorities before making changes. After approval I'll run B→H sequentially, reporting a short delta after each.
 
-New "Activation Review" step in the stepper reads:
-
-- ≥1 connected store, ≥1 connected gateway, ≥1 connected email OR
-  messaging provider (from `integrations`)
-- All those integrations have `verification_status = 'verified'` and
-  `provider_status.last_test_ok = true`
-- No `webhook_logs` failures in the last 24h for those integrations
-
-Only when every check passes does the "Activate Recovery Engine" button
-enable and call an existing `setWorkspaceEngine(true)` server fn. Otherwise
-the row shows what's missing with a link to the failing card.
-
-## Phase 4 — Plan limits UX + super-admin overrides
-
-- Locked provider cards render an "Upgrade Required" badge with current
-  plan, required plan, and CTA to `/upgrade` (feature never hidden).
-  `getEffectiveLimits(workspaceId)` already exists — wire it into the
-  integrations page for count-based limits per `provider_kind`.
-- Admin "Features & Providers" tab gains:
-  - Per-workspace limit override editor (writes
-    `workspace_feature_overrides.limit_override` keyed
-    `limit:<kind>`)
-  - Global maintenance-mode toggle (feature_flag `maintenance_mode`)
-  - Beta-features toggle per provider (`provider_catalog.beta`)
-- Frontend never trusts limits; every mutating server fn re-checks via
-  `assertCanConnect()`.
-
-## Phase 5 — Verification & report
-
-Run typecheck, ESLint, build. Produce a final report listing:
-
-1. New providers registered (from `provider_catalog` seed)
-2. Webhook manager surface (per-card actions + logs drawer)
-3. Feature-lock surfaces (which cards, which limits)
-4. Plan-restriction call sites (`assertCanConnect` usage)
-5. Admin feature manager additions
-6. DB changes recap (already-migrated tables + any Phase-4 addendum)
-7. `rg` output confirming zero hardcoded provider codes in components
-   under `src/routes/_authenticated/integrations.tsx` and children
-
-## Out of scope
-
-- Any visual redesign of existing components
-- Pricing/landing copy (already synchronized)
-- Rewriting the managed `_authenticated/route.tsx` gate
-- Full SMTP relay infrastructure — we only verify creds, not host our own
-
-## Approval gate
-
-Reply "approve phase 1" (or with edits) and I'll start. After each phase I
-will stop and wait for the next approval before continuing.
+## Non-goals (explicit)
+- No visual redesign.
+- No new architecture, no framework swap.
+- No removal of working features (integration center, admin, billing, blog, etc.).
+- No new SaaS pricing/plan changes.
+- No new external dependencies unless required to fix a broken asset.
