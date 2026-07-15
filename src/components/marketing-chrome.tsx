@@ -73,12 +73,13 @@ export function MarketingHeader() {
                   Sign in
                 </Button>
               </Link>
-              <Link to="/auth" search={{ redirect: "/app" }}>
+              <Link to="/auth" search={{ redirect: "/checkout" }}>
                 <Button size="sm">
-                  Get started
+                  Start Free Trial
                   <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
                 </Button>
               </Link>
+
             </>
           )}
         </div>
@@ -121,8 +122,8 @@ export function MarketingHeader() {
                       Sign in
                     </Button>
                   </Link>
-                  <Link to="/auth" search={{ redirect: "/app" }} onClick={() => setOpen(false)}>
-                    <Button className="w-full">Create account</Button>
+                  <Link to="/auth" search={{ redirect: "/checkout" }} onClick={() => setOpen(false)}>
+                    <Button className="w-full">Start Free Trial</Button>
                   </Link>
                 </>
               )}
