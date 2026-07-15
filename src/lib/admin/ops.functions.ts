@@ -142,7 +142,7 @@ export const listAdminIntegrations = createServerFn({ method: "POST" })
     const { data, error } = await supabaseAdmin
       .from("integrations")
       .select(
-        "id, workspace_id, provider_code, provider_kind, status, last_sync_at, last_delivery_at, created_at",
+        "id, workspace_id, provider, kind, status, last_verified_at, verification_status, last_error, created_at",
       )
       .order("created_at", { ascending: false })
       .limit(500);
