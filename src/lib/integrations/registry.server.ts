@@ -321,6 +321,8 @@ const customGatewayAdapter: Adapter = {
     if (!endpoint || !key || !creds.gateway_name?.trim()) {
       return { ok: false, message: "Gateway name, API endpoint and API key are required." };
     }
+    const endpointErr = checkPublicHttpUrl(endpoint);
+    if (endpointErr) return { ok: false, message: `API endpoint rejected: ${endpointErr}` };
     const res = await fetch(endpoint, {
       headers: { Authorization: `Bearer ${key}`, Accept: "application/json" },
     });
