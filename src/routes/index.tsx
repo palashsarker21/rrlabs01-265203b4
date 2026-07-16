@@ -248,9 +248,137 @@ function Landing() {
             <h2 className="text-4xl font-semibold tracking-tight text-foreground">
               Recovery, not dunning.
             </h2>
+      <div className="border-b border-border/60 bg-secondary/50">
+        <div className="mx-auto flex max-w-7xl items-center justify-center gap-2 px-6 py-2.5 text-xs text-muted-foreground">
+          <Sparkles className="h-3.5 w-3.5 text-foreground" />
+          <span className="text-foreground">New:</span>
+          <span>AI Recovery Copywriter v2 — per-customer messaging tuned to decline reason.</span>
+          <Link
+            to="/blog"
+            className="ml-1 font-medium text-foreground underline-offset-2 hover:underline"
+          >
+            Read the post
+          </Link>
+        </div>
+      </div>
+
+      <MarketingHeader />
+
+      {/* Hero */}
+      <section className="relative overflow-hidden">
+        <div className="mx-auto max-w-7xl px-6 pb-20 pt-20 sm:pt-28">
+          <div className="mx-auto max-w-3xl text-center">
+            <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-secondary/60 px-3 py-1 text-xs text-muted-foreground">
+              <span className="h-1.5 w-1.5 rounded-full bg-foreground" />
+              AI Revenue Recovery Platform
+            </div>
+            <h1 className="mt-6 text-balance text-5xl font-semibold tracking-tight text-foreground sm:text-6xl">
+              Recover failed subscription payments, automatically.
+            </h1>
+            <p className="mt-6 text-lg leading-relaxed text-muted-foreground">
+              RRLabs is the AI revenue recovery platform for subscription businesses. Detect failed
+              charges the moment they happen, generate personalized recovery messaging in your
+              brand voice, and deliver it across email and WhatsApp on optimized retry cadences —
+              without adding engineering work.
+            </p>
+            <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
+              <Link to="/auth" search={{ redirect: "/checkout" }}>
+                <Button size="lg">
+                  Start free trial
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </Link>
+              <Link to="/pricing">
+                <Button size="lg" variant="outline">
+                  See pricing
+                </Button>
+              </Link>
+            </div>
+            <p className="mt-4 text-xs text-muted-foreground">
+              14-day free trial · No credit card required · Cancel anytime
+            </p>
+          </div>
+
+          {/* Capability card — factual, no invented metrics */}
+          <div className="mx-auto mt-16 max-w-4xl rounded-2xl border border-border/60 bg-card p-2 shadow-sm">
+            <div className="grid grid-cols-1 gap-px overflow-hidden rounded-xl bg-border/60 sm:grid-cols-3">
+              {[
+                {
+                  k: "Real-time",
+                  v: "Failed-charge detection via provider webhooks",
+                },
+                {
+                  k: "Per-customer",
+                  v: "AI-generated recovery messaging in your voice",
+                },
+                {
+                  k: "Multi-channel",
+                  v: "Coordinated email and WhatsApp cadences",
+                },
+              ].map((m) => (
+                <div key={m.v} className="bg-card px-6 py-8 text-center">
+                  <div className="text-2xl font-semibold text-foreground">{m.k}</div>
+                  <div className="mt-2 text-sm text-muted-foreground">{m.v}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Problem → Cost → Solution */}
+      <section className="border-y border-border/60 bg-secondary/40 py-20">
+        <div className="mx-auto max-w-7xl px-6">
+          <div className="mx-auto max-w-3xl text-center">
+            <p className="text-xs uppercase tracking-widest text-muted-foreground">
+              The involuntary churn problem
+            </p>
+            <h2 className="mt-4 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+              A meaningful share of subscription revenue fails silently every month.
+            </h2>
+            <p className="mt-4 text-muted-foreground">
+              Expired cards, insufficient funds, bank declines, and 3DS challenges account for a
+              material fraction of subscription churn. Generic retry logic and template dunning
+              emails recover a small portion of it and leave the rest on the table.
+            </p>
+          </div>
+          <div className="mx-auto mt-12 grid max-w-5xl gap-6 md:grid-cols-3">
+            {[
+              {
+                title: "The problem",
+                body: "Failed payments cancel subscriptions the customer never intended to end.",
+              },
+              {
+                title: "The cost",
+                body: "Lost MRR, longer payback periods, and higher CAC-to-recover ratios.",
+              },
+              {
+                title: "The RRLabs approach",
+                body: "AI-personalized recovery across the right channels at the right time — measured against MRR recovered, not emails sent.",
+              },
+            ].map((c) => (
+              <div key={c.title} className="rounded-2xl border border-border/60 bg-card p-6">
+                <h3 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
+                  {c.title}
+                </h3>
+                <p className="mt-3 text-base text-foreground">{c.body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Key benefits */}
+      <section className="py-24">
+        <div className="mx-auto max-w-7xl px-6">
+          <div className="max-w-2xl">
+            <h2 className="text-4xl font-semibold tracking-tight text-foreground">
+              Recovery, not dunning.
+            </h2>
             <p className="mt-4 text-lg text-muted-foreground">
-              Generic retry schedules recover ~15%. RRLabs recovers 35–45% by combining intelligent
-              retry timing, AI-personalized messaging, and multi-channel delivery.
+              Template-based dunning treats every failed payment the same. RRLabs classifies the
+              decline reason, chooses the right channel and cadence for the customer, and generates
+              messaging that reads like it was written by your team.
             </p>
           </div>
 
@@ -292,7 +420,7 @@ function Landing() {
           <div className="grid gap-12 lg:grid-cols-[1fr_1.2fr]">
             <div>
               <h2 className="text-4xl font-semibold tracking-tight text-foreground">
-                The AI Recovery Workflow
+                How the AI Recovery Engine works
               </h2>
               <p className="mt-4 text-lg text-muted-foreground">
                 Fully automated from webhook to recovered charge. Nothing to babysit.
@@ -315,14 +443,49 @@ function Landing() {
         </div>
       </section>
 
+      {/* Comparison — Template dunning vs. RRLabs */}
+      <section className="border-y border-border/60 bg-secondary/40 py-24">
+        <div className="mx-auto max-w-6xl px-6">
+          <div className="max-w-2xl">
+            <h2 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+              How RRLabs differs from template dunning
+            </h2>
+            <p className="mt-4 text-muted-foreground">
+              A capability comparison against the traditional retry-plus-template approach that
+              ships with most billing platforms.
+            </p>
+          </div>
+          <div className="mt-10 overflow-hidden rounded-2xl border border-border/60 bg-card">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-secondary/60 text-xs uppercase tracking-widest text-muted-foreground">
+                <tr>
+                  <th className="px-6 py-4 font-medium">Capability</th>
+                  <th className="px-6 py-4 font-medium">Template dunning</th>
+                  <th className="px-6 py-4 font-medium">RRLabs</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/60">
+                {COMPARISON.map((row) => (
+                  <tr key={row.capability}>
+                    <td className="px-6 py-4 font-medium text-foreground">{row.capability}</td>
+                    <td className="px-6 py-4 text-muted-foreground">{row.template}</td>
+                    <td className="px-6 py-4 text-foreground">{row.rrlabs}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
       {/* Integrations */}
-      <section className="border-y border-border/60 bg-secondary/40 py-20">
+      <section className="border-b border-border/60 bg-secondary/40 py-20">
         <div className="mx-auto max-w-7xl px-6">
           <h2 className="text-center text-3xl font-semibold tracking-tight text-foreground">
             Works with the tools you already use
           </h2>
           <p className="mx-auto mt-3 max-w-xl text-center text-muted-foreground">
-            Native integrations with the leading billing, messaging, and analytics platforms.
+            Native integrations for the leading billing, messaging, and analytics platforms.
           </p>
           <div className="mt-12 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6">
             {INTEGRATIONS.map((n) => (
@@ -336,6 +499,7 @@ function Landing() {
           </div>
         </div>
       </section>
+
 
       {/* Pricing preview */}
       <section className="py-24">
