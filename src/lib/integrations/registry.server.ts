@@ -9,6 +9,8 @@
 
 import { createHash } from "node:crypto";
 
+import { checkPublicHttpUrl } from "./url-guard.server";
+
 export interface TestResult {
   ok: boolean;
   message: string;
