@@ -181,6 +181,7 @@ function RootComponent() {
         <Outlet />
       </ErrorBoundary>
       <GlobalDebugOverlay />
+      <InstallPrompt />
       <Toaster position="top-right" richColors closeButton />
     </QueryClientProvider>
   );
