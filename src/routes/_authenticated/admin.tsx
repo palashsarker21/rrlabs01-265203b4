@@ -96,6 +96,7 @@ type TabKey =
   | "apikeys"
   | "announcements"
   | "incidents"
+  | "queue"
   | "analytics";
 
 const TABS: { key: TabKey; label: string; icon: typeof Shield }[] = [
