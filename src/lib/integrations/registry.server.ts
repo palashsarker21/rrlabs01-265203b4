@@ -81,6 +81,8 @@ const wooCommerceAdapter: Adapter = {
     const cs = creds.consumer_secret?.trim();
     if (!url || !ck || !cs)
       return { ok: false, message: "Store URL, consumer key and secret are required." };
+    const urlErr = checkPublicHttpUrl(url);
+    if (urlErr) return { ok: false, message: `Store URL rejected: ${urlErr}` };
     const auth = Buffer.from(`${ck}:${cs}`).toString("base64");
     const res = await fetch(`${url}/wp-json/wc/v3/system_status`, {
       headers: { Authorization: `Basic ${auth}`, Accept: "application/json" },
