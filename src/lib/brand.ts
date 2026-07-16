@@ -1,13 +1,11 @@
 /**
  * RRLabs brand + company information — single source of truth.
+ *
+ * Brand images are served as static files from /public/brand/* so they work
+ * on every deploy target (Vercel, Cloudflare, Lovable). Do NOT switch these
+ * back to *.asset.json pointers — those resolve to /__l5e/assets-v1/* which
+ * only exists on Lovable-hosted domains and 404s on Vercel.
  */
-import logoAsset from "../assets/brand/logo.png.asset.json";
-import icon32 from "../assets/brand/icon-32.png.asset.json";
-import icon180 from "../assets/brand/icon-180.png.asset.json";
-import icon192 from "../assets/brand/icon-192.png.asset.json";
-import icon512 from "../assets/brand/icon-512.png.asset.json";
-import maskable512 from "../assets/brand/maskable-512.png.asset.json";
-import ogImage from "../assets/brand/og-image.jpg.asset.json";
 
 export const BRAND = {
   company: "Revenue Recovery Labs",
@@ -43,13 +41,13 @@ export const SOCIAL = {
 } as const;
 
 export const LOGO = {
-  full: logoAsset.url,
-  icon32: icon32.url,
-  icon180: icon180.url,
-  icon192: icon192.url,
-  icon512: icon512.url,
-  maskable512: maskable512.url,
-  ogImage: ogImage.url,
+  full: "/brand/logo.png",
+  icon32: "/brand/icon-32.png",
+  icon180: "/brand/icon-180.png",
+  icon192: "/brand/icon-192.png",
+  icon512: "/brand/icon-512.png",
+  maskable512: "/brand/maskable-512.png",
+  ogImage: "/brand/og-image.jpg",
 } as const;
 
 export const absoluteUrl = (path: string) =>
