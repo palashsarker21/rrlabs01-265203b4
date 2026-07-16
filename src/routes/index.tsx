@@ -23,19 +23,24 @@ export const Route = createFileRoute("/")({
   component: Landing,
   head: () => ({
     meta: [
-      { title: "RRLabs — AI Revenue Recovery for Subscription Businesses" },
+      { title: "RRLabs — AI Revenue Recovery Platform for Subscription Businesses" },
       {
         name: "description",
         content:
-          "Recover failed subscription payments automatically with AI-personalized email and WhatsApp. Connect Stripe or LemonSqueezy in minutes.",
+          "RRLabs is an AI revenue recovery platform that automatically recovers failed subscription payments, reduces involuntary churn, and protects recurring revenue. Native Stripe, LemonSqueezy, and Paddle support.",
+      },
+      {
+        name: "keywords",
+        content:
+          "AI revenue recovery, failed payment recovery, subscription retention, involuntary churn, dunning automation, Stripe recovery, subscription billing recovery, revenue intelligence",
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://www.rrlabs.online/" },
-      { property: "og:title", content: "RRLabs — AI Revenue Recovery for Subscription Businesses" },
+      { property: "og:title", content: "RRLabs — AI Revenue Recovery Platform" },
       {
         property: "og:description",
         content:
-          "Recover failed subscription payments automatically with AI-personalized email and WhatsApp.",
+          "Recover failed subscription payments automatically with AI-personalized messaging across email and WhatsApp.",
       },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -45,9 +50,99 @@ export const Route = createFileRoute("/")({
         type: "application/ld+json",
         children: JSON.stringify({
           "@context": "https://schema.org",
-          "@type": "Organization",
-          name: "Revenue Recovery Labs",
-          url: "https://www.rrlabs.online",
+          "@graph": [
+            {
+              "@type": "WebPage",
+              "@id": "https://www.rrlabs.online/#webpage",
+              url: "https://www.rrlabs.online/",
+              name: "RRLabs — AI Revenue Recovery Platform for Subscription Businesses",
+              description:
+                "AI revenue recovery platform that automatically recovers failed subscription payments and reduces involuntary churn.",
+              inLanguage: "en",
+              isPartOf: { "@id": "https://www.rrlabs.online/#website" },
+              about: { "@id": "https://www.rrlabs.online/#organization" },
+            },
+            {
+              "@type": "BreadcrumbList",
+              itemListElement: [
+                {
+                  "@type": "ListItem",
+                  position: 1,
+                  name: "Home",
+                  item: "https://www.rrlabs.online/",
+                },
+              ],
+            },
+            {
+              "@type": "SoftwareApplication",
+              name: "RRLabs",
+              applicationCategory: "BusinessApplication",
+              applicationSubCategory: "AI Revenue Recovery Platform",
+              operatingSystem: "Web",
+              description:
+                "AI-powered platform for recovering failed subscription payments, reducing involuntary churn, and protecting recurring revenue.",
+              featureList: [
+                "Failed payment detection and decline-reason classification",
+                "AI-personalized recovery messaging",
+                "Multi-channel delivery across email and WhatsApp",
+                "Smart retry scheduling",
+                "Network tokens and Account Updater support",
+                "Real-time recovery analytics",
+              ],
+              offers: {
+                "@type": "AggregateOffer",
+                priceCurrency: "USD",
+                lowPrice: "0",
+                offerCount: "4",
+              },
+              publisher: { "@id": "https://www.rrlabs.online/#organization" },
+            },
+            {
+              "@type": "FAQPage",
+              mainEntity: [
+                {
+                  "@type": "Question",
+                  name: "How does RRLabs recover failed subscription payments?",
+                  acceptedAnswer: {
+                    "@type": "Answer",
+                    text: "RRLabs connects to a billing provider (Stripe, LemonSqueezy, Paddle, or any provider exposing failed-payment webhooks), detects failed charges in real time, classifies the decline reason, generates AI-personalized recovery messaging, and delivers it across email and WhatsApp on optimized retry cadences.",
+                  },
+                },
+                {
+                  "@type": "Question",
+                  name: "What is involuntary churn and why does it matter?",
+                  acceptedAnswer: {
+                    "@type": "Answer",
+                    text: "Involuntary churn is customer loss caused by failed payments — expired cards, insufficient funds, bank declines, or 3DS challenges — rather than a deliberate cancellation. For most subscription businesses it represents a material share of total churn and is directly addressable with the right retry and messaging strategy.",
+                  },
+                },
+                {
+                  "@type": "Question",
+                  name: "How quickly can a team go live with RRLabs?",
+                  acceptedAnswer: {
+                    "@type": "Answer",
+                    text: "Standard setup takes under 15 minutes: connect a billing provider, verify a sender domain, and enable the recovery engine. No custom engineering work is required for standard configurations.",
+                  },
+                },
+                {
+                  "@type": "Question",
+                  name: "Which payment providers does RRLabs support?",
+                  acceptedAnswer: {
+                    "@type": "Answer",
+                    text: "Native integrations for Stripe, LemonSqueezy, and Paddle. Any provider exposing a failed-payment webhook can be connected via the generic webhook endpoint.",
+                  },
+                },
+                {
+                  "@type": "Question",
+                  name: "Is customer data secure on RRLabs?",
+                  acceptedAnswer: {
+                    "@type": "Answer",
+                    text: "Yes. Credentials are encrypted with AES-256, data is scoped with row-level security, access is controlled with role-based permissions, and every action is written to an immutable audit log. Card numbers, CVVs, and other PCI data never enter the RRLabs platform.",
+                  },
+                },
+              ],
+            },
+          ],
         }),
       },
     ],
