@@ -19,6 +19,8 @@ import { DebugErrorPanel } from "../components/debug-error-panel";
 import { GlobalDebugOverlay } from "../components/global-debug-overlay";
 import { AnnouncementBanner } from "../components/announcement-banner";
 import { isDebugMode } from "../lib/debug-mode";
+import { InstallPrompt } from "../components/install-prompt";
+import { registerPwa } from "../lib/pwa-register";
 
 function NotFoundComponent() {
   return <ErrorPage code={404} />;
@@ -167,6 +169,11 @@ function RootComponent() {
     return () => sub.subscription.unsubscribe();
   }, [router, queryClient]);
 
+  useEffect(() => {
+    void registerPwa();
+  }, []);
+
+
   return (
     <QueryClientProvider client={queryClient}>
       <ErrorBoundary boundary="root_client_boundary">
@@ -174,6 +181,7 @@ function RootComponent() {
         <Outlet />
       </ErrorBoundary>
       <GlobalDebugOverlay />
+      <InstallPrompt />
       <Toaster position="top-right" richColors closeButton />
     </QueryClientProvider>
   );
