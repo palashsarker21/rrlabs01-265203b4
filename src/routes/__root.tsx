@@ -183,6 +183,7 @@ function RootComponent() {
       </ErrorBoundary>
       <GlobalDebugOverlay />
       <InstallPrompt />
+      <IosInstallHelp />
       <Toaster position="top-right" richColors closeButton />
     </QueryClientProvider>
   );
