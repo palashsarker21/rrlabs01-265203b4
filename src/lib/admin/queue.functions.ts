@@ -213,7 +213,8 @@ export const bulkRetryFailed = createServerFn({ method: "POST" })
       })
       .eq("status", "failed");
     if (data.queue) q = q.eq("queue", data.queue);
-    const { error, count } = await q.select("id", { count: "exact" });
+    const { data: rows, error } = await q.select("id");
+    const count = rows?.length ?? 0;
     if (error) throw new Error(error.message);
     await audit(context, "admin.queue.bulk_retry", {
       queue: data.queue ?? null,
