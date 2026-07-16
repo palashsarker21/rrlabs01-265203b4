@@ -6,8 +6,8 @@
  * should do. It does NOT hit the network. Callers handle navigation.
  *
  * The corresponding server-side gatekeeper is `createCheckoutSession` in
- * `src/lib/billing.functions.ts`, which rejects Enterprise or plans whose
- * Lemon Squeezy variant is missing.
+ * `src/lib/billing.functions.ts`, which rejects Enterprise and resolves a
+ * Lemon Squeezy checkout variant for every self-serve plan.
  */
 
 import type { PricingPlan } from "./pricing";

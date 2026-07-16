@@ -28,7 +28,7 @@ export function checkBillingEnv(): BillingEnvReport {
   const missingRequired = REQUIRED.filter((k) => !process.env[k]);
   const missingVariants = VARIANTS.filter((k) => !process.env[k]);
   return {
-    ok: missingRequired.length === 0,
+    ok: missingRequired.length === 0 && missingVariants.length === 0,
     missingRequired,
     missingVariants,
   };
@@ -37,8 +37,9 @@ export function checkBillingEnv(): BillingEnvReport {
 export function assertBillingEnv(): void {
   const r = checkBillingEnv();
   if (!r.ok) {
+    const missing = [...r.missingRequired, ...r.missingVariants];
     throw new Error(
-      `Billing misconfigured. Missing required env vars: ${r.missingRequired.join(", ")}`,
+      `Billing misconfigured. Missing required env vars: ${missing.join(", ")}`,
     );
   }
 }

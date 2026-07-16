@@ -2,6 +2,14 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { assertBillingEnv } from "@/lib/billing-env";
+import {
+  cleanVariantId,
+  envVariantForPlan,
+  isSelfServePlan,
+  lemonHeaders,
+  resolveLemonSqueezyVariant,
+} from "@/lib/lemon-squeezy";
 
 const createCheckoutInput = z.object({
   planId: z.string().uuid(),
@@ -34,23 +42,7 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
       throw new Error("This plan is only available through our sales team.");
     }
 
-    // Resolve Lemon Squeezy variant ID: prefer per-plan env override, fall back to DB.
-    const envVariantByCode: Record<string, string | undefined> = {
-      starter: process.env.LEMONSQUEEZY_VARIANT_STARTER,
-      growth: process.env.LEMONSQUEEZY_VARIANT_GROWTH,
-      business: process.env.LEMONSQUEEZY_VARIANT_BUSINESS,
-      scale: process.env.LEMONSQUEEZY_VARIANT_SCALE,
-    };
-    const rawVariantId = envVariantByCode[plan.code] ?? plan.ls_variant_id ?? "";
-    // Treat any leftover DB placeholder like "ls_variant_starter_placeholder"
-    // as unset — the env override is the source of truth in production.
-    const variantId = rawVariantId.startsWith("ls_variant_") ? "" : rawVariantId;
-    if (!variantId) {
-      throw new Error(
-        "Checkout is temporarily unavailable for this plan. Please contact support@rrlabs.online.",
-      );
-    }
-
+    assertBillingEnv();
 
     const apiKey = process.env.LEMONSQUEEZY_API_KEY;
     const storeId = process.env.LEMONSQUEEZY_STORE_ID;
@@ -59,6 +51,28 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
         "Billing is not fully configured yet. LEMONSQUEEZY_API_KEY and LEMONSQUEEZY_STORE_ID must be set.",
       );
     }
+
+    const variant = await resolveLemonSqueezyVariant({
+      plan: {
+        code: plan.code,
+        name: plan.name,
+        ls_variant_id: plan.ls_variant_id,
+      },
+      apiKey,
+      storeId,
+    });
+    if (!variant) {
+      console.error("[checkout] could not resolve Lemon Squeezy variant", {
+        planCode: plan.code,
+        planName: plan.name,
+        dbVariantConfigured: Boolean(cleanVariantId(plan.ls_variant_id)),
+        envVariantConfigured: Boolean(cleanVariantId(envVariantForPlan(plan.code))),
+      });
+      throw new Error(
+        `No Lemon Squeezy checkout variant is configured for ${plan.name}. Please contact support@rrlabs.online.`,
+      );
+    }
+    const variantId = variant.id;
 
     // Record pending checkout first so the webhook can reconcile it.
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -82,7 +96,7 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
       (process.env.LOVABLE_PROJECT_ID
         ? `https://project--${process.env.LOVABLE_PROJECT_ID}.lovable.app`
         : undefined) ??
-      "https://rrlabs.lovable.app";
+      "https://rrlabs01.lovable.app";
     const redirectUrl = `${publishedOrigin}/checkout/status?session=${session.id}`;
 
     const email = (claims as { email?: string }).email;
@@ -120,18 +134,28 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
 
     const res = await fetch("https://api.lemonsqueezy.com/v1/checkouts", {
       method: "POST",
-      headers: {
-        Accept: "application/vnd.api+json",
-        "Content-Type": "application/vnd.api+json",
-        Authorization: `Bearer ${apiKey}`,
-      },
+      headers: lemonHeaders(apiKey),
       body: JSON.stringify(body),
     });
 
     if (!res.ok) {
       const text = await res.text().catch(() => "");
-      console.error("Lemon Squeezy checkout error", res.status, text);
-      throw new Error("Could not create checkout. Please try again.");
+      console.error("[checkout] Lemon Squeezy checkout creation failed", {
+        status: res.status,
+        planCode: plan.code,
+        variantSource: variant.source,
+        variantId,
+        storeId,
+        redirectUrl,
+        response: text,
+      });
+      await supabaseAdmin
+        .from("checkout_sessions")
+        .update({ status: "failed" })
+        .eq("id", session.id);
+      throw new Error(
+        `Lemon Squeezy rejected checkout creation for ${plan.name} (HTTP ${res.status}). Please try again or contact support.`,
+      );
     }
 
     const json = (await res.json()) as {
@@ -182,17 +206,9 @@ export const listPublicPlans = createServerFn({ method: "GET" }).handler(async (
     .order("sort_order", { ascending: true });
   if (error) throw error;
 
-  const envVariantByCode: Record<string, string | undefined> = {
-    starter: process.env.LEMONSQUEEZY_VARIANT_STARTER,
-    growth: process.env.LEMONSQUEEZY_VARIANT_GROWTH,
-    business: process.env.LEMONSQUEEZY_VARIANT_BUSINESS,
-    scale: process.env.LEMONSQUEEZY_VARIANT_SCALE,
-  };
-
   return (data ?? []).map((p) => {
-    const envVariant = envVariantByCode[p.code];
-    const variantId = envVariant ?? p.ls_variant_id ?? null;
-    const hasVariant = !p.is_contact_sales && !!variantId && !variantId.startsWith("ls_variant_");
+    const variantId = cleanVariantId(envVariantForPlan(p.code)) ?? cleanVariantId(p.ls_variant_id);
+    const hasVariant = !p.is_contact_sales && (Boolean(variantId) || isSelfServePlan(p.code));
     // Strip the raw variant id from the public payload.
     const { ls_variant_id: _drop, ...rest } = p;
     return { ...rest, has_variant: hasVariant };
