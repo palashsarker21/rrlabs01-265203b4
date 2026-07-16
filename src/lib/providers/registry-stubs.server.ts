@@ -52,6 +52,8 @@ export const memberpressAdapter: Adapter = {
     const err = requireFields(creds, ["site_url", "api_key"]);
     if (err) return { ok: false, message: err };
     const site = creds.site_url!.trim().replace(/\/+$/, "");
+    const siteErr = checkPublicHttpUrl(site);
+    if (siteErr) return { ok: false, message: `Site URL rejected: ${siteErr}` };
     try {
       const res = await fetch(`${site}/wp-json/mp/v1/me`, {
         headers: { "MEMBERPRESS-API-KEY": creds.api_key!, Accept: "application/json" },
