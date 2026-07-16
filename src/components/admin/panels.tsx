@@ -2682,3 +2682,385 @@ export function IncidentsPanel() {
   );
 }
 
+
+// ============================================================
+// QUEUE MANAGER — job queue visibility, retries, DLQ
+// ============================================================
+const JOB_STATUSES: JobStatus[] = [
+  "pending",
+  "processing",
+  "completed",
+  "failed",
+  "dlq",
+  "cancelled",
+];
+
+function jobStatusTone(status: JobStatus): string {
+  switch (status) {
+    case "pending":
+      return "text-muted-foreground";
+    case "processing":
+      return "text-sky-500";
+    case "completed":
+      return "text-emerald-500";
+    case "failed":
+      return "text-amber-500";
+    case "dlq":
+      return "text-destructive";
+    case "cancelled":
+      return "text-muted-foreground";
+  }
+}
+
+export function QueueManagerPanel() {
+  const qc = useQueryClient();
+  const listFn = useServerFn(listAdminJobs);
+  const statsFn = useServerFn(getQueueStats);
+  const retryFn = useServerFn(retryJob);
+  const dlqFn = useServerFn(moveJobToDlq);
+  const cancelFn = useServerFn(cancelJob);
+  const deleteFn = useServerFn(deleteJob);
+  const bulkRetryFn = useServerFn(bulkRetryFailed);
+  const purgeFn = useServerFn(purgeDlq);
+
+  const [queueFilter, setQueueFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState<JobStatus | "">("");
+
+  const { data: jobs = [] } = useQuery<JobRow[]>({
+    queryKey: ["admin-jobs", queueFilter, statusFilter],
+    queryFn: () =>
+      listFn({
+        data: {
+          queue: queueFilter || undefined,
+          status: statusFilter || undefined,
+          limit: 500,
+        },
+      }) as Promise<JobRow[]>,
+    refetchInterval: 15000,
+  });
+
+  const { data: stats = [] } = useQuery<QueueStat[]>({
+    queryKey: ["admin-queue-stats"],
+    queryFn: () => statsFn({}) as Promise<QueueStat[]>,
+    refetchInterval: 15000,
+  });
+
+  const invalidate = () => {
+    qc.invalidateQueries({ queryKey: ["admin-jobs"] });
+    qc.invalidateQueries({ queryKey: ["admin-queue-stats"] });
+  };
+
+  const queueOptions = useMemo(() => {
+    const set = new Set<string>();
+    for (const s of stats) set.add(s.queue);
+    for (const j of jobs) set.add(j.queue);
+    return Array.from(set).sort();
+  }, [stats, jobs]);
+
+  // Aggregate stats per queue
+  const perQueue = useMemo(() => {
+    const map = new Map<string, Record<JobStatus, number>>();
+    for (const s of stats) {
+      const row =
+        map.get(s.queue) ??
+        ({
+          pending: 0,
+          processing: 0,
+          completed: 0,
+          failed: 0,
+          dlq: 0,
+          cancelled: 0,
+        } as Record<JobStatus, number>);
+      row[s.status] = s.count;
+      map.set(s.queue, row);
+    }
+    return Array.from(map.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+  }, [stats]);
+
+  async function doRetry(id: string) {
+    try {
+      await retryFn({ data: { id } });
+      toast.success("Job requeued.");
+      invalidate();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Retry failed.");
+    }
+  }
+  async function doDlq(id: string) {
+    try {
+      await dlqFn({ data: { id } });
+      toast.success("Moved to DLQ.");
+      invalidate();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed.");
+    }
+  }
+  async function doCancel(id: string) {
+    try {
+      await cancelFn({ data: { id } });
+      toast.success("Job cancelled.");
+      invalidate();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Cancel failed.");
+    }
+  }
+  async function doDelete(id: string) {
+    try {
+      await deleteFn({ data: { id } });
+      toast.success("Job deleted.");
+      invalidate();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Delete failed.");
+    }
+  }
+  async function doBulkRetry() {
+    try {
+      const res = await bulkRetryFn({ data: { queue: queueFilter || undefined } });
+      toast.success(`Requeued ${res.count} failed jobs.`);
+      invalidate();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Bulk retry failed.");
+    }
+  }
+  async function doPurge() {
+    try {
+      const res = await purgeFn({ data: { queue: queueFilter || undefined } });
+      toast.success(`Purged ${res.count} DLQ jobs.`);
+      invalidate();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Purge failed.");
+    }
+  }
+
+  const columns: Column<JobRow>[] = [
+    {
+      key: "queue",
+      label: "Queue",
+      sortable: true,
+      value: (r) => r.queue,
+      cell: (r) => (
+        <div>
+          <div className="font-medium text-foreground">{r.queue}</div>
+          <div className="text-xs text-muted-foreground">{r.job_type}</div>
+        </div>
+      ),
+    },
+    {
+      key: "status",
+      label: "Status",
+      sortable: true,
+      value: (r) => r.status,
+      cell: (r) => <span className={jobStatusTone(r.status)}>{r.status}</span>,
+    },
+    {
+      key: "attempts",
+      label: "Attempts",
+      align: "right",
+      sortable: true,
+      value: (r) => r.attempts,
+      cell: (r) => (
+        <span className={r.attempts >= r.max_attempts ? "text-destructive" : ""}>
+          {r.attempts}/{r.max_attempts}
+        </span>
+      ),
+    },
+    {
+      key: "priority",
+      label: "Priority",
+      align: "right",
+      sortable: true,
+      value: (r) => r.priority,
+    },
+    {
+      key: "workspace_id",
+      label: "Workspace",
+      value: (r) => r.workspace_id ?? "",
+      cell: (r) =>
+        r.workspace_id ? (
+          <span className="font-mono text-[10px] text-muted-foreground">
+            {r.workspace_id.slice(0, 8)}…
+          </span>
+        ) : (
+          <span className="text-muted-foreground">—</span>
+        ),
+    },
+    {
+      key: "scheduled_for",
+      label: "Scheduled",
+      sortable: true,
+      value: (r) => r.scheduled_for,
+      cell: (r) => fmt(r.scheduled_for),
+    },
+    {
+      key: "last_error",
+      label: "Last error",
+      value: (r) => r.last_error ?? "",
+      cell: (r) =>
+        r.last_error ? (
+          <span
+            className="block max-w-[240px] truncate text-xs text-destructive"
+            title={r.last_error}
+          >
+            {r.last_error}
+          </span>
+        ) : (
+          <span className="text-muted-foreground">—</span>
+        ),
+    },
+    {
+      key: "created_at",
+      label: "Created",
+      sortable: true,
+      value: (r) => r.created_at,
+      cell: (r) => fmt(r.created_at),
+    },
+  ];
+
+  return (
+    <section className="space-y-6">
+      {/* Stats grid */}
+      {perQueue.length > 0 && (
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
+          {perQueue.map(([queue, counts]) => {
+            const total = JOB_STATUSES.reduce((s, k) => s + (counts[k] ?? 0), 0);
+            return (
+              <div key={queue} className="rounded-xl border border-border/60 bg-card/50 p-4">
+                <div className="mb-2 flex items-center justify-between">
+                  <span className="font-medium text-foreground">{queue}</span>
+                  <span className="text-xs text-muted-foreground">{total} jobs</span>
+                </div>
+                <dl className="grid grid-cols-3 gap-2 text-xs">
+                  {JOB_STATUSES.map((s) => (
+                    <div key={s} className="flex items-center justify-between gap-1">
+                      <dt className={`capitalize ${jobStatusTone(s)}`}>{s}</dt>
+                      <dd className="font-mono">{counts[s] ?? 0}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <AdminDataTable<JobRow>
+        title="Job Queue"
+        description="Background jobs across every queue. Retry orchestration and Dead Letter Queue management."
+        rows={jobs}
+        columns={columns}
+        getRowId={(r) => r.id}
+        searchKeys={["queue", "job_type", "workspace_id", "last_error"]}
+        filters={[
+          {
+            key: "queue",
+            label: "Queue",
+            value: queueFilter,
+            onChange: setQueueFilter,
+            options: [
+              { value: "", label: "All queues" },
+              ...queueOptions.map((q) => ({ value: q, label: q })),
+            ],
+          },
+          {
+            key: "status",
+            label: "Status",
+            value: statusFilter,
+            onChange: (v) => setStatusFilter(v as JobStatus | ""),
+            options: [
+              { value: "", label: "All" },
+              ...JOB_STATUSES.map((s) => ({ value: s, label: s })),
+            ],
+          },
+        ]}
+        exportFilename="job-queue"
+        toolbarExtra={
+          <div className="flex items-center gap-2">
+            <ConfirmDialog
+              trigger={
+                <Button variant="outline" size="sm" className="gap-1">
+                  <RefreshCw className="size-3.5" /> Retry all failed
+                </Button>
+              }
+              title="Retry all failed jobs"
+              description={
+                queueFilter
+                  ? `Every failed job in the "${queueFilter}" queue will be requeued.`
+                  : "Every failed job across all queues will be requeued."
+              }
+              confirmLabel="Retry all"
+              onConfirm={doBulkRetry}
+            />
+            <ConfirmDialog
+              trigger={
+                <Button variant="outline" size="sm" className="gap-1 text-destructive">
+                  <Trash2 className="size-3.5" /> Purge DLQ
+                </Button>
+              }
+              title="Purge Dead Letter Queue"
+              description={
+                queueFilter
+                  ? `Permanently delete every DLQ job in the "${queueFilter}" queue. Cannot be undone.`
+                  : "Permanently delete every DLQ job across all queues. Cannot be undone."
+              }
+              confirmLabel="Purge"
+              destructive
+              onConfirm={doPurge}
+            />
+          </div>
+        }
+        rowActions={(r) => (
+          <div className="flex items-center gap-1">
+            {(r.status === "failed" || r.status === "dlq" || r.status === "cancelled") && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="gap-1"
+                onClick={() => doRetry(r.id)}
+              >
+                <Play className="size-3.5" /> Retry
+              </Button>
+            )}
+            {(r.status === "pending" || r.status === "processing" || r.status === "failed") && (
+              <ConfirmDialog
+                trigger={
+                  <Button variant="ghost" size="sm" className="gap-1">
+                    <XCircle className="size-3.5" /> Cancel
+                  </Button>
+                }
+                title="Cancel job"
+                description="The job will stop being retried."
+                confirmLabel="Cancel job"
+                onConfirm={() => doCancel(r.id)}
+              />
+            )}
+            {r.status !== "dlq" && r.status !== "completed" && (
+              <ConfirmDialog
+                trigger={
+                  <Button variant="ghost" size="sm" className="gap-1 text-amber-500">
+                    <AlertOctagon className="size-3.5" /> DLQ
+                  </Button>
+                }
+                title="Move to Dead Letter Queue"
+                description="The job will be quarantined for manual review."
+                confirmLabel="Move to DLQ"
+                onConfirm={() => doDlq(r.id)}
+              />
+            )}
+            <ConfirmDialog
+              trigger={
+                <Button variant="ghost" size="sm" className="gap-1 text-destructive">
+                  <Trash2 className="size-3.5" /> Delete
+                </Button>
+              }
+              title="Delete job"
+              description="Permanent. Cannot be recovered."
+              confirmLabel="Delete"
+              destructive
+              onConfirm={() => doDelete(r.id)}
+            />
+          </div>
+        )}
+      />
+    </section>
+  );
+}
