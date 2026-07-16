@@ -9,6 +9,7 @@
  */
 
 import type { Adapter, TestResult, AdapterCreds } from "@/lib/integrations/registry.server";
+import { checkPublicHttpUrl } from "@/lib/integrations/url-guard.server";
 
 function requireFields(fields: AdapterCreds, keys: string[]): string | null {
   for (const k of keys) {
