@@ -234,7 +234,8 @@ export const purgeDlq = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     let q = supabaseAdmin.from("job_queue").delete().eq("status", "dlq");
     if (data.queue) q = q.eq("queue", data.queue);
-    const { error, count } = await q.select("id", { count: "exact" });
+    const { data: rows, error } = await q.select("id");
+    const count = rows?.length ?? 0;
     if (error) throw new Error(error.message);
     await audit(context, "admin.queue.dlq_purged", {
       queue: data.queue ?? null,
