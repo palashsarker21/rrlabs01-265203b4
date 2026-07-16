@@ -163,95 +163,6 @@ function Landing() {
         <div className="mx-auto flex max-w-7xl items-center justify-center gap-2 px-6 py-2.5 text-xs text-muted-foreground">
           <Sparkles className="h-3.5 w-3.5 text-foreground" />
           <span className="text-foreground">New:</span>
-          <span>AI Recovery Copywriter v2 — 34% higher recovery on cold-lapsed subs.</span>
-          <Link
-            to="/blog"
-            className="ml-1 font-medium text-foreground underline-offset-2 hover:underline"
-          >
-            Read the post
-          </Link>
-        </div>
-      </div>
-
-      <MarketingHeader />
-
-      {/* Hero */}
-      <section className="relative overflow-hidden">
-        <div className="mx-auto max-w-7xl px-6 pb-20 pt-20 sm:pt-28">
-          <div className="mx-auto max-w-3xl text-center">
-            <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-secondary/60 px-3 py-1 text-xs text-muted-foreground">
-              <span className="h-1.5 w-1.5 rounded-full bg-foreground" />
-              AI Revenue Recovery Platform
-            </div>
-            <h1 className="mt-6 text-balance text-5xl font-semibold tracking-tight text-foreground sm:text-6xl">
-              Recover failed subscription payments, automatically.
-            </h1>
-            <p className="mt-6 text-lg leading-relaxed text-muted-foreground">
-              Connect your billing stack. RRLabs detects failed charges in real time, sends
-              AI-personalized recovery messages on optimal retry cadences, and turns involuntary
-              churn into recovered revenue.
-            </p>
-            <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
-              <Link to="/auth" search={{ redirect: "/checkout" }}>
-                <Button size="lg">
-                  Start free — no card required
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </Link>
-              <Link to="/pricing">
-                <Button size="lg" variant="outline">
-                  See pricing
-                </Button>
-              </Link>
-            </div>
-            <p className="mt-4 text-xs text-muted-foreground">14-day free trial · Cancel anytime</p>
-          </div>
-
-          {/* Metric card */}
-          <div className="mx-auto mt-16 max-w-4xl rounded-2xl border border-border/60 bg-card p-2 shadow-sm">
-            <div className="grid grid-cols-1 gap-px overflow-hidden rounded-xl bg-border/60 sm:grid-cols-3">
-              {[
-                { k: "38%", v: "avg. recovery uplift" },
-                { k: "$4.2M+", v: "recovered for customers" },
-                { k: "<12 min", v: "average time to live" },
-              ].map((m) => (
-                <div key={m.v} className="bg-card px-6 py-8 text-center">
-                  <div className="text-3xl font-semibold text-foreground">{m.k}</div>
-                  <div className="mt-1 text-sm text-muted-foreground">{m.v}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Trusted by */}
-      <section className="border-y border-border/60 bg-secondary/40 py-10">
-        <div className="mx-auto max-w-7xl px-6">
-          <p className="text-center text-xs uppercase tracking-widest text-muted-foreground">
-            Trusted by modern subscription businesses
-          </p>
-          <div className="mt-6 grid grid-cols-2 items-center gap-6 opacity-70 sm:grid-cols-3 md:grid-cols-6">
-            {["Northwind", "Acme SaaS", "Loopr", "Payhaven", "Subwise", "Metrable"].map((n) => (
-              <div key={n} className="text-center text-sm font-semibold text-foreground/70">
-                {n}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Key benefits */}
-      <section className="py-24">
-        <div className="mx-auto max-w-7xl px-6">
-          <div className="max-w-2xl">
-            <h2 className="text-4xl font-semibold tracking-tight text-foreground">
-              Recovery, not dunning.
-            </h2>
-      <div className="border-b border-border/60 bg-secondary/50">
-        <div className="mx-auto flex max-w-7xl items-center justify-center gap-2 px-6 py-2.5 text-xs text-muted-foreground">
-          <Sparkles className="h-3.5 w-3.5 text-foreground" />
-          <span className="text-foreground">New:</span>
           <span>AI Recovery Copywriter v2 — per-customer messaging tuned to decline reason.</span>
           <Link
             to="/blog"
@@ -303,18 +214,9 @@ function Landing() {
           <div className="mx-auto mt-16 max-w-4xl rounded-2xl border border-border/60 bg-card p-2 shadow-sm">
             <div className="grid grid-cols-1 gap-px overflow-hidden rounded-xl bg-border/60 sm:grid-cols-3">
               {[
-                {
-                  k: "Real-time",
-                  v: "Failed-charge detection via provider webhooks",
-                },
-                {
-                  k: "Per-customer",
-                  v: "AI-generated recovery messaging in your voice",
-                },
-                {
-                  k: "Multi-channel",
-                  v: "Coordinated email and WhatsApp cadences",
-                },
+                { k: "Real-time", v: "Failed-charge detection via provider webhooks" },
+                { k: "Per-customer", v: "AI-generated recovery messaging in your voice" },
+                { k: "Multi-channel", v: "Coordinated email and WhatsApp cadences" },
               ].map((m) => (
                 <div key={m.v} className="bg-card px-6 py-8 text-center">
                   <div className="text-2xl font-semibold text-foreground">{m.k}</div>
@@ -339,24 +241,11 @@ function Landing() {
             <p className="mt-4 text-muted-foreground">
               Expired cards, insufficient funds, bank declines, and 3DS challenges account for a
               material fraction of subscription churn. Generic retry logic and template dunning
-              emails recover a small portion of it and leave the rest on the table.
+              emails address a portion of it and leave the rest on the table.
             </p>
           </div>
           <div className="mx-auto mt-12 grid max-w-5xl gap-6 md:grid-cols-3">
-            {[
-              {
-                title: "The problem",
-                body: "Failed payments cancel subscriptions the customer never intended to end.",
-              },
-              {
-                title: "The cost",
-                body: "Lost MRR, longer payback periods, and higher CAC-to-recover ratios.",
-              },
-              {
-                title: "The RRLabs approach",
-                body: "AI-personalized recovery across the right channels at the right time — measured against MRR recovered, not emails sent.",
-              },
-            ].map((c) => (
+            {PROBLEM_COST_SOLUTION.map((c) => (
               <div key={c.title} className="rounded-2xl border border-border/60 bg-card p-6">
                 <h3 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
                   {c.title}
@@ -500,7 +389,6 @@ function Landing() {
         </div>
       </section>
 
-
       {/* Pricing preview */}
       <section className="py-24">
         <div className="mx-auto max-w-7xl px-6">
@@ -574,30 +462,8 @@ function Landing() {
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="border-y border-border/60 bg-secondary/40 py-24">
-        <div className="mx-auto max-w-7xl px-6">
-          <h2 className="text-center text-3xl font-semibold tracking-tight text-foreground">
-            Teams who ship revenue faster
-          </h2>
-          <div className="mx-auto mt-14 grid max-w-5xl gap-6 md:grid-cols-3">
-            {TESTIMONIALS.map((t) => (
-              <figure key={t.name} className="rounded-2xl border border-border/60 bg-card p-6">
-                <blockquote className="text-sm leading-relaxed text-foreground">
-                  "{t.quote}"
-                </blockquote>
-                <figcaption className="mt-6 text-sm">
-                  <div className="font-medium text-foreground">{t.name}</div>
-                  <div className="text-muted-foreground">{t.role}</div>
-                </figcaption>
-              </figure>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* FAQ */}
-      <section className="py-24">
+      <section className="border-t border-border/60 bg-secondary/40 py-24">
         <div className="mx-auto max-w-4xl px-6">
           <h2 className="text-center text-4xl font-semibold tracking-tight text-foreground">
             Frequently asked questions
@@ -651,36 +517,51 @@ function Landing() {
   );
 }
 
+const PROBLEM_COST_SOLUTION = [
+  {
+    title: "The problem",
+    body: "Failed payments cancel subscriptions the customer never intended to end.",
+  },
+  {
+    title: "The cost",
+    body: "Lost recurring revenue, longer payback periods, and higher acquisition-to-recovery ratios.",
+  },
+  {
+    title: "The RRLabs approach",
+    body: "AI-personalized recovery across the right channels at the right time — measured against recovered MRR, not emails sent.",
+  },
+];
+
 const BENEFITS = [
   {
     icon: Zap,
-    title: "Recover 35–45%",
-    body: "Beat industry-standard dunning by 2–3× with smart retries and AI copy tuned to decline reason.",
+    title: "Decline-reason-aware retries",
+    body: "Retry timing adapts to issuer behavior, decline code, and prior success windows — not a fixed schedule.",
   },
   {
     icon: Bot,
     title: "AI-personalized copy",
-    body: "Every message is written for the specific customer, plan, and reason for failure — no templates.",
+    body: "Every message is generated for the specific customer, plan, tenure, and decline reason — never a template.",
   },
   {
     icon: MessageSquare,
     title: "Email + WhatsApp",
-    body: "Reach customers where they respond. Automatic channel selection based on prior engagement.",
+    body: "Reach customers on the channels they respond on. Channel selection adapts to prior engagement signals.",
   },
   {
     icon: ShieldCheck,
-    title: "Enterprise security",
-    body: "AES-256 encryption, RLS-scoped data, RBAC, and audit logs from day one.",
+    title: "Enterprise-grade security",
+    body: "AES-256 credential encryption, row-level security, role-based access control, and immutable audit logs.",
   },
   {
     icon: LineChart,
-    title: "Live revenue analytics",
-    body: "Cohort recovery rate, MRR saved, and channel performance updated in real time.",
+    title: "Live recovery analytics",
+    body: "Recovered MRR, recovery rate by cohort, channel performance, and forecasted impact — updated in real time.",
   },
   {
     icon: Workflow,
     title: "Zero-touch automation",
-    body: "Set once. Every failed charge triggers the right recovery flow, automatically.",
+    body: "Configure once. Every failed charge is classified, messaged, retried, and attributed automatically.",
   },
 ];
 
@@ -688,59 +569,92 @@ const FEATURES = [
   {
     icon: Bot,
     title: "AI Recovery Copywriter",
-    body: "Generates recovery emails and WhatsApp messages tuned to plan, tenure, and decline reason.",
+    body: "Generates recovery emails and WhatsApp messages tuned to plan, tenure, decline reason, and brand voice.",
   },
   {
     icon: Zap,
     title: "Smart retry engine",
-    body: "Retries at optimal times based on issuer, card BIN, and historical success windows.",
+    body: "Retries at times informed by issuer, card BIN, and historical success windows for each cohort.",
   },
   {
     icon: MessageSquare,
     title: "Multi-channel delivery",
-    body: "Email via Resend or SMTP, WhatsApp via Meta Cloud API, SMS via Twilio.",
+    body: "Email via Resend or SMTP, WhatsApp via the Meta Cloud API, and SMS via Twilio.",
   },
   {
     icon: ShieldCheck,
-    title: "Network tokens & AU",
-    body: "Automatic card lifecycle management via Account Updater and network tokens.",
+    title: "Network tokens & Account Updater",
+    body: "Card lifecycle management via network tokens and issuer-driven Account Updater flows.",
   },
   {
     icon: LineChart,
     title: "Recovery analytics",
-    body: "Recovered MRR, recovery rate, cohort curves, channel breakdown, and forecast.",
+    body: "Recovered MRR, recovery rate, cohort curves, channel breakdown, and forecast in one dashboard.",
   },
   {
     icon: Globe,
     title: "Global-ready",
-    body: "Multi-currency, localized payment methods, GDPR-compliant retention out of the box.",
+    body: "Multi-currency, localized payment methods, and GDPR-compliant retention out of the box.",
   },
 ];
 
 const WORKFLOW = [
   {
     title: "Failed payment detected",
-    body: "Webhook fires the moment a charge fails — Stripe, LemonSqueezy, Paddle, or custom.",
+    body: "A webhook fires the moment a charge fails — Stripe, LemonSqueezy, Paddle, or a custom provider.",
   },
   {
     title: "Root cause classified",
-    body: "Decline code, card BIN, and customer history map the failure to one of 30+ recovery patterns.",
+    body: "Decline code, card BIN, and customer history map the failure to the appropriate recovery pattern.",
   },
   {
     title: "AI drafts personalized message",
-    body: "Gemini-powered copywriter generates channel-specific messaging in your brand voice.",
+    body: "A Gemini-powered copywriter generates channel-specific messaging in your brand voice.",
   },
   {
     title: "Optimal send time chosen",
-    body: "Retry schedule and messaging cadence adapt to issuer, timezone, and prior engagement.",
+    body: "Retry schedule and messaging cadence adapt to issuer, timezone, and prior engagement signals.",
   },
   {
     title: "Delivered across channels",
-    body: "Email and WhatsApp fire on the schedule that maximizes recovery for this customer segment.",
+    body: "Email and WhatsApp fire on the schedule that best fits the customer segment.",
   },
   {
     title: "Charge retried & attributed",
-    body: "Successful retries are attributed to the recovery message; failures update the model.",
+    body: "Successful retries are attributed to the recovery message; unsuccessful ones update the model.",
+  },
+];
+
+const COMPARISON = [
+  {
+    capability: "Retry strategy",
+    template: "Fixed schedule (e.g. day 1, 3, 5, 7)",
+    rrlabs: "Adaptive to decline reason, issuer, and card BIN",
+  },
+  {
+    capability: "Message content",
+    template: "One template per step",
+    rrlabs: "Per-customer AI generation in your brand voice",
+  },
+  {
+    capability: "Channels",
+    template: "Email only",
+    rrlabs: "Email + WhatsApp + SMS, coordinated",
+  },
+  {
+    capability: "Failure classification",
+    template: "None",
+    rrlabs: "Decline codes mapped to recovery patterns",
+  },
+  {
+    capability: "Attribution",
+    template: "Send counts",
+    rrlabs: "Recovered MRR attributed to message + channel",
+  },
+  {
+    capability: "Card lifecycle",
+    template: "Manual",
+    rrlabs: "Network tokens and Account Updater built in",
   },
 ];
 
@@ -759,41 +673,25 @@ const INTEGRATIONS = [
   "API",
 ];
 
-const TESTIMONIALS = [
-  {
-    quote:
-      "We recovered $180K in the first 90 days with almost no engineering time. RRLabs is now a permanent line in our forecast.",
-    name: "Priya Menon",
-    role: "COO, Loopr",
-  },
-  {
-    quote:
-      "The AI copy is genuinely good. Our customers reply to recovery emails asking questions — that's a first.",
-    name: "Marc Delacroix",
-    role: "Head of Growth, Payhaven",
-  },
-  {
-    quote: "Setup took 11 minutes. Recovery rate went from 14% to 41% in the first month.",
-    name: "Sana Ito",
-    role: "Founder, Metrable",
-  },
-];
-
 const FAQ = [
   {
-    q: "How does RRLabs recover failed payments?",
-    a: "We connect to your billing provider, detect failed charges in real time, and send AI-personalized recovery messages across email and WhatsApp on optimal retry cadences.",
+    q: "How does RRLabs recover failed subscription payments?",
+    a: "RRLabs connects to your billing provider, detects failed charges in real time, classifies the decline reason, and sends AI-personalized recovery messaging across email and WhatsApp on optimized retry cadences.",
   },
   {
-    q: "How fast can I go live?",
-    a: "Most teams are live in under 15 minutes: connect your provider, verify your sender domain, enable the recovery engine.",
+    q: "What is involuntary churn and why does it matter?",
+    a: "Involuntary churn is customer loss caused by failed payments rather than a deliberate cancellation — expired cards, insufficient funds, bank declines, and 3DS challenges. It is directly addressable with the right retry and messaging strategy.",
   },
   {
-    q: "Which payment providers are supported?",
-    a: "Stripe, LemonSqueezy, Paddle, and any provider exposing a failed-payment webhook.",
+    q: "How quickly can a team go live with RRLabs?",
+    a: "Standard setup takes under 15 minutes: connect a billing provider, verify a sender domain, and enable the recovery engine.",
+  },
+  {
+    q: "Which payment providers does RRLabs support?",
+    a: "Stripe, LemonSqueezy, Paddle, and any provider exposing a failed-payment webhook via the generic webhook endpoint.",
   },
   {
     q: "Is customer data secure?",
-    a: "Yes. AES-256 encryption for credentials, RLS-scoped data access, RBAC, and audit logs.",
+    a: "Yes. Credentials are AES-256 encrypted, data access is scoped with row-level security and role-based permissions, and every action is written to an immutable audit log. PCI data never enters the platform.",
   },
 ];
