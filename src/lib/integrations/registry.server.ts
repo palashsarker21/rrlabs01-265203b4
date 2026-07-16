@@ -42,6 +42,8 @@ const shopifyAdapter: Adapter = {
     const version = (creds.api_version?.trim() || "2024-10").replace(/[^0-9-]/g, "");
     if (!url || !token)
       return { ok: false, message: "Store URL and Admin API token are required." };
+    const urlErr = checkPublicHttpUrl(url);
+    if (urlErr) return { ok: false, message: `Store URL rejected: ${urlErr}` };
     const res = await fetch(`${url}/admin/api/${version}/shop.json`, {
       headers: { "X-Shopify-Access-Token": token, Accept: "application/json" },
     });
