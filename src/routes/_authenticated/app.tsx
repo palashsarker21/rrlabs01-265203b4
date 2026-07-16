@@ -14,6 +14,8 @@ import {
   Circle,
   ArrowRight,
   Activity,
+  Users,
+
 } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -148,11 +150,18 @@ function AppShell() {
               </Button>
             ) : null}
             <Button asChild size="sm" variant="ghost">
+              <Link to="/team" aria-label="Team">
+                <Users className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Team</span>
+              </Link>
+            </Button>
+            <Button asChild size="sm" variant="ghost">
               <Link to="/setup" aria-label="Settings">
                 <Settings className="h-4 w-4 sm:mr-2" />
                 <span className="hidden sm:inline">Settings</span>
               </Link>
             </Button>
+
             <Button
               size="sm"
               variant="ghost"

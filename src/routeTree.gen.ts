@@ -35,6 +35,7 @@ import { Route as DocsApiRouteImport } from './routes/docs.api'
 import { Route as BlogSearchRouteImport } from './routes/blog.search'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as AuthenticatedUpgradeRouteImport } from './routes/_authenticated/upgrade'
+import { Route as AuthenticatedTeamRouteImport } from './routes/_authenticated/team'
 import { Route as AuthenticatedSetupRouteImport } from './routes/_authenticated/setup'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as AuthenticatedIntegrationsRouteImport } from './routes/_authenticated/integrations'
@@ -44,6 +45,7 @@ import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/
 import { Route as BlogTagTagRouteImport } from './routes/blog.tag.$tag'
 import { Route as BlogCategoryCategoryRouteImport } from './routes/blog.category.$category'
 import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
+import { Route as AuthenticatedInviteTokenRouteImport } from './routes/_authenticated/invite.$token'
 import { Route as AuthenticatedCheckoutStatusRouteImport } from './routes/_authenticated/checkout.status'
 import { Route as ApiPublicWebhooksStripeRouteImport } from './routes/api/public/webhooks/stripe'
 import { Route as ApiPublicWebhooksLemonsqueezyRouteImport } from './routes/api/public/webhooks/lemonsqueezy'
@@ -179,6 +181,11 @@ const AuthenticatedUpgradeRoute = AuthenticatedUpgradeRouteImport.update({
   path: '/upgrade',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedTeamRoute = AuthenticatedTeamRouteImport.update({
+  id: '/team',
+  path: '/team',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedSetupRoute = AuthenticatedSetupRouteImport.update({
   id: '/setup',
   path: '/setup',
@@ -225,6 +232,12 @@ const ApiPublicHealthRoute = ApiPublicHealthRouteImport.update({
   path: '/api/public/health',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedInviteTokenRoute =
+  AuthenticatedInviteTokenRouteImport.update({
+    id: '/invite/$token',
+    path: '/invite/$token',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedCheckoutStatusRoute =
   AuthenticatedCheckoutStatusRouteImport.update({
     id: '/status',
@@ -281,6 +294,7 @@ export interface FileRoutesByFullPath {
   '/integrations': typeof AuthenticatedIntegrationsRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/setup': typeof AuthenticatedSetupRoute
+  '/team': typeof AuthenticatedTeamRoute
   '/upgrade': typeof AuthenticatedUpgradeRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/blog/search': typeof BlogSearchRoute
@@ -288,6 +302,7 @@ export interface FileRoutesByFullPath {
   '/error/$code': typeof ErrorCodeRoute
   '/blog/': typeof BlogIndexRoute
   '/checkout/status': typeof AuthenticatedCheckoutStatusRoute
+  '/invite/$token': typeof AuthenticatedInviteTokenRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/blog/category/$category': typeof BlogCategoryCategoryRoute
   '/blog/tag/$tag': typeof BlogTagTagRoute
@@ -321,6 +336,7 @@ export interface FileRoutesByTo {
   '/integrations': typeof AuthenticatedIntegrationsRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/setup': typeof AuthenticatedSetupRoute
+  '/team': typeof AuthenticatedTeamRoute
   '/upgrade': typeof AuthenticatedUpgradeRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/blog/search': typeof BlogSearchRoute
@@ -328,6 +344,7 @@ export interface FileRoutesByTo {
   '/error/$code': typeof ErrorCodeRoute
   '/blog': typeof BlogIndexRoute
   '/checkout/status': typeof AuthenticatedCheckoutStatusRoute
+  '/invite/$token': typeof AuthenticatedInviteTokenRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/blog/category/$category': typeof BlogCategoryCategoryRoute
   '/blog/tag/$tag': typeof BlogTagTagRoute
@@ -364,6 +381,7 @@ export interface FileRoutesById {
   '/_authenticated/integrations': typeof AuthenticatedIntegrationsRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/setup': typeof AuthenticatedSetupRoute
+  '/_authenticated/team': typeof AuthenticatedTeamRoute
   '/_authenticated/upgrade': typeof AuthenticatedUpgradeRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/blog/search': typeof BlogSearchRoute
@@ -371,6 +389,7 @@ export interface FileRoutesById {
   '/error/$code': typeof ErrorCodeRoute
   '/blog/': typeof BlogIndexRoute
   '/_authenticated/checkout/status': typeof AuthenticatedCheckoutStatusRoute
+  '/_authenticated/invite/$token': typeof AuthenticatedInviteTokenRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/blog/category/$category': typeof BlogCategoryCategoryRoute
   '/blog/tag/$tag': typeof BlogTagTagRoute
@@ -407,6 +426,7 @@ export interface FileRouteTypes {
     | '/integrations'
     | '/onboarding'
     | '/setup'
+    | '/team'
     | '/upgrade'
     | '/blog/$slug'
     | '/blog/search'
@@ -414,6 +434,7 @@ export interface FileRouteTypes {
     | '/error/$code'
     | '/blog/'
     | '/checkout/status'
+    | '/invite/$token'
     | '/api/public/health'
     | '/blog/category/$category'
     | '/blog/tag/$tag'
@@ -447,6 +468,7 @@ export interface FileRouteTypes {
     | '/integrations'
     | '/onboarding'
     | '/setup'
+    | '/team'
     | '/upgrade'
     | '/blog/$slug'
     | '/blog/search'
@@ -454,6 +476,7 @@ export interface FileRouteTypes {
     | '/error/$code'
     | '/blog'
     | '/checkout/status'
+    | '/invite/$token'
     | '/api/public/health'
     | '/blog/category/$category'
     | '/blog/tag/$tag'
@@ -489,6 +512,7 @@ export interface FileRouteTypes {
     | '/_authenticated/integrations'
     | '/_authenticated/onboarding'
     | '/_authenticated/setup'
+    | '/_authenticated/team'
     | '/_authenticated/upgrade'
     | '/blog/$slug'
     | '/blog/search'
@@ -496,6 +520,7 @@ export interface FileRouteTypes {
     | '/error/$code'
     | '/blog/'
     | '/_authenticated/checkout/status'
+    | '/_authenticated/invite/$token'
     | '/api/public/health'
     | '/blog/category/$category'
     | '/blog/tag/$tag'
@@ -718,6 +743,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedUpgradeRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/team': {
+      id: '/_authenticated/team'
+      path: '/team'
+      fullPath: '/team'
+      preLoaderRoute: typeof AuthenticatedTeamRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/setup': {
       id: '/_authenticated/setup'
       path: '/setup'
@@ -781,6 +813,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHealthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/invite/$token': {
+      id: '/_authenticated/invite/$token'
+      path: '/invite/$token'
+      fullPath: '/invite/$token'
+      preLoaderRoute: typeof AuthenticatedInviteTokenRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/checkout/status': {
       id: '/_authenticated/checkout/status'
       path: '/status'
@@ -839,7 +878,9 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedIntegrationsRoute: typeof AuthenticatedIntegrationsRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedSetupRoute: typeof AuthenticatedSetupRoute
+  AuthenticatedTeamRoute: typeof AuthenticatedTeamRoute
   AuthenticatedUpgradeRoute: typeof AuthenticatedUpgradeRoute
+  AuthenticatedInviteTokenRoute: typeof AuthenticatedInviteTokenRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -849,7 +890,9 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedIntegrationsRoute: AuthenticatedIntegrationsRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedSetupRoute: AuthenticatedSetupRoute,
+  AuthenticatedTeamRoute: AuthenticatedTeamRoute,
   AuthenticatedUpgradeRoute: AuthenticatedUpgradeRoute,
+  AuthenticatedInviteTokenRoute: AuthenticatedInviteTokenRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
