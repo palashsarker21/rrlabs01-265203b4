@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, Lock } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { resolveCta, type CtaContext } from "@/lib/billing";
@@ -12,8 +12,8 @@ type Props = CtaContext & {
 };
 
 /**
- * Renders the correct pricing CTA — sign-up, checkout, manage, contact
- * sales, or a disabled "Coming Soon" — based on session + plan state.
+ * Renders the pricing CTA — sign-up, checkout, manage, or contact sales —
+ * based on session + plan state. Every plan is purchasable today.
  */
 export function CtaButton({
   variant = "primary",
@@ -34,21 +34,6 @@ export function CtaButton({
     className,
   );
 
-  if (state.disabled) {
-    return (
-      <Button
-        type="button"
-        disabled
-        size={size}
-        className={cn(btnClass, "cursor-not-allowed opacity-70")}
-        aria-label={`${ctx.plan.name} — ${state.label}`}
-      >
-        <Lock className="mr-1.5 h-4 w-4" />
-        {state.label}
-      </Button>
-    );
-  }
-
   return (
     <Link to={state.href} className={cn(fullWidth && "block")}>
       <Button size={size} className={btnClass} aria-label={`${ctx.plan.name} — ${state.label}`}>
@@ -58,3 +43,4 @@ export function CtaButton({
     </Link>
   );
 }
+

@@ -15,8 +15,9 @@ export const TRIAL_DAYS = 14;
 export type PlanCode = "starter" | "growth" | "business" | "enterprise";
 
 export type PlanCta =
-  | { kind: "trial"; label: "Start Free Trial" }
+  | { kind: "trial"; label: "Start Free 14-Day Trial" }
   | { kind: "contact_sales"; label: "Talk to Sales" };
+
 
 export type PricingPlan = {
   code: PlanCode;
