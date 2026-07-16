@@ -35,6 +35,19 @@ import {
   expireTrialsNow,
   listAdminBlogPosts,
 } from "@/lib/admin/ops.functions";
+import {
+  listAdminJobs,
+  getQueueStats,
+  retryJob,
+  moveJobToDlq,
+  cancelJob,
+  deleteJob,
+  bulkRetryFailed,
+  purgeDlq,
+  type JobRow,
+  type JobStatus,
+  type QueueStat,
+} from "@/lib/admin/queue.functions";
 
 function money(cents: number | null | undefined, currency = "USD") {
   const n = Number(cents ?? 0);
