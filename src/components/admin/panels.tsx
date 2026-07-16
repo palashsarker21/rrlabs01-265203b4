@@ -48,6 +48,7 @@ import {
   type JobStatus,
   type QueueStat,
 } from "@/lib/admin/queue.functions";
+import { runRlsTestSuite, type RlsTestResult } from "@/lib/rls-tests.functions";
 
 function money(cents: number | null | undefined, currency = "USD") {
   const n = Number(cents ?? 0);
