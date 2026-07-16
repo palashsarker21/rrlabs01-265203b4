@@ -83,7 +83,7 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
         ? `https://project--${process.env.LOVABLE_PROJECT_ID}.lovable.app`
         : undefined) ??
       "https://rrlabs.lovable.app";
-    const redirectUrl = `${publishedOrigin}/app?checkout=${session.id}`;
+    const redirectUrl = `${publishedOrigin}/checkout/status?session=${session.id}`;
 
     const email = (claims as { email?: string }).email;
 
