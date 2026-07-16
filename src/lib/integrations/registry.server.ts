@@ -119,6 +119,8 @@ const customStoreAdapter: Adapter = {
     if (!base || !apiKey || !creds.store_name?.trim()) {
       return { ok: false, message: "Store name, base URL and API key are required." };
     }
+    const baseErr = checkPublicHttpUrl(base);
+    if (baseErr) return { ok: false, message: `Base URL rejected: ${baseErr}` };
     const headers: Record<string, string> = { Accept: "application/json" };
     if (authType === "bearer") headers.Authorization = `Bearer ${apiKey}`;
     else if (authType === "api_key") headers["X-API-Key"] = apiKey;
