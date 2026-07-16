@@ -20,6 +20,7 @@ const STATUSES = [
   "cancelled",
 ] as const;
 export type JobStatus = (typeof STATUSES)[number];
+type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
 
 export type JobRow = {
   id: string;
