@@ -105,7 +105,7 @@ export const getQueueStats = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<QueueStat[]> => {
     await assertSuperAdmin(context);
-    const sb = context.supabase as {
+    const sb = context.supabase as unknown as {
       rpc: (
         fn: "admin_job_queue_stats",
       ) => Promise<{ data: unknown; error: unknown }>;
