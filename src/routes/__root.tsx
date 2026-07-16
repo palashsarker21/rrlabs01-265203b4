@@ -19,6 +19,8 @@ import { DebugErrorPanel } from "../components/debug-error-panel";
 import { GlobalDebugOverlay } from "../components/global-debug-overlay";
 import { AnnouncementBanner } from "../components/announcement-banner";
 import { isDebugMode } from "../lib/debug-mode";
+import { InstallPrompt } from "../components/install-prompt";
+import { registerPwa } from "../lib/pwa-register";
 
 function NotFoundComponent() {
   return <ErrorPage code={404} />;
