@@ -9,6 +9,7 @@
  */
 
 import type { Adapter, TestResult, AdapterCreds } from "@/lib/integrations/registry.server";
+import { checkPublicHttpUrl } from "@/lib/integrations/url-guard.server";
 
 function requireFields(fields: AdapterCreds, keys: string[]): string | null {
   for (const k of keys) {
@@ -28,6 +29,8 @@ export const eddAdapter: Adapter = {
     const err = requireFields(creds, ["site_url", "public_key", "secret_key"]);
     if (err) return { ok: false, message: err };
     const site = creds.site_url!.trim().replace(/\/+$/, "");
+    const siteErr = checkPublicHttpUrl(site);
+    if (siteErr) return { ok: false, message: `Site URL rejected: ${siteErr}` };
     // EDD REST returns 200 on ping when keys are valid.
     try {
       const res = await fetch(
@@ -49,6 +52,8 @@ export const memberpressAdapter: Adapter = {
     const err = requireFields(creds, ["site_url", "api_key"]);
     if (err) return { ok: false, message: err };
     const site = creds.site_url!.trim().replace(/\/+$/, "");
+    const siteErr = checkPublicHttpUrl(site);
+    if (siteErr) return { ok: false, message: `Site URL rejected: ${siteErr}` };
     try {
       const res = await fetch(`${site}/wp-json/mp/v1/me`, {
         headers: { "MEMBERPRESS-API-KEY": creds.api_key!, Accept: "application/json" },

@@ -9,6 +9,8 @@
 
 import { createHash } from "node:crypto";
 
+import { checkPublicHttpUrl } from "./url-guard.server";
+
 export interface TestResult {
   ok: boolean;
   message: string;
@@ -40,6 +42,8 @@ const shopifyAdapter: Adapter = {
     const version = (creds.api_version?.trim() || "2024-10").replace(/[^0-9-]/g, "");
     if (!url || !token)
       return { ok: false, message: "Store URL and Admin API token are required." };
+    const urlErr = checkPublicHttpUrl(url);
+    if (urlErr) return { ok: false, message: `Store URL rejected: ${urlErr}` };
     const res = await fetch(`${url}/admin/api/${version}/shop.json`, {
       headers: { "X-Shopify-Access-Token": token, Accept: "application/json" },
     });
@@ -77,6 +81,8 @@ const wooCommerceAdapter: Adapter = {
     const cs = creds.consumer_secret?.trim();
     if (!url || !ck || !cs)
       return { ok: false, message: "Store URL, consumer key and secret are required." };
+    const urlErr = checkPublicHttpUrl(url);
+    if (urlErr) return { ok: false, message: `Store URL rejected: ${urlErr}` };
     const auth = Buffer.from(`${ck}:${cs}`).toString("base64");
     const res = await fetch(`${url}/wp-json/wc/v3/system_status`, {
       headers: { Authorization: `Basic ${auth}`, Accept: "application/json" },
@@ -113,6 +119,8 @@ const customStoreAdapter: Adapter = {
     if (!base || !apiKey || !creds.store_name?.trim()) {
       return { ok: false, message: "Store name, base URL and API key are required." };
     }
+    const baseErr = checkPublicHttpUrl(base);
+    if (baseErr) return { ok: false, message: `Base URL rejected: ${baseErr}` };
     const headers: Record<string, string> = { Accept: "application/json" };
     if (authType === "bearer") headers.Authorization = `Bearer ${apiKey}`;
     else if (authType === "api_key") headers["X-API-Key"] = apiKey;
@@ -313,6 +321,8 @@ const customGatewayAdapter: Adapter = {
     if (!endpoint || !key || !creds.gateway_name?.trim()) {
       return { ok: false, message: "Gateway name, API endpoint and API key are required." };
     }
+    const endpointErr = checkPublicHttpUrl(endpoint);
+    if (endpointErr) return { ok: false, message: `API endpoint rejected: ${endpointErr}` };
     const res = await fetch(endpoint, {
       headers: { Authorization: `Bearer ${key}`, Accept: "application/json" },
     });
