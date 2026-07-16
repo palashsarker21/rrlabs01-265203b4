@@ -12,8 +12,8 @@ Legend: ✅ PASS · ⚠️ WARNING · ❌ FAIL
 |---|---|---|
 | Hosted checkout creation | ✅ | `createCheckoutSession` builds `/v1/checkouts` with variant + custom_data + redirect. |
 | Overlay / embed | ⚠️ | Redirect flow only (`embed:false`); embed is a future enhancement. |
-| Per-plan variant resolution | ✅ | Env override → DB `ls_variant_id`. |
-| Missing variant → "Coming Soon" | ✅ | `has_variant=false` disables CTA + server rejects. |
+| Per-plan variant resolution | ✅ | Env override → DB `ls_variant_id` → Lemon Squeezy store discovery. |
+| Self-serve checkout | ✅ | Starter, Growth, and Business remain purchasable; stale DB placeholders no longer disable checkout. |
 | Enterprise gated | ✅ | Routed to `/contact-sales`. |
 | Checkout session persisted | ✅ | Row created before LS call; webhook reconciles. |
 | Trial included | ✅ | Controlled via LS variant. |
@@ -80,8 +80,9 @@ Legend: ✅ PASS · ⚠️ WARNING · ❌ FAIL
 ## 7. Environment
 
 `src/lib/billing-env.ts::assertBillingEnv()` fails loudly on:
-`LEMONSQUEEZY_API_KEY`, `LEMONSQUEEZY_STORE_ID`, `LEMONSQUEEZY_WEBHOOK_SECRET`.
-Variants: `LEMONSQUEEZY_VARIANT_STARTER/GROWTH/BUSINESS` reported.
+`LEMONSQUEEZY_API_KEY`, `LEMONSQUEEZY_STORE_ID`, `LEMONSQUEEZY_WEBHOOK_SECRET`,
+`LEMONSQUEEZY_VARIANT_STARTER`, `LEMONSQUEEZY_VARIANT_GROWTH`, and
+`LEMONSQUEEZY_VARIANT_BUSINESS`.
 
 All required secrets are configured in this project.
 
