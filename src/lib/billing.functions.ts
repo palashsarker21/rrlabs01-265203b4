@@ -9,7 +9,6 @@ import {
   isSelfServePlan,
   lemonHeaders,
   resolveLemonSqueezyVariant,
-} from "@/lib/lemon-squeezy.server";
 } from "@/lib/lemon-squeezy";
 
 const createCheckoutInput = z.object({
