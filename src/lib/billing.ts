@@ -16,8 +16,7 @@ export type CtaKind =
   | "signup" // not signed in — send to /auth then to /checkout
   | "checkout" // signed in, no active sub — send to /checkout
   | "manage" // already has an active sub for this or higher plan
-  | "contact_sales" // enterprise / talk-to-sales
-  | "coming_soon"; // plan not yet wired up (missing LS variant)
+  | "contact_sales"; // enterprise / talk-to-sales
 
 export type CtaState = {
   kind: CtaKind;
@@ -28,8 +27,9 @@ export type CtaState = {
 
 export type CtaContext = {
   plan: PricingPlan;
-  /** Server-known "does this plan have a working checkout variant right now?"
-   * Provided by listPublicPlans; defaults to true for backwards compat. */
+  /** Kept for backwards compat; no longer affects the CTA. Every self-serve
+   * plan is purchasable — checkout falls back to the plan id when a
+   * per-variant checkout is not configured. */
   hasCheckoutVariant?: boolean;
   isAuthenticated: boolean;
   /** Currently subscribed plan code, if any. */
@@ -40,7 +40,6 @@ export type CtaContext = {
 
 export function resolveCta({
   plan,
-  hasCheckoutVariant = true,
   isAuthenticated,
   currentPlanCode,
   planIdForCheckout,
@@ -51,15 +50,6 @@ export function resolveCta({
       kind: "contact_sales",
       label: plan.cta.label,
       href: `/contact-sales?plan=${plan.code}`,
-    };
-  }
-
-  if (!hasCheckoutVariant) {
-    return {
-      kind: "coming_soon",
-      label: "Coming Soon",
-      href: "#",
-      disabled: true,
     };
   }
 
@@ -86,3 +76,4 @@ export function resolveCta({
     href: planIdForCheckout ? `/checkout?plan=${planIdForCheckout}` : "/checkout",
   };
 }
+

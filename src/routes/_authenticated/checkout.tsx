@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
-import { ArrowRight, Loader2, Lock } from "lucide-react";
+import { ArrowRight, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -106,30 +106,20 @@ function CheckoutPage() {
                 {selfServePlans.map((p) => {
                   const active = selectedPlanId === p.id;
                   const display = getPlanByCode(p.code);
-                  const disabled = !p.has_variant;
                   return (
                     <button
                       type="button"
                       key={p.id}
-                      onClick={() => !disabled && setSelectedPlanId(p.id)}
-                      disabled={disabled}
+                      onClick={() => setSelectedPlanId(p.id)}
                       className={
                         "rounded-xl border p-4 text-left transition-colors " +
-                        (disabled
-                          ? "cursor-not-allowed border-border/40 bg-muted/30 opacity-60"
-                          : active
-                            ? "border-primary bg-primary/5"
-                            : "border-border/60 bg-card/40 hover:bg-card/60")
+                        (active
+                          ? "border-primary bg-primary/5"
+                          : "border-border/60 bg-card/40 hover:bg-card/60")
                       }
                     >
                       <div className="flex items-center justify-between">
                         <div className="text-sm font-semibold text-foreground">{p.name}</div>
-                        {disabled && (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
-                            <Lock className="h-3 w-3" />
-                            Coming Soon
-                          </span>
-                        )}
                       </div>
                       <div className="mt-1 text-xs text-muted-foreground">
                         {p.price_cents != null
@@ -144,6 +134,7 @@ function CheckoutPage() {
                     </button>
                   );
                 })}
+
               </div>
             )}
           </div>

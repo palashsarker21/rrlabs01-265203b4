@@ -430,12 +430,8 @@ function ProviderCard({
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             <h3 className="truncate text-base font-semibold text-foreground">{provider.name}</h3>
-            {provider.beta && (
-              <span className="rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[10px] uppercase tracking-wider text-primary">
-                Beta
-              </span>
-            )}
             {disabled && (
+
               <span className="rounded-full border border-border/60 px-2 py-0.5 text-[10px] uppercase tracking-wider text-muted-foreground">
                 Disabled
               </span>

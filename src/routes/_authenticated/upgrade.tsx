@@ -155,19 +155,15 @@ function UpgradePage() {
                         <ArrowRight className="ml-2 h-4 w-4" />
                       </Link>
                     </Button>
-                  ) : !plan.has_variant ? (
-                    <Button disabled className="w-full">
-                      <Lock className="mr-2 h-4 w-4" />
-                      Coming Soon
-                    </Button>
                   ) : (
                     <Button asChild className="w-full" variant={featured ? "default" : "outline"}>
                       <Link to="/checkout" search={{ plan: plan.id }}>
-                        Upgrade to {plan.name}
+                        Start Free 14-Day Trial
                         <ArrowRight className="ml-2 h-4 w-4" />
                       </Link>
                     </Button>
                   )}
+
                 </div>
               </div>
             );

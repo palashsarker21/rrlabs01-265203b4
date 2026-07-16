@@ -26,7 +26,7 @@ export const Route = createFileRoute("/pricing")({
       { title: "Pricing — Enterprise plans that grow with your revenue | RRLabs" },
       {
         name: "description",
-        content: `Enterprise pricing for AI-powered revenue recovery. Starter $29, Growth $99, Business $299. ${TRIAL_DAYS}-day free trial. No credit card required.`,
+        content: `Enterprise pricing for AI-powered revenue recovery, available today. Starter $29, Growth $99, Scale $299. ${TRIAL_DAYS}-day free trial. No credit card required.`,
       },
       { property: "og:title", content: "RRLabs Pricing" },
       {
@@ -169,8 +169,8 @@ function PlanCard({
 }) {
   const highlight = !!plan.highlight;
   const enterprise = !!plan.enterprise;
-  // Default to true while server data loads to avoid flashing "Coming Soon".
   const hasCheckoutVariant = server ? !!server.has_variant : true;
+
   return (
     <div
       className={
