@@ -44,6 +44,7 @@ import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/
 import { Route as BlogTagTagRouteImport } from './routes/blog.tag.$tag'
 import { Route as BlogCategoryCategoryRouteImport } from './routes/blog.category.$category'
 import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
+import { Route as AuthenticatedCheckoutStatusRouteImport } from './routes/_authenticated/checkout.status'
 import { Route as ApiPublicWebhooksStripeRouteImport } from './routes/api/public/webhooks/stripe'
 import { Route as ApiPublicWebhooksLemonsqueezyRouteImport } from './routes/api/public/webhooks/lemonsqueezy'
 import { Route as ApiPublicHooksRecoveryCadenceRouteImport } from './routes/api/public/hooks/recovery-cadence'
@@ -224,6 +225,12 @@ const ApiPublicHealthRoute = ApiPublicHealthRouteImport.update({
   path: '/api/public/health',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedCheckoutStatusRoute =
+  AuthenticatedCheckoutStatusRouteImport.update({
+    id: '/status',
+    path: '/status',
+    getParentRoute: () => AuthenticatedCheckoutRoute,
+  } as any)
 const ApiPublicWebhooksStripeRoute = ApiPublicWebhooksStripeRouteImport.update({
   id: '/api/public/webhooks/stripe',
   path: '/api/public/webhooks/stripe',
@@ -270,7 +277,7 @@ export interface FileRoutesByFullPath {
   '/terms': typeof TermsRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/app': typeof AuthenticatedAppRoute
-  '/checkout': typeof AuthenticatedCheckoutRoute
+  '/checkout': typeof AuthenticatedCheckoutRouteWithChildren
   '/integrations': typeof AuthenticatedIntegrationsRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/setup': typeof AuthenticatedSetupRoute
@@ -280,6 +287,7 @@ export interface FileRoutesByFullPath {
   '/docs/api': typeof DocsApiRoute
   '/error/$code': typeof ErrorCodeRoute
   '/blog/': typeof BlogIndexRoute
+  '/checkout/status': typeof AuthenticatedCheckoutStatusRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/blog/category/$category': typeof BlogCategoryCategoryRoute
   '/blog/tag/$tag': typeof BlogTagTagRoute
@@ -309,7 +317,7 @@ export interface FileRoutesByTo {
   '/terms': typeof TermsRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/app': typeof AuthenticatedAppRoute
-  '/checkout': typeof AuthenticatedCheckoutRoute
+  '/checkout': typeof AuthenticatedCheckoutRouteWithChildren
   '/integrations': typeof AuthenticatedIntegrationsRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/setup': typeof AuthenticatedSetupRoute
@@ -319,6 +327,7 @@ export interface FileRoutesByTo {
   '/docs/api': typeof DocsApiRoute
   '/error/$code': typeof ErrorCodeRoute
   '/blog': typeof BlogIndexRoute
+  '/checkout/status': typeof AuthenticatedCheckoutStatusRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/blog/category/$category': typeof BlogCategoryCategoryRoute
   '/blog/tag/$tag': typeof BlogTagTagRoute
@@ -351,7 +360,7 @@ export interface FileRoutesById {
   '/terms': typeof TermsRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/app': typeof AuthenticatedAppRoute
-  '/_authenticated/checkout': typeof AuthenticatedCheckoutRoute
+  '/_authenticated/checkout': typeof AuthenticatedCheckoutRouteWithChildren
   '/_authenticated/integrations': typeof AuthenticatedIntegrationsRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/setup': typeof AuthenticatedSetupRoute
@@ -361,6 +370,7 @@ export interface FileRoutesById {
   '/docs/api': typeof DocsApiRoute
   '/error/$code': typeof ErrorCodeRoute
   '/blog/': typeof BlogIndexRoute
+  '/_authenticated/checkout/status': typeof AuthenticatedCheckoutStatusRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/blog/category/$category': typeof BlogCategoryCategoryRoute
   '/blog/tag/$tag': typeof BlogTagTagRoute
@@ -403,6 +413,7 @@ export interface FileRouteTypes {
     | '/docs/api'
     | '/error/$code'
     | '/blog/'
+    | '/checkout/status'
     | '/api/public/health'
     | '/blog/category/$category'
     | '/blog/tag/$tag'
@@ -442,6 +453,7 @@ export interface FileRouteTypes {
     | '/docs/api'
     | '/error/$code'
     | '/blog'
+    | '/checkout/status'
     | '/api/public/health'
     | '/blog/category/$category'
     | '/blog/tag/$tag'
@@ -483,6 +495,7 @@ export interface FileRouteTypes {
     | '/docs/api'
     | '/error/$code'
     | '/blog/'
+    | '/_authenticated/checkout/status'
     | '/api/public/health'
     | '/blog/category/$category'
     | '/blog/tag/$tag'
@@ -768,6 +781,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHealthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/checkout/status': {
+      id: '/_authenticated/checkout/status'
+      path: '/status'
+      fullPath: '/checkout/status'
+      preLoaderRoute: typeof AuthenticatedCheckoutStatusRouteImport
+      parentRoute: typeof AuthenticatedCheckoutRoute
+    }
     '/api/public/webhooks/stripe': {
       id: '/api/public/webhooks/stripe'
       path: '/api/public/webhooks/stripe'
@@ -799,10 +819,23 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedCheckoutRouteChildren {
+  AuthenticatedCheckoutStatusRoute: typeof AuthenticatedCheckoutStatusRoute
+}
+
+const AuthenticatedCheckoutRouteChildren: AuthenticatedCheckoutRouteChildren = {
+  AuthenticatedCheckoutStatusRoute: AuthenticatedCheckoutStatusRoute,
+}
+
+const AuthenticatedCheckoutRouteWithChildren =
+  AuthenticatedCheckoutRoute._addFileChildren(
+    AuthenticatedCheckoutRouteChildren,
+  )
+
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedAppRoute: typeof AuthenticatedAppRoute
-  AuthenticatedCheckoutRoute: typeof AuthenticatedCheckoutRoute
+  AuthenticatedCheckoutRoute: typeof AuthenticatedCheckoutRouteWithChildren
   AuthenticatedIntegrationsRoute: typeof AuthenticatedIntegrationsRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedSetupRoute: typeof AuthenticatedSetupRoute
@@ -812,7 +845,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedAppRoute: AuthenticatedAppRoute,
-  AuthenticatedCheckoutRoute: AuthenticatedCheckoutRoute,
+  AuthenticatedCheckoutRoute: AuthenticatedCheckoutRouteWithChildren,
   AuthenticatedIntegrationsRoute: AuthenticatedIntegrationsRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedSetupRoute: AuthenticatedSetupRoute,
