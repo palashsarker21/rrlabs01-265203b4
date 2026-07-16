@@ -55,12 +55,7 @@ function CheckoutPage() {
       toast.error("Please pick a plan.");
       return;
     }
-    if (!chosen.has_variant) {
-      toast.error(
-        "This plan isn't available for self-serve checkout yet. Contact sales to get set up.",
-      );
-      return;
-    }
+
     setSubmitting(true);
     try {
       const { url } = await startCheckout({

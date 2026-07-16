@@ -41,12 +41,16 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
       business: process.env.LEMONSQUEEZY_VARIANT_BUSINESS,
       scale: process.env.LEMONSQUEEZY_VARIANT_SCALE,
     };
-    const variantId = envVariantByCode[plan.code] ?? plan.ls_variant_id;
-    if (!variantId || variantId.startsWith("ls_variant_")) {
+    const rawVariantId = envVariantByCode[plan.code] ?? plan.ls_variant_id ?? "";
+    // Treat any leftover DB placeholder like "ls_variant_starter_placeholder"
+    // as unset — the env override is the source of truth in production.
+    const variantId = rawVariantId.startsWith("ls_variant_") ? "" : rawVariantId;
+    if (!variantId) {
       throw new Error(
-        "This plan isn't available for self-serve checkout yet. Please try again later or contact sales.",
+        "Checkout is temporarily unavailable for this plan. Please contact support@rrlabs.online.",
       );
     }
+
 
     const apiKey = process.env.LEMONSQUEEZY_API_KEY;
     const storeId = process.env.LEMONSQUEEZY_STORE_ID;
