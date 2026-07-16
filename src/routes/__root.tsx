@@ -20,6 +20,7 @@ import { GlobalDebugOverlay } from "../components/global-debug-overlay";
 import { AnnouncementBanner } from "../components/announcement-banner";
 import { isDebugMode } from "../lib/debug-mode";
 import { InstallPrompt } from "../components/install-prompt";
+import { IosInstallHelp } from "../components/ios-install-help";
 import { registerPwa } from "../lib/pwa-register";
 
 function NotFoundComponent() {
