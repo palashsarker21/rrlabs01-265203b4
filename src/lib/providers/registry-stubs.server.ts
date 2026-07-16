@@ -28,6 +28,8 @@ export const eddAdapter: Adapter = {
     const err = requireFields(creds, ["site_url", "public_key", "secret_key"]);
     if (err) return { ok: false, message: err };
     const site = creds.site_url!.trim().replace(/\/+$/, "");
+    const siteErr = checkPublicHttpUrl(site);
+    if (siteErr) return { ok: false, message: `Site URL rejected: ${siteErr}` };
     // EDD REST returns 200 on ping when keys are valid.
     try {
       const res = await fetch(
