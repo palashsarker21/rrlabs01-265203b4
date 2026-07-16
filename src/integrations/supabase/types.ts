@@ -985,6 +985,74 @@ export type Database = {
           },
         ]
       }
+      job_queue: {
+        Row: {
+          attempts: number
+          completed_at: string | null
+          created_at: string
+          id: string
+          job_type: string
+          last_error: string | null
+          max_attempts: number
+          moved_to_dlq_at: string | null
+          next_retry_at: string | null
+          payload: Json
+          priority: number
+          queue: string
+          scheduled_for: string
+          started_at: string | null
+          status: string
+          updated_at: string
+          workspace_id: string | null
+        }
+        Insert: {
+          attempts?: number
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          job_type: string
+          last_error?: string | null
+          max_attempts?: number
+          moved_to_dlq_at?: string | null
+          next_retry_at?: string | null
+          payload?: Json
+          priority?: number
+          queue: string
+          scheduled_for?: string
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+          workspace_id?: string | null
+        }
+        Update: {
+          attempts?: number
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          job_type?: string
+          last_error?: string | null
+          max_attempts?: number
+          moved_to_dlq_at?: string | null
+          next_retry_at?: string | null
+          payload?: Json
+          priority?: number
+          queue?: string
+          scheduled_for?: string
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+          workspace_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_queue_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       newsletter_subscribers: {
         Row: {
           confirmed: boolean
@@ -1864,6 +1932,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_job_queue_stats: {
+        Args: never
+        Returns: {
+          count: number
+          queue: string
+          status: string
+        }[]
+      }
       admin_set_workspace_engine: {
         Args: { _enabled: boolean; _workspace_id: string }
         Returns: boolean
