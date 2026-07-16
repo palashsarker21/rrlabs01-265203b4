@@ -169,6 +169,11 @@ function RootComponent() {
     return () => sub.subscription.unsubscribe();
   }, [router, queryClient]);
 
+  useEffect(() => {
+    void registerPwa();
+  }, []);
+
+
   return (
     <QueryClientProvider client={queryClient}>
       <ErrorBoundary boundary="root_client_boundary">
