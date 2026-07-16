@@ -8,7 +8,7 @@ import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-const ROLES = ["owner", "admin", "member", "viewer"] as const;
+const ROLES = ["owner", "admin", "manager", "member", "viewer"] as const;
 type Role = (typeof ROLES)[number];
 
 async function assertManager(
