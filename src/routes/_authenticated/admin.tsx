@@ -30,6 +30,7 @@ import {
   KeyRound,
   Megaphone,
   AlertTriangle,
+  ListChecks,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
