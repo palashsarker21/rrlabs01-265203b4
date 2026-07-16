@@ -83,7 +83,7 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
         ? `https://project--${process.env.LOVABLE_PROJECT_ID}.lovable.app`
         : undefined) ??
       "https://rrlabs.lovable.app";
-    const redirectUrl = `${publishedOrigin}/app?checkout=${session.id}`;
+    const redirectUrl = `${publishedOrigin}/checkout/status?session=${session.id}`;
 
     const email = (claims as { email?: string }).email;
 
@@ -198,3 +198,68 @@ export const listPublicPlans = createServerFn({ method: "GET" }).handler(async (
     return { ...rest, has_variant: hasVariant };
   });
 });
+
+const statusInput = z.object({ sessionId: z.string().uuid() });
+
+/**
+ * Polled by /checkout/status after the customer returns from Lemon Squeezy.
+ * Returns the current fulfillment state so the UI can flip between the
+ * in-progress, success, and failure views.
+ */
+export const getCheckoutSessionStatus = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((raw) => statusInput.parse(raw))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { data: row, error } = await supabase
+      .from("checkout_sessions")
+      .select(
+        "id, status, fulfilled_workspace_id, plan_id, organization_name, workspace_name, created_at",
+      )
+      .eq("id", data.sessionId)
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!row) return { state: "not_found" as const };
+
+    let workspaceSlug: string | null = null;
+    let planName: string | null = null;
+    if (row.fulfilled_workspace_id) {
+      const { data: ws } = await supabase
+        .from("workspaces")
+        .select("slug")
+        .eq("id", row.fulfilled_workspace_id)
+        .maybeSingle();
+      workspaceSlug = ws?.slug ?? null;
+    }
+    if (row.plan_id) {
+      const { data: plan } = await supabase
+        .from("plans")
+        .select("name")
+        .eq("id", row.plan_id)
+        .maybeSingle();
+      planName = plan?.name ?? null;
+    }
+
+    // Treat sessions still pending after 15 minutes as timed out — the LS
+    // webhook always fires well before that on success.
+    const ageMs = Date.now() - new Date(row.created_at).getTime();
+    const isStale = row.status === "pending" && ageMs > 15 * 60 * 1000;
+
+    const state: "pending" | "completed" | "failed" | "timeout" =
+      row.status === "completed"
+        ? "completed"
+        : row.status === "failed"
+          ? "failed"
+          : isStale
+            ? "timeout"
+            : "pending";
+
+    return {
+      state,
+      workspaceSlug,
+      planName,
+      organizationName: row.organization_name,
+    };
+  });
+
