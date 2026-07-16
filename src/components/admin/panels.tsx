@@ -48,6 +48,7 @@ import {
   type JobStatus,
   type QueueStat,
 } from "@/lib/admin/queue.functions";
+import { runRlsTestSuite, type RlsTestResult } from "@/lib/rls-tests.functions";
 
 function money(cents: number | null | undefined, currency = "USD") {
   const n = Number(cents ?? 0);
@@ -1103,7 +1104,96 @@ export function SecurityCenterPanel() {
           </tbody>
         </table>
       </div>
+
+      <RlsTestSuiteCard />
     </section>
+  );
+}
+
+function RlsTestSuiteCard() {
+  const run = useServerFn(runRlsTestSuite);
+  const [running, setRunning] = useState(false);
+  const [report, setReport] = useState<{
+    ran_at: string;
+    total: number;
+    passed: number;
+    failed: number;
+    results: RlsTestResult[];
+  } | null>(null);
+
+  async function onRun() {
+    setRunning(true);
+    try {
+      const r = await run({});
+      setReport(r);
+      if (r.failed === 0) toast.success(`All ${r.total} RLS tests passed`);
+      else toast.error(`${r.failed} of ${r.total} RLS tests failed`);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to run RLS tests");
+    } finally {
+      setRunning(false);
+    }
+  }
+
+  return (
+    <div className="rounded-2xl border border-border/60 bg-card/50">
+      <div className="flex items-start justify-between gap-4 border-b border-border/60 p-4">
+        <div>
+          <h3 className="text-sm font-semibold">Cross-tenant RLS test suite</h3>
+          <p className="text-xs text-muted-foreground">
+            Spins up two synthetic tenants, impersonates each user, and verifies reads, writes,
+            updates, and invites are blocked across tenants. Cleans up after every run.
+          </p>
+        </div>
+        <Button size="sm" onClick={onRun} disabled={running}>
+          <Play className="mr-2 h-4 w-4" />
+          {running ? "Running…" : "Run tests"}
+        </Button>
+      </div>
+      {report && (
+        <div className="p-4">
+          <div className="mb-3 flex items-center gap-3 text-xs text-muted-foreground">
+            <span>Ran {fmt(report.ran_at)}</span>
+            <span className="rounded bg-emerald-500/10 px-2 py-0.5 text-emerald-500">
+              {report.passed} passed
+            </span>
+            {report.failed > 0 && (
+              <span className="rounded bg-red-500/10 px-2 py-0.5 text-red-500">
+                {report.failed} failed
+              </span>
+            )}
+          </div>
+          <table className="w-full text-sm">
+            <thead className="bg-background/40 text-xs uppercase text-muted-foreground">
+              <tr>
+                <th className="px-3 py-2 text-left">Test</th>
+                <th className="px-3 py-2 text-left">Status</th>
+                <th className="px-3 py-2 text-left">Detail</th>
+              </tr>
+            </thead>
+            <tbody>
+              {report.results.map((r) => (
+                <tr key={r.test_name} className="border-t border-border/60">
+                  <td className="px-3 py-2 font-mono text-xs">{r.test_name}</td>
+                  <td className="px-3 py-2">
+                    {r.passed ? (
+                      <span className="rounded bg-emerald-500/10 px-2 py-0.5 text-xs text-emerald-500">
+                        PASS
+                      </span>
+                    ) : (
+                      <span className="rounded bg-red-500/10 px-2 py-0.5 text-xs text-red-500">
+                        FAIL
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-3 py-2 text-xs text-muted-foreground">{r.detail}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
   );
 }
 

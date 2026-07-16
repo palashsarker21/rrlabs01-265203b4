@@ -2065,6 +2065,14 @@ export type Database = {
           workspace_id: string
         }[]
       }
+      run_rls_test_suite: {
+        Args: never
+        Returns: {
+          detail: string
+          passed: boolean
+          test_name: string
+        }[]
+      }
       workspace_can_send: { Args: { _workspace_id: string }; Returns: boolean }
       workspace_provider_limit: {
         Args: { _kind: string; _workspace_id: string }
@@ -2110,7 +2118,7 @@ export type Database = {
         | "unpaid"
         | "cancelled"
         | "expired"
-      workspace_role: "owner" | "admin" | "member" | "viewer"
+      workspace_role: "owner" | "admin" | "manager" | "member" | "viewer"
       workspace_status:
         | "setup"
         | "active"
@@ -2286,7 +2294,7 @@ export const Constants = {
         "cancelled",
         "expired",
       ],
-      workspace_role: ["owner", "admin", "member", "viewer"],
+      workspace_role: ["owner", "admin", "manager", "member", "viewer"],
       workspace_status: [
         "setup",
         "active",
