@@ -56,8 +56,8 @@ export const PLANS: PricingPlan[] = [
     tagline: "Best for startups.",
     price: "$29",
     priceSuffix: "/month",
-    successFee: "+3% success fee",
-    successFeeBps: 300,
+    successFee: "+5% of successfully recovered revenue",
+    successFeeBps: 500,
     monthlyBaseCents: 2900,
     features: [
       "AI Recovery Engine",
@@ -68,7 +68,7 @@ export const PLANS: PricingPlan[] = [
       "Basic Analytics",
       "Community Support",
     ],
-    cta: { kind: "trial", label: "Start Free Trial" },
+    cta: { kind: "trial", label: "Start Free 14-Day Trial" },
     lsVariantEnvKey: "LEMONSQUEEZY_VARIANT_STARTER",
   },
   {
@@ -77,8 +77,8 @@ export const PLANS: PricingPlan[] = [
     tagline: "For scaling teams that need automation and priority support.",
     price: "$99",
     priceSuffix: "/month",
-    successFee: "+2.5% success fee",
-    successFeeBps: 250,
+    successFee: "+4% of successfully recovered revenue",
+    successFeeBps: 400,
     monthlyBaseCents: 9900,
     featuresLead: "Everything in Starter, plus",
     features: [
@@ -90,18 +90,18 @@ export const PLANS: PricingPlan[] = [
       "Up to 3 Store Connections",
       "Priority Support",
     ],
-    cta: { kind: "trial", label: "Start Free Trial" },
+    cta: { kind: "trial", label: "Start Free 14-Day Trial" },
     highlight: true,
     lsVariantEnvKey: "LEMONSQUEEZY_VARIANT_GROWTH",
   },
   {
     code: "business",
-    name: "Business",
+    name: "Scale",
     tagline: "Built for growing SaaS companies.",
     price: "$299",
     priceSuffix: "/month",
-    successFee: "+2% success fee",
-    successFeeBps: 200,
+    successFee: "+3% of successfully recovered revenue",
+    successFeeBps: 300,
     monthlyBaseCents: 29900,
     featuresLead: "Everything in Growth, plus",
     features: [
@@ -112,7 +112,7 @@ export const PLANS: PricingPlan[] = [
       "Enterprise-grade Security",
       "Dedicated Success Manager",
     ],
-    cta: { kind: "trial", label: "Start Free Trial" },
+    cta: { kind: "trial", label: "Start Free 14-Day Trial" },
     lsVariantEnvKey: "LEMONSQUEEZY_VARIANT_BUSINESS",
   },
   {
@@ -121,7 +121,7 @@ export const PLANS: PricingPlan[] = [
     tagline: "For enterprises with advanced requirements.",
     price: "Custom",
     priceLead: "Starting at $999/month",
-    successFee: "Starting from 2% success fee",
+    successFee: "+1–2% of successfully recovered revenue",
     successFeeBps: 200,
     monthlyBaseCents: null,
     features: [
@@ -138,6 +138,7 @@ export const PLANS: PricingPlan[] = [
     cta: { kind: "contact_sales", label: "Talk to Sales" },
     enterprise: true,
   },
+
 ];
 
 export function getPlanByCode(code: string): PricingPlan | undefined {
