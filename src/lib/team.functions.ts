@@ -12,9 +12,7 @@ const ROLES = ["owner", "admin", "member", "viewer"] as const;
 type Role = (typeof ROLES)[number];
 
 async function assertManager(
-  supabase: Awaited<ReturnType<typeof requireSupabaseAuth>> extends never
-    ? never
-    : import("@supabase/supabase-js").SupabaseClient,
+  supabase: import("@supabase/supabase-js").SupabaseClient,
   workspaceId: string,
   userId: string,
 ) {
@@ -25,6 +23,7 @@ async function assertManager(
   if (error) throw new Error(error.message);
   if (!data) throw new Error("You must be a workspace owner or admin.");
 }
+
 
 /** List members of a workspace (RLS scopes to workspaces the caller belongs to). */
 export const listWorkspaceMembers = createServerFn({ method: "GET" })
