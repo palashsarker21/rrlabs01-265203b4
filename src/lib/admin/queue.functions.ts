@@ -36,7 +36,7 @@ export type JobRow = {
   started_at: string | null;
   completed_at: string | null;
   moved_to_dlq_at: string | null;
-  payload: unknown;
+  payload: JsonValue;
   created_at: string;
   updated_at: string;
 };
