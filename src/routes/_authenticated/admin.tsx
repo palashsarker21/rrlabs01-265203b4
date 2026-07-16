@@ -70,6 +70,7 @@ import {
   ApiKeysPanel,
   AnnouncementsPanel,
   IncidentsPanel,
+  QueueManagerPanel,
 } from "@/components/admin/panels";
 
 type TabKey =
