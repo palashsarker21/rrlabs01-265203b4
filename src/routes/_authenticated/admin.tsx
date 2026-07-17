@@ -336,6 +336,8 @@ function AdminConsole() {
           <BillingEventsPanel />
         ) : tab === "checkouts" ? (
           <CheckoutSessionsPanel />
+        ) : tab === "success_fee" ? (
+          <SuccessFeePanel />
         ) : tab === "webhooks" ? (
           <WebhookMonitorPanel />
         ) : tab === "integrations" ? (
