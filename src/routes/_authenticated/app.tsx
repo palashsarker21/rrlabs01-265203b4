@@ -27,6 +27,7 @@ import { TrialBadge, TrialReminderBanner, WorkspaceStatusBadge } from "@/compone
 import { computeTrialInfo } from "@/lib/trial";
 import { getRecoveryStats, listRecoveryEvents, retryRecoveryEvent } from "@/lib/recovery.functions";
 import { getMyAdminStatus } from "@/lib/admin.functions";
+import { listAlerts } from "@/lib/notifications.functions";
 import { BillingPanel } from "@/components/billing/billing-panel";
 
 export const Route = createFileRoute("/_authenticated/app")({
