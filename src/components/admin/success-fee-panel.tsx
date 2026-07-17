@@ -246,7 +246,19 @@ export function SuccessFeePanel() {
               size="sm"
               variant="ghost"
               className="h-7 px-2 text-xs text-rose-500"
-              onClick={() => setVoidOpen(r)}
+              onClick={async () => {
+                const reason = window.prompt(
+                  `Void statement ${r.period_start.slice(0, 7)}? Enter a reason for the audit log:`,
+                );
+                if (!reason) return;
+                try {
+                  await voidFn({ data: { id: r.id, reason } });
+                  toast.success("Statement voided.");
+                  await refresh();
+                } catch (err) {
+                  toast.error(err instanceof Error ? err.message : "Void failed.");
+                }
+              }}
             >
               <XCircle className="mr-1 h-3 w-3" />
               Void
