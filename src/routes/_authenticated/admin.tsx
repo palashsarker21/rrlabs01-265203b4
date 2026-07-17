@@ -71,6 +71,7 @@ import {
   AnnouncementsPanel,
   IncidentsPanel,
   QueueManagerPanel,
+  CheckoutSessionsPanel,
 } from "@/components/admin/panels";
 
 type TabKey =
