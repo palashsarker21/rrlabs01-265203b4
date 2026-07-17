@@ -22,8 +22,8 @@ import { Button } from "@/components/ui/button";
 import { BrandLockup } from "@/components/brand-mark";
 import { cn } from "@/lib/utils";
 import { listWorkspaceIntegrations } from "@/lib/integrations.functions";
-import { listWorkspaceProviderStatuses } from "@/lib/providers.functions";
-import { PROVIDER_STEP_ORDER, integrationKindFor, type ProviderKind } from "@/lib/providers/kinds";
+import { listProviderCatalog } from "@/lib/providers.functions";
+import { PROVIDER_STEP_ORDER, type ProviderKind } from "@/lib/providers/kinds";
 
 export const Route = createFileRoute("/_authenticated/getting-started")({
   head: () => ({
