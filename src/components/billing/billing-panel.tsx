@@ -130,6 +130,55 @@ export function BillingPanel({ workspaceId }: { workspaceId: string }) {
         ) : null}
       </dl>
 
+      {fee && (fee.currentMonth.feeBps > 0 || fee.outstandingInvoice || fee.lastFinalized) ? (
+        <div className="mt-5 rounded-xl border border-border/60 bg-background/40 p-4">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <Receipt className="h-4 w-4 text-primary" />
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-foreground">
+                Success fee — {fee.currentMonth.label}
+              </h3>
+            </div>
+            <Button asChild size="sm" variant="ghost" className="h-7 text-xs">
+              <Link to="/billing/statements" search={{ workspaceId }}>
+                View statements
+                <ArrowRight className="ml-1 h-3 w-3" />
+              </Link>
+            </Button>
+          </div>
+          <div className="mt-3 grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <div className="text-xs text-muted-foreground">Recovered this month</div>
+              <div className="mt-1 font-semibold text-foreground">
+                {money(fee.currentMonth.recoveredCents, plan?.currency ?? "USD")}
+              </div>
+            </div>
+            <div>
+              <div className="text-xs text-muted-foreground">
+                Accrued fee ({(fee.currentMonth.feeBps / 100).toFixed(1)}%)
+              </div>
+              <div className="mt-1 font-semibold text-emerald-600 dark:text-emerald-400">
+                {money(fee.currentMonth.accruedFeeCents, plan?.currency ?? "USD")}
+              </div>
+            </div>
+          </div>
+          {fee.outstandingInvoice?.ls_checkout_url ? (
+            <a
+              href={fee.outstandingInvoice.ls_checkout_url}
+              target="_blank"
+              rel="noreferrer noopener"
+              className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-primary underline"
+            >
+              Pay outstanding invoice ({money(
+                fee.outstandingInvoice.net_amount_cents,
+                fee.outstandingInvoice.currency,
+              )})
+              <ExternalLink className="h-3 w-3" />
+            </a>
+          ) : null}
+        </div>
+      ) : null}
+
       <div className="mt-5 flex flex-wrap gap-2">
         <Button asChild size="sm" variant="outline">
           <Link to="/upgrade">
