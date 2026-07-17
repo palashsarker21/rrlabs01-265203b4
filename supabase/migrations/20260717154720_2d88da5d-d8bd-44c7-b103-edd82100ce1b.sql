@@ -1,0 +1,2 @@
+REVOKE EXECUTE ON FUNCTION public.create_alert(uuid, public.alert_category, public.alert_severity, text, text, text, text, jsonb, text) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.create_alert(uuid, public.alert_category, public.alert_severity, text, text, text, text, jsonb, text) TO service_role;

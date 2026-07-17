@@ -15,8 +15,10 @@ import {
   ArrowRight,
   Activity,
   Users,
+  Bell,
 
 } from "lucide-react";
+
 
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -25,6 +27,7 @@ import { TrialBadge, TrialReminderBanner, WorkspaceStatusBadge } from "@/compone
 import { computeTrialInfo } from "@/lib/trial";
 import { getRecoveryStats, listRecoveryEvents, retryRecoveryEvent } from "@/lib/recovery.functions";
 import { getMyAdminStatus } from "@/lib/admin.functions";
+import { listAlerts } from "@/lib/notifications.functions";
 import { BillingPanel } from "@/components/billing/billing-panel";
 
 export const Route = createFileRoute("/_authenticated/app")({
@@ -110,6 +113,15 @@ function AppShell() {
     refetchInterval: 15000,
   });
   const eventsData = eventsQuery.data;
+
+  const alertsFn = useServerFn(listAlerts);
+  const alertsQuery = useQuery({
+    enabled: !!activeWorkspace,
+    queryKey: ["alerts-open-count", activeWorkspace?.id],
+    queryFn: () => alertsFn({ data: { workspaceId: activeWorkspace!.id, status: "open", limit: 1 } }),
+    refetchInterval: 30000,
+  });
+  const openAlerts = alertsQuery.data?.openCount ?? 0;
 
   async function handleSignOut() {
     setSigningOut(true);
@@ -207,6 +219,17 @@ function AppShell() {
               <Link to="/analytics">
                 <Sparkles className="mr-2 h-4 w-4" />
                 Analytics
+              </Link>
+            </Button>
+            <Button asChild size="sm" variant="outline" className="relative">
+              <Link to="/notifications">
+                <Bell className="mr-2 h-4 w-4" />
+                Notifications
+                {openAlerts > 0 && (
+                  <span className="ml-2 inline-flex min-w-5 items-center justify-center rounded-full bg-destructive px-1.5 text-[10px] font-semibold text-destructive-foreground">
+                    {openAlerts > 99 ? "99+" : openAlerts}
+                  </span>
+                )}
               </Link>
             </Button>
             {!engineOn && (

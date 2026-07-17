@@ -38,6 +38,68 @@ export type Database = {
         }
         Relationships: []
       }
+      alerts: {
+        Row: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          category: Database["public"]["Enums"]["alert_category"]
+          created_at: string
+          dedupe_key: string | null
+          entity: string | null
+          entity_id: string | null
+          id: string
+          message: string | null
+          payload: Json
+          severity: Database["public"]["Enums"]["alert_severity"]
+          status: Database["public"]["Enums"]["alert_status"]
+          title: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          category: Database["public"]["Enums"]["alert_category"]
+          created_at?: string
+          dedupe_key?: string | null
+          entity?: string | null
+          entity_id?: string | null
+          id?: string
+          message?: string | null
+          payload?: Json
+          severity?: Database["public"]["Enums"]["alert_severity"]
+          status?: Database["public"]["Enums"]["alert_status"]
+          title: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          category?: Database["public"]["Enums"]["alert_category"]
+          created_at?: string
+          dedupe_key?: string | null
+          entity?: string | null
+          entity_id?: string | null
+          id?: string
+          message?: string | null
+          payload?: Json
+          severity?: Database["public"]["Enums"]["alert_severity"]
+          status?: Database["public"]["Enums"]["alert_status"]
+          title?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alerts_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       announcement_dismissals: {
         Row: {
           announcement_id: string
@@ -1146,6 +1208,50 @@ export type Database = {
           },
         ]
       }
+      notification_preferences: {
+        Row: {
+          category: Database["public"]["Enums"]["alert_category"]
+          created_at: string
+          email: boolean
+          id: string
+          in_app: boolean
+          min_severity: Database["public"]["Enums"]["alert_severity"]
+          updated_at: string
+          user_id: string
+          workspace_id: string
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["alert_category"]
+          created_at?: string
+          email?: boolean
+          id?: string
+          in_app?: boolean
+          min_severity?: Database["public"]["Enums"]["alert_severity"]
+          updated_at?: string
+          user_id: string
+          workspace_id: string
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["alert_category"]
+          created_at?: string
+          email?: boolean
+          id?: string
+          in_app?: boolean
+          min_severity?: Database["public"]["Enums"]["alert_severity"]
+          updated_at?: string
+          user_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_preferences_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organizations: {
         Row: {
           billing_email: string | null
@@ -2036,6 +2142,20 @@ export type Database = {
         Args: { _user_id: string; _workspace_id: string }
         Returns: boolean
       }
+      create_alert: {
+        Args: {
+          _category: Database["public"]["Enums"]["alert_category"]
+          _dedupe_key: string
+          _entity: string
+          _entity_id: string
+          _message: string
+          _payload: Json
+          _severity: Database["public"]["Enums"]["alert_severity"]
+          _title: string
+          _workspace_id: string
+        }
+        Returns: string
+      }
       expire_trial_workspaces: { Args: never; Returns: number }
       has_role: {
         Args: {
@@ -2093,6 +2213,14 @@ export type Database = {
       }
     }
     Enums: {
+      alert_category:
+        | "recovery_failure"
+        | "webhook_issue"
+        | "activation_status"
+        | "integration_error"
+        | "system"
+      alert_severity: "info" | "warning" | "critical"
+      alert_status: "open" | "acknowledged" | "dismissed"
       app_role: "super_admin" | "admin" | "user"
       blog_post_status: "draft" | "scheduled" | "published" | "archived"
       incident_impact: "none" | "minor" | "major" | "critical"
@@ -2265,6 +2393,15 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      alert_category: [
+        "recovery_failure",
+        "webhook_issue",
+        "activation_status",
+        "integration_error",
+        "system",
+      ],
+      alert_severity: ["info", "warning", "critical"],
+      alert_status: ["open", "acknowledged", "dismissed"],
       app_role: ["super_admin", "admin", "user"],
       blog_post_status: ["draft", "scheduled", "published", "archived"],
       incident_impact: ["none", "minor", "major", "critical"],
