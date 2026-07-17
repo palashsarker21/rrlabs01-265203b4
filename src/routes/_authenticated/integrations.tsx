@@ -552,39 +552,7 @@ function ActivationCenter({
 }
 
 
-function Stepper({ steps, current }: { steps: string[]; current: number }) {
-  return (
-    <ol className="mt-8 flex flex-wrap items-center gap-3">
-      {steps.map((label, i) => {
-        const done = i < current;
-        const active = i === current;
-        return (
-          <li key={label} className="flex items-center gap-3">
-            <div
-              className={cn(
-                "flex h-8 w-8 items-center justify-center rounded-full border text-xs font-semibold",
-                done && "border-primary bg-primary text-primary-foreground",
-                active && "border-primary bg-primary/10 text-primary",
-                !done && !active && "border-border/60 text-muted-foreground",
-              )}
-            >
-              {done ? <Check className="h-4 w-4" /> : i + 1}
-            </div>
-            <span
-              className={cn(
-                "text-sm",
-                active ? "text-foreground font-medium" : "text-muted-foreground",
-              )}
-            >
-              {label}
-            </span>
-            {i < steps.length - 1 && <span className="mx-1 h-px w-6 bg-border/60" />}
-          </li>
-        );
-      })}
-    </ol>
-  );
-}
+
 
 function ProviderCard({
   provider,
