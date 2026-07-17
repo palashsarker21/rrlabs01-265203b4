@@ -156,18 +156,19 @@ export const getRecoveryAnalytics = createServerFn({ method: "POST" })
       const dayKey = isoDay(a.created_at);
       const bucket = attemptsByDay.get(dayKey);
       const ch = (a.channel as string) ?? "unknown";
+      const status = a.status as string;
       const cbucket = channels.get(ch) ?? { channel: ch, sent: 0, delivered: 0, failed: 0 };
-      if (a.status === "sent" || a.status === "delivered") {
+      if (status === "sent" || status === "delivered") {
         attemptsSent += 1;
         cbucket.sent += 1;
         if (bucket) bucket.sent += 1;
       }
-      if (a.status === "delivered") {
+      if (status === "delivered") {
         attemptsDelivered += 1;
         cbucket.delivered += 1;
         if (bucket) bucket.delivered += 1;
       }
-      if (a.status === "failed" || a.status === "cancelled") {
+      if (status === "failed" || status === "bounced" || status === "cancelled") {
         attemptsFailed += 1;
         cbucket.failed += 1;
         if (bucket) bucket.failed += 1;
