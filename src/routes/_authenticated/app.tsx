@@ -221,6 +221,17 @@ function AppShell() {
                 Analytics
               </Link>
             </Button>
+            <Button asChild size="sm" variant="outline" className="relative">
+              <Link to="/notifications">
+                <Bell className="mr-2 h-4 w-4" />
+                Notifications
+                {openAlerts > 0 && (
+                  <span className="ml-2 inline-flex min-w-5 items-center justify-center rounded-full bg-destructive px-1.5 text-[10px] font-semibold text-destructive-foreground">
+                    {openAlerts > 99 ? "99+" : openAlerts}
+                  </span>
+                )}
+              </Link>
+            </Button>
             {!engineOn && (
               <Button asChild size="sm" variant="default">
                 <Link to="/getting-started">
