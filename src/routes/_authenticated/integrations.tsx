@@ -849,17 +849,40 @@ function ProviderCard({
                   )}
                 </div>
               ))}
-              <Button type="submit" size="sm" disabled={submitting}>
-                {submitting ? (
-                  <>
-                    <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" /> Verifying…
-                  </>
-                ) : (
-                  <>
-                    <Plug className="mr-2 h-3.5 w-3.5" /> Connect
-                  </>
-                )}
-              </Button>
+              <div className="flex items-center gap-3">
+                <Button type="submit" size="sm" disabled={submitting}>
+                  {submitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" /> Verifying…
+                    </>
+                  ) : (
+                    <>
+                      <Plug className="mr-2 h-3.5 w-3.5" /> Save & verify
+                    </>
+                  )}
+                </Button>
+                <span className="text-[11px] text-muted-foreground" aria-live="polite">
+                  {autoStatus === "saving" && (
+                    <span className="inline-flex items-center gap-1">
+                      <Loader2 className="h-3 w-3 animate-spin" /> Autosaving…
+                    </span>
+                  )}
+                  {autoStatus === "saved" && (
+                    <span className="inline-flex items-center gap-1 text-emerald-500">
+                      <Check className="h-3 w-3" /> Saved
+                    </span>
+                  )}
+                  {autoStatus === "failed" && (
+                    <span className="inline-flex items-center gap-1 text-destructive">
+                      <XCircle className="h-3 w-3" /> Save failed
+                    </span>
+                  )}
+                  {autoStatus === "idle" && allRequiredFilled === false && (
+                    <span>Fill required fields — changes autosave.</span>
+                  )}
+                </span>
+              </div>
+
             </form>
           )}
         </div>
