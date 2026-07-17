@@ -1,87 +1,149 @@
 
-# Super Admin Console — Production Expansion Plan
+# Phase 1 — Billing Audit + Success Fee Engine
 
-Expand the existing Admin Console (`/admin`, current tabs: Workspaces, Audit, Pricing, Features) into a full enterprise operations center with 20 modules, without redesigning the UI shell or breaking existing tabs.
+Scope locked by user answers:
+- Complete Phase 1 only. Phases 2–15 → prioritized roadmap in the Launch Report.
+- Success fee model: monthly Lemon Squeezy invoice (usage-based add-on).
+- Launch-ready bar: Billing + Monitoring + Legal green; rest tracked.
 
-## Approach
+No schema changes to existing tables, no auth changes, no RLS rewrites. New tables only for success-fee bookkeeping.
 
-- **Reuse the existing tabbed shell** in `src/routes/_authenticated/admin.tsx`. Each new module is a new tab (or grouped sub-tab), rendered as a lazy component under `src/components/admin/<module>/`.
-- **All data server-driven** via new `*.functions.ts` files with `requireSupabaseAuth` + `assertSuperAdmin` on every read/write. No hardcoded rows.
-- **Shared primitives** (`src/components/admin/_shared/`):
-  - `DataTable` — search, column filters, sort, pagination (server- or client-side), CSV/XLSX export via a tiny in-house csv encoder (no new deps beyond `xlsx` if excel is required — else CSV only).
-  - `ConfirmDialog` — required wrapper for every destructive action.
-  - `AuditedButton` — writes to `audit_logs` via `writeAuditLog` on click.
-- **RBAC/RLS preserved** — every server fn re-checks `is_super_admin`; no bypass of RLS except through existing `supabaseAdmin` for read-only aggregations and moderation writes that already have policies.
+## 1. Billing Audit (read-only, produces the report)
 
-## Modules (20)
+Audit against the existing code path (`src/lib/billing.functions.ts`, `src/lib/lemon-squeezy.ts`, `src/routes/api/public/webhooks/lemonsqueezy.ts`, `src/lib/billing-notifications.server.ts`, `src/lib/billing-summary.functions.ts`). Verify each lifecycle event maps correctly and flag defects. Fixes limited to defects found — no rewrites.
 
-Each ships as a tab with list + detail drawer, standardized toolbar (search / filter / sort / paginate / export), and audit-logged mutations.
+Coverage matrix:
 
-1. **Workspaces** — extend current tab: add filter by status/plan, per-row detail drawer with members, integrations, subs, engine toggle, suspend, impersonate-view (read-only).
-2. **Users & Roles** — list `profiles` + `user_roles`, grant/revoke `super_admin`/`admin`, force sign-out, delete user (admin API).
-3. **Subscriptions** — `subscriptions` join `plans` + `workspaces`, filter by status, cancel/reactivate, sync-from-LemonSqueezy button.
-4. **Billing Ops** — `billing_events` + `checkout_sessions`, replay failed webhooks, refund lookup, MRR/ARR panel (already partially exists).
-5. **Webhook Monitor** — `webhook_logs` + `billing_events`, filter provider/status, retry button, payload viewer.
-6. **Integrations** — `integrations` cross-workspace, filter provider/status, force-disconnect, rotate secret.
-7. **Recovery Engine** — `recovery_events` + `recovery_attempts`, per-workspace throughput, pause/resume, requeue.
-8. **AI Usage** — aggregate from `ai_gateway` logs via existing tool (read-only panel).
-9. **Email Queue** — `notification_logs` where channel=email, retry, view body.
-10. **WhatsApp Queue** — `notification_logs` where channel=whatsapp, retry, view body.
-11. **Audit Logs** — extend current tab with search/filter by action/actor/workspace/date, CSV export.
-12. **Security Center** — surfaces `security--get_scan_results` + user_roles anomalies + failed sign-ins summary.
-13. **Support Center** — `contact_leads` inbox, assign/close, notes.
-14. **Blog & CMS** — link out to existing blog admin; add moderation queue (`blog_posts` where status=pending).
-15. **System Health** — `provider_status`, DB latency, edge fn health, cron heartbeat.
-16. **Global Settings** — new `admin_settings` key/value table (migration), edited via form.
-17. **Feature Flags** — extend current tab with per-workspace overrides UI, search.
-18. **Provider Catalog** — extend current tab with sort_order editor, beta toggle, docs URL edit.
-19. **Maintenance** — `maintenance_mode` flag, cache invalidate, expire trial workspaces (call existing `expire_trial_workspaces` RPC).
-20. **Analytics** — MRR/ARR/churn/recovered revenue/webhook health (extend existing billing metrics panel).
+```text
+Checkout create           createCheckoutSession                    verify + fix if broken
+Trial start               subscription_created (on_trial)          verify
+Active → past_due         subscription_payment_failed              verify (event override present)
+past_due → active         subscription_payment_success (recover)   verify (notif fires)
+Upgrade / Downgrade       subscription_updated (variant change)    ADD: reconcile plan_id from ls_variant_id
+Cancel                    subscription_cancelled                   FIX: cancelled_at set unconditionally on every update
+Resume                    subscription_resumed / _unpaused         verify
+Expired                   subscription_expired                     verify
+Paused                    subscription_paused                      verify
+Refund                    order_refunded (currently no-op)         ADD: record billing_events + notify
+Webhook signature         HMAC-SHA256 x-signature                  verify (timingSafeEqual OK)
+Idempotency               billing_events.event_id                  verify (unique on provider,event_id)
+Env vars                  billing-env.ts assertBillingEnv          verify all 4 variants declared
+```
 
-## New database objects (single migration)
+Known defects to fix in this pass:
+- `onSubscriptionUpdated` sets `cancelled_at = now()` on every update where `attr.cancelled` is truthy — collapses to always-now on repeated events. Guard: only set on transition into `cancelled`/`expired` when not already set.
+- Upgrade/downgrade doesn't remap `plan_id` — if the customer changes plan in LS, our `subscriptions.plan_id` stays stale. Look up the new plan by `ls_variant_id` and update.
+- `order_refunded` isn't dispatched — add handler that writes `billing_events` and notifies the workspace (no reversal of workspace state; refunds are read-only accounting).
 
-- `admin_settings` (key text pk, value jsonb, updated_at, updated_by) — for Global Settings module.
-- No new columns on existing tables. All other modules read tables that already exist.
-- GRANTs to `service_role` only; RLS: super_admin read/write via `is_super_admin(auth.uid())`.
+## 2. Success Fee Engine (new)
 
-## New server functions
+New tables, no changes to existing ones.
 
-Grouped under `src/lib/admin/`:
+```text
+success_fee_statements     one row per workspace per calendar month
+  workspace_id, period_start, period_end, currency,
+  recovered_amount_cents, fee_bps, fee_amount_cents,
+  status (draft|finalized|invoiced|paid|voided),
+  ls_invoice_id, ls_checkout_url, provider_error, provider_status_code,
+  finalized_at, invoiced_at, paid_at,
+  UNIQUE (workspace_id, period_start)
 
-- `users.functions.ts` — `listUsers`, `grantRole`, `revokeRole`, `forceSignOut`, `deleteUser`.
-- `subscriptions.functions.ts` — `listSubscriptions`, `cancelSubscription`, `reactivateSubscription`, `syncFromLemonSqueezy`.
-- `webhooks.functions.ts` — `listWebhookLogs`, `retryWebhook`.
-- `integrations.functions.ts` — `listAllIntegrations`, `forceDisconnect`.
-- `recovery.functions.ts` — `listRecoveryEvents`, `requeueAttempt`, `pauseWorkspaceEngine`.
-- `notifications.functions.ts` — `listNotifications`, `retryNotification`.
-- `support.functions.ts` — `listContactLeads`, `updateLeadStatus`.
-- `health.functions.ts` — `getSystemHealth`.
-- `settings.functions.ts` — `getSettings`, `setSetting`.
-- `maintenance.functions.ts` — `setMaintenanceMode`, `expireTrials`, `invalidateCache`.
+success_fee_adjustments    manual credits/debits by super_admin
+  statement_id, kind (credit|debit|refund|manual),
+  amount_cents, reason, actor_user_id
+```
 
-Every fn: `requireSupabaseAuth` middleware → `assertSuperAdmin` guard → paginated query → returns `{ rows, total }`.
+Flow:
 
-## Shared UI
+```text
+[monthly cron] → build draft statements for previous month
+   ↓ aggregate recovery_events WHERE status='recovered'
+                AND recovered_at within [period_start, period_end)
+   ↓ fee = round(sum(amount_cents) * plan.success_fee_bps / 10_000)
+[super_admin review] → apply adjustments → finalize
+   ↓
+[invoice job] → create LS one-time checkout for the workspace's billing email,
+                custom_price = fee - sum(adjustments), attach statement_id
+   ↓
+[webhook order_created / order_refunded] → mark statement invoiced/paid/voided
+```
 
-- `src/components/admin/_shared/data-table.tsx` — column defs, server pagination, CSV export.
-- `src/components/admin/_shared/confirm-dialog.tsx` — used by all destructive actions.
-- `src/components/admin/_shared/export-menu.tsx` — CSV (always) + XLSX (via `xlsx` dep, added).
+Lemon Squeezy piece:
+- Requires ONE new "pay-as-you-go" LS variant (single one-time product used for all workspaces; the price is passed at checkout-create via `custom_price`).
+- Secret name: `LEMONSQUEEZY_VARIANT_SUCCESS_FEE` (already documented; will be requested via `add_secret` if missing).
+- Uses existing `createHmac` + webhook route — extend dispatch to link `order_created` to a statement via `custom_data.statement_id`.
 
-## Non-goals
+Server functions (all `requireSupabaseAuth` + super_admin gate, except the workspace-owner viewer):
+- `listSuccessFeeStatements({ workspaceId? })` — statements list (super_admin sees all; owners see own).
+- `getSuccessFeeStatement({ id })` — full detail incl. adjustments.
+- `addSuccessFeeAdjustment({ statementId, kind, amount_cents, reason })` — super_admin only.
+- `finalizeSuccessFeeStatement({ id })` — locks draft → finalized.
+- `issueSuccessFeeInvoice({ id })` — creates LS one-time checkout, stores `ls_invoice_id` + `ls_checkout_url`.
+- `runMonthlySuccessFeeBuild({ period? })` — idempotent draft-builder (called by cron and manual admin button).
+- `exportSuccessFeeCsv({ from, to, workspaceId? })` — CSV export.
 
-- No visual redesign — same header, tab strip, table styling, colors.
-- No new pricing plans, no changes to customer-facing flows.
-- No changes to RLS policies of existing tables (only add policies on new `admin_settings`).
-- No removal of any working feature.
+Cron endpoint:
+- `POST /api/public/hooks/success-fee-monthly` — protected by `CRON_SECRET` bearer header (existing pattern in `recovery-cadence.ts`). Calls `runMonthlySuccessFeeBuild` for the previous month.
 
-## Verification
+Customer-visible surface (small — the full Portal is Phase 2, deferred):
+- New "Success fee" section in existing `BillingPanel` (reuses component) showing current-month recovered revenue + accrued fee, last finalized statement, and (if invoiced) an "Open invoice" link. Uses existing tokens; no new colors/fonts.
+- New route: `_authenticated/billing.statements.tsx` — read-only list of workspace's statements with drill-down and PDF/CSV download (reuses existing export helpers from events page).
 
-- `bunx tsgo --noEmit` clean.
-- `bun run build` clean.
-- Manual spot-check via preview: each tab loads, search/filter works, CSV export downloads, confirm dialog blocks destructive click.
+Admin surface (super_admin):
+- New panel `SuccessFeePanel` inside existing `src/components/admin/panels.tsx`. Lists all statements with filters (period, workspace, status), row actions: Adjust, Finalize, Issue invoice, Void. Reuses `DataTable`, `ConfirmDialog`.
 
-## Scope note
+Audit trail:
+- Every mutation writes to existing `audit_logs` via the existing tg_audit_workspace_change trigger by tagging `workspace_id` on new tables.
 
-This is roughly **~40 new files (~4-5K LOC)** and **1 migration**. It will take multiple turns to implement. I'll ship module-by-module with the shared table primitive first, then modules 1-5, 6-10, 11-15, 16-20 as batches. Nothing user-facing changes until the first batch merges.
+## 3. Production Launch Report
 
-Approve to proceed with **Batch 1: shared primitives + migration + modules 1-5 (Workspaces detail, Users, Subscriptions, Billing Ops, Webhook Monitor)**.
+Written to `.lovable/production-launch-report.md` at end of pass:
+
+```text
+PHASE 1  Billing + Success Fee    ✅ | ⚠ | ❌ per checklist item
+PHASE 3  Monitoring               status of Sentry/health/alerts already shipped
+PHASE 15 Legal & compliance       status of existing legal pages
+
+Deferred (owner + priority):
+  P2  Customer Billing Portal expansion
+  P4  OpenAPI / Swagger UI
+  P5  Help Center
+  P6  Visual campaign builder
+  P7  AI Recommendations
+  P8  Customer timeline
+  P9  Audit Center expansion
+  P10 Public status page
+  P11 Admin console expansion
+  P12 Blog CMS finish
+  P13 Public docs
+  P14 Backup & DR
+
+Risk register  |  Security assessment  |  Billing readiness
+Launch-ready:  YES only if Phase 1 checklist has no ❌ and no critical ⚠
+```
+
+## Files touched
+
+New:
+- `supabase/migrations/<ts>_success_fee_engine.sql`
+- `src/lib/success-fee.functions.ts`
+- `src/lib/success-fee/engine.server.ts` (aggregation + invoice creation)
+- `src/routes/api/public/hooks/success-fee-monthly.ts`
+- `src/routes/_authenticated/billing.statements.tsx`
+- `src/components/admin/success-fee-panel.tsx`
+- `.lovable/production-launch-report.md`
+
+Edited:
+- `src/routes/api/public/webhooks/lemonsqueezy.ts` — fix `cancelled_at` guard, plan_id reconcile on variant change, dispatch `order_created`/`order_refunded` to link statements.
+- `src/components/billing/billing-panel.tsx` — add "Success fee" block (reuses existing card layout).
+- `src/components/admin/panels.tsx` — mount `SuccessFeePanel`.
+- `src/lib/billing-env.ts` — declare `LEMONSQUEEZY_VARIANT_SUCCESS_FEE`.
+
+Not touched: auth, RLS on existing tables, existing subscription flow, `src/integrations/supabase/*` autogen, pricing.ts business logic.
+
+## Prerequisites I need from you
+
+1. In Lemon Squeezy: create ONE "Success fee" pay-what-you-owe variant (single one-time product, price left blank — we pass `custom_price` per invoice). Reply with the variant ID and I'll store it as `LEMONSQUEEZY_VARIANT_SUCCESS_FEE` via the secrets tool.
+2. Confirm the calendar-month settlement window is UTC (default) or a specific tz.
+
+Once (1) is in and you approve this plan, I'll ship it end-to-end and produce the Launch Report.

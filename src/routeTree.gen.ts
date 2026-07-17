@@ -53,8 +53,10 @@ import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
 import { Route as AuthenticatedInviteTokenRouteImport } from './routes/_authenticated/invite.$token'
 import { Route as AuthenticatedGettingStartedCompleteRouteImport } from './routes/_authenticated/getting-started.complete'
 import { Route as AuthenticatedCheckoutStatusRouteImport } from './routes/_authenticated/checkout.status'
+import { Route as AuthenticatedBillingStatementsRouteImport } from './routes/_authenticated/billing.statements'
 import { Route as ApiPublicWebhooksStripeRouteImport } from './routes/api/public/webhooks/stripe'
 import { Route as ApiPublicWebhooksLemonsqueezyRouteImport } from './routes/api/public/webhooks/lemonsqueezy'
+import { Route as ApiPublicHooksSuccessFeeMonthlyRouteImport } from './routes/api/public/hooks/success-fee-monthly'
 import { Route as ApiPublicHooksRecoveryCadenceRouteImport } from './routes/api/public/hooks/recovery-cadence'
 import { Route as ApiPublicWebhooksProviderIntegrationIdRouteImport } from './routes/api/public/webhooks/$provider.$integrationId'
 
@@ -284,6 +286,12 @@ const AuthenticatedCheckoutStatusRoute =
     path: '/status',
     getParentRoute: () => AuthenticatedCheckoutRoute,
   } as any)
+const AuthenticatedBillingStatementsRoute =
+  AuthenticatedBillingStatementsRouteImport.update({
+    id: '/billing/statements',
+    path: '/billing/statements',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const ApiPublicWebhooksStripeRoute = ApiPublicWebhooksStripeRouteImport.update({
   id: '/api/public/webhooks/stripe',
   path: '/api/public/webhooks/stripe',
@@ -293,6 +301,12 @@ const ApiPublicWebhooksLemonsqueezyRoute =
   ApiPublicWebhooksLemonsqueezyRouteImport.update({
     id: '/api/public/webhooks/lemonsqueezy',
     path: '/api/public/webhooks/lemonsqueezy',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicHooksSuccessFeeMonthlyRoute =
+  ApiPublicHooksSuccessFeeMonthlyRouteImport.update({
+    id: '/api/public/hooks/success-fee-monthly',
+    path: '/api/public/hooks/success-fee-monthly',
     getParentRoute: () => rootRouteImport,
   } as any)
 const ApiPublicHooksRecoveryCadenceRoute =
@@ -346,6 +360,7 @@ export interface FileRoutesByFullPath {
   '/docs/api': typeof DocsApiRoute
   '/error/$code': typeof ErrorCodeRoute
   '/blog/': typeof BlogIndexRoute
+  '/billing/statements': typeof AuthenticatedBillingStatementsRoute
   '/checkout/status': typeof AuthenticatedCheckoutStatusRoute
   '/getting-started/complete': typeof AuthenticatedGettingStartedCompleteRoute
   '/invite/$token': typeof AuthenticatedInviteTokenRoute
@@ -353,6 +368,7 @@ export interface FileRoutesByFullPath {
   '/blog/category/$category': typeof BlogCategoryCategoryRoute
   '/blog/tag/$tag': typeof BlogTagTagRoute
   '/api/public/hooks/recovery-cadence': typeof ApiPublicHooksRecoveryCadenceRoute
+  '/api/public/hooks/success-fee-monthly': typeof ApiPublicHooksSuccessFeeMonthlyRoute
   '/api/public/webhooks/lemonsqueezy': typeof ApiPublicWebhooksLemonsqueezyRoute
   '/api/public/webhooks/stripe': typeof ApiPublicWebhooksStripeRoute
   '/api/public/webhooks/$provider/$integrationId': typeof ApiPublicWebhooksProviderIntegrationIdRoute
@@ -394,6 +410,7 @@ export interface FileRoutesByTo {
   '/docs/api': typeof DocsApiRoute
   '/error/$code': typeof ErrorCodeRoute
   '/blog': typeof BlogIndexRoute
+  '/billing/statements': typeof AuthenticatedBillingStatementsRoute
   '/checkout/status': typeof AuthenticatedCheckoutStatusRoute
   '/getting-started/complete': typeof AuthenticatedGettingStartedCompleteRoute
   '/invite/$token': typeof AuthenticatedInviteTokenRoute
@@ -401,6 +418,7 @@ export interface FileRoutesByTo {
   '/blog/category/$category': typeof BlogCategoryCategoryRoute
   '/blog/tag/$tag': typeof BlogTagTagRoute
   '/api/public/hooks/recovery-cadence': typeof ApiPublicHooksRecoveryCadenceRoute
+  '/api/public/hooks/success-fee-monthly': typeof ApiPublicHooksSuccessFeeMonthlyRoute
   '/api/public/webhooks/lemonsqueezy': typeof ApiPublicWebhooksLemonsqueezyRoute
   '/api/public/webhooks/stripe': typeof ApiPublicWebhooksStripeRoute
   '/api/public/webhooks/$provider/$integrationId': typeof ApiPublicWebhooksProviderIntegrationIdRoute
@@ -445,6 +463,7 @@ export interface FileRoutesById {
   '/docs/api': typeof DocsApiRoute
   '/error/$code': typeof ErrorCodeRoute
   '/blog/': typeof BlogIndexRoute
+  '/_authenticated/billing/statements': typeof AuthenticatedBillingStatementsRoute
   '/_authenticated/checkout/status': typeof AuthenticatedCheckoutStatusRoute
   '/_authenticated/getting-started/complete': typeof AuthenticatedGettingStartedCompleteRoute
   '/_authenticated/invite/$token': typeof AuthenticatedInviteTokenRoute
@@ -452,6 +471,7 @@ export interface FileRoutesById {
   '/blog/category/$category': typeof BlogCategoryCategoryRoute
   '/blog/tag/$tag': typeof BlogTagTagRoute
   '/api/public/hooks/recovery-cadence': typeof ApiPublicHooksRecoveryCadenceRoute
+  '/api/public/hooks/success-fee-monthly': typeof ApiPublicHooksSuccessFeeMonthlyRoute
   '/api/public/webhooks/lemonsqueezy': typeof ApiPublicWebhooksLemonsqueezyRoute
   '/api/public/webhooks/stripe': typeof ApiPublicWebhooksStripeRoute
   '/api/public/webhooks/$provider/$integrationId': typeof ApiPublicWebhooksProviderIntegrationIdRoute
@@ -496,6 +516,7 @@ export interface FileRouteTypes {
     | '/docs/api'
     | '/error/$code'
     | '/blog/'
+    | '/billing/statements'
     | '/checkout/status'
     | '/getting-started/complete'
     | '/invite/$token'
@@ -503,6 +524,7 @@ export interface FileRouteTypes {
     | '/blog/category/$category'
     | '/blog/tag/$tag'
     | '/api/public/hooks/recovery-cadence'
+    | '/api/public/hooks/success-fee-monthly'
     | '/api/public/webhooks/lemonsqueezy'
     | '/api/public/webhooks/stripe'
     | '/api/public/webhooks/$provider/$integrationId'
@@ -544,6 +566,7 @@ export interface FileRouteTypes {
     | '/docs/api'
     | '/error/$code'
     | '/blog'
+    | '/billing/statements'
     | '/checkout/status'
     | '/getting-started/complete'
     | '/invite/$token'
@@ -551,6 +574,7 @@ export interface FileRouteTypes {
     | '/blog/category/$category'
     | '/blog/tag/$tag'
     | '/api/public/hooks/recovery-cadence'
+    | '/api/public/hooks/success-fee-monthly'
     | '/api/public/webhooks/lemonsqueezy'
     | '/api/public/webhooks/stripe'
     | '/api/public/webhooks/$provider/$integrationId'
@@ -594,6 +618,7 @@ export interface FileRouteTypes {
     | '/docs/api'
     | '/error/$code'
     | '/blog/'
+    | '/_authenticated/billing/statements'
     | '/_authenticated/checkout/status'
     | '/_authenticated/getting-started/complete'
     | '/_authenticated/invite/$token'
@@ -601,6 +626,7 @@ export interface FileRouteTypes {
     | '/blog/category/$category'
     | '/blog/tag/$tag'
     | '/api/public/hooks/recovery-cadence'
+    | '/api/public/hooks/success-fee-monthly'
     | '/api/public/webhooks/lemonsqueezy'
     | '/api/public/webhooks/stripe'
     | '/api/public/webhooks/$provider/$integrationId'
@@ -630,6 +656,7 @@ export interface RootRouteChildren {
   ErrorCodeRoute: typeof ErrorCodeRoute
   ApiPublicHealthRoute: typeof ApiPublicHealthRoute
   ApiPublicHooksRecoveryCadenceRoute: typeof ApiPublicHooksRecoveryCadenceRoute
+  ApiPublicHooksSuccessFeeMonthlyRoute: typeof ApiPublicHooksSuccessFeeMonthlyRoute
   ApiPublicWebhooksLemonsqueezyRoute: typeof ApiPublicWebhooksLemonsqueezyRoute
   ApiPublicWebhooksStripeRoute: typeof ApiPublicWebhooksStripeRoute
   ApiPublicWebhooksProviderIntegrationIdRoute: typeof ApiPublicWebhooksProviderIntegrationIdRoute
@@ -945,6 +972,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCheckoutStatusRouteImport
       parentRoute: typeof AuthenticatedCheckoutRoute
     }
+    '/_authenticated/billing/statements': {
+      id: '/_authenticated/billing/statements'
+      path: '/billing/statements'
+      fullPath: '/billing/statements'
+      preLoaderRoute: typeof AuthenticatedBillingStatementsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/api/public/webhooks/stripe': {
       id: '/api/public/webhooks/stripe'
       path: '/api/public/webhooks/stripe'
@@ -957,6 +991,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/webhooks/lemonsqueezy'
       fullPath: '/api/public/webhooks/lemonsqueezy'
       preLoaderRoute: typeof ApiPublicWebhooksLemonsqueezyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/success-fee-monthly': {
+      id: '/api/public/hooks/success-fee-monthly'
+      path: '/api/public/hooks/success-fee-monthly'
+      fullPath: '/api/public/hooks/success-fee-monthly'
+      preLoaderRoute: typeof ApiPublicHooksSuccessFeeMonthlyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/hooks/recovery-cadence': {
@@ -1018,6 +1059,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSetupRoute: typeof AuthenticatedSetupRoute
   AuthenticatedTeamRoute: typeof AuthenticatedTeamRoute
   AuthenticatedUpgradeRoute: typeof AuthenticatedUpgradeRoute
+  AuthenticatedBillingStatementsRoute: typeof AuthenticatedBillingStatementsRoute
   AuthenticatedInviteTokenRoute: typeof AuthenticatedInviteTokenRoute
 }
 
@@ -1036,6 +1078,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSetupRoute: AuthenticatedSetupRoute,
   AuthenticatedTeamRoute: AuthenticatedTeamRoute,
   AuthenticatedUpgradeRoute: AuthenticatedUpgradeRoute,
+  AuthenticatedBillingStatementsRoute: AuthenticatedBillingStatementsRoute,
   AuthenticatedInviteTokenRoute: AuthenticatedInviteTokenRoute,
 }
 
@@ -1094,6 +1137,7 @@ const rootRouteChildren: RootRouteChildren = {
   ErrorCodeRoute: ErrorCodeRoute,
   ApiPublicHealthRoute: ApiPublicHealthRoute,
   ApiPublicHooksRecoveryCadenceRoute: ApiPublicHooksRecoveryCadenceRoute,
+  ApiPublicHooksSuccessFeeMonthlyRoute: ApiPublicHooksSuccessFeeMonthlyRoute,
   ApiPublicWebhooksLemonsqueezyRoute: ApiPublicWebhooksLemonsqueezyRoute,
   ApiPublicWebhooksStripeRoute: ApiPublicWebhooksStripeRoute,
   ApiPublicWebhooksProviderIntegrationIdRoute:
@@ -1102,13 +1146,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
