@@ -114,6 +114,15 @@ function AppShell() {
   });
   const eventsData = eventsQuery.data;
 
+  const alertsFn = useServerFn(listAlerts);
+  const alertsQuery = useQuery({
+    enabled: !!activeWorkspace,
+    queryKey: ["alerts-open-count", activeWorkspace?.id],
+    queryFn: () => alertsFn({ data: { workspaceId: activeWorkspace!.id, status: "open", limit: 1 } }),
+    refetchInterval: 30000,
+  });
+  const openAlerts = alertsQuery.data?.openCount ?? 0;
+
   async function handleSignOut() {
     setSigningOut(true);
     await supabase.auth.signOut();
