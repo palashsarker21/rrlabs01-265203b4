@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useMemo } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMemo, useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -26,6 +26,13 @@ import { cn } from "@/lib/utils";
 import { listWorkspaceIntegrations, activateWorkspace } from "@/lib/integrations.functions";
 import { listProviderCatalog } from "@/lib/providers.functions";
 import { PROVIDER_STEP_ORDER, type ProviderKind } from "@/lib/providers/kinds";
+import {
+  ActivationProgress,
+  classifyActivationError,
+  initialSteps,
+  type ActivationStep,
+  type ActivationStepId,
+} from "@/components/onboarding/activation-progress";
 
 export const Route = createFileRoute("/_authenticated/getting-started/complete")({
   head: () => ({
