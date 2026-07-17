@@ -332,8 +332,8 @@ function OnboardingCompletePage() {
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               ) : allReady ? (
-                <Button onClick={() => activate.mutate()} disabled={activate.isPending}>
-                  {activate.isPending ? (
+                <Button onClick={runActivation} disabled={isRunning}>
+                  {isRunning ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   ) : (
                     <Rocket className="mr-2 h-4 w-4" />
@@ -349,6 +349,18 @@ function OnboardingCompletePage() {
             </div>
           </div>
         </div>
+
+        {/* Real-time activation progress */}
+        {phase !== "idle" && (
+          <ActivationProgress
+            steps={steps}
+            isRunning={isRunning}
+            isComplete={isComplete}
+            isFailed={isFailed}
+            onRetry={runActivation}
+            onGoToDashboard={() => navigate({ to: "/app" })}
+          />
+        )}
 
         {/* Connected summary */}
         <section className="mt-8">
