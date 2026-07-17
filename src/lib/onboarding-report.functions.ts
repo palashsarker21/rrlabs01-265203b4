@@ -80,7 +80,7 @@ export const generateOnboardingReport = createServerFn({ method: "POST" })
     const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
 
     let page = pdf.addPage([612, 792]); // Letter
-    const { width, height } = page.size();
+    const { width, height } = page.getSize();
     const marginX = 48;
     let y = height - 56;
 
