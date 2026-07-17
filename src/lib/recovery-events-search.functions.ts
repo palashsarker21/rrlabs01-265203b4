@@ -69,7 +69,7 @@ export const searchRecoveryEvents = createServerFn({ method: "POST" })
 
       if (data.from) q = q.gte("created_at", data.from);
       if (data.to) q = q.lte("created_at", data.to);
-      if (data.statuses?.length) q = q.in("status", data.statuses);
+      if (data.statuses?.length) q = q.in("status", data.statuses as any);
       if (data.providers?.length) q = q.in("provider", data.providers);
       if (typeof data.minAmountCents === "number") q = q.gte("amount_cents", data.minAmountCents);
       if (typeof data.maxAmountCents === "number") q = q.lte("amount_cents", data.maxAmountCents);
@@ -139,7 +139,7 @@ export const exportRecoveryEvents = createServerFn({ method: "POST" })
         .limit(data.maxRows);
       if (data.from) q = q.gte("created_at", data.from);
       if (data.to) q = q.lte("created_at", data.to);
-      if (data.statuses?.length) q = q.in("status", data.statuses);
+      if (data.statuses?.length) q = q.in("status", data.statuses as any);
       if (data.providers?.length) q = q.in("provider", data.providers);
       if (typeof data.minAmountCents === "number") q = q.gte("amount_cents", data.minAmountCents);
       if (typeof data.maxAmountCents === "number") q = q.lte("amount_cents", data.maxAmountCents);
