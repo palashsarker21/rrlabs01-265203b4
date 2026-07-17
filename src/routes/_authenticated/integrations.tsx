@@ -1,13 +1,13 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
-  ArrowLeft,
-  ArrowRight,
   Check,
   CheckCircle2,
+  ChevronDown,
+  ChevronUp,
   Copy,
   ExternalLink,
   Eye,
@@ -19,9 +19,11 @@ import {
   Plug,
   RefreshCw,
   ShieldCheck,
+  Sparkles,
   Trash2,
   XCircle,
 } from "lucide-react";
+
 
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -71,7 +73,7 @@ type SetupField = {
 function IntegrationCenter() {
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const [stepIndex, setStepIndex] = useState(0);
+  
 
   const fetchCatalog = useServerFn(listProviderCatalog);
   const fetchList = useServerFn(listWorkspaceIntegrations);
@@ -134,38 +136,26 @@ function IntegrationCenter() {
     return m;
   }, [statuses]);
 
-  const currentStep = PROVIDER_STEP_ORDER[stepIndex];
-  const currentKind = currentStep?.kind;
+  const providersByKind = useMemo(() => {
+    const m = new Map<ProviderKind, ProviderRow[]>();
+    for (const step of PROVIDER_STEP_ORDER) {
+      m.set(
+        step.kind,
+        catalog.filter((p) => p.kind === step.kind).sort((a, b) => a.sort_order - b.sort_order),
+      );
+    }
+    return m;
+  }, [catalog]);
 
-  const providersForKind = useMemo(
-    () => catalog.filter((p) => p.kind === currentKind).sort((a, b) => a.sort_order - b.sort_order),
-    [catalog, currentKind],
-  );
-
-  const limitForKind = useMemo(
-    () => limits.find((l) => l.kind === currentKind),
-    [limits, currentKind],
-  );
-
-  const overLimit = limitForKind?.max != null && limitForKind.used >= limitForKind.max;
-
-  async function persistStep(step: number) {
-    if (!workspace?.id) return;
-    await stepFn({ data: { workspaceId: workspace.id, step } }).catch(() => undefined);
-  }
+  const limitByKind = useMemo(() => {
+    const m = new Map<ProviderKind, (typeof limits)[number]>();
+    for (const l of limits) m.set(l.kind as ProviderKind, l);
+    return m;
+  }, [limits]);
 
   async function handleSignOut() {
     await supabase.auth.signOut();
     navigate({ to: "/auth", replace: true });
-  }
-
-  async function goNext() {
-    const next = Math.min(stepIndex + 1, PROVIDER_STEP_ORDER.length);
-    setStepIndex(next);
-    await persistStep(next);
-  }
-  function goBack() {
-    setStepIndex((s) => Math.max(s - 1, 0));
   }
 
   async function onSave(provider: string, creds: Record<string, string>) {
@@ -221,12 +211,20 @@ function IntegrationCenter() {
     }
   }
 
-  const stepTitles = [...PROVIDER_STEP_ORDER.map((s) => s.title), "Activation review"];
+  // Mark setup step in the DB as "reached activation" once anything is connected.
+  useEffect(() => {
+    if (!workspace?.id) return;
+    const step = Math.min(integrations.length, PROVIDER_STEP_ORDER.length);
+    if ((workspace.setup_step ?? 0) < step) {
+      stepFn({ data: { workspaceId: workspace.id, step } }).catch(() => undefined);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [workspace?.id, integrations.length]);
 
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border/60 bg-card/40 backdrop-blur">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <BrandLockup />
           <Button size="sm" variant="ghost" onClick={handleSignOut}>
             <LogOut className="mr-2 h-4 w-4" /> Sign out
@@ -234,119 +232,327 @@ function IntegrationCenter() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-5xl px-6 py-10">
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">Integration Center</h1>
-        <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-          Connect a store, a payment gateway, an email service, and (optionally) WhatsApp or SMS.
-          Every credential is encrypted at rest and each connection gets its own signed webhook URL.
-        </p>
-
-        <Stepper current={stepIndex} steps={stepTitles} />
-
-        <div className="mt-8 space-y-4">
-          {currentStep ? (
-            <>
-              <div className="flex items-baseline justify-between">
-                <div>
-                  <h2 className="text-xl font-semibold text-foreground">{currentStep.title}</h2>
-                  <p className="mt-1 text-sm text-muted-foreground">{currentStep.description}</p>
-                </div>
-                {limitForKind && (
-                  <span className="rounded-full border border-border/60 bg-card/40 px-3 py-1 text-xs text-muted-foreground">
-                    {limitForKind.used} / {limitForKind.max ?? "∞"} used
-                  </span>
-                )}
-              </div>
-
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                {providersForKind.map((p) => {
-                  const rows = integrations.filter(
-                    (i) =>
-                      i.provider === p.code &&
-                      i.kind === integrationKindFor(p.kind as ProviderKind),
-                  );
-                  return (
-                    <ProviderCard
-                      key={p.code}
-                      provider={p}
-                      integrations={rows}
-                      statusByIntegration={statusByIntegration}
-                      overLimit={overLimit && rows.length === 0}
-                      onSave={onSave}
-                      onTest={onTest}
-                      onDisconnect={onDisconnect}
-                      onRotate={onRotate}
-                      onFetchLogs={(id) => logsFn({ data: { integrationId: id, limit: 20 } })}
-                      onReveal={(id) => revealFn({ data: { integrationId: id } })}
-                    />
-                  );
-                })}
-                {providersForKind.length === 0 && (
-                  <div className="col-span-2 rounded-2xl border border-dashed border-border/60 p-8 text-center text-sm text-muted-foreground">
-                    No providers available in this step.
-                  </div>
-                )}
-              </div>
-            </>
-          ) : (
-            <ActivationReview
-              integrations={integrations}
-              limits={limits}
-              catalog={catalog}
-              statuses={statuses}
-              onActivate={onActivate}
-            />
+      <main className="mx-auto max-w-6xl px-6 py-10">
+        <div className="flex flex-wrap items-baseline justify-between gap-3">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight text-foreground">Setup</h1>
+            <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+              Complete the four modules below to activate the RRLabs Recovery Engine. Every
+              credential is encrypted at rest, changes autosave, and each connection gets its own
+              signed webhook URL.
+            </p>
+          </div>
+          {workspace?.recovery_engine_enabled && (
+            <span className="rounded-full border border-emerald-500/40 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-400">
+              Recovery Engine · Live
+            </span>
           )}
         </div>
 
-        <div className="mt-8 flex items-center justify-between">
-          <Button variant="ghost" onClick={goBack} disabled={stepIndex === 0}>
-            <ArrowLeft className="mr-2 h-4 w-4" /> Back
-          </Button>
-          {stepIndex < PROVIDER_STEP_ORDER.length ? (
-            <Button onClick={goNext}>
-              Continue <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-          ) : null}
+        <div className="mt-8">
+          <ActivationCenter
+            integrations={integrations}
+            catalog={catalog}
+            statuses={statuses}
+            engineOn={Boolean(workspace?.recovery_engine_enabled)}
+            onActivate={onActivate}
+          />
+        </div>
+
+        <div className="mt-8 space-y-6">
+          {PROVIDER_STEP_ORDER.map((step) => {
+            const providers = providersByKind.get(step.kind) ?? [];
+            const limit = limitByKind.get(step.kind);
+            const connectedInKind = integrations.filter(
+              (i) =>
+                i.status === "connected" &&
+                providers.some((p) => p.code === i.provider),
+            ).length;
+            const overLimit = limit?.max != null && limit.used >= limit.max;
+            return (
+              <ModuleSection
+                key={step.kind}
+                kind={step.kind}
+                title={step.title}
+                description={step.description}
+                connected={connectedInKind}
+                limit={limit}
+                defaultOpen={connectedInKind === 0}
+              >
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  {providers.map((p) => {
+                    const rows = integrations.filter(
+                      (i) =>
+                        i.provider === p.code &&
+                        i.kind === integrationKindFor(p.kind as ProviderKind),
+                    );
+                    return (
+                      <ProviderCard
+                        key={p.code}
+                        provider={p}
+                        integrations={rows}
+                        statusByIntegration={statusByIntegration}
+                        overLimit={overLimit && rows.length === 0}
+                        onSave={onSave}
+                        onTest={onTest}
+                        onDisconnect={onDisconnect}
+                        onRotate={onRotate}
+                        onFetchLogs={(id) => logsFn({ data: { integrationId: id, limit: 20 } })}
+                        onReveal={(id) => revealFn({ data: { integrationId: id } })}
+                      />
+                    );
+                  })}
+                  {providers.length === 0 && (
+                    <div className="col-span-2 rounded-2xl border border-dashed border-border/60 p-8 text-center text-sm text-muted-foreground">
+                      No providers available in this module yet.
+                    </div>
+                  )}
+                </div>
+              </ModuleSection>
+            );
+          })}
         </div>
       </main>
     </div>
   );
 }
 
-function Stepper({ steps, current }: { steps: string[]; current: number }) {
+function ModuleSection({
+  kind,
+  title,
+  description,
+  connected,
+  limit,
+  defaultOpen,
+  children,
+}: {
+  kind: ProviderKind;
+  title: string;
+  description: string;
+  connected: number;
+  limit?: { used: number; max: number | null };
+  defaultOpen: boolean;
+  children: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+  const ready = connected > 0;
   return (
-    <ol className="mt-8 flex flex-wrap items-center gap-3">
-      {steps.map((label, i) => {
-        const done = i < current;
-        const active = i === current;
-        return (
-          <li key={label} className="flex items-center gap-3">
-            <div
-              className={cn(
-                "flex h-8 w-8 items-center justify-center rounded-full border text-xs font-semibold",
-                done && "border-primary bg-primary text-primary-foreground",
-                active && "border-primary bg-primary/10 text-primary",
-                !done && !active && "border-border/60 text-muted-foreground",
-              )}
-            >
-              {done ? <Check className="h-4 w-4" /> : i + 1}
-            </div>
-            <span
-              className={cn(
-                "text-sm",
-                active ? "text-foreground font-medium" : "text-muted-foreground",
-              )}
-            >
-              {label}
+    <section
+      className={cn(
+        "rounded-2xl border bg-card/40",
+        ready ? "border-emerald-500/30" : "border-border/60",
+      )}
+      aria-labelledby={`mod-${kind}`}
+    >
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex w-full items-start justify-between gap-4 px-6 py-5 text-left"
+      >
+        <div className="flex items-start gap-3">
+          <div
+            className={cn(
+              "mt-0.5 flex h-8 w-8 items-center justify-center rounded-full border text-xs font-semibold",
+              ready
+                ? "border-emerald-500/50 bg-emerald-500/15 text-emerald-400"
+                : "border-border/60 text-muted-foreground",
+            )}
+          >
+            {ready ? <Check className="h-4 w-4" /> : <Plug className="h-4 w-4" />}
+          </div>
+          <div className="min-w-0">
+            <h2 id={`mod-${kind}`} className="text-lg font-semibold text-foreground">
+              {title}
+            </h2>
+            <p className="mt-1 max-w-2xl text-sm text-muted-foreground">{description}</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          {limit && (
+            <span className="rounded-full border border-border/60 bg-background/40 px-3 py-1 text-xs text-muted-foreground">
+              {limit.used} / {limit.max ?? "∞"}
             </span>
-            {i < steps.length - 1 && <span className="mx-1 h-px w-6 bg-border/60" />}
-          </li>
-        );
-      })}
-    </ol>
+          )}
+          <span
+            className={cn(
+              "rounded-full px-2.5 py-1 text-[10px] font-medium uppercase tracking-wider",
+              ready
+                ? "bg-emerald-500/15 text-emerald-400"
+                : "bg-muted text-muted-foreground",
+            )}
+          >
+            {ready ? `${connected} connected` : "Not connected"}
+          </span>
+          {open ? (
+            <ChevronUp className="h-4 w-4 text-muted-foreground" />
+          ) : (
+            <ChevronDown className="h-4 w-4 text-muted-foreground" />
+          )}
+        </div>
+      </button>
+      {open && <div className="border-t border-border/60 p-6">{children}</div>}
+    </section>
   );
 }
+
+function ActivationCenter({
+  integrations,
+  catalog,
+  statuses,
+  engineOn,
+  onActivate,
+}: {
+  integrations: IntegrationRow[];
+  catalog: ProviderRow[];
+  statuses: ProviderStatusRow[];
+  engineOn: boolean;
+  onActivate: () => void;
+}) {
+  const codesByKind = (kind: ProviderKind) =>
+    catalog.filter((c) => c.kind === kind).map((c) => c.code);
+  const connectedCount = (kind: ProviderKind) => {
+    const codes = codesByKind(kind);
+    return integrations.filter((i) => i.status === "connected" && codes.includes(i.provider))
+      .length;
+  };
+  const connectedIds = new Set(
+    integrations.filter((i) => i.status === "connected").map((i) => i.id),
+  );
+  const failing = statuses.filter(
+    (s) => connectedIds.has(s.integration_id) && (s.retry_count ?? 0) > 0,
+  );
+  const checks = [
+    { label: "Store connected", ok: connectedCount("store") > 0 },
+    { label: "Payment gateway connected", ok: connectedCount("gateway") > 0 },
+    { label: "Email delivery connected", ok: connectedCount("email") > 0 },
+    {
+      label: "WhatsApp / SMS connected",
+      ok: connectedCount("messaging") > 0,
+      optional: true,
+    },
+    {
+      label: "Webhooks verified",
+      ok: integrations.some(
+        (i) => i.status === "connected" && i.verification_status === "verified",
+      ),
+    },
+    {
+      label: "Test passed on every connection",
+      ok:
+        integrations.filter((i) => i.status === "connected").length > 0 &&
+        integrations
+          .filter((i) => i.status === "connected")
+          .every((i) => i.last_test_ok === true),
+    },
+    { label: "No recent webhook failures", ok: failing.length === 0 },
+  ];
+  const requiredOk = checks.filter((c) => !c.optional).every((c) => c.ok);
+  const doneRequired = checks.filter((c) => !c.optional && c.ok).length;
+  const totalRequired = checks.filter((c) => !c.optional).length;
+  const pct = Math.round((doneRequired / totalRequired) * 100);
+
+  return (
+    <div
+      className={cn(
+        "rounded-2xl border p-6 shadow-sm",
+        requiredOk
+          ? "border-emerald-500/40 bg-emerald-500/5"
+          : "border-primary/30 bg-primary/5",
+      )}
+    >
+      <div className="flex flex-wrap items-start justify-between gap-6">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2 text-primary">
+            <Sparkles className="h-4 w-4" />
+            <span className="text-xs font-semibold uppercase tracking-wider">
+              Activation Center
+            </span>
+          </div>
+          <h2 className="mt-2 text-xl font-semibold text-foreground">
+            {engineOn
+              ? "Recovery Engine is running"
+              : requiredOk
+                ? "You're ready to activate"
+                : "Complete the minimum requirements to activate"}
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            The engine cannot send messages or process failed payments until every required
+            check below is green.
+          </p>
+
+          <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-background/60">
+            <div
+              className={cn(
+                "h-full rounded-full transition-all",
+                requiredOk ? "bg-emerald-500" : "bg-primary",
+              )}
+              style={{ width: `${pct}%` }}
+            />
+          </div>
+          <p className="mt-2 text-xs text-muted-foreground">
+            {doneRequired} of {totalRequired} required checks complete
+          </p>
+
+          <ul className="mt-5 grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
+            {checks.map((c) => (
+              <li key={c.label} className="flex items-center gap-2">
+                {c.ok ? (
+                  <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
+                ) : (
+                  <XCircle
+                    className={cn(
+                      "h-4 w-4 shrink-0",
+                      c.optional ? "text-muted-foreground/40" : "text-muted-foreground/60",
+                    )}
+                  />
+                )}
+                <span
+                  className={cn(
+                    c.ok ? "text-foreground" : "text-muted-foreground",
+                  )}
+                >
+                  {c.label}
+                </span>
+                {c.optional && (
+                  <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                    Optional
+                  </span>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="flex flex-col items-stretch gap-2 sm:min-w-[220px]">
+          <Button
+            size="lg"
+            onClick={onActivate}
+            disabled={!requiredOk || engineOn}
+            className="w-full"
+          >
+            {engineOn ? "Engine active" : "Activate Recovery Engine"}
+          </Button>
+          {!requiredOk && !engineOn && (
+            <p className="text-center text-xs text-muted-foreground">
+              Finish the required checks to enable activation.
+            </p>
+          )}
+          {engineOn && (
+            <Link
+              to="/app"
+              className="text-center text-xs font-medium text-primary hover:underline"
+            >
+              Go to dashboard →
+            </Link>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+
 
 function ProviderCard({
   provider,
@@ -384,6 +590,7 @@ function ProviderCard({
   const [expanded, setExpanded] = useState(integrations.length === 0);
   const [values, setValues] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
+  const [autoStatus, setAutoStatus] = useState<"idle" | "saving" | "saved" | "failed">("idle");
   const [copiedPreview, setCopiedPreview] = useState(false);
   const disabled = !provider.enabled;
   const setupFields = Array.isArray(provider.setup_fields)
@@ -391,6 +598,53 @@ function ProviderCard({
     : [];
   const origin = getBrowserOrigin();
   const previewUrl = origin ? `${origin}/api/public/webhooks/${provider.code}` : "";
+
+  const requiredKeys = useMemo(
+    () => setupFields.filter((f) => f.required).map((f) => f.key),
+    [setupFields],
+  );
+  const allRequiredFilled =
+    requiredKeys.length > 0 && requiredKeys.every((k) => (values[k] ?? "").trim().length > 0);
+
+  const autoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastSavedSigRef = useRef<string>("");
+
+  // Debounced autosave: fire ~900ms after the user stops editing, once every
+  // required field is filled. Server rejects invalid credentials and we surface
+  // that as "Save failed" without clearing the form.
+  useEffect(() => {
+    if (!expanded || disabled || overLimit) return;
+    if (!allRequiredFilled) {
+      setAutoStatus("idle");
+      return;
+    }
+    const sig = JSON.stringify(values);
+    if (sig === lastSavedSigRef.current) return;
+    if (autoTimerRef.current) clearTimeout(autoTimerRef.current);
+    autoTimerRef.current = setTimeout(async () => {
+      setAutoStatus("saving");
+      setSubmitting(true);
+      try {
+        const okSaved = await onSave(provider.code, values);
+        lastSavedSigRef.current = sig;
+        if (okSaved) {
+          setAutoStatus("saved");
+          setValues({});
+          setExpanded(false);
+        } else {
+          setAutoStatus("failed");
+        }
+      } catch {
+        setAutoStatus("failed");
+      } finally {
+        setSubmitting(false);
+      }
+    }, 900);
+    return () => {
+      if (autoTimerRef.current) clearTimeout(autoTimerRef.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [values, expanded, disabled, overLimit, allRequiredFilled]);
 
   async function copyPreview() {
     if (!previewUrl) return;
@@ -407,16 +661,22 @@ function ProviderCard({
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (disabled || overLimit) return;
+    if (autoTimerRef.current) clearTimeout(autoTimerRef.current);
     setSubmitting(true);
+    setAutoStatus("saving");
     try {
       const okSaved = await onSave(provider.code, values);
       if (okSaved) {
+        setAutoStatus("saved");
         setValues({});
         setExpanded(false);
+      } else {
+        setAutoStatus("failed");
       }
     } finally {
       setSubmitting(false);
     }
+
   }
 
   return (
@@ -589,17 +849,40 @@ function ProviderCard({
                   )}
                 </div>
               ))}
-              <Button type="submit" size="sm" disabled={submitting}>
-                {submitting ? (
-                  <>
-                    <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" /> Verifying…
-                  </>
-                ) : (
-                  <>
-                    <Plug className="mr-2 h-3.5 w-3.5" /> Connect
-                  </>
-                )}
-              </Button>
+              <div className="flex items-center gap-3">
+                <Button type="submit" size="sm" disabled={submitting}>
+                  {submitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" /> Verifying…
+                    </>
+                  ) : (
+                    <>
+                      <Plug className="mr-2 h-3.5 w-3.5" /> Save & verify
+                    </>
+                  )}
+                </Button>
+                <span className="text-[11px] text-muted-foreground" aria-live="polite">
+                  {autoStatus === "saving" && (
+                    <span className="inline-flex items-center gap-1">
+                      <Loader2 className="h-3 w-3 animate-spin" /> Autosaving…
+                    </span>
+                  )}
+                  {autoStatus === "saved" && (
+                    <span className="inline-flex items-center gap-1 text-emerald-500">
+                      <Check className="h-3 w-3" /> Saved
+                    </span>
+                  )}
+                  {autoStatus === "failed" && (
+                    <span className="inline-flex items-center gap-1 text-destructive">
+                      <XCircle className="h-3 w-3" /> Save failed
+                    </span>
+                  )}
+                  {autoStatus === "idle" && allRequiredFilled === false && (
+                    <span>Fill required fields — changes autosave.</span>
+                  )}
+                </span>
+              </div>
+
             </form>
           )}
         </div>
@@ -968,107 +1251,8 @@ function UpgradeBadge({ reason, overLimit }: { reason: string; overLimit: boolea
   );
 }
 
-function ActivationReview({
-  integrations,
-  limits,
-  catalog,
-  statuses,
-  onActivate,
-}: {
-  integrations: IntegrationRow[];
-  limits: { kind: ProviderKind; used: number; max: number | null }[];
-  catalog: ProviderRow[];
-  statuses: ProviderStatusRow[];
-  onActivate: () => void;
-}) {
-  const codesByKind = (kind: ProviderKind) =>
-    catalog.filter((c) => c.kind === kind).map((c) => c.code);
-  const connectedCount = (kind: ProviderKind) => {
-    const codes = codesByKind(kind);
-    return integrations.filter((i) => i.status === "connected" && codes.includes(i.provider))
-      .length;
-  };
-  const connectedIds = new Set(
-    integrations.filter((i) => i.status === "connected").map((i) => i.id),
-  );
-  const failingStatuses = statuses.filter(
-    (s) => connectedIds.has(s.integration_id) && (s.retry_count ?? 0) > 0,
-  );
-  const checks = [
-    { label: "Store connected", ok: connectedCount("store") > 0 },
-    { label: "Payment gateway connected", ok: connectedCount("gateway") > 0 },
-    { label: "Email connected", ok: connectedCount("email") > 0 },
-    {
-      label: "WhatsApp / SMS connected (optional)",
-      ok: connectedCount("messaging") > 0,
-      optional: true,
-    },
-    {
-      label: "Webhooks verified",
-      ok: integrations.some(
-        (i) => i.status === "connected" && i.verification_status === "verified",
-      ),
-    },
-    {
-      label: "Test passed on every connection",
-      ok:
-        integrations.filter((i) => i.status === "connected").length > 0 &&
-        integrations.filter((i) => i.status === "connected").every((i) => i.last_test_ok === true),
-    },
-    {
-      label: "No recent webhook failures",
-      ok: failingStatuses.length === 0,
-    },
-  ];
-  const requiredOk = checks.filter((c) => !c.optional).every((c) => c.ok);
 
-  return (
-    <div className="rounded-2xl border border-border/60 bg-card/50 p-6">
-      <h2 className="text-lg font-semibold text-foreground">Activation review</h2>
-      <p className="mt-1 text-sm text-muted-foreground">
-        Every check below has to pass before the recovery engine can be turned on.
-      </p>
 
-      <ul className="mt-6 space-y-3 text-sm">
-        {checks.map((c) => (
-          <li key={c.label} className="flex items-center gap-3">
-            <CheckCircle2
-              className={cn("h-4 w-4", c.ok ? "text-emerald-500" : "text-muted-foreground/40")}
-            />
-            <span className="text-foreground">{c.label}</span>
-            {c.optional && (
-              <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                Optional
-              </span>
-            )}
-          </li>
-        ))}
-      </ul>
-
-      <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
-        {limits.map((l) => (
-          <div key={l.kind} className="rounded-lg border border-border/60 bg-background/40 p-3">
-            <p className="text-[11px] uppercase tracking-wider text-muted-foreground">{l.kind}</p>
-            <p className="mt-1 text-sm font-medium text-foreground">
-              {l.used} / {l.max ?? "∞"}
-            </p>
-          </div>
-        ))}
-      </div>
-
-      <div className="mt-8">
-        <Button size="lg" onClick={onActivate} disabled={!requiredOk}>
-          Activate recovery engine
-        </Button>
-        {!requiredOk && (
-          <p className="mt-2 text-xs text-muted-foreground">
-            Finish the missing steps above to enable activation.
-          </p>
-        )}
-      </div>
-    </div>
-  );
-}
 
 function verifCls(status: string | null | undefined) {
   if (status === "verified") return "text-emerald-500";
