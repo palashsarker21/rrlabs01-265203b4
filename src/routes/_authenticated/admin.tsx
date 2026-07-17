@@ -73,6 +73,7 @@ import {
   QueueManagerPanel,
   CheckoutSessionsPanel,
 } from "@/components/admin/panels";
+import { SuccessFeePanel } from "@/components/admin/success-fee-panel";
 
 type TabKey =
   | "workspaces"
