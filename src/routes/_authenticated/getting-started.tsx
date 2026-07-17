@@ -65,7 +65,7 @@ const STEP_META: Record<
 function GettingStartedPage() {
   const navigate = useNavigate();
   const listFn = useServerFn(listWorkspaceIntegrations);
-  const statusesFn = useServerFn(listWorkspaceProviderStatuses);
+  const catalogFn = useServerFn(listProviderCatalog);
 
   const { data: workspace, isLoading: wsLoading } = useQuery({
     queryKey: ["getting-started-workspace"],
@@ -87,32 +87,32 @@ function GettingStartedPage() {
     queryFn: () => listFn({ data: { workspaceId: workspace!.id } }),
   });
 
-  const { data: statuses = [] } = useQuery({
-    enabled: !!workspace?.id,
-    queryKey: ["getting-started-statuses", workspace?.id],
-    queryFn: () => statusesFn({ data: { workspaceId: workspace!.id } }),
+  const { data: catalog = [] } = useQuery({
+    queryKey: ["getting-started-catalog"],
+    queryFn: () => catalogFn({}),
   });
 
   const stepState = useMemo(() => {
+    const providerKindMap = new Map<string, ProviderKind>();
+    for (const p of catalog) {
+      providerKindMap.set(p.provider, p.kind as ProviderKind);
+    }
     return PROVIDER_STEP_ORDER.map((step) => {
-      const integrationKind = integrationKindFor(step.kind);
-      // For email vs messaging, both map to "communication" — disambiguate by provider status.
-      const kindStatuses = statuses.filter((s) => s.kind === step.kind);
-      const connected = kindStatuses.some(
-        (s) => s.status === "connected" || s.status === "healthy",
+      const forStep = integrations.filter(
+        (i) => providerKindMap.get(i.provider) === step.kind,
       );
-      const anyIntegration =
-        step.kind === "email" || step.kind === "messaging"
-          ? kindStatuses.length > 0
-          : integrations.some((i) => i.kind === integrationKind);
+      const connected = forStep.some(
+        (i) => i.status === "connected" && (i.health === "healthy" || i.health === "ok"),
+      );
+      const started = forStep.length > 0 && !connected;
       return {
         ...step,
         meta: STEP_META[step.kind],
         connected,
-        started: anyIntegration && !connected,
+        started,
       };
     });
-  }, [statuses, integrations]);
+  }, [catalog, integrations]);
 
   const requiredSteps = stepState.filter((s) => s.meta.required);
   const requiredConnected = requiredSteps.filter((s) => s.connected).length;
