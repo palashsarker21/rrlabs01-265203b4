@@ -151,7 +151,12 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
       });
       await supabaseAdmin
         .from("checkout_sessions")
-        .update({ status: "failed" })
+        .update({
+          status: "failed",
+          provider_error: text.slice(0, 2000),
+          provider_status_code: res.status,
+          last_attempt_at: new Date().toISOString(),
+        } as never)
         .eq("id", session.id);
       throw new Error(
         `Lemon Squeezy rejected checkout creation for ${plan.name} (HTTP ${res.status}). Please try again or contact support.`,
@@ -164,12 +169,24 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
     const checkoutId = json.data?.id;
     const checkoutUrl = json.data?.attributes?.url;
     if (!checkoutUrl) {
+      await supabaseAdmin
+        .from("checkout_sessions")
+        .update({
+          status: "failed",
+          provider_error: "Checkout URL was not returned by Lemon Squeezy.",
+          last_attempt_at: new Date().toISOString(),
+        } as never)
+        .eq("id", session.id);
       throw new Error("Checkout URL was not returned by Lemon Squeezy.");
     }
 
     await supabaseAdmin
       .from("checkout_sessions")
-      .update({ ls_checkout_id: checkoutId, ls_checkout_url: checkoutUrl })
+      .update({
+        ls_checkout_id: checkoutId,
+        ls_checkout_url: checkoutUrl,
+        last_attempt_at: new Date().toISOString(),
+      } as never)
       .eq("id", session.id);
 
     return { url: checkoutUrl, sessionId: session.id };

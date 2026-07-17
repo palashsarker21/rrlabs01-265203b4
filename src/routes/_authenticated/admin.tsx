@@ -71,6 +71,7 @@ import {
   AnnouncementsPanel,
   IncidentsPanel,
   QueueManagerPanel,
+  CheckoutSessionsPanel,
 } from "@/components/admin/panels";
 
 type TabKey =
@@ -97,6 +98,7 @@ type TabKey =
   | "announcements"
   | "incidents"
   | "queue"
+  | "checkouts"
   | "analytics";
 
 const TABS: { key: TabKey; label: string; icon: typeof Shield }[] = [
@@ -105,6 +107,7 @@ const TABS: { key: TabKey; label: string; icon: typeof Shield }[] = [
   { key: "users", label: "Users & roles", icon: Users },
   { key: "subscriptions", label: "Subscriptions", icon: CreditCard },
   { key: "billing", label: "Billing events", icon: Receipt },
+  { key: "checkouts", label: "Checkout sessions", icon: CreditCard },
   { key: "webhooks", label: "Webhooks", icon: Webhook },
   { key: "integrations", label: "Integrations", icon: Plug },
   { key: "recovery", label: "Recovery engine", icon: Zap },
@@ -328,6 +331,8 @@ function AdminConsole() {
           <SubscriptionsPanel />
         ) : tab === "billing" ? (
           <BillingEventsPanel />
+        ) : tab === "checkouts" ? (
+          <CheckoutSessionsPanel />
         ) : tab === "webhooks" ? (
           <WebhookMonitorPanel />
         ) : tab === "integrations" ? (

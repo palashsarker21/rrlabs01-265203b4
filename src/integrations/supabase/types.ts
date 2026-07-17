@@ -642,10 +642,13 @@ export type Database = {
           created_at: string
           fulfilled_workspace_id: string | null
           id: string
+          last_attempt_at: string | null
           ls_checkout_id: string | null
           ls_checkout_url: string | null
           organization_name: string
           plan_id: string
+          provider_error: string | null
+          provider_status_code: number | null
           status: string
           updated_at: string
           user_id: string
@@ -655,10 +658,13 @@ export type Database = {
           created_at?: string
           fulfilled_workspace_id?: string | null
           id?: string
+          last_attempt_at?: string | null
           ls_checkout_id?: string | null
           ls_checkout_url?: string | null
           organization_name: string
           plan_id: string
+          provider_error?: string | null
+          provider_status_code?: number | null
           status?: string
           updated_at?: string
           user_id: string
@@ -668,10 +674,13 @@ export type Database = {
           created_at?: string
           fulfilled_workspace_id?: string | null
           id?: string
+          last_attempt_at?: string | null
           ls_checkout_id?: string | null
           ls_checkout_url?: string | null
           organization_name?: string
           plan_id?: string
+          provider_error?: string | null
+          provider_status_code?: number | null
           status?: string
           updated_at?: string
           user_id?: string

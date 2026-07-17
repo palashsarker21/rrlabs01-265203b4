@@ -49,6 +49,12 @@ import {
   type QueueStat,
 } from "@/lib/admin/queue.functions";
 import { runRlsTestSuite, type RlsTestResult } from "@/lib/rls-tests.functions";
+import {
+  listAdminCheckoutSessions,
+  runCheckoutSanityTest,
+  type AdminCheckoutRow,
+  type CheckoutTestResult,
+} from "@/lib/admin/billing.functions";
 
 function money(cents: number | null | undefined, currency = "USD") {
   const n = Number(cents ?? 0);
@@ -3150,6 +3156,251 @@ export function QueueManagerPanel() {
             />
           </div>
         )}
+      />
+    </section>
+  );
+}
+
+// ============================================================
+// CHECKOUT SESSIONS (Lemon Squeezy)
+// ============================================================
+export function CheckoutSessionsPanel() {
+  const list = useServerFn(listAdminCheckoutSessions);
+  const runTest = useServerFn(runCheckoutSanityTest);
+  const qc = useQueryClient();
+
+  const { data = [], isLoading } = useQuery<AdminCheckoutRow[]>({
+    queryKey: ["admin-checkout-sessions"],
+    queryFn: () => list({}),
+    refetchInterval: 30_000,
+  });
+
+  const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "completed" | "failed">(
+    "all",
+  );
+  const [testing, setTesting] = useState(false);
+  const [testResults, setTestResults] = useState<CheckoutTestResult[] | null>(null);
+
+  const rows = useMemo(
+    () => (statusFilter === "all" ? data : data.filter((r) => r.status === statusFilter)),
+    [data, statusFilter],
+  );
+
+  const counts = useMemo(() => {
+    const c = { pending: 0, completed: 0, failed: 0 } as Record<string, number>;
+    for (const r of data) c[r.status] = (c[r.status] ?? 0) + 1;
+    return c;
+  }, [data]);
+
+  const columns: Column<AdminCheckoutRow>[] = [
+    {
+      key: "created_at",
+      label: "Created",
+      sortable: true,
+      value: (r) => r.created_at,
+      cell: (r) => <span className="text-xs">{fmt(r.created_at)}</span>,
+    },
+    {
+      key: "status",
+      label: "Status",
+      sortable: true,
+      value: (r) => r.status,
+      cell: (r) => (
+        <span
+          className={
+            r.status === "completed"
+              ? "text-xs text-emerald-500"
+              : r.status === "failed"
+                ? "text-xs text-rose-500"
+                : "text-xs text-amber-500"
+          }
+        >
+          {r.status}
+        </span>
+      ),
+    },
+    {
+      key: "plan",
+      label: "Plan",
+      value: (r) => r.plan_name ?? r.plan_code ?? r.plan_id,
+      cell: (r) => (
+        <span className="text-xs">
+          {r.plan_name ?? "—"}
+          {r.plan_code ? <span className="ml-1 text-muted-foreground">({r.plan_code})</span> : null}
+        </span>
+      ),
+    },
+    {
+      key: "organization_name",
+      label: "Organization",
+      value: (r) => r.organization_name,
+      cell: (r) => <span className="text-xs">{r.organization_name || "—"}</span>,
+    },
+    {
+      key: "workspace_name",
+      label: "Workspace",
+      value: (r) => r.workspace_name,
+      cell: (r) => <span className="text-xs">{r.workspace_name || "—"}</span>,
+    },
+    {
+      key: "user_email",
+      label: "User",
+      value: (r) => r.user_email ?? r.user_id,
+      cell: (r) => <span className="text-xs">{r.user_email ?? r.user_id.slice(0, 8)}</span>,
+    },
+    {
+      key: "provider_error",
+      label: "Provider error",
+      value: (r) => r.provider_error,
+      cell: (r) =>
+        r.provider_error ? (
+          <div className="max-w-[360px]">
+            <div className="text-xs text-rose-500">
+              {r.provider_status_code ? `HTTP ${r.provider_status_code}: ` : ""}
+              <span className="break-all">{r.provider_error.slice(0, 220)}</span>
+              {r.provider_error.length > 220 ? "…" : ""}
+            </div>
+          </div>
+        ) : (
+          <span className="text-xs text-muted-foreground">—</span>
+        ),
+    },
+    {
+      key: "ls_checkout_url",
+      label: "Checkout",
+      value: (r) => r.ls_checkout_url,
+      cell: (r) =>
+        r.ls_checkout_url ? (
+          <a
+            href={r.ls_checkout_url}
+            target="_blank"
+            rel="noreferrer"
+            className="text-xs text-primary underline"
+          >
+            Open
+          </a>
+        ) : (
+          <span className="text-xs text-muted-foreground">—</span>
+        ),
+    },
+  ];
+
+  async function onRunTest() {
+    setTesting(true);
+    setTestResults(null);
+    try {
+      const res = await runTest({});
+      setTestResults(res);
+      const failed = res.filter((r) => !r.ok);
+      if (failed.length === 0) {
+        toast.success("Checkout integration test passed for every self-serve plan.");
+      } else {
+        toast.error(
+          `Checkout test failed for: ${failed.map((f) => f.planCode).join(", ")}`,
+        );
+      }
+      qc.invalidateQueries({ queryKey: ["admin-checkout-sessions"] });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Test failed to run.");
+    } finally {
+      setTesting(false);
+    }
+  }
+
+  return (
+    <section className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-card p-4">
+        <div className="flex flex-wrap items-center gap-2 text-xs">
+          <span className="text-muted-foreground">Filter:</span>
+          {(["all", "pending", "completed", "failed"] as const).map((s) => (
+            <Button
+              key={s}
+              size="sm"
+              variant={statusFilter === s ? "default" : "outline"}
+              onClick={() => setStatusFilter(s)}
+            >
+              {s}
+              {s !== "all" && counts[s] ? (
+                <span className="ml-1 text-muted-foreground">({counts[s]})</span>
+              ) : null}
+            </Button>
+          ))}
+          {isLoading ? <span className="text-muted-foreground">Loading…</span> : null}
+        </div>
+        <Button size="sm" onClick={onRunTest} disabled={testing} className="gap-1">
+          <Play className="size-3.5" />
+          {testing ? "Running integration test…" : "Run checkout integration test"}
+        </Button>
+      </div>
+
+      {testResults ? (
+        <div className="space-y-2 rounded-lg border bg-card p-4">
+          <div className="text-sm font-semibold">Integration test results</div>
+          <p className="text-xs text-muted-foreground">
+            Verifies that every self-serve plan (Starter, Growth, Business, Scale) creates a
+            real Lemon Squeezy checkout without hitting the &ldquo;temporarily unavailable&rdquo;
+            path.
+          </p>
+          <div className="grid gap-2 md:grid-cols-2">
+            {testResults.map((r) => (
+              <div
+                key={r.planCode}
+                className={
+                  r.ok
+                    ? "rounded-md border border-emerald-500/30 bg-emerald-500/5 p-3"
+                    : "rounded-md border border-rose-500/30 bg-rose-500/5 p-3"
+                }
+              >
+                <div className="flex items-center justify-between text-sm font-medium">
+                  <span>
+                    {r.planName}{" "}
+                    <span className="text-muted-foreground">({r.planCode})</span>
+                  </span>
+                  <span className={r.ok ? "text-emerald-500" : "text-rose-500"}>
+                    {r.ok ? "PASS" : "FAIL"}
+                  </span>
+                </div>
+                <div className="mt-1 text-xs text-muted-foreground">
+                  variant {r.variantId ?? "—"} · source {r.variantSource ?? "—"} ·{" "}
+                  {r.durationMs}ms
+                </div>
+                {r.error ? (
+                  <div className="mt-2 break-all text-xs text-rose-500">
+                    {r.statusCode ? `HTTP ${r.statusCode}: ` : ""}
+                    {r.error}
+                  </div>
+                ) : null}
+                {r.checkoutUrl ? (
+                  <a
+                    href={r.checkoutUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-1 inline-block text-xs text-primary underline"
+                  >
+                    Open test checkout
+                  </a>
+                ) : null}
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      <AdminDataTable
+        title="Checkout sessions"
+        description="Lemon Squeezy self-serve checkouts with pending, completed, and failed status."
+        rows={rows}
+        columns={columns}
+        getRowId={(r) => r.id}
+        searchKeys={[
+          "organization_name",
+          "workspace_name",
+          "user_email",
+          "plan_code",
+          "plan_name",
+          "provider_error",
+        ]}
+        exportFilename="checkout_sessions.csv"
       />
     </section>
   );
