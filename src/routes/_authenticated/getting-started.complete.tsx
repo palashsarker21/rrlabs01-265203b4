@@ -405,29 +405,50 @@ function OnboardingCompletePage() {
                   </div>
                   <ul className="mt-3 space-y-1.5 text-sm">
                     {g.items.length === 0 ? (
-                      <li className="text-xs text-muted-foreground">
-                        {meta.required ? "Not connected yet." : "No provider connected."}
+                      <li className="flex items-center justify-between gap-2">
+                        <span className="text-xs text-muted-foreground">
+                          {meta.required ? "Not connected yet." : "No provider connected."}
+                        </span>
+                        <Link
+                          to="/integrations"
+                          hash={`mod-${g.kind}`}
+                          className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-background/60 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-foreground hover:bg-background"
+                        >
+                          Fix setup <ArrowRight className="h-3 w-3" />
+                        </Link>
                       </li>
                     ) : (
                       g.items.map((it) => (
-                        <li key={it.id} className="flex items-center justify-between">
+                        <li key={it.id} className="flex items-center justify-between gap-2">
                           <span className="capitalize text-foreground">{it.provider}</span>
-                          <span
-                            className={cn(
-                              "rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider",
-                              it.verified
-                                ? "bg-emerald-500/10 text-emerald-500"
+                          <div className="flex items-center gap-2">
+                            <span
+                              className={cn(
+                                "rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider",
+                                it.verified
+                                  ? "bg-emerald-500/10 text-emerald-500"
+                                  : it.status === "connected"
+                                    ? "bg-amber-500/10 text-amber-500"
+                                    : "bg-muted text-muted-foreground",
+                              )}
+                            >
+                              {it.verified
+                                ? "Verified"
                                 : it.status === "connected"
-                                  ? "bg-amber-500/10 text-amber-500"
-                                  : "bg-muted text-muted-foreground",
+                                  ? "Needs verify"
+                                  : it.status}
+                            </span>
+                            {!it.verified && (
+                              <Link
+                                to="/integrations"
+                                hash={`prov-${it.provider}`}
+                                className="inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-primary hover:bg-primary/15"
+                                aria-label={`Fix setup for ${it.provider}`}
+                              >
+                                Fix setup <ArrowRight className="h-3 w-3" />
+                              </Link>
                             )}
-                          >
-                            {it.verified
-                              ? "Verified"
-                              : it.status === "connected"
-                                ? "Needs verify"
-                                : it.status}
-                          </span>
+                          </div>
                         </li>
                       ))
                     )}
