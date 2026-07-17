@@ -51,6 +51,7 @@ import { Route as BlogTagTagRouteImport } from './routes/blog.tag.$tag'
 import { Route as BlogCategoryCategoryRouteImport } from './routes/blog.category.$category'
 import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
 import { Route as AuthenticatedInviteTokenRouteImport } from './routes/_authenticated/invite.$token'
+import { Route as AuthenticatedGettingStartedCompleteRouteImport } from './routes/_authenticated/getting-started.complete'
 import { Route as AuthenticatedCheckoutStatusRouteImport } from './routes/_authenticated/checkout.status'
 import { Route as ApiPublicWebhooksStripeRouteImport } from './routes/api/public/webhooks/stripe'
 import { Route as ApiPublicWebhooksLemonsqueezyRouteImport } from './routes/api/public/webhooks/lemonsqueezy'
@@ -271,6 +272,12 @@ const AuthenticatedInviteTokenRoute =
     path: '/invite/$token',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedGettingStartedCompleteRoute =
+  AuthenticatedGettingStartedCompleteRouteImport.update({
+    id: '/complete',
+    path: '/complete',
+    getParentRoute: () => AuthenticatedGettingStartedRoute,
+  } as any)
 const AuthenticatedCheckoutStatusRoute =
   AuthenticatedCheckoutStatusRouteImport.update({
     id: '/status',
@@ -326,7 +333,7 @@ export interface FileRoutesByFullPath {
   '/app': typeof AuthenticatedAppRoute
   '/checkout': typeof AuthenticatedCheckoutRouteWithChildren
   '/events': typeof AuthenticatedEventsRoute
-  '/getting-started': typeof AuthenticatedGettingStartedRoute
+  '/getting-started': typeof AuthenticatedGettingStartedRouteWithChildren
   '/integrations': typeof AuthenticatedIntegrationsRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
@@ -340,6 +347,7 @@ export interface FileRoutesByFullPath {
   '/error/$code': typeof ErrorCodeRoute
   '/blog/': typeof BlogIndexRoute
   '/checkout/status': typeof AuthenticatedCheckoutStatusRoute
+  '/getting-started/complete': typeof AuthenticatedGettingStartedCompleteRoute
   '/invite/$token': typeof AuthenticatedInviteTokenRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/blog/category/$category': typeof BlogCategoryCategoryRoute
@@ -373,7 +381,7 @@ export interface FileRoutesByTo {
   '/app': typeof AuthenticatedAppRoute
   '/checkout': typeof AuthenticatedCheckoutRouteWithChildren
   '/events': typeof AuthenticatedEventsRoute
-  '/getting-started': typeof AuthenticatedGettingStartedRoute
+  '/getting-started': typeof AuthenticatedGettingStartedRouteWithChildren
   '/integrations': typeof AuthenticatedIntegrationsRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
@@ -387,6 +395,7 @@ export interface FileRoutesByTo {
   '/error/$code': typeof ErrorCodeRoute
   '/blog': typeof BlogIndexRoute
   '/checkout/status': typeof AuthenticatedCheckoutStatusRoute
+  '/getting-started/complete': typeof AuthenticatedGettingStartedCompleteRoute
   '/invite/$token': typeof AuthenticatedInviteTokenRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/blog/category/$category': typeof BlogCategoryCategoryRoute
@@ -423,7 +432,7 @@ export interface FileRoutesById {
   '/_authenticated/app': typeof AuthenticatedAppRoute
   '/_authenticated/checkout': typeof AuthenticatedCheckoutRouteWithChildren
   '/_authenticated/events': typeof AuthenticatedEventsRoute
-  '/_authenticated/getting-started': typeof AuthenticatedGettingStartedRoute
+  '/_authenticated/getting-started': typeof AuthenticatedGettingStartedRouteWithChildren
   '/_authenticated/integrations': typeof AuthenticatedIntegrationsRoute
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
@@ -437,6 +446,7 @@ export interface FileRoutesById {
   '/error/$code': typeof ErrorCodeRoute
   '/blog/': typeof BlogIndexRoute
   '/_authenticated/checkout/status': typeof AuthenticatedCheckoutStatusRoute
+  '/_authenticated/getting-started/complete': typeof AuthenticatedGettingStartedCompleteRoute
   '/_authenticated/invite/$token': typeof AuthenticatedInviteTokenRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/blog/category/$category': typeof BlogCategoryCategoryRoute
@@ -487,6 +497,7 @@ export interface FileRouteTypes {
     | '/error/$code'
     | '/blog/'
     | '/checkout/status'
+    | '/getting-started/complete'
     | '/invite/$token'
     | '/api/public/health'
     | '/blog/category/$category'
@@ -534,6 +545,7 @@ export interface FileRouteTypes {
     | '/error/$code'
     | '/blog'
     | '/checkout/status'
+    | '/getting-started/complete'
     | '/invite/$token'
     | '/api/public/health'
     | '/blog/category/$category'
@@ -583,6 +595,7 @@ export interface FileRouteTypes {
     | '/error/$code'
     | '/blog/'
     | '/_authenticated/checkout/status'
+    | '/_authenticated/getting-started/complete'
     | '/_authenticated/invite/$token'
     | '/api/public/health'
     | '/blog/category/$category'
@@ -918,6 +931,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedInviteTokenRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/getting-started/complete': {
+      id: '/_authenticated/getting-started/complete'
+      path: '/complete'
+      fullPath: '/getting-started/complete'
+      preLoaderRoute: typeof AuthenticatedGettingStartedCompleteRouteImport
+      parentRoute: typeof AuthenticatedGettingStartedRoute
+    }
     '/_authenticated/checkout/status': {
       id: '/_authenticated/checkout/status'
       path: '/status'
@@ -969,13 +989,28 @@ const AuthenticatedCheckoutRouteWithChildren =
     AuthenticatedCheckoutRouteChildren,
   )
 
+interface AuthenticatedGettingStartedRouteChildren {
+  AuthenticatedGettingStartedCompleteRoute: typeof AuthenticatedGettingStartedCompleteRoute
+}
+
+const AuthenticatedGettingStartedRouteChildren: AuthenticatedGettingStartedRouteChildren =
+  {
+    AuthenticatedGettingStartedCompleteRoute:
+      AuthenticatedGettingStartedCompleteRoute,
+  }
+
+const AuthenticatedGettingStartedRouteWithChildren =
+  AuthenticatedGettingStartedRoute._addFileChildren(
+    AuthenticatedGettingStartedRouteChildren,
+  )
+
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedAnalyticsRoute: typeof AuthenticatedAnalyticsRoute
   AuthenticatedAppRoute: typeof AuthenticatedAppRoute
   AuthenticatedCheckoutRoute: typeof AuthenticatedCheckoutRouteWithChildren
   AuthenticatedEventsRoute: typeof AuthenticatedEventsRoute
-  AuthenticatedGettingStartedRoute: typeof AuthenticatedGettingStartedRoute
+  AuthenticatedGettingStartedRoute: typeof AuthenticatedGettingStartedRouteWithChildren
   AuthenticatedIntegrationsRoute: typeof AuthenticatedIntegrationsRoute
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
@@ -992,7 +1027,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAppRoute: AuthenticatedAppRoute,
   AuthenticatedCheckoutRoute: AuthenticatedCheckoutRouteWithChildren,
   AuthenticatedEventsRoute: AuthenticatedEventsRoute,
-  AuthenticatedGettingStartedRoute: AuthenticatedGettingStartedRoute,
+  AuthenticatedGettingStartedRoute:
+    AuthenticatedGettingStartedRouteWithChildren,
   AuthenticatedIntegrationsRoute: AuthenticatedIntegrationsRoute,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
