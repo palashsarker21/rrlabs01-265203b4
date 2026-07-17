@@ -16,6 +16,7 @@ import {
   Mail,
   MessageSquare,
   PartyPopper,
+  FileDown,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -26,6 +27,7 @@ import { cn } from "@/lib/utils";
 import { listWorkspaceIntegrations, activateWorkspace } from "@/lib/integrations.functions";
 import { listProviderCatalog } from "@/lib/providers.functions";
 import { PROVIDER_STEP_ORDER, type ProviderKind } from "@/lib/providers/kinds";
+import { generateOnboardingReport } from "@/lib/onboarding-report.functions";
 import {
   ActivationProgress,
   classifyActivationError,
@@ -58,6 +60,8 @@ function OnboardingCompletePage() {
   const listFn = useServerFn(listWorkspaceIntegrations);
   const catalogFn = useServerFn(listProviderCatalog);
   const activateFn = useServerFn(activateWorkspace);
+  const reportFn = useServerFn(generateOnboardingReport);
+  const [downloadingReport, setDownloadingReport] = useState(false);
 
   const { data: workspace, isLoading: wsLoading } = useQuery({
     queryKey: ["onboarding-complete-workspace"],
@@ -249,6 +253,34 @@ function OnboardingCompletePage() {
     }
   }
 
+  async function downloadReport() {
+    if (!workspace?.id) {
+      toast.error("No workspace found.");
+      return;
+    }
+    setDownloadingReport(true);
+    try {
+      const res = await reportFn({ data: { workspaceId: workspace.id } });
+      const bin = atob(res.base64);
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      const blob = new Blob([bytes], { type: res.mimeType });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = res.filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      toast.success("Report downloaded");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not generate report.");
+    } finally {
+      setDownloadingReport(false);
+    }
+  }
+
   const isRunning = phase === "running";
   const isComplete = phase === "success";
   const isFailed = phase === "failed";
@@ -264,12 +296,27 @@ function OnboardingCompletePage() {
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border/40">
-        <div className="mx-auto flex max-w-4xl items-center justify-between px-6 py-4">
+        <div className="mx-auto flex max-w-4xl items-center justify-between gap-2 px-6 py-4">
           <BrandLockup />
-          <Button variant="ghost" size="sm" onClick={() => navigate({ to: "/getting-started" })}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to setup
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={downloadReport}
+              disabled={downloadingReport || !workspace?.id}
+            >
+              {downloadingReport ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <FileDown className="mr-2 h-4 w-4" />
+              )}
+              Download report (PDF)
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => navigate({ to: "/getting-started" })}>
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to setup
+            </Button>
+          </div>
         </div>
       </header>
 
