@@ -26,7 +26,7 @@ export const generateOnboardingReport = createServerFn({ method: "POST" })
 
     const { data: workspace, error: wsErr } = await supabase
       .from("workspaces")
-      .select("id, name, status, recovery_engine_enabled, activated_at, created_at")
+      .select("id, name, status, recovery_engine_enabled, setup_completed_at, created_at")
       .eq("id", data.workspaceId)
       .maybeSingle();
     if (wsErr) throw new Error(wsErr.message);
