@@ -320,9 +320,13 @@ function GettingStartedPage() {
             </div>
             <Button
               disabled={!allRequiredDone && !engineActive}
-              onClick={() => navigate({ to: "/integrations" })}
+              onClick={() =>
+                navigate({
+                  to: engineActive ? "/integrations" : "/getting-started/complete",
+                })
+              }
             >
-              {engineActive ? "View integrations" : "Go to activation"}
+              {engineActive ? "View integrations" : "Review & activate"}
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </div>
