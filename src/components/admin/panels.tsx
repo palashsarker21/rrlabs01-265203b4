@@ -1151,10 +1151,18 @@ function RlsTestSuiteCard() {
             updates, and invites are blocked across tenants. Cleans up after every run.
           </p>
         </div>
-        <Button size="sm" onClick={onRun} disabled={running}>
-          <Play className="mr-2 h-4 w-4" />
-          {running ? "Running…" : "Run tests"}
-        </Button>
+        <div className="flex items-center gap-2">
+          <a
+            href="/rls-verification"
+            className="rounded-md border border-border/60 px-3 py-1.5 text-xs font-medium hover:bg-muted/50"
+          >
+            Full verification page
+          </a>
+          <Button size="sm" onClick={onRun} disabled={running}>
+            <Play className="mr-2 h-4 w-4" />
+            {running ? "Running…" : "Run tests"}
+          </Button>
+        </div>
       </div>
       {report && (
         <div className="p-4">
