@@ -31,10 +31,16 @@ function fmtDate(iso: string | null | undefined) {
 
 export function BillingPanel({ workspaceId }: { workspaceId: string }) {
   const fetchBilling = useServerFn(getWorkspaceBilling);
+  const fetchFee = useServerFn(getWorkspaceSuccessFeeSummary);
   const { data, isLoading } = useQuery({
     queryKey: ["billing", workspaceId],
     queryFn: () => fetchBilling({ data: { workspaceId } }),
     staleTime: 30_000,
+  });
+  const { data: fee } = useQuery({
+    queryKey: ["billing-success-fee", workspaceId],
+    queryFn: () => fetchFee({ data: { workspaceId } }),
+    staleTime: 60_000,
   });
 
   if (isLoading) {
