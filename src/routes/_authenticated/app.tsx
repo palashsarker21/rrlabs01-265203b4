@@ -198,6 +198,12 @@ function AppShell() {
             <WorkspaceStatusBadge status={activeWorkspace?.status} />
             <TrialBadge trial={trial} />
             <Button asChild size="sm" variant="outline">
+              <Link to="/events">
+                <Sparkles className="mr-2 h-4 w-4" />
+                Events
+              </Link>
+            </Button>
+            <Button asChild size="sm" variant="outline">
               <Link to="/analytics">
                 <Sparkles className="mr-2 h-4 w-4" />
                 Analytics
