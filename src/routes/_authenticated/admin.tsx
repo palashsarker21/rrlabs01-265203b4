@@ -109,6 +109,7 @@ const TABS: { key: TabKey; label: string; icon: typeof Shield }[] = [
   { key: "subscriptions", label: "Subscriptions", icon: CreditCard },
   { key: "billing", label: "Billing events", icon: Receipt },
   { key: "checkouts", label: "Checkout sessions", icon: CreditCard },
+  { key: "success_fee", label: "Success fees", icon: Receipt },
   { key: "webhooks", label: "Webhooks", icon: Webhook },
   { key: "integrations", label: "Integrations", icon: Plug },
   { key: "recovery", label: "Recovery engine", icon: Zap },
