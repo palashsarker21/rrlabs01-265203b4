@@ -331,6 +331,8 @@ function AdminConsole() {
           <SubscriptionsPanel />
         ) : tab === "billing" ? (
           <BillingEventsPanel />
+        ) : tab === "checkouts" ? (
+          <CheckoutSessionsPanel />
         ) : tab === "webhooks" ? (
           <WebhookMonitorPanel />
         ) : tab === "integrations" ? (
