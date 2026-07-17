@@ -60,6 +60,8 @@ function OnboardingCompletePage() {
   const listFn = useServerFn(listWorkspaceIntegrations);
   const catalogFn = useServerFn(listProviderCatalog);
   const activateFn = useServerFn(activateWorkspace);
+  const reportFn = useServerFn(generateOnboardingReport);
+  const [downloadingReport, setDownloadingReport] = useState(false);
 
   const { data: workspace, isLoading: wsLoading } = useQuery({
     queryKey: ["onboarding-complete-workspace"],
