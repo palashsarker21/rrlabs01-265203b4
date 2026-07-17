@@ -186,11 +186,11 @@ export const generateOnboardingReport = createServerFn({ method: "POST" })
     rightY -= 14;
     page.drawText(workspace.id, { x: rightX, y: rightY, size: 8, font, color: text });
     rightY -= 16;
-    if (workspace.activated_at) {
-      page.drawText("Activated at", { x: rightX, y: rightY, size: 9, font: bold, color: muted });
+    if (workspace.setup_completed_at) {
+      page.drawText("Setup completed", { x: rightX, y: rightY, size: 9, font: bold, color: muted });
       rightY -= 14;
       page.drawText(
-        new Date(workspace.activated_at as string).toISOString().replace("T", " ").slice(0, 19) +
+        new Date(workspace.setup_completed_at as string).toISOString().replace("T", " ").slice(0, 19) +
           " UTC",
         { x: rightX, y: rightY, size: 9, font, color: text },
       );
