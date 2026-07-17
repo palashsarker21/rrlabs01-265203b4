@@ -167,7 +167,7 @@ export const getRecoveryAnalytics = createServerFn({ method: "POST" })
         cbucket.delivered += 1;
         if (bucket) bucket.delivered += 1;
       }
-      if (a.status === "failed" || a.status === "bounced") {
+      if (a.status === "failed" || a.status === "cancelled") {
         attemptsFailed += 1;
         cbucket.failed += 1;
         if (bucket) bucket.failed += 1;
