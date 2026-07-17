@@ -49,6 +49,12 @@ import {
   type QueueStat,
 } from "@/lib/admin/queue.functions";
 import { runRlsTestSuite, type RlsTestResult } from "@/lib/rls-tests.functions";
+import {
+  listAdminCheckoutSessions,
+  runCheckoutSanityTest,
+  type AdminCheckoutRow,
+  type CheckoutTestResult,
+} from "@/lib/admin/billing.functions";
 
 function money(cents: number | null | undefined, currency = "USD") {
   const n = Number(cents ?? 0);
