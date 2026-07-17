@@ -107,20 +107,151 @@ function OnboardingCompletePage() {
   const allReady = requiredMissing.length === 0;
   const engineActive = !!workspace?.recovery_engine_enabled;
 
-  const activate = useMutation({
-    mutationFn: async () => {
-      if (!workspace?.id) throw new Error("No workspace found.");
-      return activateFn({ data: { workspaceId: workspace.id } });
-    },
-    onSuccess: async () => {
+  const [steps, setSteps] = useState<ActivationStep[]>(() => initialSteps());
+  const [phase, setPhase] = useState<"idle" | "running" | "success" | "failed">("idle");
+
+  function patchStep(id: ActivationStepId, patch: Partial<ActivationStep>) {
+    setSteps((prev) => prev.map((s) => (s.id === id ? { ...s, ...patch } : s)));
+  }
+
+  async function runActivation() {
+    if (!workspace?.id) {
+      toast.error("No workspace found.");
+      return;
+    }
+    setSteps(initialSteps());
+    setPhase("running");
+
+    const fail = (id: ActivationStepId, error: string) => {
+      const cls = classifyActivationError(error);
+      // Mark the classified step as failed; if it's a later step, mark this one too.
+      patchStep(id, { state: "failed", error, fix: cls.fix });
+      setPhase("failed");
+    };
+
+    // Step 1 — permission (client mirror of can_manage_workspace)
+    patchStep("permission", { state: "running" });
+    try {
+      const { data: canManage, error } = await supabase.rpc("can_manage_workspace", {
+        _workspace_id: workspace.id,
+        _user_id: (await supabase.auth.getUser()).data.user?.id ?? "",
+      });
+      if (error) throw new Error(error.message);
+      if (!canManage) {
+        fail("permission", "You do not have permission to activate this workspace.");
+        return;
+      }
+      patchStep("permission", { state: "success" });
+    } catch (e) {
+      fail("permission", e instanceof Error ? e.message : "Permission check failed.");
+      return;
+    }
+
+    // Step 2 — required providers (uses already-loaded groups)
+    patchStep("required", { state: "running" });
+    const missing = groups.filter(
+      (g) => KIND_META[g.kind].required && !g.connected,
+    );
+    if (missing.length > 0) {
+      const label = missing.map((g) => KIND_META[g.kind].label).join(", ");
+      const first = missing[0].kind;
+      patchStep("required", {
+        state: "failed",
+        error: `Missing required provider${missing.length === 1 ? "" : "s"}: ${label}.`,
+        fix: {
+          label: `Connect ${KIND_META[first].label.toLowerCase()}`,
+          to: "/integrations",
+          hash: first,
+        },
+      });
+      setPhase("failed");
+      return;
+    }
+    patchStep("required", { state: "success" });
+
+    // Step 3 — every connected integration verified
+    patchStep("verified", { state: "running" });
+    const notVerified = integrations.filter(
+      (i) =>
+        i.status === "connected" &&
+        (i.verification_status !== "verified" || i.last_test_ok !== true),
+    );
+    if (notVerified.length > 0) {
+      patchStep("verified", {
+        state: "failed",
+        error: `${notVerified.length} connection${notVerified.length === 1 ? "" : "s"} still need to pass verification.`,
+        fix: { label: "Verify connections", to: "/integrations" },
+      });
+      setPhase("failed");
+      return;
+    }
+    patchStep("verified", { state: "success" });
+
+    // Step 4 — webhook health (last 24h)
+    patchStep("webhooks", { state: "running" });
+    try {
+      const connectedIds = integrations
+        .filter((i) => i.status === "connected")
+        .map((i) => i.id);
+      if (connectedIds.length === 0) {
+        patchStep("webhooks", { state: "skipped" });
+      } else {
+        const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+        const { count, error } = await supabase
+          .from("webhook_logs")
+          .select("id", { count: "exact", head: true })
+          .in("integration_id", connectedIds)
+          .gte("received_at", since)
+          .or("signature_valid.eq.false,status_code.gte.400");
+        if (error) throw new Error(error.message);
+        if ((count ?? 0) > 0) {
+          patchStep("webhooks", {
+            state: "failed",
+            error: `${count} webhook failure${count === 1 ? "" : "s"} in the last 24 hours must be resolved.`,
+            fix: { label: "Review webhook logs", to: "/notifications" },
+          });
+          setPhase("failed");
+          return;
+        }
+        patchStep("webhooks", { state: "success" });
+      }
+    } catch (e) {
+      patchStep("webhooks", {
+        state: "failed",
+        error: e instanceof Error ? e.message : "Could not check webhook health.",
+        fix: { label: "Review webhook logs", to: "/notifications" },
+      });
+      setPhase("failed");
+      return;
+    }
+
+    // Step 5 — server activation (authoritative)
+    patchStep("activate", { state: "running" });
+    try {
+      await activateFn({ data: { workspaceId: workspace.id } });
+      patchStep("activate", { state: "success" });
+      setPhase("success");
       toast.success("Recovery Engine activated");
       await qc.invalidateQueries({ queryKey: ["onboarding-complete-workspace"] });
-      navigate({ to: "/app" });
-    },
-    onError: (e) => {
-      toast.error(e instanceof Error ? e.message : "Activation failed");
-    },
-  });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Activation failed.";
+      const cls = classifyActivationError(msg);
+      // If the server rejected on a check we thought passed, surface it on the right row.
+      patchStep(cls.stepId, {
+        state: "failed",
+        error: msg,
+        fix: cls.fix,
+      });
+      if (cls.stepId !== "activate") {
+        patchStep("activate", { state: "idle" });
+      }
+      setPhase("failed");
+    }
+  }
+
+  const isRunning = phase === "running";
+  const isComplete = phase === "success";
+  const isFailed = phase === "failed";
 
   if (wsLoading) {
     return (
