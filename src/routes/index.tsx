@@ -36,11 +36,11 @@ export const Route = createFileRoute("/")({
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://www.rrlabs.online/" },
-      { property: "og:title", content: "RRLabs — AI Revenue Recovery Platform" },
+      { property: "og:title", content: "RRLabs — AI Revenue Recovery Platform for Subscription Businesses" },
       {
         property: "og:description",
         content:
-          "Recover failed subscription payments automatically with AI-personalized messaging across email and WhatsApp.",
+          "RRLabs is an AI revenue recovery platform that automatically recovers failed subscription payments, reduces involuntary churn, and protects recurring revenue. Native Stripe, LemonSqueezy, and Paddle support.",
       },
       { name: "twitter:card", content: "summary_large_image" },
     ],
