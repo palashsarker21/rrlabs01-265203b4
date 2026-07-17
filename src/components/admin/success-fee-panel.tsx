@@ -325,28 +325,6 @@ export function SuccessFeePanel() {
           }}
         />
       ) : null}
-
-      {voidOpen ? (
-        <ConfirmDialog
-          open={!!voidOpen}
-          onOpenChange={(o) => (!o ? setVoidOpen(null) : undefined)}
-          title="Void this statement?"
-          description="It will be marked voided and cannot be invoiced. Provide a reason for the audit log."
-          confirmLabel="Void statement"
-          destructive
-          requireReason
-          onConfirm={async (reason) => {
-            try {
-              await voidFn({ data: { id: voidOpen.id, reason: reason ?? "voided" } });
-              toast.success("Statement voided.");
-              setVoidOpen(null);
-              await refresh();
-            } catch (err) {
-              toast.error(err instanceof Error ? err.message : "Void failed.");
-            }
-          }}
-        />
-      ) : null}
     </section>
   );
 }
