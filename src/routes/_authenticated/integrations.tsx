@@ -590,6 +590,7 @@ function ProviderCard({
   const [expanded, setExpanded] = useState(integrations.length === 0);
   const [values, setValues] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
+  const [autoStatus, setAutoStatus] = useState<"idle" | "saving" | "saved" | "failed">("idle");
   const [copiedPreview, setCopiedPreview] = useState(false);
   const disabled = !provider.enabled;
   const setupFields = Array.isArray(provider.setup_fields)
@@ -597,6 +598,53 @@ function ProviderCard({
     : [];
   const origin = getBrowserOrigin();
   const previewUrl = origin ? `${origin}/api/public/webhooks/${provider.code}` : "";
+
+  const requiredKeys = useMemo(
+    () => setupFields.filter((f) => f.required).map((f) => f.key),
+    [setupFields],
+  );
+  const allRequiredFilled =
+    requiredKeys.length > 0 && requiredKeys.every((k) => (values[k] ?? "").trim().length > 0);
+
+  const autoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastSavedSigRef = useRef<string>("");
+
+  // Debounced autosave: fire ~900ms after the user stops editing, once every
+  // required field is filled. Server rejects invalid credentials and we surface
+  // that as "Save failed" without clearing the form.
+  useEffect(() => {
+    if (!expanded || disabled || overLimit) return;
+    if (!allRequiredFilled) {
+      setAutoStatus("idle");
+      return;
+    }
+    const sig = JSON.stringify(values);
+    if (sig === lastSavedSigRef.current) return;
+    if (autoTimerRef.current) clearTimeout(autoTimerRef.current);
+    autoTimerRef.current = setTimeout(async () => {
+      setAutoStatus("saving");
+      setSubmitting(true);
+      try {
+        const okSaved = await onSave(provider.code, values);
+        lastSavedSigRef.current = sig;
+        if (okSaved) {
+          setAutoStatus("saved");
+          setValues({});
+          setExpanded(false);
+        } else {
+          setAutoStatus("failed");
+        }
+      } catch {
+        setAutoStatus("failed");
+      } finally {
+        setSubmitting(false);
+      }
+    }, 900);
+    return () => {
+      if (autoTimerRef.current) clearTimeout(autoTimerRef.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [values, expanded, disabled, overLimit, allRequiredFilled]);
 
   async function copyPreview() {
     if (!previewUrl) return;
@@ -613,16 +661,22 @@ function ProviderCard({
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (disabled || overLimit) return;
+    if (autoTimerRef.current) clearTimeout(autoTimerRef.current);
     setSubmitting(true);
+    setAutoStatus("saving");
     try {
       const okSaved = await onSave(provider.code, values);
       if (okSaved) {
+        setAutoStatus("saved");
         setValues({});
         setExpanded(false);
+      } else {
+        setAutoStatus("failed");
       }
     } finally {
       setSubmitting(false);
     }
+
   }
 
   return (
