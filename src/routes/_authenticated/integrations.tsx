@@ -681,8 +681,9 @@ function ProviderCard({
 
   return (
     <div
+      id={`prov-${provider.code}`}
       className={cn(
-        "rounded-2xl border bg-card/50 p-5",
+        "scroll-mt-24 rounded-2xl border bg-card/50 p-5 transition target:ring-2 target:ring-primary/60",
         disabled || overLimit ? "border-border/40 opacity-95" : "border-border/60",
       )}
     >
