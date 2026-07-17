@@ -1,10 +1,11 @@
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { CreditCard, ExternalLink, AlertTriangle, ArrowRight } from "lucide-react";
+import { CreditCard, ExternalLink, AlertTriangle, ArrowRight, Receipt } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { getWorkspaceBilling } from "@/lib/billing-summary.functions";
+import { getWorkspaceSuccessFeeSummary } from "@/lib/success-fee.functions";
 
 function money(cents: number | null | undefined, currency: string | null | undefined) {
   if (cents == null) return "—";
