@@ -99,6 +99,7 @@ type TabKey =
   | "incidents"
   | "queue"
   | "checkouts"
+  | "success_fee"
   | "analytics";
 
 const TABS: { key: TabKey; label: string; icon: typeof Shield }[] = [
