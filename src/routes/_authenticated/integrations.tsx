@@ -361,7 +361,7 @@ function ModuleSection({
             {ready ? <Check className="h-4 w-4" /> : <Plug className="h-4 w-4" />}
           </div>
           <div className="min-w-0">
-            <h2 id={`mod-${kind}`} className="text-lg font-semibold text-foreground">
+            <h2 id={`mod-${kind}`} className="scroll-mt-24 text-lg font-semibold text-foreground">
               {title}
             </h2>
             <p className="mt-1 max-w-2xl text-sm text-muted-foreground">{description}</p>
