@@ -197,6 +197,14 @@ function AppShell() {
           <div className="flex flex-wrap items-center gap-2">
             <WorkspaceStatusBadge status={activeWorkspace?.status} />
             <TrialBadge trial={trial} />
+            {!engineOn && (
+              <Button asChild size="sm" variant="default">
+                <Link to="/getting-started">
+                  <Sparkles className="mr-2 h-4 w-4" />
+                  Guided setup
+                </Link>
+              </Button>
+            )}
           </div>
         </section>
 
