@@ -158,7 +158,7 @@ function RlsVerificationPage() {
           const { error } = await supabase.from("integrations").insert({
             workspace_id: fakeWorkspace,
             provider: "rls-probe",
-            kind: "crm",
+            kind: "store",
             status: "connected",
           });
           if (error) {
