@@ -73,7 +73,7 @@ type SetupField = {
 function IntegrationCenter() {
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const [stepIndex, setStepIndex] = useState(0);
+  
 
   const fetchCatalog = useServerFn(listProviderCatalog);
   const fetchList = useServerFn(listWorkspaceIntegrations);
