@@ -18,10 +18,18 @@ const VARIANTS = [
   "LEMONSQUEEZY_VARIANT_BUSINESS",
 ] as const;
 
+/**
+ * Optional variant — used ONLY by the Success Fee engine to bill accrued
+ * recovered-revenue commissions. If unset, monthly statements are still
+ * built (draft/finalized) but cannot be invoiced automatically.
+ */
+export const SUCCESS_FEE_VARIANT_ENV = "LEMONSQUEEZY_VARIANT_SUCCESS_FEE" as const;
+
 export type BillingEnvReport = {
   ok: boolean;
   missingRequired: string[];
   missingVariants: string[];
+  successFeeVariantConfigured: boolean;
 };
 
 export function checkBillingEnv(): BillingEnvReport {
@@ -31,6 +39,7 @@ export function checkBillingEnv(): BillingEnvReport {
     ok: missingRequired.length === 0 && missingVariants.length === 0,
     missingRequired,
     missingVariants,
+    successFeeVariantConfigured: Boolean(process.env[SUCCESS_FEE_VARIANT_ENV]),
   };
 }
 

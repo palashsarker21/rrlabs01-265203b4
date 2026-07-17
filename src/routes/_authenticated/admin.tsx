@@ -73,6 +73,7 @@ import {
   QueueManagerPanel,
   CheckoutSessionsPanel,
 } from "@/components/admin/panels";
+import { SuccessFeePanel } from "@/components/admin/success-fee-panel";
 
 type TabKey =
   | "workspaces"
@@ -99,6 +100,7 @@ type TabKey =
   | "incidents"
   | "queue"
   | "checkouts"
+  | "success_fee"
   | "analytics";
 
 const TABS: { key: TabKey; label: string; icon: typeof Shield }[] = [
@@ -108,6 +110,7 @@ const TABS: { key: TabKey; label: string; icon: typeof Shield }[] = [
   { key: "subscriptions", label: "Subscriptions", icon: CreditCard },
   { key: "billing", label: "Billing events", icon: Receipt },
   { key: "checkouts", label: "Checkout sessions", icon: CreditCard },
+  { key: "success_fee", label: "Success fees", icon: Receipt },
   { key: "webhooks", label: "Webhooks", icon: Webhook },
   { key: "integrations", label: "Integrations", icon: Plug },
   { key: "recovery", label: "Recovery engine", icon: Zap },
@@ -333,6 +336,8 @@ function AdminConsole() {
           <BillingEventsPanel />
         ) : tab === "checkouts" ? (
           <CheckoutSessionsPanel />
+        ) : tab === "success_fee" ? (
+          <SuccessFeePanel />
         ) : tab === "webhooks" ? (
           <WebhookMonitorPanel />
         ) : tab === "integrations" ? (

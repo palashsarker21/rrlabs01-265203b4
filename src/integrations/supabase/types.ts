@@ -1820,6 +1820,153 @@ export type Database = {
           },
         ]
       }
+      success_fee_adjustments: {
+        Row: {
+          actor_user_id: string | null
+          amount_cents: number
+          created_at: string
+          id: string
+          kind: Database["public"]["Enums"]["success_fee_adjustment_kind"]
+          reason: string
+          statement_id: string
+          workspace_id: string
+        }
+        Insert: {
+          actor_user_id?: string | null
+          amount_cents: number
+          created_at?: string
+          id?: string
+          kind: Database["public"]["Enums"]["success_fee_adjustment_kind"]
+          reason: string
+          statement_id: string
+          workspace_id: string
+        }
+        Update: {
+          actor_user_id?: string | null
+          amount_cents?: number
+          created_at?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["success_fee_adjustment_kind"]
+          reason?: string
+          statement_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "success_fee_adjustments_statement_id_fkey"
+            columns: ["statement_id"]
+            isOneToOne: false
+            referencedRelation: "success_fee_statements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "success_fee_adjustments_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      success_fee_statements: {
+        Row: {
+          adjustments_total_cents: number
+          created_at: string
+          currency: string
+          events_count: number
+          fee_amount_cents: number
+          fee_bps: number
+          finalized_at: string | null
+          id: string
+          invoiced_at: string | null
+          ls_checkout_url: string | null
+          ls_invoice_id: string | null
+          ls_order_id: string | null
+          net_amount_cents: number
+          notes: string | null
+          paid_at: string | null
+          period_end: string
+          period_start: string
+          plan_id: string | null
+          provider_error: string | null
+          provider_status_code: number | null
+          recovered_amount_cents: number
+          status: Database["public"]["Enums"]["success_fee_status"]
+          updated_at: string
+          voided_at: string | null
+          workspace_id: string
+        }
+        Insert: {
+          adjustments_total_cents?: number
+          created_at?: string
+          currency?: string
+          events_count?: number
+          fee_amount_cents?: number
+          fee_bps?: number
+          finalized_at?: string | null
+          id?: string
+          invoiced_at?: string | null
+          ls_checkout_url?: string | null
+          ls_invoice_id?: string | null
+          ls_order_id?: string | null
+          net_amount_cents?: number
+          notes?: string | null
+          paid_at?: string | null
+          period_end: string
+          period_start: string
+          plan_id?: string | null
+          provider_error?: string | null
+          provider_status_code?: number | null
+          recovered_amount_cents?: number
+          status?: Database["public"]["Enums"]["success_fee_status"]
+          updated_at?: string
+          voided_at?: string | null
+          workspace_id: string
+        }
+        Update: {
+          adjustments_total_cents?: number
+          created_at?: string
+          currency?: string
+          events_count?: number
+          fee_amount_cents?: number
+          fee_bps?: number
+          finalized_at?: string | null
+          id?: string
+          invoiced_at?: string | null
+          ls_checkout_url?: string | null
+          ls_invoice_id?: string | null
+          ls_order_id?: string | null
+          net_amount_cents?: number
+          notes?: string | null
+          paid_at?: string | null
+          period_end?: string
+          period_start?: string
+          plan_id?: string | null
+          provider_error?: string | null
+          provider_status_code?: number | null
+          recovered_amount_cents?: number
+          status?: Database["public"]["Enums"]["success_fee_status"]
+          updated_at?: string
+          voided_at?: string | null
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "success_fee_statements_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "success_fee_statements_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -2194,6 +2341,10 @@ export type Database = {
           workspace_id: string
         }[]
       }
+      recompute_success_fee_statement: {
+        Args: { _statement_id: string }
+        Returns: undefined
+      }
       run_rls_test_suite: {
         Args: never
         Returns: {
@@ -2255,6 +2406,8 @@ export type Database = {
         | "unpaid"
         | "cancelled"
         | "expired"
+      success_fee_adjustment_kind: "credit" | "debit" | "refund" | "manual"
+      success_fee_status: "draft" | "finalized" | "invoiced" | "paid" | "voided"
       workspace_role: "owner" | "admin" | "manager" | "member" | "viewer"
       workspace_status:
         | "setup"
@@ -2440,6 +2593,8 @@ export const Constants = {
         "cancelled",
         "expired",
       ],
+      success_fee_adjustment_kind: ["credit", "debit", "refund", "manual"],
+      success_fee_status: ["draft", "finalized", "invoiced", "paid", "voided"],
       workspace_role: ["owner", "admin", "manager", "member", "viewer"],
       workspace_status: [
         "setup",

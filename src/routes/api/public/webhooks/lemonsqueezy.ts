@@ -158,13 +158,80 @@ async function dispatch(eventName: string, payload: LSWebhookPayload): Promise<v
       await onSubscriptionUpdated(payload);
       break;
     case "order_created":
-      // No-op for subscription flow; kept for audit.
+      await onOrderCreated(payload);
+      break;
+    case "order_refunded":
+      await onOrderRefunded(payload);
       break;
     default:
       // Recorded to billing_events but no domain action needed.
       break;
   }
 }
+
+/**
+ * Success-fee invoices are one-off orders (not subscriptions). We wired
+ * `custom_data.statement_id` on checkout creation; when LS confirms the
+ * order, mark the statement paid.
+ */
+async function onOrderCreated(payload: LSWebhookPayload): Promise<void> {
+  const custom = (payload.meta?.custom_data ?? {}) as Record<string, string>;
+  const statementId = custom.statement_id;
+  if (!statementId || custom.kind !== "success_fee") return;
+
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const attr = (payload.data?.attributes ?? {}) as Record<string, unknown>;
+  const orderId = String(payload.data?.id ?? "");
+
+  await supabaseAdmin
+    .from("success_fee_statements")
+    .update({
+      status: "paid",
+      ls_order_id: orderId || null,
+      paid_at: asDate(attr.created_at) ?? new Date().toISOString(),
+    })
+    .eq("id", statementId);
+}
+
+async function onOrderRefunded(payload: LSWebhookPayload): Promise<void> {
+  const custom = (payload.meta?.custom_data ?? {}) as Record<string, string>;
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const attr = (payload.data?.attributes ?? {}) as Record<string, unknown>;
+  const orderId = String(payload.data?.id ?? "");
+
+  // If this refund is for a success-fee order, void the statement and log an adjustment.
+  if (custom.statement_id && custom.kind === "success_fee") {
+    const { data: st } = await supabaseAdmin
+      .from("success_fee_statements")
+      .select("id, workspace_id, net_amount_cents")
+      .eq("id", custom.statement_id)
+      .maybeSingle();
+    if (st) {
+      await supabaseAdmin.from("success_fee_adjustments").insert({
+        statement_id: st.id,
+        workspace_id: st.workspace_id,
+        kind: "refund",
+        amount_cents: Number(st.net_amount_cents ?? 0),
+        reason: `Refunded by Lemon Squeezy (order ${orderId}).`,
+      });
+      await supabaseAdmin
+        .from("success_fee_statements")
+        .update({
+          status: "voided",
+          voided_at: new Date().toISOString(),
+          notes: `Refunded by Lemon Squeezy (order ${orderId}).`,
+        })
+        .eq("id", st.id);
+    }
+  }
+
+  // Refunds of subscription orders are informational — subscription state
+  // is reconciled via subscription_* events. Audit-only via billing_events.
+  void orderId;
+}
+
+
+
 
 async function onSubscriptionCreated(payload: LSWebhookPayload): Promise<void> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -310,18 +377,37 @@ async function onSubscriptionUpdated(payload: LSWebhookPayload): Promise<void> {
 
   const { data: sub } = await supabaseAdmin
     .from("subscriptions")
-    .select("id, workspace_id")
+    .select("id, workspace_id, plan_id, cancelled_at, ls_variant_id")
     .eq("ls_subscription_id", lsSubscriptionId)
     .maybeSingle();
+
+  // Upgrade/downgrade: LS variant changed → remap plan_id.
+  const newVariantId = attr.variant_id ? String(attr.variant_id) : null;
+  let remappedPlanId: string | null = null;
+  if (newVariantId && sub?.ls_variant_id !== newVariantId) {
+    const { data: newPlan } = await supabaseAdmin
+      .from("plans")
+      .select("id")
+      .eq("ls_variant_id", newVariantId)
+      .maybeSingle();
+    if (newPlan?.id && newPlan.id !== sub?.plan_id) remappedPlanId = newPlan.id;
+  }
+
+  // cancelled_at: only set on transition INTO cancelled/expired, preserving the first timestamp.
+  const isTerminal = status === "cancelled" || status === "expired";
+  const cancelledAtUpdate =
+    isTerminal && !sub?.cancelled_at ? { cancelled_at: new Date().toISOString() } : {};
 
   await supabaseAdmin
     .from("subscriptions")
     .update({
       ...(status ? { status } : {}),
+      ...(remappedPlanId ? { plan_id: remappedPlanId } : {}),
+      ...cancelledAtUpdate,
       trial_ends_at: asDate(attr.trial_ends_at),
       renews_at: asDate(attr.renews_at),
       ends_at: asDate(attr.ends_at),
-      cancelled_at: attr.cancelled || status === "cancelled" ? new Date().toISOString() : null,
+      ls_variant_id: newVariantId,
       update_payment_url: extractUrl(attr, "update_payment_method"),
       customer_portal_url: extractUrl(attr, "customer_portal"),
       card_brand: (attr.card_brand as string | null) ?? null,
