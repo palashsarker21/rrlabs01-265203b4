@@ -114,6 +114,36 @@ export const createInvitation = createServerFn({ method: "POST" })
       .select("id, token, email, role, expires_at, status, created_at")
       .single();
     if (error) throw new Error(error.message);
+
+    // Best-effort invitation email. Never fail the invite creation if email
+    // dispatch is unavailable (unconfigured/rate-limited/suppressed).
+    try {
+      const [{ data: ws }, { data: inviter }] = await Promise.all([
+        supabase.from("workspaces").select("name").eq("id", data.workspaceId).single(),
+        supabase.from("profiles").select("display_name, email").eq("id", userId).single(),
+      ]);
+      const origin =
+        process.env.APP_URL ?? process.env.VITE_APP_URL ?? "https://rrlabs.online";
+      const acceptUrl = `${origin.replace(/\/$/, "")}/invite/${inv.token}`;
+      const { sendEmail } = await import("@/lib/email/service.server");
+      await sendEmail({
+        template: "workspace-invite",
+        to: email,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        data: {
+          workspaceName: ws?.name ?? "your workspace",
+          inviterName: inviter?.display_name ?? inviter?.email ?? undefined,
+          role: String(data.role),
+          acceptUrl,
+        } as any,
+        workspaceId: data.workspaceId,
+        idempotencyKey: `invite-${inv.id}`,
+        metadata: { kind: "workspace_invitation", invitationId: inv.id },
+      });
+    } catch (err) {
+      console.warn("[team.createInvitation] invitation email skipped:", err);
+    }
+
     return inv;
   });
 
