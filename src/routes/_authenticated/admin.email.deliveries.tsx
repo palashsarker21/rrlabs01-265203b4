@@ -296,12 +296,97 @@ function EmailDeliveriesPage() {
         </div>
       ) : null}
 
+      {/* Bulk replay */}
+      <section className="rounded-lg border p-4 space-y-3">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="font-semibold">Bulk replay</h2>
+            <p className="text-xs text-muted-foreground">
+              Reissue delivery attempts for many messages at once. Tick rows below or paste log
+              IDs / provider message IDs (whitespace, comma, or newline separated). Capped at 50 per
+              request.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">
+              {bulkTotal} selected
+              {selectedIds.size > 0 || pastedIds.trim() ? (
+                <>
+                  {" · "}
+                  <button
+                    className="underline"
+                    onClick={() => {
+                      setSelectedIds(new Set());
+                      setPastedIds("");
+                    }}
+                  >
+                    clear
+                  </button>
+                </>
+              ) : null}
+            </span>
+            <button
+              className="rounded-md border px-3 py-1.5 text-sm font-medium hover:bg-muted disabled:opacity-50"
+              disabled={bulkTotal === 0 || bulkTotal > 50 || bulkReplay.isPending}
+              onClick={() => setBulkConfirmOpen(true)}
+            >
+              {bulkReplay.isPending ? "Replaying…" : `Replay ${bulkTotal || ""} selected`}
+            </button>
+          </div>
+        </div>
+        <textarea
+          className="w-full rounded-md border bg-background px-2 py-1.5 text-sm font-mono"
+          rows={2}
+          placeholder="Paste log IDs (UUIDs) or provider message IDs…"
+          value={pastedIds}
+          onChange={(e) => setPastedIds(e.target.value)}
+        />
+        {bulkTotal > 50 ? (
+          <p className="text-xs text-red-700">
+            Too many items ({bulkTotal}). Trim your selection to 50 or fewer.
+          </p>
+        ) : null}
+      </section>
+
+      {bulkResult ? (
+        <div className="rounded-md border border-sky-200 bg-sky-50 px-3 py-2 text-sm text-sky-900">
+          <div className="flex items-center justify-between">
+            <span>
+              Bulk replay: <strong>{bulkResult.succeeded}</strong> succeeded ·{" "}
+              <strong>{bulkResult.failed}</strong> failed · {bulkResult.total} total
+            </span>
+            <button className="underline" onClick={() => setBulkResult(null)}>
+              dismiss
+            </button>
+          </div>
+          {bulkResult.items.some((i) => !i.ok) ? (
+            <ul className="mt-2 max-h-40 overflow-auto text-xs">
+              {bulkResult.items
+                .filter((i) => !i.ok)
+                .map((i) => (
+                  <li key={i.input} className="font-mono">
+                    ✗ {i.input.slice(0, 24)}… — {i.error ?? "unknown error"}
+                  </li>
+                ))}
+            </ul>
+          ) : null}
+        </div>
+      ) : null}
+
       {/* Table */}
       <section className="rounded-lg border">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-muted/50 text-left text-xs uppercase text-muted-foreground">
               <tr>
+                <th className="px-3 py-2 w-8">
+                  <input
+                    type="checkbox"
+                    aria-label="Select all visible"
+                    checked={allVisibleSelected}
+                    onChange={toggleAllVisible}
+                  />
+                </th>
                 <th className="px-3 py-2">When</th>
                 <th className="px-3 py-2">Status</th>
                 <th className="px-3 py-2">Template</th>
