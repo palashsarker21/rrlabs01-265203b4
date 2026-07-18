@@ -520,6 +520,11 @@ export const generateOnboardingReport = createServerFn({ method: "POST" })
     };
   });
 
+function truncate(s: string, max: number): string {
+  return s.length <= max ? s : `${s.slice(0, Math.max(0, max - 1))}…`;
+}
+
+
 function wrap(s: string, maxChars: number): string[] {
   const words = s.split(/\s+/);
   const lines: string[] = [];
