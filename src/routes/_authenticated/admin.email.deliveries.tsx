@@ -6,6 +6,7 @@ import {
   listDeliveriesFn,
   getDeliveryFn,
   replayDeliveryFn,
+  bulkReplayDeliveriesFn,
   listTemplateOptionsFn,
 } from "@/lib/email-delivery.functions";
 
@@ -53,6 +54,7 @@ function EmailDeliveriesPage() {
   const listFn = useServerFn(listDeliveriesFn);
   const getFn = useServerFn(getDeliveryFn);
   const replayFn = useServerFn(replayDeliveryFn);
+  const bulkReplayFn = useServerFn(bulkReplayDeliveriesFn);
   const tplFn = useServerFn(listTemplateOptionsFn);
 
   const [status, setStatus] = useState<StatusFilter>("all");
@@ -63,6 +65,22 @@ function EmailDeliveriesPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [replayMsg, setReplayMsg] = useState<string | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
+  const [pastedIds, setPastedIds] = useState("");
+  const [bulkConfirmOpen, setBulkConfirmOpen] = useState(false);
+  const [bulkResult, setBulkResult] = useState<{
+    total: number;
+    succeeded: number;
+    failed: number;
+    items: Array<{
+      input: string;
+      logId: string | null;
+      ok: boolean;
+      newLogId?: string;
+      durationMs?: number;
+      error?: string;
+    }>;
+  } | null>(null);
 
   const limit = 50;
 
@@ -102,8 +120,61 @@ function EmailDeliveriesPage() {
     onError: (err) => setReplayMsg((err as Error).message),
   });
 
+  const bulkReplay = useMutation({
+    mutationFn: (payload: { ids: string[]; messageIds: string[] }) =>
+      bulkReplayFn({ data: payload }),
+    onSuccess: (res) => {
+      setBulkResult(res);
+      setBulkConfirmOpen(false);
+      setSelectedIds(new Set());
+      setPastedIds("");
+      qc.invalidateQueries({ queryKey: ["admin", "email", "deliveries"] });
+    },
+    onError: (err) => setReplayMsg((err as Error).message),
+  });
+
   const rows = listQ.data?.rows ?? [];
   const counts = listQ.data?.counts;
+
+  const pastedTokens = useMemo(
+    () =>
+      pastedIds
+        .split(/[\s,;]+/)
+        .map((t) => t.trim())
+        .filter(Boolean),
+    [pastedIds],
+  );
+  const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const pastedLogIds = pastedTokens.filter((t) => UUID_RE.test(t));
+  const pastedMessageIds = pastedTokens.filter((t) => !UUID_RE.test(t));
+  const bulkIds = useMemo(
+    () => Array.from(new Set<string>([...selectedIds, ...pastedLogIds])),
+    [selectedIds, pastedLogIds],
+  );
+  const bulkTotal = bulkIds.length + pastedMessageIds.length;
+  const allVisibleSelected =
+    rows.length > 0 && rows.every((r) => selectedIds.has(r.id));
+
+  function toggleRow(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+  function toggleAllVisible() {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (allVisibleSelected) {
+        for (const r of rows) next.delete(r.id);
+      } else {
+        for (const r of rows) next.add(r.id);
+      }
+      return next;
+    });
+  }
+
 
   return (
     <div className="mx-auto max-w-7xl p-6 space-y-6">
@@ -225,12 +296,97 @@ function EmailDeliveriesPage() {
         </div>
       ) : null}
 
+      {/* Bulk replay */}
+      <section className="rounded-lg border p-4 space-y-3">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="font-semibold">Bulk replay</h2>
+            <p className="text-xs text-muted-foreground">
+              Reissue delivery attempts for many messages at once. Tick rows below or paste log
+              IDs / provider message IDs (whitespace, comma, or newline separated). Capped at 50 per
+              request.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">
+              {bulkTotal} selected
+              {selectedIds.size > 0 || pastedIds.trim() ? (
+                <>
+                  {" · "}
+                  <button
+                    className="underline"
+                    onClick={() => {
+                      setSelectedIds(new Set());
+                      setPastedIds("");
+                    }}
+                  >
+                    clear
+                  </button>
+                </>
+              ) : null}
+            </span>
+            <button
+              className="rounded-md border px-3 py-1.5 text-sm font-medium hover:bg-muted disabled:opacity-50"
+              disabled={bulkTotal === 0 || bulkTotal > 50 || bulkReplay.isPending}
+              onClick={() => setBulkConfirmOpen(true)}
+            >
+              {bulkReplay.isPending ? "Replaying…" : `Replay ${bulkTotal || ""} selected`}
+            </button>
+          </div>
+        </div>
+        <textarea
+          className="w-full rounded-md border bg-background px-2 py-1.5 text-sm font-mono"
+          rows={2}
+          placeholder="Paste log IDs (UUIDs) or provider message IDs…"
+          value={pastedIds}
+          onChange={(e) => setPastedIds(e.target.value)}
+        />
+        {bulkTotal > 50 ? (
+          <p className="text-xs text-red-700">
+            Too many items ({bulkTotal}). Trim your selection to 50 or fewer.
+          </p>
+        ) : null}
+      </section>
+
+      {bulkResult ? (
+        <div className="rounded-md border border-sky-200 bg-sky-50 px-3 py-2 text-sm text-sky-900">
+          <div className="flex items-center justify-between">
+            <span>
+              Bulk replay: <strong>{bulkResult.succeeded}</strong> succeeded ·{" "}
+              <strong>{bulkResult.failed}</strong> failed · {bulkResult.total} total
+            </span>
+            <button className="underline" onClick={() => setBulkResult(null)}>
+              dismiss
+            </button>
+          </div>
+          {bulkResult.items.some((i) => !i.ok) ? (
+            <ul className="mt-2 max-h-40 overflow-auto text-xs">
+              {bulkResult.items
+                .filter((i) => !i.ok)
+                .map((i) => (
+                  <li key={i.input} className="font-mono">
+                    ✗ {i.input.slice(0, 24)}… — {i.error ?? "unknown error"}
+                  </li>
+                ))}
+            </ul>
+          ) : null}
+        </div>
+      ) : null}
+
       {/* Table */}
       <section className="rounded-lg border">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-muted/50 text-left text-xs uppercase text-muted-foreground">
               <tr>
+                <th className="px-3 py-2 w-8">
+                  <input
+                    type="checkbox"
+                    aria-label="Select all visible"
+                    checked={allVisibleSelected}
+                    onChange={toggleAllVisible}
+                  />
+                </th>
                 <th className="px-3 py-2">When</th>
                 <th className="px-3 py-2">Status</th>
                 <th className="px-3 py-2">Template</th>
@@ -243,13 +399,21 @@ function EmailDeliveriesPage() {
             <tbody>
               {rows.length === 0 && !listQ.isLoading ? (
                 <tr>
-                  <td colSpan={7} className="px-3 py-8 text-center text-muted-foreground">
+                  <td colSpan={8} className="px-3 py-8 text-center text-muted-foreground">
                     No deliveries match these filters.
                   </td>
                 </tr>
               ) : null}
               {rows.map((r) => (
                 <tr key={r.id} className="border-t hover:bg-muted/30">
+                  <td className="px-3 py-2">
+                    <input
+                      type="checkbox"
+                      aria-label={`Select delivery ${r.id}`}
+                      checked={selectedIds.has(r.id)}
+                      onChange={() => toggleRow(r.id)}
+                    />
+                  </td>
                   <td className="px-3 py-2 whitespace-nowrap">{fmt(r.created_at)}</td>
                   <td className="px-3 py-2">{statusBadge(String(r.status), r.attempts ?? 0)}</td>
                   <td className="px-3 py-2 font-mono text-xs">{r.template}</td>
@@ -471,6 +635,49 @@ function EmailDeliveriesPage() {
                 }}
               >
                 {replay.isPending ? "Replaying…" : "Replay send"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {/* Bulk replay confirm */}
+      {bulkConfirmOpen ? (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-lg rounded-lg bg-background p-5 shadow-xl">
+            <h3 className="text-base font-semibold">Replay {bulkTotal} deliveries?</h3>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Each selected message will be resent to its original recipient using the same
+              template. New log rows will be created and linked back to the originals. This can
+              take a while and may consume rate-limit quota.
+            </p>
+            <div className="mt-3 space-y-1 text-xs text-muted-foreground">
+              <div>
+                Selected rows: <strong>{selectedIds.size}</strong>
+              </div>
+              <div>
+                Pasted log IDs: <strong>{pastedLogIds.length}</strong>
+              </div>
+              <div>
+                Pasted message IDs: <strong>{pastedMessageIds.length}</strong>
+              </div>
+            </div>
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                className="rounded-md border px-3 py-1.5 text-sm"
+                onClick={() => setBulkConfirmOpen(false)}
+                disabled={bulkReplay.isPending}
+              >
+                Cancel
+              </button>
+              <button
+                className="rounded-md bg-primary px-3 py-1.5 text-sm text-primary-foreground disabled:opacity-50"
+                disabled={bulkReplay.isPending || bulkTotal === 0}
+                onClick={() =>
+                  bulkReplay.mutate({ ids: bulkIds, messageIds: pastedMessageIds })
+                }
+              >
+                {bulkReplay.isPending ? "Replaying…" : `Replay ${bulkTotal}`}
               </button>
             </div>
           </div>
