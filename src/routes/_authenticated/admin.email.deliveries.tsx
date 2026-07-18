@@ -120,8 +120,61 @@ function EmailDeliveriesPage() {
     onError: (err) => setReplayMsg((err as Error).message),
   });
 
+  const bulkReplay = useMutation({
+    mutationFn: (payload: { ids: string[]; messageIds: string[] }) =>
+      bulkReplayFn({ data: payload }),
+    onSuccess: (res) => {
+      setBulkResult(res);
+      setBulkConfirmOpen(false);
+      setSelectedIds(new Set());
+      setPastedIds("");
+      qc.invalidateQueries({ queryKey: ["admin", "email", "deliveries"] });
+    },
+    onError: (err) => setReplayMsg((err as Error).message),
+  });
+
   const rows = listQ.data?.rows ?? [];
   const counts = listQ.data?.counts;
+
+  const pastedTokens = useMemo(
+    () =>
+      pastedIds
+        .split(/[\s,;]+/)
+        .map((t) => t.trim())
+        .filter(Boolean),
+    [pastedIds],
+  );
+  const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const pastedLogIds = pastedTokens.filter((t) => UUID_RE.test(t));
+  const pastedMessageIds = pastedTokens.filter((t) => !UUID_RE.test(t));
+  const bulkIds = useMemo(
+    () => Array.from(new Set<string>([...selectedIds, ...pastedLogIds])),
+    [selectedIds, pastedLogIds],
+  );
+  const bulkTotal = bulkIds.length + pastedMessageIds.length;
+  const allVisibleSelected =
+    rows.length > 0 && rows.every((r) => selectedIds.has(r.id));
+
+  function toggleRow(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+  function toggleAllVisible() {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (allVisibleSelected) {
+        for (const r of rows) next.delete(r.id);
+      } else {
+        for (const r of rows) next.add(r.id);
+      }
+      return next;
+    });
+  }
+
 
   return (
     <div className="mx-auto max-w-7xl p-6 space-y-6">
