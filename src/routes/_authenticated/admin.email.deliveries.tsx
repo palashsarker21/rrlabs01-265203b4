@@ -81,6 +81,7 @@ function EmailDeliveriesPage() {
       error?: string;
     }>;
   } | null>(null);
+  const [exporting, setExporting] = useState(false);
 
   const limit = 50;
 
