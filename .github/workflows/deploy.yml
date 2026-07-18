@@ -113,13 +113,16 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
   # ------------------------------------------------------------------
-  # PHASE 3 — Apply migrations (chronological, dry-run first)
+  # PHASE 3 — Apply migrations (snapshot → dry-run → apply)
   # ------------------------------------------------------------------
   migrate:
     name: Phase 3 · Apply Migrations
     runs-on: ubuntu-latest
     needs: app-validate
     environment: production
+    outputs:
+      snapshot_ok: ${{ steps.snapshot.outcome }}
+      apply_ok:    ${{ steps.apply.outcome }}
     steps:
       - uses: actions/checkout@v4
 
@@ -127,11 +130,30 @@ jobs:
         with:
           version: latest
 
+      - name: Install psql
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends postgresql-client
+
       - name: Authenticate & link
         run: |
           set -euo pipefail
           supabase login --token "$SUPABASE_ACCESS_TOKEN"
           supabase link --project-ref "$SUPABASE_PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
+
+      - name: Capture pre-migration snapshot
+        id: snapshot
+        env:
+          ARTIFACT_DIR: /tmp/pre-migration
+        run: bash scripts/ci/snapshot-pre-migration.sh
+
+      - name: Upload pre-migration snapshot
+        if: always() && steps.snapshot.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: pre-migration-snapshot
+          path: /tmp/pre-migration/
+          retention-days: 30
 
       - name: Show pending migrations
         id: pending
@@ -148,15 +170,29 @@ jobs:
             | tee /tmp/mig-dry.txt
 
       - name: Apply migrations
+        id: apply
         run: |
           set -euo pipefail
           supabase db push --linked --password "$SUPABASE_DB_PASSWORD" --include-all \
             | tee /tmp/mig-apply.txt
 
       - name: Confirm migration state
+        if: always()
         run: |
           set -euo pipefail
-          supabase migration list --linked | tee /tmp/mig-after.txt
+          supabase migration list --linked | tee /tmp/mig-after.txt || true
+
+      # -----------------------------------------------------------------
+      # In-job automatic rollback for partial application failures.
+      # If `supabase db push` failed after committing SOME migrations,
+      # reverse them immediately using the paired rollback scripts.
+      # -----------------------------------------------------------------
+      - name: Automatic rollback on partial-apply failure
+        if: failure() && steps.apply.outcome == 'failure' && steps.snapshot.outcome == 'success'
+        env:
+          ARTIFACT_DIR: /tmp/pre-migration
+          STRICT: "1"
+        run: bash scripts/ci/rollback-migrations.sh
 
       - name: Summary
         if: always()
@@ -165,6 +201,7 @@ jobs:
             echo "## 🗄️  Migrations"
             echo ""
             echo "- Pending before: **${{ steps.pending.outputs.count }}**"
+            echo "- Apply status: **${{ steps.apply.outcome }}**"
             echo ""
             echo "<details><summary>Applied output</summary>"
             echo ""
@@ -205,6 +242,56 @@ jobs:
 
       - name: Run RLS + grant + security-definer assertions
         run: bash scripts/ci/verify-rls.sh
+
+  # ------------------------------------------------------------------
+  # PHASE 4b — Cross-job rollback if post-migrate validation failed
+  # (a fresh runner needs the snapshot artifact from the migrate job)
+  # ------------------------------------------------------------------
+  rollback:
+    name: Phase 4b · Automated Rollback
+    runs-on: ubuntu-latest
+    needs: [migrate, post-migrate-validate]
+    if: failure() && needs.migrate.result == 'success' && needs.post-migrate-validate.result == 'failure'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Install psql
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends postgresql-client
+
+      - name: Authenticate & link
+        run: |
+          set -euo pipefail
+          supabase login --token "$SUPABASE_ACCESS_TOKEN"
+          supabase link --project-ref "$SUPABASE_PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
+
+      - name: Download pre-migration snapshot
+        uses: actions/download-artifact@v4
+        with:
+          name: pre-migration-snapshot
+          path: /tmp/pre-migration
+
+      - name: Execute rollback
+        env:
+          ARTIFACT_DIR: /tmp/pre-migration
+          STRICT: "1"
+        run: bash scripts/ci/rollback-migrations.sh
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "## ↩️ Post-migration rollback"
+            echo ""
+            echo "Post-migration validation failed. An automated rollback was executed against production using the down-migrations under \`supabase/migrations/rollback/\`."
+            echo ""
+            echo "If rollback itself failed, the \`pre-migration-snapshot\` artifact contains the schema dump captured before this deployment and is required for manual recovery."
+          } >> "$GITHUB_STEP_SUMMARY"
 
   # ------------------------------------------------------------------
   # PHASE 5 — Deployment gate
