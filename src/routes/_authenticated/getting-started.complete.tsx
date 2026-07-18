@@ -531,6 +531,16 @@ function OnboardingCompletePage() {
           />
         )}
 
+        {isFailed && failedSteps.length > 0 && (
+          <div className="mt-3 flex justify-end">
+            <Button variant="outline" size="sm" onClick={copyFailureReport}>
+              <ClipboardCopy className="mr-2 h-4 w-4" />
+              Copy failure report
+            </Button>
+          </div>
+        )}
+
+
         {/* Connected summary */}
         <section className="mt-8">
           <h2 className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
