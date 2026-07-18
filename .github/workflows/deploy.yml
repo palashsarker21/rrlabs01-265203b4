@@ -203,8 +203,8 @@ jobs:
         run: |
           set -euo pipefail
           bash scripts/ci/retry.sh "migration list (before)" -- \
-            bash -c 'supabase migration list --linked | tee /tmp/mig-before.txt'
-          pending=$(grep -c '^ *[0-9]\{14\}' /tmp/mig-before.txt || true)
+            bash -c 'supabase migration list --linked | tee /tmp/ci-logs/mig-before.txt'
+          pending=$(grep -c '^ *[0-9]\{14\}' /tmp/ci-logs/mig-before.txt || true)
           echo "count=${pending:-0}" >> "$GITHUB_OUTPUT"
 
       - name: Dry-run migration push
@@ -213,7 +213,7 @@ jobs:
           set -euo pipefail
           # Dry-run is read-only → safe to retry on network flakes.
           bash scripts/ci/retry.sh "db push --dry-run" -- \
-            bash -c 'supabase db push --linked --password "$SUPABASE_DB_PASSWORD" --dry-run | tee /tmp/mig-dry.txt'
+            bash -c 'supabase db push --linked --password "$SUPABASE_DB_PASSWORD" --dry-run | tee /tmp/ci-logs/mig-dry.txt'
 
       # NO retry wrapper — a partial apply must NOT be replayed automatically.
       # Failures here are handled by the rollback step below, using the
@@ -223,7 +223,7 @@ jobs:
         run: |
           set -euo pipefail
           supabase db push --linked --password "$SUPABASE_DB_PASSWORD" --include-all \
-            | tee /tmp/mig-apply.txt
+            | tee /tmp/ci-logs/mig-apply.txt
 
       - name: Confirm migration state
         if: always()
@@ -231,7 +231,7 @@ jobs:
         run: |
           set -euo pipefail
           bash scripts/ci/retry.sh "migration list (after)" -- \
-            bash -c 'supabase migration list --linked | tee /tmp/mig-after.txt' || true
+            bash -c 'supabase migration list --linked | tee /tmp/ci-logs/mig-after.txt' || true
 
       # -----------------------------------------------------------------
       # In-job automatic rollback for partial application failures.
@@ -257,7 +257,7 @@ jobs:
             echo "<details><summary>Applied output</summary>"
             echo ""
             echo '```'
-            tail -c 6000 /tmp/mig-apply.txt 2>/dev/null || echo "(no output)"
+            tail -c 6000 /tmp/ci-logs/mig-apply.txt 2>/dev/null || echo "(no output)"
             echo '```'
             echo ""
             echo "</details>"
