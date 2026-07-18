@@ -145,7 +145,10 @@ function OnboardingCompletePage() {
     );
   }
 
-  async function runActivation(fromStep: ActivationStepId = "permission") {
+  async function runActivation(
+    fromStep: ActivationStepId = "permission",
+    retryGrant?: string,
+  ) {
     if (!workspace?.id) {
       toast.error("No workspace found.");
       return;
