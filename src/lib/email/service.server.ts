@@ -83,7 +83,7 @@ async function insertLog(row: {
       recipient: row.recipient,
       subject: row.subject,
       idempotency_key: row.idempotency_key ?? null,
-      metadata: row.metadata,
+      metadata: row.metadata as never,
       status: "queued",
     })
     .select("id")
@@ -95,13 +95,15 @@ async function insertLog(row: {
 }
 
 async function updateLog(id: string, patch: Record<string, unknown>) {
-  await supabaseAdmin.from("email_logs").update(patch).eq("id", id);
+  await supabaseAdmin.from("email_logs").update(patch as never).eq("id", id);
 }
 
-async function renderTemplate<P>(name: TemplateName, data: P): Promise<{ subject: string; html: string; text: string }> {
+async function renderTemplate(name: TemplateName, data: unknown): Promise<{ subject: string; html: string; text: string }> {
   const entry = TEMPLATES[name];
   if (!entry) throw new Error(`unknown template: ${String(name)}`);
-  const element = React.createElement(entry.component as React.ComponentType<P>, data);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const Component = entry.component as React.ComponentType<any>;
+  const element = React.createElement(Component, data as object);
   const [html, text] = await Promise.all([
     render(element),
     render(element, { plainText: true }),
