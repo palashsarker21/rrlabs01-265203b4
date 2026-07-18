@@ -293,7 +293,7 @@ function SuccessDiagnostics({ outcome }: { outcome: Extract<SendOutcome, { ok: t
         </span>
       </div>
       <dl className="grid grid-cols-3 gap-x-2 gap-y-1 text-xs">
-        <Row k="Log ID" v={d.logId ?? r.id ?? "—"} mono />
+        <Row k="Log ID" v={d.logId ?? (r.ok ? r.id : "—")} mono />
         <Row k="Message ID" v={d.messageId ?? "—"} mono />
         <Row k="Attempts" v={d.attempts?.toString() ?? "—"} />
         <Row k="Status" v={d.status ?? (r.ok ? "sent" : "failed")} />
