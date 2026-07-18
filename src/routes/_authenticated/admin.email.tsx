@@ -133,7 +133,10 @@ function AdminEmailPage() {
       <section className="rounded-lg border p-4 space-y-3">
         <div className="flex items-center justify-between gap-3">
           <h2 className="font-semibold">Send test email</h2>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <a href="/admin/email/deliveries" className="text-xs font-medium text-primary hover:underline">
+              Deliveries & replays →
+            </a>
             <a href="/admin/email/sandbox" className="text-xs font-medium text-primary hover:underline">
               Open test sandbox →
             </a>
