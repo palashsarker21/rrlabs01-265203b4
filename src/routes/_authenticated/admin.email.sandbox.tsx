@@ -67,6 +67,80 @@ function saveHistory(entries: HistoryEntry[]) {
   }
 }
 
+function triggerDownload(filename: string, mime: string, contents: string) {
+  if (typeof window === "undefined") return;
+  const blob = new Blob([contents], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function csvEscape(value: unknown): string {
+  if (value === null || value === undefined) return "";
+  const s = typeof value === "string" ? value : JSON.stringify(value);
+  if (/[",\r\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+  return s;
+}
+
+function exportDiagnostics(entries: HistoryEntry[], format: "json" | "csv") {
+  const ts = new Date().toISOString().replace(/[:.]/g, "-");
+  if (format === "json") {
+    const payload = {
+      exportedAt: new Date().toISOString(),
+      count: entries.length,
+      entries,
+    };
+    triggerDownload(
+      `sandbox-diagnostics-${ts}.json`,
+      "application/json",
+      JSON.stringify(payload, null, 2),
+    );
+    return;
+  }
+  const headers = [
+    "id",
+    "sentAt",
+    "template",
+    "templateDisplayName",
+    "recipient",
+    "status",
+    "durationMs",
+    "messageId",
+    "logId",
+    "subject",
+    "errorMessage",
+    "dataText",
+    "outcome",
+  ];
+  const rows = entries.map((e) =>
+    [
+      e.id,
+      e.sentAt,
+      e.template,
+      e.templateDisplayName ?? "",
+      e.recipient,
+      e.status,
+      e.durationMs ?? "",
+      e.messageId ?? "",
+      e.logId ?? "",
+      e.subject ?? "",
+      e.errorMessage ?? "",
+      e.dataText,
+      e.outcome,
+    ]
+      .map(csvEscape)
+      .join(","),
+  );
+  const csv = [headers.join(","), ...rows].join("\r\n");
+  triggerDownload(`sandbox-diagnostics-${ts}.csv`, "text/csv", csv);
+}
+
+
 function summarizeOutcome(outcome: SendOutcome): {
   status: HistoryEntry["status"];
   durationMs?: number;
@@ -627,15 +701,37 @@ function EmailSandboxPage() {
               Locally recorded on this device. Re-run replays the exact template and JSON payload.
             </p>
           </div>
-          {history.length > 0 ? (
-            <button
-              type="button"
-              className="text-xs font-medium text-muted-foreground hover:text-rose-700"
-              onClick={clearHistory}
-            >
-              Clear history
-            </button>
-          ) : null}
+          <div className="flex items-center gap-2">
+            {history.length > 0 ? (
+              <>
+                <button
+                  type="button"
+                  className="rounded-md border px-2 py-1 text-xs font-medium hover:bg-muted disabled:opacity-50"
+                  onClick={() => exportDiagnostics(filteredHistory, "json")}
+                  disabled={filteredHistory.length === 0}
+                  title="Download the filtered history as JSON"
+                >
+                  Export JSON
+                </button>
+                <button
+                  type="button"
+                  className="rounded-md border px-2 py-1 text-xs font-medium hover:bg-muted disabled:opacity-50"
+                  onClick={() => exportDiagnostics(filteredHistory, "csv")}
+                  disabled={filteredHistory.length === 0}
+                  title="Download the filtered history as CSV"
+                >
+                  Export CSV
+                </button>
+                <button
+                  type="button"
+                  className="text-xs font-medium text-muted-foreground hover:text-rose-700"
+                  onClick={clearHistory}
+                >
+                  Clear history
+                </button>
+              </>
+            ) : null}
+          </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
