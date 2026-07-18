@@ -54,7 +54,9 @@ import { Route as AuthenticatedInviteTokenRouteImport } from './routes/_authenti
 import { Route as AuthenticatedGettingStartedCompleteRouteImport } from './routes/_authenticated/getting-started.complete'
 import { Route as AuthenticatedCheckoutStatusRouteImport } from './routes/_authenticated/checkout.status'
 import { Route as AuthenticatedBillingStatementsRouteImport } from './routes/_authenticated/billing.statements'
+import { Route as AuthenticatedAdminEmailRouteImport } from './routes/_authenticated/admin.email'
 import { Route as ApiPublicWebhooksStripeRouteImport } from './routes/api/public/webhooks/stripe'
+import { Route as ApiPublicWebhooksResendRouteImport } from './routes/api/public/webhooks.resend'
 import { Route as ApiPublicWebhooksLemonsqueezyRouteImport } from './routes/api/public/webhooks/lemonsqueezy'
 import { Route as ApiPublicHooksSuccessFeeMonthlyRouteImport } from './routes/api/public/hooks/success-fee-monthly'
 import { Route as ApiPublicHooksRecoveryCadenceRouteImport } from './routes/api/public/hooks/recovery-cadence'
@@ -292,9 +294,19 @@ const AuthenticatedBillingStatementsRoute =
     path: '/billing/statements',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAdminEmailRoute = AuthenticatedAdminEmailRouteImport.update({
+  id: '/email',
+  path: '/email',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
 const ApiPublicWebhooksStripeRoute = ApiPublicWebhooksStripeRouteImport.update({
   id: '/api/public/webhooks/stripe',
   path: '/api/public/webhooks/stripe',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicWebhooksResendRoute = ApiPublicWebhooksResendRouteImport.update({
+  id: '/api/public/webhooks/resend',
+  path: '/api/public/webhooks/resend',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicWebhooksLemonsqueezyRoute =
@@ -342,7 +354,7 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/status': typeof StatusRoute
   '/terms': typeof TermsRoute
-  '/admin': typeof AuthenticatedAdminRoute
+  '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/analytics': typeof AuthenticatedAnalyticsRoute
   '/app': typeof AuthenticatedAppRoute
   '/checkout': typeof AuthenticatedCheckoutRouteWithChildren
@@ -360,6 +372,7 @@ export interface FileRoutesByFullPath {
   '/docs/api': typeof DocsApiRoute
   '/error/$code': typeof ErrorCodeRoute
   '/blog/': typeof BlogIndexRoute
+  '/admin/email': typeof AuthenticatedAdminEmailRoute
   '/billing/statements': typeof AuthenticatedBillingStatementsRoute
   '/checkout/status': typeof AuthenticatedCheckoutStatusRoute
   '/getting-started/complete': typeof AuthenticatedGettingStartedCompleteRoute
@@ -370,6 +383,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/recovery-cadence': typeof ApiPublicHooksRecoveryCadenceRoute
   '/api/public/hooks/success-fee-monthly': typeof ApiPublicHooksSuccessFeeMonthlyRoute
   '/api/public/webhooks/lemonsqueezy': typeof ApiPublicWebhooksLemonsqueezyRoute
+  '/api/public/webhooks/resend': typeof ApiPublicWebhooksResendRoute
   '/api/public/webhooks/stripe': typeof ApiPublicWebhooksStripeRoute
   '/api/public/webhooks/$provider/$integrationId': typeof ApiPublicWebhooksProviderIntegrationIdRoute
 }
@@ -392,7 +406,7 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/status': typeof StatusRoute
   '/terms': typeof TermsRoute
-  '/admin': typeof AuthenticatedAdminRoute
+  '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/analytics': typeof AuthenticatedAnalyticsRoute
   '/app': typeof AuthenticatedAppRoute
   '/checkout': typeof AuthenticatedCheckoutRouteWithChildren
@@ -410,6 +424,7 @@ export interface FileRoutesByTo {
   '/docs/api': typeof DocsApiRoute
   '/error/$code': typeof ErrorCodeRoute
   '/blog': typeof BlogIndexRoute
+  '/admin/email': typeof AuthenticatedAdminEmailRoute
   '/billing/statements': typeof AuthenticatedBillingStatementsRoute
   '/checkout/status': typeof AuthenticatedCheckoutStatusRoute
   '/getting-started/complete': typeof AuthenticatedGettingStartedCompleteRoute
@@ -420,6 +435,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/recovery-cadence': typeof ApiPublicHooksRecoveryCadenceRoute
   '/api/public/hooks/success-fee-monthly': typeof ApiPublicHooksSuccessFeeMonthlyRoute
   '/api/public/webhooks/lemonsqueezy': typeof ApiPublicWebhooksLemonsqueezyRoute
+  '/api/public/webhooks/resend': typeof ApiPublicWebhooksResendRoute
   '/api/public/webhooks/stripe': typeof ApiPublicWebhooksStripeRoute
   '/api/public/webhooks/$provider/$integrationId': typeof ApiPublicWebhooksProviderIntegrationIdRoute
 }
@@ -445,7 +461,7 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/status': typeof StatusRoute
   '/terms': typeof TermsRoute
-  '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/analytics': typeof AuthenticatedAnalyticsRoute
   '/_authenticated/app': typeof AuthenticatedAppRoute
   '/_authenticated/checkout': typeof AuthenticatedCheckoutRouteWithChildren
@@ -463,6 +479,7 @@ export interface FileRoutesById {
   '/docs/api': typeof DocsApiRoute
   '/error/$code': typeof ErrorCodeRoute
   '/blog/': typeof BlogIndexRoute
+  '/_authenticated/admin/email': typeof AuthenticatedAdminEmailRoute
   '/_authenticated/billing/statements': typeof AuthenticatedBillingStatementsRoute
   '/_authenticated/checkout/status': typeof AuthenticatedCheckoutStatusRoute
   '/_authenticated/getting-started/complete': typeof AuthenticatedGettingStartedCompleteRoute
@@ -473,6 +490,7 @@ export interface FileRoutesById {
   '/api/public/hooks/recovery-cadence': typeof ApiPublicHooksRecoveryCadenceRoute
   '/api/public/hooks/success-fee-monthly': typeof ApiPublicHooksSuccessFeeMonthlyRoute
   '/api/public/webhooks/lemonsqueezy': typeof ApiPublicWebhooksLemonsqueezyRoute
+  '/api/public/webhooks/resend': typeof ApiPublicWebhooksResendRoute
   '/api/public/webhooks/stripe': typeof ApiPublicWebhooksStripeRoute
   '/api/public/webhooks/$provider/$integrationId': typeof ApiPublicWebhooksProviderIntegrationIdRoute
 }
@@ -516,6 +534,7 @@ export interface FileRouteTypes {
     | '/docs/api'
     | '/error/$code'
     | '/blog/'
+    | '/admin/email'
     | '/billing/statements'
     | '/checkout/status'
     | '/getting-started/complete'
@@ -526,6 +545,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/recovery-cadence'
     | '/api/public/hooks/success-fee-monthly'
     | '/api/public/webhooks/lemonsqueezy'
+    | '/api/public/webhooks/resend'
     | '/api/public/webhooks/stripe'
     | '/api/public/webhooks/$provider/$integrationId'
   fileRoutesByTo: FileRoutesByTo
@@ -566,6 +586,7 @@ export interface FileRouteTypes {
     | '/docs/api'
     | '/error/$code'
     | '/blog'
+    | '/admin/email'
     | '/billing/statements'
     | '/checkout/status'
     | '/getting-started/complete'
@@ -576,6 +597,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/recovery-cadence'
     | '/api/public/hooks/success-fee-monthly'
     | '/api/public/webhooks/lemonsqueezy'
+    | '/api/public/webhooks/resend'
     | '/api/public/webhooks/stripe'
     | '/api/public/webhooks/$provider/$integrationId'
   id:
@@ -618,6 +640,7 @@ export interface FileRouteTypes {
     | '/docs/api'
     | '/error/$code'
     | '/blog/'
+    | '/_authenticated/admin/email'
     | '/_authenticated/billing/statements'
     | '/_authenticated/checkout/status'
     | '/_authenticated/getting-started/complete'
@@ -628,6 +651,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/recovery-cadence'
     | '/api/public/hooks/success-fee-monthly'
     | '/api/public/webhooks/lemonsqueezy'
+    | '/api/public/webhooks/resend'
     | '/api/public/webhooks/stripe'
     | '/api/public/webhooks/$provider/$integrationId'
   fileRoutesById: FileRoutesById
@@ -658,6 +682,7 @@ export interface RootRouteChildren {
   ApiPublicHooksRecoveryCadenceRoute: typeof ApiPublicHooksRecoveryCadenceRoute
   ApiPublicHooksSuccessFeeMonthlyRoute: typeof ApiPublicHooksSuccessFeeMonthlyRoute
   ApiPublicWebhooksLemonsqueezyRoute: typeof ApiPublicWebhooksLemonsqueezyRoute
+  ApiPublicWebhooksResendRoute: typeof ApiPublicWebhooksResendRoute
   ApiPublicWebhooksStripeRoute: typeof ApiPublicWebhooksStripeRoute
   ApiPublicWebhooksProviderIntegrationIdRoute: typeof ApiPublicWebhooksProviderIntegrationIdRoute
 }
@@ -979,11 +1004,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedBillingStatementsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin/email': {
+      id: '/_authenticated/admin/email'
+      path: '/email'
+      fullPath: '/admin/email'
+      preLoaderRoute: typeof AuthenticatedAdminEmailRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/api/public/webhooks/stripe': {
       id: '/api/public/webhooks/stripe'
       path: '/api/public/webhooks/stripe'
       fullPath: '/api/public/webhooks/stripe'
       preLoaderRoute: typeof ApiPublicWebhooksStripeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/webhooks/resend': {
+      id: '/api/public/webhooks/resend'
+      path: '/api/public/webhooks/resend'
+      fullPath: '/api/public/webhooks/resend'
+      preLoaderRoute: typeof ApiPublicWebhooksResendRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/webhooks/lemonsqueezy': {
@@ -1017,6 +1056,17 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminEmailRoute: typeof AuthenticatedAdminEmailRoute
+}
+
+const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminEmailRoute: AuthenticatedAdminEmailRoute,
+}
+
+const AuthenticatedAdminRouteWithChildren =
+  AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
+
 interface AuthenticatedCheckoutRouteChildren {
   AuthenticatedCheckoutStatusRoute: typeof AuthenticatedCheckoutStatusRoute
 }
@@ -1046,7 +1096,7 @@ const AuthenticatedGettingStartedRouteWithChildren =
   )
 
 interface AuthenticatedRouteRouteChildren {
-  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedAnalyticsRoute: typeof AuthenticatedAnalyticsRoute
   AuthenticatedAppRoute: typeof AuthenticatedAppRoute
   AuthenticatedCheckoutRoute: typeof AuthenticatedCheckoutRouteWithChildren
@@ -1064,7 +1114,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+  AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedAnalyticsRoute: AuthenticatedAnalyticsRoute,
   AuthenticatedAppRoute: AuthenticatedAppRoute,
   AuthenticatedCheckoutRoute: AuthenticatedCheckoutRouteWithChildren,
@@ -1139,6 +1189,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksRecoveryCadenceRoute: ApiPublicHooksRecoveryCadenceRoute,
   ApiPublicHooksSuccessFeeMonthlyRoute: ApiPublicHooksSuccessFeeMonthlyRoute,
   ApiPublicWebhooksLemonsqueezyRoute: ApiPublicWebhooksLemonsqueezyRoute,
+  ApiPublicWebhooksResendRoute: ApiPublicWebhooksResendRoute,
   ApiPublicWebhooksStripeRoute: ApiPublicWebhooksStripeRoute,
   ApiPublicWebhooksProviderIntegrationIdRoute:
     ApiPublicWebhooksProviderIntegrationIdRoute,
