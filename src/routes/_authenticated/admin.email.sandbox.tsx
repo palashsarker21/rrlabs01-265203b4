@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { listEmailTemplates } from "@/lib/email.functions";
 import { getSandboxStatusFn, sendSandboxTestFn } from "@/lib/email-sandbox.functions";
+import { checkRecipientDeliverability, type RecipientCheckReport } from "@/lib/recipient-dns.functions";
 import { TEMPLATE_SAMPLES } from "@/lib/email/template-samples";
 
 export const Route = createFileRoute("/_authenticated/admin/email/sandbox")({
