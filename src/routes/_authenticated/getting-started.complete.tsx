@@ -530,8 +530,38 @@ function OnboardingCompletePage() {
             isRunning={isRunning}
             isComplete={isComplete}
             isFailed={isFailed}
-            onRetry={() => runActivation()}
-            onRetryStep={(id) => runActivation(id)}
+            onRetry={() => {
+              if (workspace?.id) {
+                const stepIds = steps.map((s) => s.id);
+                const previousErrors = Object.fromEntries(
+                  steps.filter((s) => s.error).map((s) => [s.id, s.error!]),
+                );
+                logRetryFn({
+                  data: {
+                    workspaceId: workspace.id,
+                    scope: "all",
+                    stepIds,
+                    previousErrors,
+                  },
+                }).catch(() => undefined);
+              }
+              runActivation();
+            }}
+            onRetryStep={(id) => {
+              if (workspace?.id) {
+                const stepError = steps.find((s) => s.id === id)?.error;
+                logRetryFn({
+                  data: {
+                    workspaceId: workspace.id,
+                    scope: "from_step",
+                    stepIds: [id],
+                    fromStep: id,
+                    previousErrors: stepError ? { [id]: stepError } : {},
+                  },
+                }).catch(() => undefined);
+              }
+              runActivation(id);
+            }}
             onRetryFailed={(ids) => {
               const order: ActivationStepId[] = [
                 "permission",
@@ -543,6 +573,22 @@ function OnboardingCompletePage() {
               const earliest = ids
                 .slice()
                 .sort((a, b) => order.indexOf(a) - order.indexOf(b))[0];
+              if (workspace?.id) {
+                const previousErrors = Object.fromEntries(
+                  steps
+                    .filter((s) => ids.includes(s.id) && s.error)
+                    .map((s) => [s.id, s.error!]),
+                );
+                logRetryFn({
+                  data: {
+                    workspaceId: workspace.id,
+                    scope: "failed_only",
+                    stepIds: ids,
+                    fromStep: earliest,
+                    previousErrors,
+                  },
+                }).catch(() => undefined);
+              }
               if (earliest) runActivation(earliest);
             }}
             onGoToDashboard={() => navigate({ to: "/app" })}
