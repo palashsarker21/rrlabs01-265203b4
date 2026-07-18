@@ -570,30 +570,163 @@ function EmailDeliveriesPage() {
         ) : null}
       </section>
 
-      {bulkResult ? (
-        <div className="rounded-md border border-sky-200 bg-sky-50 px-3 py-2 text-sm text-sky-900">
-          <div className="flex items-center justify-between">
-            <span>
-              Bulk replay: <strong>{bulkResult.succeeded}</strong> succeeded ·{" "}
-              <strong>{bulkResult.failed}</strong> failed · {bulkResult.total} total
-            </span>
-            <button className="underline" onClick={() => setBulkResult(null)}>
-              dismiss
-            </button>
-          </div>
-          {bulkResult.items.some((i) => !i.ok) ? (
-            <ul className="mt-2 max-h-40 overflow-auto text-xs">
-              {bulkResult.items
-                .filter((i) => !i.ok)
-                .map((i) => (
-                  <li key={i.input} className="font-mono">
-                    ✗ {i.input.slice(0, 24)}… — {i.error ?? "unknown error"}
-                  </li>
-                ))}
-            </ul>
-          ) : null}
-        </div>
+      {bulkRun ? (
+        (() => {
+          const items = bulkRun.items;
+          const total = items.length;
+          const done = items.filter((i) => i.status === "ok" || i.status === "error").length;
+          const ok = items.filter((i) => i.status === "ok").length;
+          const failed = items.filter((i) => i.status === "error").length;
+          const running = items.find((i) => i.status === "running");
+          const pct = total === 0 ? 100 : Math.round((done / total) * 100);
+          // Per-recipient summary (only meaningful once done).
+          const perRecipient = new Map<
+            string,
+            { ok: number; failed: number; last?: string }
+          >();
+          for (const it of items) {
+            const key = it.recipient ?? "(unresolved)";
+            const cur = perRecipient.get(key) ?? { ok: 0, failed: 0 };
+            if (it.status === "ok") cur.ok++;
+            else if (it.status === "error") {
+              cur.failed++;
+              if (it.error) cur.last = it.error;
+            }
+            perRecipient.set(key, cur);
+          }
+          const elapsed =
+            (bulkRun.finishedAt ?? Date.now()) - (bulkRun.startedAt ?? Date.now());
+          return (
+            <div className="rounded-md border border-sky-200 bg-sky-50 px-3 py-3 text-sm text-sky-900">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <div className="font-medium">
+                    {bulkRun.running
+                      ? bulkRun.cancelRequested
+                        ? "Stopping bulk replay…"
+                        : `Bulk replay in progress · ${done}/${total}`
+                      : `Bulk replay complete · ${ok} ok · ${failed} failed`}
+                  </div>
+                  <div className="text-xs text-sky-800/80">
+                    {bulkRun.running && running
+                      ? `Now sending → ${running.recipient ?? running.input} (${running.template ?? "—"})`
+                      : `Elapsed ${(elapsed / 1000).toFixed(1)}s`}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  {bulkRun.running ? (
+                    <button
+                      className="rounded-md border border-sky-300 bg-white px-2 py-1 text-xs font-medium hover:bg-sky-100 disabled:opacity-50"
+                      disabled={bulkRun.cancelRequested}
+                      onClick={() =>
+                        setBulkRun((s) => (s ? { ...s, cancelRequested: true } : s))
+                      }
+                    >
+                      Stop after current
+                    </button>
+                  ) : (
+                    <button className="underline" onClick={() => setBulkRun(null)}>
+                      dismiss
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Progress bar */}
+              <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-sky-100">
+                <div
+                  className="h-full rounded-full bg-sky-600 transition-[width] duration-300"
+                  style={{ width: `${pct}%` }}
+                  role="progressbar"
+                  aria-valuenow={pct}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                />
+              </div>
+
+              {/* Live per-item stream */}
+              <ul className="mt-3 max-h-52 overflow-auto rounded border border-sky-100 bg-white/60 text-xs">
+                {items.map((it, idx) => {
+                  const icon =
+                    it.status === "ok"
+                      ? "✓"
+                      : it.status === "error"
+                        ? "✗"
+                        : it.status === "running"
+                          ? "…"
+                          : "•";
+                  const color =
+                    it.status === "ok"
+                      ? "text-emerald-700"
+                      : it.status === "error"
+                        ? "text-red-700"
+                        : it.status === "running"
+                          ? "text-sky-700"
+                          : "text-slate-500";
+                  return (
+                    <li
+                      key={`${it.input}-${idx}`}
+                      className="flex items-start justify-between gap-3 border-b border-sky-100/70 px-2 py-1 last:border-0"
+                    >
+                      <span className={`font-mono ${color}`}>
+                        {icon} {it.recipient ?? it.input}
+                        {it.template ? (
+                          <span className="ml-2 text-slate-500">· {it.template}</span>
+                        ) : null}
+                      </span>
+                      <span className="text-slate-500">
+                        {it.status === "ok" && it.durationMs
+                          ? `${it.durationMs}ms`
+                          : it.status === "error"
+                            ? (it.error ?? "error").slice(0, 60)
+                            : it.status === "running"
+                              ? "running"
+                              : "queued"}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+
+              {/* Final per-recipient summary */}
+              {!bulkRun.running ? (
+                <div className="mt-3">
+                  <div className="text-xs font-semibold uppercase tracking-wide text-sky-800">
+                    Per-recipient summary
+                  </div>
+                  <ul className="mt-1 max-h-40 overflow-auto rounded border border-sky-100 bg-white/60 text-xs">
+                    {[...perRecipient.entries()].map(([recipient, s]) => (
+                      <li
+                        key={recipient}
+                        className="flex items-start justify-between gap-3 border-b border-sky-100/70 px-2 py-1 last:border-0"
+                      >
+                        <span className="font-mono">{recipient}</span>
+                        <span className="text-slate-600">
+                          <span className="text-emerald-700">{s.ok} ok</span>
+                          {" · "}
+                          <span className={s.failed > 0 ? "text-red-700" : ""}>
+                            {s.failed} failed
+                          </span>
+                          {s.last ? (
+                            <span
+                              className="ml-2 text-slate-500"
+                              title={s.last}
+                            >
+                              — {s.last.slice(0, 40)}
+                              {s.last.length > 40 ? "…" : ""}
+                            </span>
+                          ) : null}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+            </div>
+          );
+        })()
       ) : null}
+
 
       {/* Table */}
       <section className="rounded-lg border">
