@@ -331,13 +331,29 @@ function EmailSandboxPage() {
           )}
         </div>
         <div className="rounded-lg border p-3 text-sm">
-          <div className="text-xs uppercase tracking-wide text-muted-foreground">Rate limit</div>
+          <div className="flex items-center justify-between gap-2">
+            <div className="text-xs uppercase tracking-wide text-muted-foreground">Rate limit</div>
+            {usage && limits ? (
+              <div className="text-[10px] text-muted-foreground tabular-nums">
+                {Math.max(0, limits.perMinute - usage.minute)}/min ·{" "}
+                {Math.max(0, limits.perHour - usage.hour)}/hr ·{" "}
+                {Math.max(0, limits.perDay - usage.day)}/day left
+              </div>
+            ) : null}
+          </div>
           {usage && limits ? (
-            <div className="mt-1 grid grid-cols-3 gap-2 text-xs">
-              <UsageMeter label="minute" used={usage.minute} cap={limits.perMinute} />
-              <UsageMeter label="hour" used={usage.hour} cap={limits.perHour} />
-              <UsageMeter label="day" used={usage.day} cap={limits.perDay} />
-            </div>
+            <>
+              <div className="mt-2 grid grid-cols-3 gap-2 text-xs">
+                <UsageMeter label="per minute" used={usage.minute} cap={limits.perMinute} />
+                <UsageMeter label="per hour" used={usage.hour} cap={limits.perHour} />
+                <UsageMeter label="per day" used={usage.day} cap={limits.perDay} />
+              </div>
+              <p className="mt-2 text-[11px] leading-snug text-muted-foreground">
+                Sends are counted per admin (that's you). When any window hits its cap, further
+                test sends are throttled server-side until that window rolls over — the composer
+                blocks and shows which limit was hit before any email is queued.
+              </p>
+            </>
           ) : (
             <div className="mt-1 text-xs text-muted-foreground">…</div>
           )}
