@@ -272,11 +272,90 @@ function EmailPreviewPage() {
             )}
           </div>
 
+          {/* Variable validator */}
+          <div
+            className="rounded-md border bg-muted/30 p-3"
+            role="region"
+            aria-label="Template variable validation"
+          >
+            <div className="flex items-center justify-between">
+              <div className="text-xs font-medium text-muted-foreground">
+                Variable validator
+              </div>
+              <span
+                className={
+                  "rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider " +
+                  (validation.canRender
+                    ? "bg-emerald-500/10 text-emerald-600"
+                    : "bg-destructive/10 text-destructive")
+                }
+              >
+                {validation.canRender ? "Ready to render" : "Fix required fields"}
+              </span>
+            </div>
+            {validation.checks.length === 0 ? (
+              <div className="mt-2 text-xs text-muted-foreground">
+                No required fields for this template.
+              </div>
+            ) : (
+              <ul className="mt-2 space-y-1.5">
+                {validation.checks.map((c) => (
+                  <li key={c.key} className="flex items-start gap-2 text-xs">
+                    <span
+                      aria-hidden="true"
+                      className={
+                        "mt-0.5 inline-block h-2 w-2 shrink-0 rounded-full " +
+                        (c.ok ? "bg-emerald-500" : "bg-destructive")
+                      }
+                    />
+                    <div className="min-w-0">
+                      <code className="font-mono text-[11px] text-foreground">{c.key}</code>
+                      <span className="ml-1 text-[10px] uppercase tracking-wider text-muted-foreground">
+                        {c.kind}
+                      </span>
+                      <div className={c.ok ? "text-muted-foreground" : "text-destructive"}>
+                        {c.message}
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <div className="mt-3 flex items-start gap-2 border-t pt-2 text-xs">
+              <span
+                aria-hidden="true"
+                className={
+                  "mt-0.5 inline-block h-2 w-2 shrink-0 rounded-full " +
+                  (validation.recipient.ok
+                    ? "bg-emerald-500"
+                    : validation.recipient.provided
+                      ? "bg-destructive"
+                      : "bg-muted-foreground/40")
+                }
+              />
+              <div>
+                <span className="font-medium">Recipient</span>
+                <div
+                  className={
+                    validation.recipient.ok
+                      ? "text-muted-foreground"
+                      : validation.recipient.provided
+                        ? "text-destructive"
+                        : "text-muted-foreground"
+                  }
+                >
+                  {validation.recipient.message}
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div>
             <label className="text-xs font-medium text-muted-foreground">Send test to</label>
             <input
               type="email"
               placeholder="you@example.com"
+              aria-invalid={validation.recipient.provided && !validation.recipient.ok}
               className="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm"
               value={recipient}
               onChange={(e) => setRecipient(e.target.value)}
@@ -284,16 +363,16 @@ function EmailPreviewPage() {
             <button
               type="button"
               className="mt-2 w-full rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
-              disabled={
-                !parsed.ok ||
-                send.isPending ||
-                !recipient ||
-                !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipient)
-              }
+              disabled={!validation.canSend || send.isPending}
               onClick={() => {
                 setSendResult(null);
                 send.mutate();
               }}
+              title={
+                !validation.canSend
+                  ? "Resolve the variable validator errors before sending"
+                  : undefined
+              }
             >
               {send.isPending ? "Sending…" : "Send test email"}
             </button>
@@ -301,6 +380,7 @@ function EmailPreviewPage() {
               <div className="mt-2 text-xs text-muted-foreground">{sendResult}</div>
             )}
           </div>
+
         </div>
 
         {/* Right column — preview */}
