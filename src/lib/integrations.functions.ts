@@ -330,7 +330,14 @@ export const disconnectIntegration = createServerFn({ method: "POST" })
 /** Mark a workspace ready and turn on the recovery engine. */
 export const activateWorkspace = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((raw) => workspaceIdSchema.parse(raw))
+  .inputValidator((raw) =>
+    z
+      .object({
+        workspaceId: z.string().uuid(),
+        retryGrant: z.string().min(10).max(2048).optional(),
+      })
+      .parse(raw),
+  )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
 
@@ -339,6 +346,21 @@ export const activateWorkspace = createServerFn({ method: "POST" })
       _user_id: userId,
     });
     if (!canManage) throw new Error("You do not have permission to activate this workspace.");
+
+    // If this call originates from a retry-confirmation dialog, the client
+    // must present the signed grant returned by logActivationRetry. The
+    // server refuses to run the activation phase unless "activate" is in
+    // the exact set of step IDs the user confirmed.
+    if (data.retryGrant) {
+      const { verifyRetryGrant } = await import("./activation-grant.server");
+      const result = verifyRetryGrant(data.retryGrant, data.workspaceId);
+      if (!result.ok) throw new Error(result.reason);
+      if (!result.allowedStepIds.includes("activate")) {
+        throw new Error(
+          "This retry was confirmed for a subset that does not include the activation step.",
+        );
+      }
+    }
 
     // Full activation gate: ≥1 verified store + gateway + email, every
     // connected integration must have last_test_ok=true and verification_status='verified',
