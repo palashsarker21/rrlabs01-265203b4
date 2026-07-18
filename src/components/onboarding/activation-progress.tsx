@@ -243,23 +243,43 @@ export function ActivationProgress({
             <AlertDialogDescription>
               Only the failed steps below will be re-run. Successful steps will be
               preserved and skipped.
+              <span className="sr-only">
+                {" "}The following {failedSteps.length} step
+                {failedSteps.length === 1 ? "" : "s"} will be retried:{" "}
+                {failedSteps.map((s) => s.label).join("; ")}.
+                {steps.some((s) => s.state === "success")
+                  ? ` Preserved successful steps: ${steps
+                      .filter((s) => s.state === "success")
+                      .map((s) => s.label)
+                      .join("; ")}.`
+                  : ""}
+              </span>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="rounded-md border bg-muted/40 p-3">
-            <div className="mb-2 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+            <div
+              id="retry-failed-heading"
+              className="mb-2 text-[10px] font-medium uppercase tracking-wider text-muted-foreground"
+            >
               Will be retried
             </div>
-            <ul className="space-y-2">
+            <ul className="space-y-2" aria-labelledby="retry-failed-heading">
               {failedSteps.map((s) => (
                 <li key={s.id} className="flex items-start gap-2 text-sm">
-                  <RefreshCw className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
+                  <RefreshCw
+                    className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary"
+                    aria-hidden="true"
+                  />
                   <div className="min-w-0">
                     <div className="font-medium text-foreground">{s.label}</div>
                     <div className="text-xs text-muted-foreground">
-                      step id: <code className="font-mono">{s.id}</code>
+                      <span className="sr-only">Step identifier: </span>
+                      <span aria-hidden="true">step id: </span>
+                      <code className="font-mono">{s.id}</code>
                     </div>
                     {s.error && (
                       <div className="mt-1 line-clamp-2 text-xs text-destructive/90">
+                        <span className="sr-only">Previous error: </span>
                         {s.error}
                       </div>
                     )}
@@ -278,9 +298,14 @@ export function ActivationProgress({
             )}
           </div>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel aria-label="Cancel retry and close dialog">
+              Cancel
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={() => onRetryFailed?.(failedSteps.map((s) => s.id))}
+              aria-label={`Retry ${failedSteps.length} failed step${
+                failedSteps.length === 1 ? "" : "s"
+              }: ${failedSteps.map((s) => s.label).join(", ")}`}
             >
               Retry {failedSteps.length} step{failedSteps.length === 1 ? "" : "s"}
             </AlertDialogAction>
@@ -295,29 +320,62 @@ export function ActivationProgress({
             <AlertDialogDescription>
               All {steps.length} steps will be re-run from the beginning, including
               steps that previously succeeded.
+              <span className="sr-only">
+                {" "}Steps to run in order:{" "}
+                {steps
+                  .map(
+                    (s, i) =>
+                      `${i + 1}. ${s.label}${
+                        s.state === "failed"
+                          ? " (previously failed)"
+                          : s.state === "success"
+                            ? " (will re-run)"
+                            : ""
+                      }`,
+                  )
+                  .join("; ")}.
+              </span>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="rounded-md border bg-muted/40 p-3">
-            <div className="mb-2 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+            <div
+              id="retry-all-heading"
+              className="mb-2 text-[10px] font-medium uppercase tracking-wider text-muted-foreground"
+            >
               Steps to run
             </div>
-            <ol className="space-y-1.5 text-sm">
+            <ol className="space-y-1.5 text-sm" aria-labelledby="retry-all-heading">
               {steps.map((s, i) => (
                 <li key={s.id} className="flex items-start gap-2">
-                  <span className="mt-0.5 w-4 shrink-0 text-xs text-muted-foreground">
+                  <span
+                    className="mt-0.5 w-4 shrink-0 text-xs text-muted-foreground"
+                    aria-hidden="true"
+                  >
                     {i + 1}.
                   </span>
                   <div className="min-w-0">
                     <span className="font-medium text-foreground">{s.label}</span>
                     {s.state === "failed" && (
-                      <span className="ml-2 text-[10px] font-medium uppercase tracking-wider text-destructive">
-                        failed
-                      </span>
+                      <>
+                        <span
+                          className="ml-2 text-[10px] font-medium uppercase tracking-wider text-destructive"
+                          aria-hidden="true"
+                        >
+                          failed
+                        </span>
+                        <span className="sr-only"> (previously failed)</span>
+                      </>
                     )}
                     {s.state === "success" && (
-                      <span className="ml-2 text-[10px] font-medium uppercase tracking-wider text-emerald-600">
-                        will re-run
-                      </span>
+                      <>
+                        <span
+                          className="ml-2 text-[10px] font-medium uppercase tracking-wider text-emerald-600"
+                          aria-hidden="true"
+                        >
+                          will re-run
+                        </span>
+                        <span className="sr-only"> (previously succeeded, will re-run)</span>
+                      </>
                     )}
                   </div>
                 </li>
@@ -325,11 +383,19 @@ export function ActivationProgress({
             </ol>
           </div>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={onRetry}>Retry activation</AlertDialogAction>
+            <AlertDialogCancel aria-label="Cancel retry and close dialog">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={onRetry}
+              aria-label={`Retry full activation: re-run all ${steps.length} steps from the beginning`}
+            >
+              Retry activation
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
 
       {failed?.fix && (
         <div className="mt-3 text-[11px] text-muted-foreground">
