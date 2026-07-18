@@ -26,6 +26,81 @@ export const Route = createFileRoute("/_authenticated/admin/email/sandbox")({
 
 type SendOutcome = Awaited<ReturnType<typeof sendSandboxTestFn>>;
 
+type HistoryEntry = {
+  id: string;
+  sentAt: string;
+  template: string;
+  templateDisplayName?: string;
+  dataText: string;
+  recipient: string;
+  status: "sent" | "skipped" | "failed" | "blocked";
+  durationMs?: number;
+  messageId?: string;
+  logId?: string;
+  subject?: string;
+  errorMessage?: string;
+  outcome: SendOutcome;
+};
+
+const HISTORY_KEY = "rrlabs.sandbox.history.v1";
+const HISTORY_MAX = 50;
+
+function loadHistory(): HistoryEntry[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = window.localStorage.getItem(HISTORY_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? (parsed as HistoryEntry[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveHistory(entries: HistoryEntry[]) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(HISTORY_KEY, JSON.stringify(entries.slice(0, HISTORY_MAX)));
+  } catch {
+    // ignore quota / unavailable storage
+  }
+}
+
+function summarizeOutcome(outcome: SendOutcome): {
+  status: HistoryEntry["status"];
+  durationMs?: number;
+  messageId?: string;
+  logId?: string;
+  subject?: string;
+  errorMessage?: string;
+} {
+  if (outcome.ok === false) {
+    return {
+      status: "blocked",
+      errorMessage: outcome.error,
+    };
+  }
+  const r = outcome.result;
+  const d = outcome.diagnostics;
+  const skipped = r.ok && (r as { skipped?: boolean }).skipped;
+  const status: HistoryEntry["status"] = !r.ok
+    ? "failed"
+    : skipped
+      ? "skipped"
+      : "sent";
+  return {
+    status,
+    durationMs: outcome.durationMs,
+    messageId: d.messageId ?? undefined,
+    logId: d.logId ?? (r.ok ? r.id : undefined),
+    subject: d.subject ?? undefined,
+    errorMessage: !r.ok
+      ? `${r.code}: ${r.error}`
+      : d.lastError ?? undefined,
+  };
+}
+
+
 function EmailSandboxPage() {
   const listTpl = useServerFn(listEmailTemplates);
   const statusFn = useServerFn(getSandboxStatusFn);
@@ -47,6 +122,10 @@ function EmailSandboxPage() {
     JSON.stringify(TEMPLATE_SAMPLES["welcome"]?.data ?? {}, null, 2),
   );
   const [lastOutcome, setLastOutcome] = useState<SendOutcome | null>(null);
+  const [history, setHistory] = useState<HistoryEntry[]>(() => loadHistory());
+  const [historySearch, setHistorySearch] = useState("");
+  const [expandedHistoryId, setExpandedHistoryId] = useState<string | null>(null);
+  const [autoRunId, setAutoRunId] = useState<string | null>(null);
 
   useEffect(() => {
     const sample = TEMPLATE_SAMPLES[selected]?.data ?? {};
@@ -78,8 +157,87 @@ function EmailSandboxPage() {
     onSuccess: (r) => {
       setLastOutcome(r);
       statusQ.refetch();
+
+      const summary = summarizeOutcome(r);
+      const templateEntry = templates.find((t) => t.name === selected);
+      const entry: HistoryEntry = {
+        id:
+          typeof crypto !== "undefined" && "randomUUID" in crypto
+            ? crypto.randomUUID()
+            : `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
+        sentAt: new Date().toISOString(),
+        template: selected,
+        templateDisplayName: templateEntry?.displayName,
+        dataText,
+        recipient: status?.recipient ?? "",
+        outcome: r,
+        ...summary,
+      };
+      setHistory((prev) => {
+        const next = [entry, ...prev].slice(0, HISTORY_MAX);
+        saveHistory(next);
+        return next;
+      });
+      setExpandedHistoryId(entry.id);
     },
   });
+
+  // Auto-run a queued "re-run from history" after state settles.
+  useEffect(() => {
+    if (!autoRunId) return;
+    if (!parsed.ok || sendMut.isPending) return;
+    if (!status?.config?.ok || !status?.recipient) return;
+    const id = autoRunId;
+    setAutoRunId(null);
+    sendMut.mutate(undefined, {
+      onSettled: () => setExpandedHistoryId((cur) => cur ?? id),
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoRunId, parsed.ok, dataText, selected, status?.config?.ok, status?.recipient]);
+
+  function rerunEntry(entry: HistoryEntry) {
+    setSelected(entry.template);
+    setDataText(entry.dataText);
+    setLastOutcome(null);
+    setAutoRunId(entry.id);
+  }
+
+  function removeHistoryEntry(id: string) {
+    setHistory((prev) => {
+      const next = prev.filter((e) => e.id !== id);
+      saveHistory(next);
+      return next;
+    });
+    setExpandedHistoryId((cur) => (cur === id ? null : cur));
+  }
+
+  function clearHistory() {
+    setHistory([]);
+    saveHistory([]);
+    setExpandedHistoryId(null);
+  }
+
+  const filteredHistory = useMemo(() => {
+    const q = historySearch.trim().toLowerCase();
+    if (!q) return history;
+    return history.filter((e) => {
+      const hay = [
+        e.template,
+        e.templateDisplayName ?? "",
+        e.recipient,
+        e.subject ?? "",
+        e.messageId ?? "",
+        e.logId ?? "",
+        e.errorMessage ?? "",
+        e.status,
+        e.dataText,
+      ]
+        .join(" \u0001 ")
+        .toLowerCase();
+      return hay.includes(q);
+    });
+  }, [history, historySearch]);
+
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 p-6">
@@ -240,9 +398,171 @@ function EmailSandboxPage() {
           )}
         </div>
       </section>
+
+      {/* Test-send history */}
+      <section className="rounded-lg border p-4 space-y-3">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <h2 className="font-semibold">Test-send history</h2>
+            <p className="text-xs text-muted-foreground">
+              Locally recorded on this device. Re-run replays the exact template and JSON payload.
+            </p>
+          </div>
+          {history.length > 0 ? (
+            <button
+              type="button"
+              className="text-xs font-medium text-muted-foreground hover:text-rose-700"
+              onClick={clearHistory}
+            >
+              Clear history
+            </button>
+          ) : null}
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <input
+            type="search"
+            className="w-full rounded-md border px-3 py-2 text-sm sm:w-80"
+            placeholder="Search by template, subject, recipient, message id…"
+            value={historySearch}
+            onChange={(e) => setHistorySearch(e.target.value)}
+            aria-label="Search test-send history"
+          />
+          <span className="text-xs text-muted-foreground">
+            {filteredHistory.length} of {history.length} entr{history.length === 1 ? "y" : "ies"}
+          </span>
+        </div>
+
+        {history.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            No sends yet. Run a test above and it will appear here.
+          </p>
+        ) : filteredHistory.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No entries match that search.</p>
+        ) : (
+          <ul className="divide-y rounded-md border">
+            {filteredHistory.map((entry) => {
+              const tone: "emerald" | "amber" | "rose" =
+                entry.status === "sent"
+                  ? "emerald"
+                  : entry.status === "skipped"
+                    ? "amber"
+                    : "rose";
+              const isOpen = expandedHistoryId === entry.id;
+              return (
+                <li key={entry.id} className="p-3">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge tone={tone}>{entry.status}</Badge>
+                        <span className="font-medium">
+                          {entry.templateDisplayName ?? entry.template}
+                        </span>
+                        <span className="font-mono text-[11px] text-muted-foreground">
+                          {entry.template}
+                        </span>
+                      </div>
+                      <div className="mt-1 text-xs text-muted-foreground">
+                        <time dateTime={entry.sentAt}>
+                          {new Date(entry.sentAt).toLocaleString()}
+                        </time>
+                        {" · to "}
+                        <span className="font-mono">{entry.recipient || "—"}</span>
+                        {typeof entry.durationMs === "number" ? (
+                          <span> · {entry.durationMs} ms</span>
+                        ) : null}
+                      </div>
+                      {entry.subject ? (
+                        <div className="mt-1 truncate text-xs">
+                          <span className="text-muted-foreground">Subject: </span>
+                          {entry.subject}
+                        </div>
+                      ) : null}
+                      {entry.errorMessage ? (
+                        <div className="mt-1 truncate text-xs text-rose-700">
+                          {entry.errorMessage}
+                        </div>
+                      ) : null}
+                    </div>
+                    <div className="flex shrink-0 items-center gap-2">
+                      <button
+                        type="button"
+                        className="rounded-md border px-2.5 py-1 text-xs font-medium hover:bg-muted disabled:opacity-50"
+                        onClick={() =>
+                          setExpandedHistoryId(isOpen ? null : entry.id)
+                        }
+                        aria-expanded={isOpen}
+                      >
+                        {isOpen ? "Hide" : "Details"}
+                      </button>
+                      <button
+                        type="button"
+                        className="rounded-md bg-teal-600 px-2.5 py-1 text-xs font-medium text-white disabled:opacity-50"
+                        onClick={() => rerunEntry(entry)}
+                        disabled={
+                          sendMut.isPending ||
+                          !status?.config?.ok ||
+                          !status?.recipient
+                        }
+                        title={
+                          !status?.config?.ok
+                            ? "Provider not configured"
+                            : !status?.recipient
+                              ? "Recipient unavailable"
+                              : "Load these inputs and send again"
+                        }
+                      >
+                        {autoRunId === entry.id ? "Re-running…" : "Re-run"}
+                      </button>
+                      <button
+                        type="button"
+                        className="rounded-md border px-2 py-1 text-xs font-medium text-muted-foreground hover:text-rose-700"
+                        onClick={() => removeHistoryEntry(entry.id)}
+                        aria-label="Remove entry"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  </div>
+                  {isOpen ? (
+                    <div className="mt-3 space-y-3 rounded-md bg-muted/40 p-3">
+                      {entry.outcome.ok === false ? (
+                        <div className="space-y-1 text-sm">
+                          <Badge tone="rose">Blocked: {entry.outcome.error}</Badge>
+                          {"window" in entry.outcome && entry.outcome.window ? (
+                            <p className="text-xs text-muted-foreground">
+                              Rate limit exceeded in the last {entry.outcome.window}.
+                            </p>
+                          ) : null}
+                          {"message" in entry.outcome && entry.outcome.message ? (
+                            <p className="text-xs text-muted-foreground">
+                              {entry.outcome.message}
+                            </p>
+                          ) : null}
+                        </div>
+                      ) : (
+                        <SuccessDiagnostics outcome={entry.outcome} />
+                      )}
+                      <details className="text-xs">
+                        <summary className="cursor-pointer text-muted-foreground">
+                          Payload JSON
+                        </summary>
+                        <pre className="mt-2 max-h-64 overflow-auto whitespace-pre-wrap rounded border bg-background p-2 font-mono text-[11px]">
+                          {entry.dataText}
+                        </pre>
+                      </details>
+                    </div>
+                  ) : null}
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </section>
     </div>
   );
 }
+
 
 function UsageMeter({ label, used, cap }: { label: string; used: number; cap: number }) {
   const pct = Math.min(100, Math.round((used / Math.max(cap, 1)) * 100));
