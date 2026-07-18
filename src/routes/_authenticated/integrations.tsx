@@ -713,7 +713,7 @@ function ProviderCard({
       if (autoTimerRef.current) clearTimeout(autoTimerRef.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [values, expanded, disabled, overLimit, allRequiredFilled]);
+  }, [values, expanded, disabled, overLimit, allRequiredFilled, hasFieldErrors]);
 
   async function copyPreview() {
     if (!previewUrl) return;
