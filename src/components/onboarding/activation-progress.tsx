@@ -196,6 +196,17 @@ export function ActivationProgress({
 
       {/* Footer actions */}
       <div className="mt-6 flex flex-wrap items-center justify-end gap-2">
+        {isFailed && failedSteps.length > 0 && onRetryFailed && (
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => onRetryFailed(failedSteps.map((s) => s.id))}
+            disabled={isRunning}
+          >
+            <RefreshCw className={cn("mr-2 h-3.5 w-3.5", isRunning && "animate-spin")} />
+            Retry failed step{failedSteps.length === 1 ? "" : "s"} ({failedSteps.length})
+          </Button>
+        )}
         {isFailed && (
           <Button size="sm" onClick={onRetry} disabled={isRunning}>
             <RefreshCw className={cn("mr-2 h-3.5 w-3.5", isRunning && "animate-spin")} />
