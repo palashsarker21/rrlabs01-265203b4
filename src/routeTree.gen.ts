@@ -51,6 +51,7 @@ import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/
 import { Route as BlogTagTagRouteImport } from './routes/blog.tag.$tag'
 import { Route as BlogCategoryCategoryRouteImport } from './routes/blog.category.$category'
 import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
+import { Route as AuthenticatedSettingsEmailPreferencesRouteImport } from './routes/_authenticated/settings.email-preferences'
 import { Route as AuthenticatedInviteTokenRouteImport } from './routes/_authenticated/invite.$token'
 import { Route as AuthenticatedGettingStartedCompleteRouteImport } from './routes/_authenticated/getting-started.complete'
 import { Route as AuthenticatedCheckoutStatusRouteImport } from './routes/_authenticated/checkout.status'
@@ -276,6 +277,12 @@ const ApiPublicHealthRoute = ApiPublicHealthRouteImport.update({
   path: '/api/public/health',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedSettingsEmailPreferencesRoute =
+  AuthenticatedSettingsEmailPreferencesRouteImport.update({
+    id: '/settings/email-preferences',
+    path: '/settings/email-preferences',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedInviteTokenRoute =
   AuthenticatedInviteTokenRouteImport.update({
     id: '/invite/$token',
@@ -384,6 +391,7 @@ export interface FileRoutesByFullPath {
   '/checkout/status': typeof AuthenticatedCheckoutStatusRoute
   '/getting-started/complete': typeof AuthenticatedGettingStartedCompleteRoute
   '/invite/$token': typeof AuthenticatedInviteTokenRoute
+  '/settings/email-preferences': typeof AuthenticatedSettingsEmailPreferencesRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/blog/category/$category': typeof BlogCategoryCategoryRoute
   '/blog/tag/$tag': typeof BlogTagTagRoute
@@ -437,6 +445,7 @@ export interface FileRoutesByTo {
   '/checkout/status': typeof AuthenticatedCheckoutStatusRoute
   '/getting-started/complete': typeof AuthenticatedGettingStartedCompleteRoute
   '/invite/$token': typeof AuthenticatedInviteTokenRoute
+  '/settings/email-preferences': typeof AuthenticatedSettingsEmailPreferencesRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/blog/category/$category': typeof BlogCategoryCategoryRoute
   '/blog/tag/$tag': typeof BlogTagTagRoute
@@ -493,6 +502,7 @@ export interface FileRoutesById {
   '/_authenticated/checkout/status': typeof AuthenticatedCheckoutStatusRoute
   '/_authenticated/getting-started/complete': typeof AuthenticatedGettingStartedCompleteRoute
   '/_authenticated/invite/$token': typeof AuthenticatedInviteTokenRoute
+  '/_authenticated/settings/email-preferences': typeof AuthenticatedSettingsEmailPreferencesRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/blog/category/$category': typeof BlogCategoryCategoryRoute
   '/blog/tag/$tag': typeof BlogTagTagRoute
@@ -549,6 +559,7 @@ export interface FileRouteTypes {
     | '/checkout/status'
     | '/getting-started/complete'
     | '/invite/$token'
+    | '/settings/email-preferences'
     | '/api/public/health'
     | '/blog/category/$category'
     | '/blog/tag/$tag'
@@ -602,6 +613,7 @@ export interface FileRouteTypes {
     | '/checkout/status'
     | '/getting-started/complete'
     | '/invite/$token'
+    | '/settings/email-preferences'
     | '/api/public/health'
     | '/blog/category/$category'
     | '/blog/tag/$tag'
@@ -657,6 +669,7 @@ export interface FileRouteTypes {
     | '/_authenticated/checkout/status'
     | '/_authenticated/getting-started/complete'
     | '/_authenticated/invite/$token'
+    | '/_authenticated/settings/email-preferences'
     | '/api/public/health'
     | '/blog/category/$category'
     | '/blog/tag/$tag'
@@ -996,6 +1009,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHealthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/settings/email-preferences': {
+      id: '/_authenticated/settings/email-preferences'
+      path: '/settings/email-preferences'
+      fullPath: '/settings/email-preferences'
+      preLoaderRoute: typeof AuthenticatedSettingsEmailPreferencesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/invite/$token': {
       id: '/_authenticated/invite/$token'
       path: '/invite/$token'
@@ -1131,6 +1151,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedUpgradeRoute: typeof AuthenticatedUpgradeRoute
   AuthenticatedBillingStatementsRoute: typeof AuthenticatedBillingStatementsRoute
   AuthenticatedInviteTokenRoute: typeof AuthenticatedInviteTokenRoute
+  AuthenticatedSettingsEmailPreferencesRoute: typeof AuthenticatedSettingsEmailPreferencesRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -1150,6 +1171,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedUpgradeRoute: AuthenticatedUpgradeRoute,
   AuthenticatedBillingStatementsRoute: AuthenticatedBillingStatementsRoute,
   AuthenticatedInviteTokenRoute: AuthenticatedInviteTokenRoute,
+  AuthenticatedSettingsEmailPreferencesRoute:
+    AuthenticatedSettingsEmailPreferencesRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

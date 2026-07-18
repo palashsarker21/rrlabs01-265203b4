@@ -59,27 +59,30 @@ function EmailPreferencesPage() {
             : "Could not load preferences."}
         </div>
       )}
-      {query.data && query.data.ok && (
-        <div className="space-y-3">
-          <div className="rounded-md border bg-muted/40 p-3 text-xs text-muted-foreground">
-            Managing preferences for <span className="font-mono">{query.data.email}</span>
+      {query.data && query.data.ok && (() => {
+        const { email, preferences } = query.data;
+        return (
+          <div className="space-y-3">
+            <div className="rounded-md border bg-muted/40 p-3 text-xs text-muted-foreground">
+              Managing preferences for <span className="font-mono">{email}</span>
+            </div>
+            <ul className="divide-y rounded-lg border">
+              {EMAIL_CATEGORIES.map((c) => (
+                <Row
+                  key={c}
+                  category={c}
+                  checked={preferences[c] !== false}
+                  disabled={mutate.isPending}
+                  onChange={(next) => mutate.mutate({ [c]: next } as Partial<PreferenceMap>)}
+                />
+              ))}
+            </ul>
+            <div className="text-xs text-muted-foreground">
+              {mutate.isPending ? "Saving…" : "Changes save automatically."}
+            </div>
           </div>
-          <ul className="divide-y rounded-lg border">
-            {EMAIL_CATEGORIES.map((c) => (
-              <Row
-                key={c}
-                category={c}
-                checked={query.data.preferences[c] !== false}
-                disabled={mutate.isPending}
-                onChange={(next) => mutate.mutate({ [c]: next } as Partial<PreferenceMap>)}
-              />
-            ))}
-          </ul>
-          <div className="text-xs text-muted-foreground">
-            {mutate.isPending ? "Saving…" : "Changes save automatically."}
-          </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 }
