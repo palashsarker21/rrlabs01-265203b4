@@ -6,6 +6,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { ADAPTERS, getAdapterInfo } from "./integrations/catalog";
 import { assertCanConnect, PlanLimitError } from "./plan-limits.server";
 import { integrationKindFor, type ProviderKind } from "./providers/kinds";
+import { fail, type SaveResult } from "./integrations/errors";
 
 const workspaceIdSchema = z.object({ workspaceId: z.string().uuid() });
 
