@@ -640,6 +640,49 @@ function EmailDeliveriesPage() {
           </div>
         </div>
       ) : null}
+
+      {/* Bulk replay confirm */}
+      {bulkConfirmOpen ? (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-lg rounded-lg bg-background p-5 shadow-xl">
+            <h3 className="text-base font-semibold">Replay {bulkTotal} deliveries?</h3>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Each selected message will be resent to its original recipient using the same
+              template. New log rows will be created and linked back to the originals. This can
+              take a while and may consume rate-limit quota.
+            </p>
+            <div className="mt-3 space-y-1 text-xs text-muted-foreground">
+              <div>
+                Selected rows: <strong>{selectedIds.size}</strong>
+              </div>
+              <div>
+                Pasted log IDs: <strong>{pastedLogIds.length}</strong>
+              </div>
+              <div>
+                Pasted message IDs: <strong>{pastedMessageIds.length}</strong>
+              </div>
+            </div>
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                className="rounded-md border px-3 py-1.5 text-sm"
+                onClick={() => setBulkConfirmOpen(false)}
+                disabled={bulkReplay.isPending}
+              >
+                Cancel
+              </button>
+              <button
+                className="rounded-md bg-primary px-3 py-1.5 text-sm text-primary-foreground disabled:opacity-50"
+                disabled={bulkReplay.isPending || bulkTotal === 0}
+                onClick={() =>
+                  bulkReplay.mutate({ ids: bulkIds, messageIds: pastedMessageIds })
+                }
+              >
+                {bulkReplay.isPending ? "Replaying…" : `Replay ${bulkTotal}`}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
