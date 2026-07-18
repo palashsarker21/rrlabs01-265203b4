@@ -386,6 +386,13 @@ function EmailDeliveriesPage() {
           </span>
           <div className="flex items-center gap-3">
             <button
+              onClick={() => setAutoRefresh((v) => !v)}
+              className="underline"
+              title={autoRefresh ? "Pause live updates" : "Resume live updates"}
+            >
+              {autoRefresh ? "Pause live" : "Resume live"}
+            </button>
+            <button
               onClick={handleExportCsv}
               disabled={exporting || (listQ.data?.total ?? 0) === 0}
               className="underline disabled:opacity-50"
