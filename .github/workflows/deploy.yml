@@ -50,23 +50,30 @@ jobs:
           version: latest
 
       - name: Authenticate Supabase CLI (login)
+        env: { RETRIES: "4", BASE_DELAY: "5" }
         run: |
           set -euo pipefail
-          supabase login --token "$SUPABASE_ACCESS_TOKEN"
+          bash scripts/ci/retry.sh "supabase login" -- \
+            supabase login --token "$SUPABASE_ACCESS_TOKEN"
           echo "✓ Supabase CLI authenticated."
 
       - name: Link production project
+        env: { RETRIES: "4", BASE_DELAY: "5" }
         run: |
           set -euo pipefail
-          supabase link \
-            --project-ref "$SUPABASE_PROJECT_REF" \
-            --password   "$SUPABASE_DB_PASSWORD"
+          bash scripts/ci/retry.sh "supabase link" -- \
+            supabase link \
+              --project-ref "$SUPABASE_PROJECT_REF" \
+              --password   "$SUPABASE_DB_PASSWORD"
           echo "✓ Linked to project $SUPABASE_PROJECT_REF."
 
       - name: Verify authenticated identity
+        env: { RETRIES: "4", BASE_DELAY: "5" }
         run: |
           set -euo pipefail
-          supabase projects list >/tmp/projects.txt
+          bash scripts/ci/retry.sh "supabase projects list" -- \
+            bash -c 'supabase projects list > /tmp/projects.txt'
+          # Deterministic assertion — fail fast, no retry.
           if ! grep -q "$SUPABASE_PROJECT_REF" /tmp/projects.txt; then
             echo "::error::Authenticated account cannot see project $SUPABASE_PROJECT_REF"
             exit 1
