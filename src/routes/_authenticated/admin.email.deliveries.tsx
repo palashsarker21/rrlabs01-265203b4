@@ -399,13 +399,21 @@ function EmailDeliveriesPage() {
             <tbody>
               {rows.length === 0 && !listQ.isLoading ? (
                 <tr>
-                  <td colSpan={7} className="px-3 py-8 text-center text-muted-foreground">
+                  <td colSpan={8} className="px-3 py-8 text-center text-muted-foreground">
                     No deliveries match these filters.
                   </td>
                 </tr>
               ) : null}
               {rows.map((r) => (
                 <tr key={r.id} className="border-t hover:bg-muted/30">
+                  <td className="px-3 py-2">
+                    <input
+                      type="checkbox"
+                      aria-label={`Select delivery ${r.id}`}
+                      checked={selectedIds.has(r.id)}
+                      onChange={() => toggleRow(r.id)}
+                    />
+                  </td>
                   <td className="px-3 py-2 whitespace-nowrap">{fmt(r.created_at)}</td>
                   <td className="px-3 py-2">{statusBadge(String(r.status), r.attempts ?? 0)}</td>
                   <td className="px-3 py-2 font-mono text-xs">{r.template}</td>
