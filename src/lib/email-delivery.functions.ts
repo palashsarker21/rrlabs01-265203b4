@@ -249,6 +249,87 @@ export const bulkReplayDeliveriesFn = createServerFn({ method: "POST" })
     return { total: items.length, succeeded, failed, items };
   });
 
+const ResolveBulkInput = z.object({
+  ids: z.array(z.string().uuid()).max(50).optional().default([]),
+  messageIds: z.array(z.string().trim().min(1)).max(50).optional().default([]),
+});
+
+/**
+ * Resolve a bulk-replay selection to concrete log rows with recipient/template
+ * metadata, WITHOUT executing the replay. The client uses this to drive a
+ * per-item progress indicator, then calls replayDeliveryFn one row at a time.
+ */
+export const resolveBulkReplayFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((v: unknown) => ResolveBulkInput.parse(v))
+  .handler(async ({ data, context }) => {
+    await assertSuperAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    type Resolved = {
+      input: string;
+      logId: string | null;
+      recipient: string | null;
+      template: string | null;
+      error?: string;
+    };
+    const items: Resolved[] = [];
+    const seen = new Set<string>();
+
+    const logIds = [...new Set(data.ids)];
+    if (logIds.length > 0) {
+      const { data: rows, error } = await supabaseAdmin
+        .from("email_logs")
+        .select("id,recipient,template")
+        .in("id", logIds);
+      if (error) throw new Error(error.message);
+      const byId = new Map((rows ?? []).map((r) => [r.id, r]));
+      for (const id of logIds) {
+        const r = byId.get(id);
+        if (r) {
+          items.push({ input: id, logId: r.id, recipient: r.recipient, template: r.template });
+        } else {
+          items.push({ input: id, logId: null, recipient: null, template: null, error: "Log not found." });
+        }
+        seen.add(id);
+      }
+    }
+
+    const mids = [...new Set(data.messageIds)];
+    if (mids.length > 0) {
+      const { data: rows, error } = await supabaseAdmin
+        .from("email_logs")
+        .select("id,recipient,template,provider_message_id")
+        .in("provider_message_id", mids);
+      if (error) throw new Error(error.message);
+      const byMid = new Map(
+        (rows ?? []).map((r) => [String(r.provider_message_id), r]),
+      );
+      for (const mid of mids) {
+        const r = byMid.get(mid);
+        if (r && !seen.has(r.id)) {
+          items.push({ input: mid, logId: r.id, recipient: r.recipient, template: r.template });
+          seen.add(r.id);
+        } else if (!r) {
+          items.push({
+            input: mid,
+            logId: null,
+            recipient: null,
+            template: null,
+            error: "No delivery found for that message ID.",
+          });
+        }
+      }
+    }
+
+    if (items.length > 50) {
+      throw new Error("Bulk replay is capped at 50 items per request.");
+    }
+    return { items };
+  });
+
+
+
 
 export const listTemplateOptionsFn = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
