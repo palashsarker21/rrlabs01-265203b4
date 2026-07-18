@@ -83,6 +83,8 @@ function EmailDeliveriesPage() {
     }>;
   } | null>(null);
   const [exporting, setExporting] = useState(false);
+  const [live, setLive] = useState<"connecting" | "on" | "off">("connecting");
+  const [autoRefresh, setAutoRefresh] = useState(true);
 
   const limit = 50;
 
