@@ -7,7 +7,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { EMAIL_CATEGORIES } from "@/lib/email/preferences.server";
+import { EMAIL_CATEGORIES } from "@/lib/email/preferences";
 
 const CATEGORIES = z.enum(EMAIL_CATEGORIES);
 const PrefUpdate = z.record(CATEGORIES, z.boolean());
