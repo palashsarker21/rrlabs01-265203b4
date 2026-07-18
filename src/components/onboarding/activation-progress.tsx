@@ -97,6 +97,7 @@ function iconFor(state: StepState) {
 export function ActivationProgress({
   steps,
   onRetry,
+  onRetryStep,
   onGoToDashboard,
   isRunning,
   isComplete,
@@ -104,6 +105,7 @@ export function ActivationProgress({
 }: {
   steps: ActivationStep[];
   onRetry: () => void;
+  onRetryStep?: (id: ActivationStepId) => void;
   onGoToDashboard: () => void;
   isRunning: boolean;
   isComplete: boolean;
