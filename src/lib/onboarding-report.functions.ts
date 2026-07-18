@@ -11,10 +11,20 @@ const activationFailureSchema = z.object({
   error: z.string(),
 });
 
+const activationTimelineEntrySchema = z.object({
+  stepId: z.string(),
+  label: z.string(),
+  state: z.enum(["idle", "running", "success", "failed", "skipped"]),
+  startedAt: z.string().datetime().optional(),
+  finishedAt: z.string().datetime().optional(),
+});
+
 const inputSchema = z.object({
   workspaceId: z.string().uuid(),
   activationFailures: z.array(activationFailureSchema).optional(),
+  activationTimeline: z.array(activationTimelineEntrySchema).optional(),
 });
+
 
 const KIND_LABEL: Record<ProviderKind, { label: string; required: boolean }> = {
   store: { label: "Store", required: true },
