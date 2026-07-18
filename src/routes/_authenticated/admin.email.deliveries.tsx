@@ -68,9 +68,19 @@ function EmailDeliveriesPage() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
   const [pastedIds, setPastedIds] = useState("");
   const [bulkConfirmOpen, setBulkConfirmOpen] = useState(false);
-  const [bulkResult, setBulkResult] = useState<Awaited<
-    ReturnType<typeof bulkReplayDeliveriesFn>
-  > | null>(null);
+  const [bulkResult, setBulkResult] = useState<{
+    total: number;
+    succeeded: number;
+    failed: number;
+    items: Array<{
+      input: string;
+      logId: string | null;
+      ok: boolean;
+      newLogId?: string;
+      durationMs?: number;
+      error?: string;
+    }>;
+  } | null>(null);
 
   const limit = 50;
 
