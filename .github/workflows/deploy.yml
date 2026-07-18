@@ -285,10 +285,13 @@ jobs:
           bash scripts/ci/retry.sh "supabase link" -- \
             supabase link --project-ref "$SUPABASE_PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
 
-      - name: Detect schema drift
+      - name: Detect schema drift (post-deploy re-diff)
         run: bash scripts/ci/verify-schema.sh
 
-      - name: Run RLS + grant + security-definer assertions
+      - name: Confirm migration order & checksums
+        run: bash scripts/ci/verify-migration-order.sh
+
+      - name: Run RLS + grant + security-definer + required-policy assertions
         run: bash scripts/ci/verify-rls.sh
 
   # ------------------------------------------------------------------
