@@ -14,7 +14,7 @@ import {
   EMAIL_CATEGORY_LABELS,
   type EmailCategory,
   type PreferenceMap,
-} from "@/lib/email/preferences.server";
+} from "@/lib/email/preferences";
 
 const search = z.object({ token: z.string().optional() });
 
