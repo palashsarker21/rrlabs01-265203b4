@@ -355,31 +355,59 @@ function EmailPreviewPage() {
             </div>
           </div>
 
+          <div className="rounded-md border bg-muted/30 p-3">
+            <div className="flex items-center justify-between gap-2">
+              <div>
+                <div className="text-xs font-medium">Mode</div>
+                <div className="text-[11px] text-muted-foreground">
+                  {previewOnly
+                    ? "Preview only — renders subject, body and headers. Nothing is sent."
+                    : "Send enabled — a test email will be dispatched to the recipient below."}
+                </div>
+              </div>
+              <label className="inline-flex cursor-pointer items-center gap-2 text-xs">
+                <input
+                  type="checkbox"
+                  checked={previewOnly}
+                  onChange={(e) => setPreviewOnly(e.target.checked)}
+                />
+                Preview only
+              </label>
+            </div>
+          </div>
+
           <div>
             <label className="text-xs font-medium text-muted-foreground">Send test to</label>
             <input
               type="email"
               placeholder="you@example.com"
               aria-invalid={validation.recipient.provided && !validation.recipient.ok}
-              className="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm"
+              disabled={previewOnly}
+              className="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm disabled:opacity-50"
               value={recipient}
               onChange={(e) => setRecipient(e.target.value)}
             />
             <button
               type="button"
               className="mt-2 w-full rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
-              disabled={!validation.canSend || send.isPending}
+              disabled={previewOnly || !validation.canSend || send.isPending}
               onClick={() => {
                 setSendResult(null);
                 send.mutate();
               }}
               title={
-                !validation.canSend
-                  ? "Resolve the variable validator errors before sending"
-                  : undefined
+                previewOnly
+                  ? "Preview-only mode is on — turn it off to send a test email"
+                  : !validation.canSend
+                    ? "Resolve the variable validator errors before sending"
+                    : undefined
               }
             >
-              {send.isPending ? "Sending…" : "Send test email"}
+              {previewOnly
+                ? "Sending disabled (preview only)"
+                : send.isPending
+                  ? "Sending…"
+                  : "Send test email"}
             </button>
             {sendResult && (
               <div className="mt-2 text-xs text-muted-foreground">{sendResult}</div>
