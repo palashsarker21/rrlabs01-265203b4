@@ -866,6 +866,109 @@ export type Database = {
           },
         ]
       }
+      email_events: {
+        Row: {
+          created_at: string
+          email_log_id: string | null
+          event_type: string
+          id: string
+          payload: Json
+          provider_message_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email_log_id?: string | null
+          event_type: string
+          id?: string
+          payload?: Json
+          provider_message_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email_log_id?: string | null
+          event_type?: string
+          id?: string
+          payload?: Json
+          provider_message_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_events_email_log_id_fkey"
+            columns: ["email_log_id"]
+            isOneToOne: false
+            referencedRelation: "email_logs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_logs: {
+        Row: {
+          attempts: number
+          created_at: string
+          delivered_at: string | null
+          failed_at: string | null
+          id: string
+          idempotency_key: string | null
+          last_error: string | null
+          metadata: Json
+          provider: string
+          provider_message_id: string | null
+          recipient: string
+          sent_at: string | null
+          status: string
+          subject: string | null
+          template: string
+          updated_at: string
+          workspace_id: string | null
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string
+          delivered_at?: string | null
+          failed_at?: string | null
+          id?: string
+          idempotency_key?: string | null
+          last_error?: string | null
+          metadata?: Json
+          provider?: string
+          provider_message_id?: string | null
+          recipient: string
+          sent_at?: string | null
+          status?: string
+          subject?: string | null
+          template: string
+          updated_at?: string
+          workspace_id?: string | null
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          delivered_at?: string | null
+          failed_at?: string | null
+          id?: string
+          idempotency_key?: string | null
+          last_error?: string | null
+          metadata?: Json
+          provider?: string
+          provider_message_id?: string | null
+          recipient?: string
+          sent_at?: string | null
+          status?: string
+          subject?: string | null
+          template?: string
+          updated_at?: string
+          workspace_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_logs_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       feature_flags: {
         Row: {
           beta: boolean
