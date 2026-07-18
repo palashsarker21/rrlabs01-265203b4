@@ -885,11 +885,16 @@ function ProviderCard({
                 </p>
               )}
               {setupFields.map((f) => {
-                const fieldHasError = saveError?.field === f.key;
+                const serverFieldError = saveError?.field === f.key;
+                const localError =
+                  touched[f.key] && fieldErrors[f.key] ? fieldErrors[f.key] : null;
+                const errorMessage = localError ?? (serverFieldError ? saveError!.message : null);
+                const fieldHasError = errorMessage !== null;
                 const onChangeField = (val: string) => {
                   setValues((v) => ({ ...v, [f.key]: val }));
-                  if (fieldHasError) setSaveError(null);
+                  if (serverFieldError) setSaveError(null);
                 };
+                const onBlurField = () => setTouched((t) => ({ ...t, [f.key]: true }));
                 return (
                   <div key={f.key}>
                     <Label htmlFor={`${provider.code}-${f.key}`} className="text-xs">
@@ -901,6 +906,7 @@ function ProviderCard({
                         id={`${provider.code}-${f.key}`}
                         value={values[f.key] ?? ""}
                         onChange={(e) => onChangeField(e.target.value)}
+                        onBlur={onBlurField}
                         aria-invalid={fieldHasError || undefined}
                         aria-describedby={fieldHasError ? `${provider.code}-${f.key}-err` : undefined}
                         className={cn(
@@ -933,6 +939,7 @@ function ProviderCard({
                         }
                         value={values[f.key] ?? ""}
                         onChange={(e) => onChangeField(e.target.value)}
+                        onBlur={onBlurField}
                         placeholder={f.placeholder}
                         autoComplete="off"
                         aria-invalid={fieldHasError || undefined}
@@ -944,12 +951,12 @@ function ProviderCard({
                         )}
                       />
                     )}
-                    {fieldHasError && saveError && (
+                    {errorMessage && (
                       <p
                         id={`${provider.code}-${f.key}-err`}
                         className="mt-1 text-[11px] text-destructive"
                       >
-                        {saveError.message}
+                        {errorMessage}
                       </p>
                     )}
                   </div>
