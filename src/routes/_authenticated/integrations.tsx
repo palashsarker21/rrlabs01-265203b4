@@ -730,6 +730,13 @@ function ProviderCard({
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (disabled || overLimit) return;
+    if (hasFieldErrors) {
+      // Surface every error at once and stop.
+      const allTouched: Record<string, boolean> = {};
+      for (const f of setupFields) allTouched[f.key] = true;
+      setTouched(allTouched);
+      return;
+    }
     if (autoTimerRef.current) clearTimeout(autoTimerRef.current);
     setSubmitting(true);
     setAutoStatus("saving");
