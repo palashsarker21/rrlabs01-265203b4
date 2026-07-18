@@ -119,12 +119,25 @@ async function renderTemplate(name: TemplateName, data: unknown): Promise<{ subj
 
 async function sendViaResend(
   config: EmailConfig,
-  args: { to: string[]; subject: string; html: string; text: string; replyTo?: string; tags?: Record<string, string> },
+  args: {
+    to: string[];
+    subject: string;
+    html: string;
+    text: string;
+    replyTo?: string;
+    tags?: Record<string, string>;
+    unsubscribeUrl?: string;
+  },
 ): Promise<{ messageId: string | null }> {
   const client = new Resend(config.apiKey);
   const tagList = args.tags
     ? Object.entries(args.tags).map(([name, value]) => ({ name, value: String(value).slice(0, 256) }))
     : undefined;
+  const headers: Record<string, string> = {};
+  if (args.unsubscribeUrl) {
+    headers["List-Unsubscribe"] = `<${args.unsubscribeUrl}>`;
+    headers["List-Unsubscribe-Post"] = "List-Unsubscribe=One-Click";
+  }
   const { data, error } = await client.emails.send({
     from: `${config.fromName} <${config.fromEmail}>`,
     to: args.to,
@@ -133,6 +146,7 @@ async function sendViaResend(
     text: args.text,
     replyTo: args.replyTo ?? config.replyTo,
     tags: tagList,
+    headers: Object.keys(headers).length ? headers : undefined,
   });
   if (error) {
     throw new Error(error.message ?? "Resend API error");
