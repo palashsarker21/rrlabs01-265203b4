@@ -71,6 +71,50 @@ type SetupField = {
   options?: string[];
 };
 
+/**
+ * Client-side per-field validator. Returns a human-readable error, or null
+ * when the value is acceptable. Server-side validation in `saveIntegration`
+ * remains the source of truth; this just catches obvious mistakes before
+ * a round-trip.
+ */
+function validateSetupField(f: SetupField, rawValue: string): string | null {
+  const value = (rawValue ?? "").trim();
+  const label = f.label ?? f.key;
+  if (!value) {
+    return f.required ? `${label} is required.` : null;
+  }
+  if (f.type === "url") {
+    try {
+      const u = new URL(value);
+      if (u.protocol !== "http:" && u.protocol !== "https:") {
+        return `${label} must be an http(s) URL.`;
+      }
+    } catch {
+      return `${label} must be a valid URL (e.g. https://example.com).`;
+    }
+  }
+  if (f.type === "email") {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+      return `${label} must be a valid email address.`;
+    }
+  }
+  if (f.type === "number") {
+    if (!/^-?\d+(\.\d+)?$/.test(value)) {
+      return `${label} must be a number.`;
+    }
+  }
+  if (f.type === "select" && f.options && !f.options.includes(value)) {
+    return `${label} must be one of: ${f.options.join(", ")}.`;
+  }
+  const k = f.key.toLowerCase();
+  if (k.includes("phone") && k.includes("number") && f.type !== "select") {
+    if (!value.startsWith("whatsapp:") && !/^\+?[\d\s\-().]{6,}$/.test(value)) {
+      return `${label} looks malformed.`;
+    }
+  }
+  return null;
+}
+
 function IntegrationCenter() {
   const navigate = useNavigate();
   const qc = useQueryClient();
