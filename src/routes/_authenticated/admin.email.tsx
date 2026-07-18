@@ -137,6 +137,9 @@ function AdminEmailPage() {
             <a href="/admin/email/deliveries" className="text-xs font-medium text-primary hover:underline">
               Deliveries & replays →
             </a>
+            <a href="/admin/email/webhooks" className="text-xs font-medium text-primary hover:underline">
+              Webhook deliveries →
+            </a>
             <a href="/admin/email/sandbox" className="text-xs font-medium text-primary hover:underline">
               Open test sandbox →
             </a>

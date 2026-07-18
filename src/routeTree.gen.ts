@@ -62,6 +62,7 @@ import { Route as ApiPublicWebhooksResendRouteImport } from './routes/api/public
 import { Route as ApiPublicWebhooksLemonsqueezyRouteImport } from './routes/api/public/webhooks/lemonsqueezy'
 import { Route as ApiPublicHooksSuccessFeeMonthlyRouteImport } from './routes/api/public/hooks/success-fee-monthly'
 import { Route as ApiPublicHooksRecoveryCadenceRouteImport } from './routes/api/public/hooks/recovery-cadence'
+import { Route as AuthenticatedAdminEmailWebhooksRouteImport } from './routes/_authenticated/admin.email.webhooks'
 import { Route as AuthenticatedAdminEmailSandboxRouteImport } from './routes/_authenticated/admin.email.sandbox'
 import { Route as AuthenticatedAdminEmailPreviewRouteImport } from './routes/_authenticated/admin.email.preview'
 import { Route as AuthenticatedAdminEmailDeliveriesRouteImport } from './routes/_authenticated/admin.email.deliveries'
@@ -343,6 +344,12 @@ const ApiPublicHooksRecoveryCadenceRoute =
     path: '/api/public/hooks/recovery-cadence',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AuthenticatedAdminEmailWebhooksRoute =
+  AuthenticatedAdminEmailWebhooksRouteImport.update({
+    id: '/webhooks',
+    path: '/webhooks',
+    getParentRoute: () => AuthenticatedAdminEmailRoute,
+  } as any)
 const AuthenticatedAdminEmailSandboxRoute =
   AuthenticatedAdminEmailSandboxRouteImport.update({
     id: '/sandbox',
@@ -419,6 +426,7 @@ export interface FileRoutesByFullPath {
   '/admin/email/deliveries': typeof AuthenticatedAdminEmailDeliveriesRoute
   '/admin/email/preview': typeof AuthenticatedAdminEmailPreviewRoute
   '/admin/email/sandbox': typeof AuthenticatedAdminEmailSandboxRoute
+  '/admin/email/webhooks': typeof AuthenticatedAdminEmailWebhooksRoute
   '/api/public/hooks/recovery-cadence': typeof ApiPublicHooksRecoveryCadenceRoute
   '/api/public/hooks/success-fee-monthly': typeof ApiPublicHooksSuccessFeeMonthlyRoute
   '/api/public/webhooks/lemonsqueezy': typeof ApiPublicWebhooksLemonsqueezyRoute
@@ -476,6 +484,7 @@ export interface FileRoutesByTo {
   '/admin/email/deliveries': typeof AuthenticatedAdminEmailDeliveriesRoute
   '/admin/email/preview': typeof AuthenticatedAdminEmailPreviewRoute
   '/admin/email/sandbox': typeof AuthenticatedAdminEmailSandboxRoute
+  '/admin/email/webhooks': typeof AuthenticatedAdminEmailWebhooksRoute
   '/api/public/hooks/recovery-cadence': typeof ApiPublicHooksRecoveryCadenceRoute
   '/api/public/hooks/success-fee-monthly': typeof ApiPublicHooksSuccessFeeMonthlyRoute
   '/api/public/webhooks/lemonsqueezy': typeof ApiPublicWebhooksLemonsqueezyRoute
@@ -536,6 +545,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/email/deliveries': typeof AuthenticatedAdminEmailDeliveriesRoute
   '/_authenticated/admin/email/preview': typeof AuthenticatedAdminEmailPreviewRoute
   '/_authenticated/admin/email/sandbox': typeof AuthenticatedAdminEmailSandboxRoute
+  '/_authenticated/admin/email/webhooks': typeof AuthenticatedAdminEmailWebhooksRoute
   '/api/public/hooks/recovery-cadence': typeof ApiPublicHooksRecoveryCadenceRoute
   '/api/public/hooks/success-fee-monthly': typeof ApiPublicHooksSuccessFeeMonthlyRoute
   '/api/public/webhooks/lemonsqueezy': typeof ApiPublicWebhooksLemonsqueezyRoute
@@ -596,6 +606,7 @@ export interface FileRouteTypes {
     | '/admin/email/deliveries'
     | '/admin/email/preview'
     | '/admin/email/sandbox'
+    | '/admin/email/webhooks'
     | '/api/public/hooks/recovery-cadence'
     | '/api/public/hooks/success-fee-monthly'
     | '/api/public/webhooks/lemonsqueezy'
@@ -653,6 +664,7 @@ export interface FileRouteTypes {
     | '/admin/email/deliveries'
     | '/admin/email/preview'
     | '/admin/email/sandbox'
+    | '/admin/email/webhooks'
     | '/api/public/hooks/recovery-cadence'
     | '/api/public/hooks/success-fee-monthly'
     | '/api/public/webhooks/lemonsqueezy'
@@ -712,6 +724,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/email/deliveries'
     | '/_authenticated/admin/email/preview'
     | '/_authenticated/admin/email/sandbox'
+    | '/_authenticated/admin/email/webhooks'
     | '/api/public/hooks/recovery-cadence'
     | '/api/public/hooks/success-fee-monthly'
     | '/api/public/webhooks/lemonsqueezy'
@@ -1125,6 +1138,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksRecoveryCadenceRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/admin/email/webhooks': {
+      id: '/_authenticated/admin/email/webhooks'
+      path: '/webhooks'
+      fullPath: '/admin/email/webhooks'
+      preLoaderRoute: typeof AuthenticatedAdminEmailWebhooksRouteImport
+      parentRoute: typeof AuthenticatedAdminEmailRoute
+    }
     '/_authenticated/admin/email/sandbox': {
       id: '/_authenticated/admin/email/sandbox'
       path: '/sandbox'
@@ -1160,6 +1180,7 @@ interface AuthenticatedAdminEmailRouteChildren {
   AuthenticatedAdminEmailDeliveriesRoute: typeof AuthenticatedAdminEmailDeliveriesRoute
   AuthenticatedAdminEmailPreviewRoute: typeof AuthenticatedAdminEmailPreviewRoute
   AuthenticatedAdminEmailSandboxRoute: typeof AuthenticatedAdminEmailSandboxRoute
+  AuthenticatedAdminEmailWebhooksRoute: typeof AuthenticatedAdminEmailWebhooksRoute
 }
 
 const AuthenticatedAdminEmailRouteChildren: AuthenticatedAdminEmailRouteChildren =
@@ -1168,6 +1189,7 @@ const AuthenticatedAdminEmailRouteChildren: AuthenticatedAdminEmailRouteChildren
       AuthenticatedAdminEmailDeliveriesRoute,
     AuthenticatedAdminEmailPreviewRoute: AuthenticatedAdminEmailPreviewRoute,
     AuthenticatedAdminEmailSandboxRoute: AuthenticatedAdminEmailSandboxRoute,
+    AuthenticatedAdminEmailWebhooksRoute: AuthenticatedAdminEmailWebhooksRoute,
   }
 
 const AuthenticatedAdminEmailRouteWithChildren =
