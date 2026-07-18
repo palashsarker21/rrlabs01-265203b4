@@ -47,26 +47,56 @@ async function resolveOwnerEmail(workspaceId: string): Promise<string | null> {
 async function trySendEmail(
   kind: BillingNotificationKind,
   recipient: string,
+  workspaceId: string,
   data: Record<string, unknown>,
 ): Promise<{ ok: true } | { ok: false; error: string; skipped?: boolean }> {
   try {
-    // Optional dynamic import — email templates may not be scaffolded yet.
-    const modPath = "@/lib/email-templates/send-email";
-    const mod = (await import(/* @vite-ignore */ modPath).catch(() => null)) as {
-      sendTemplateEmail?: (name: string, to: string, opts: unknown) => Promise<unknown>;
-    } | null;
-    if (!mod?.sendTemplateEmail) {
-      return {
-        ok: false,
-        skipped: true,
-        error: "email templates not scaffolded",
-      };
-    }
-    await mod.sendTemplateEmail(`billing-${kind.replace(/_/g, "-")}`, recipient, {
-      templateData: data,
+    const { sendEmail } = await import("@/lib/email/service.server");
+    // Map billing kind → registry template
+    const templateMap: Record<BillingNotificationKind, string> = {
+      payment_failed: "payment-failed",
+      cancellation_warning: "payment-failed",
+      payment_recovered: "payment-successful",
+      trial_ending: "trial-ending",
+      subscription_cancelled: "system-alert",
+    };
+    const template = templateMap[kind] as
+      | "payment-failed"
+      | "payment-successful"
+      | "trial-ending"
+      | "system-alert";
+
+    // Best-effort default template data — callers may override via `data`.
+    const baseData: Record<string, unknown> =
+      template === "system-alert"
+        ? {
+            title: "Subscription cancelled",
+            message: "Your RRLabs subscription has been cancelled.",
+            severity: "warning" as const,
+            actionUrl: "https://rrlabs.online/app/billing",
+          }
+        : template === "trial-ending"
+          ? { daysLeft: 3, upgradeUrl: "https://rrlabs.online/app/upgrade" }
+          : template === "payment-failed"
+            ? { updateUrl: "https://rrlabs.online/app/billing", gracePeriodDays: 7 }
+            : { amountFormatted: (data.amount_formatted as string) ?? "" };
+
+    const result = await sendEmail({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      template: template as any,
+      to: recipient,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      data: { ...baseData, ...data } as any,
+      workspaceId,
       idempotencyKey: `${kind}-${(data.event_id as string) ?? Date.now()}`,
+      metadata: { kind, source: "billing" },
     });
-    return { ok: true };
+    if (result.ok) return { ok: true };
+    return {
+      ok: false,
+      error: result.error,
+      skipped: result.code === "unconfigured",
+    };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : String(err) };
   }
