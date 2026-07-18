@@ -548,11 +548,12 @@ function EmailDeliveriesPage() {
             </span>
             <button
               className="rounded-md border px-3 py-1.5 text-sm font-medium hover:bg-muted disabled:opacity-50"
-              disabled={bulkTotal === 0 || bulkTotal > 50 || bulkReplay.isPending}
+              disabled={bulkTotal === 0 || bulkTotal > 50 || bulkRun?.running}
               onClick={() => setBulkConfirmOpen(true)}
             >
-              {bulkReplay.isPending ? "Replaying…" : `Replay ${bulkTotal || ""} selected`}
+              {bulkRun?.running ? "Replaying…" : `Replay ${bulkTotal || ""} selected`}
             </button>
+
           </div>
         </div>
         <textarea
