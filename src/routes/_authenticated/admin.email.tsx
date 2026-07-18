@@ -133,12 +133,17 @@ function AdminEmailPage() {
       <section className="rounded-lg border p-4 space-y-3">
         <div className="flex items-center justify-between gap-3">
           <h2 className="font-semibold">Send test email</h2>
-          <a
-            href="/admin/email/preview"
-            className="text-xs font-medium text-primary hover:underline"
-          >
-            Open template preview →
-          </a>
+          <div className="flex items-center gap-3">
+            <a href="/admin/email/sandbox" className="text-xs font-medium text-primary hover:underline">
+              Open test sandbox →
+            </a>
+            <a
+              href="/admin/email/preview"
+              className="text-xs font-medium text-primary hover:underline"
+            >
+              Open template preview →
+            </a>
+          </div>
         </div>
         <div className="flex flex-col gap-2 sm:flex-row">
           <input

@@ -62,6 +62,7 @@ import { Route as ApiPublicWebhooksResendRouteImport } from './routes/api/public
 import { Route as ApiPublicWebhooksLemonsqueezyRouteImport } from './routes/api/public/webhooks/lemonsqueezy'
 import { Route as ApiPublicHooksSuccessFeeMonthlyRouteImport } from './routes/api/public/hooks/success-fee-monthly'
 import { Route as ApiPublicHooksRecoveryCadenceRouteImport } from './routes/api/public/hooks/recovery-cadence'
+import { Route as AuthenticatedAdminEmailSandboxRouteImport } from './routes/_authenticated/admin.email.sandbox'
 import { Route as AuthenticatedAdminEmailPreviewRouteImport } from './routes/_authenticated/admin.email.preview'
 import { Route as ApiPublicWebhooksProviderIntegrationIdRouteImport } from './routes/api/public/webhooks/$provider.$integrationId'
 
@@ -341,6 +342,12 @@ const ApiPublicHooksRecoveryCadenceRoute =
     path: '/api/public/hooks/recovery-cadence',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AuthenticatedAdminEmailSandboxRoute =
+  AuthenticatedAdminEmailSandboxRouteImport.update({
+    id: '/sandbox',
+    path: '/sandbox',
+    getParentRoute: () => AuthenticatedAdminEmailRoute,
+  } as any)
 const AuthenticatedAdminEmailPreviewRoute =
   AuthenticatedAdminEmailPreviewRouteImport.update({
     id: '/preview',
@@ -403,6 +410,7 @@ export interface FileRoutesByFullPath {
   '/blog/category/$category': typeof BlogCategoryCategoryRoute
   '/blog/tag/$tag': typeof BlogTagTagRoute
   '/admin/email/preview': typeof AuthenticatedAdminEmailPreviewRoute
+  '/admin/email/sandbox': typeof AuthenticatedAdminEmailSandboxRoute
   '/api/public/hooks/recovery-cadence': typeof ApiPublicHooksRecoveryCadenceRoute
   '/api/public/hooks/success-fee-monthly': typeof ApiPublicHooksSuccessFeeMonthlyRoute
   '/api/public/webhooks/lemonsqueezy': typeof ApiPublicWebhooksLemonsqueezyRoute
@@ -458,6 +466,7 @@ export interface FileRoutesByTo {
   '/blog/category/$category': typeof BlogCategoryCategoryRoute
   '/blog/tag/$tag': typeof BlogTagTagRoute
   '/admin/email/preview': typeof AuthenticatedAdminEmailPreviewRoute
+  '/admin/email/sandbox': typeof AuthenticatedAdminEmailSandboxRoute
   '/api/public/hooks/recovery-cadence': typeof ApiPublicHooksRecoveryCadenceRoute
   '/api/public/hooks/success-fee-monthly': typeof ApiPublicHooksSuccessFeeMonthlyRoute
   '/api/public/webhooks/lemonsqueezy': typeof ApiPublicWebhooksLemonsqueezyRoute
@@ -516,6 +525,7 @@ export interface FileRoutesById {
   '/blog/category/$category': typeof BlogCategoryCategoryRoute
   '/blog/tag/$tag': typeof BlogTagTagRoute
   '/_authenticated/admin/email/preview': typeof AuthenticatedAdminEmailPreviewRoute
+  '/_authenticated/admin/email/sandbox': typeof AuthenticatedAdminEmailSandboxRoute
   '/api/public/hooks/recovery-cadence': typeof ApiPublicHooksRecoveryCadenceRoute
   '/api/public/hooks/success-fee-monthly': typeof ApiPublicHooksSuccessFeeMonthlyRoute
   '/api/public/webhooks/lemonsqueezy': typeof ApiPublicWebhooksLemonsqueezyRoute
@@ -574,6 +584,7 @@ export interface FileRouteTypes {
     | '/blog/category/$category'
     | '/blog/tag/$tag'
     | '/admin/email/preview'
+    | '/admin/email/sandbox'
     | '/api/public/hooks/recovery-cadence'
     | '/api/public/hooks/success-fee-monthly'
     | '/api/public/webhooks/lemonsqueezy'
@@ -629,6 +640,7 @@ export interface FileRouteTypes {
     | '/blog/category/$category'
     | '/blog/tag/$tag'
     | '/admin/email/preview'
+    | '/admin/email/sandbox'
     | '/api/public/hooks/recovery-cadence'
     | '/api/public/hooks/success-fee-monthly'
     | '/api/public/webhooks/lemonsqueezy'
@@ -686,6 +698,7 @@ export interface FileRouteTypes {
     | '/blog/category/$category'
     | '/blog/tag/$tag'
     | '/_authenticated/admin/email/preview'
+    | '/_authenticated/admin/email/sandbox'
     | '/api/public/hooks/recovery-cadence'
     | '/api/public/hooks/success-fee-monthly'
     | '/api/public/webhooks/lemonsqueezy'
@@ -1099,6 +1112,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksRecoveryCadenceRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/admin/email/sandbox': {
+      id: '/_authenticated/admin/email/sandbox'
+      path: '/sandbox'
+      fullPath: '/admin/email/sandbox'
+      preLoaderRoute: typeof AuthenticatedAdminEmailSandboxRouteImport
+      parentRoute: typeof AuthenticatedAdminEmailRoute
+    }
     '/_authenticated/admin/email/preview': {
       id: '/_authenticated/admin/email/preview'
       path: '/preview'
@@ -1118,11 +1138,13 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedAdminEmailRouteChildren {
   AuthenticatedAdminEmailPreviewRoute: typeof AuthenticatedAdminEmailPreviewRoute
+  AuthenticatedAdminEmailSandboxRoute: typeof AuthenticatedAdminEmailSandboxRoute
 }
 
 const AuthenticatedAdminEmailRouteChildren: AuthenticatedAdminEmailRouteChildren =
   {
     AuthenticatedAdminEmailPreviewRoute: AuthenticatedAdminEmailPreviewRoute,
+    AuthenticatedAdminEmailSandboxRoute: AuthenticatedAdminEmailSandboxRoute,
   }
 
 const AuthenticatedAdminEmailRouteWithChildren =
