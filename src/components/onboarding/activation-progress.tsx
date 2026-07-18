@@ -31,9 +31,14 @@ export type ActivationStep = {
   description: string;
   state: StepState;
   error?: string;
+  /** ISO timestamp when this step first entered `running`. */
+  startedAt?: string;
+  /** ISO timestamp when this step reached a terminal state (success/failed/skipped). */
+  finishedAt?: string;
   /** Where the user should go to resolve this failure. */
   fix?: { label: string; to: string; hash?: string };
 };
+
 
 const DEFAULT_STEPS: Omit<ActivationStep, "state">[] = [
   {
