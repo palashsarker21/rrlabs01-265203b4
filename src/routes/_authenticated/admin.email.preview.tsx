@@ -418,9 +418,52 @@ function EmailPreviewPage() {
 
         {/* Right column — preview */}
         <div className="space-y-3">
-          <div className="rounded-md border bg-muted/40 p-3">
-            <div className="text-xs text-muted-foreground">Subject</div>
-            <div className="mt-0.5 font-medium">{previewSubject || "—"}</div>
+          <div className="rounded-md border bg-muted/40 p-3 text-sm">
+            <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              Message headers
+            </div>
+            <dl className="mt-2 grid grid-cols-[110px_1fr] gap-x-3 gap-y-1 text-xs">
+              <dt className="text-muted-foreground">Subject</dt>
+              <dd className="font-medium break-words">{previewSubject || "—"}</dd>
+              <dt className="text-muted-foreground">From</dt>
+              <dd className="font-mono break-all">
+                {previewMeta?.envelope.configured
+                  ? previewMeta.envelope.from
+                  : previewMeta && !previewMeta.envelope.configured
+                    ? `unconfigured (missing: ${previewMeta.envelope.missing?.join(", ") ?? "—"})`
+                    : "—"}
+              </dd>
+              <dt className="text-muted-foreground">Reply-To</dt>
+              <dd className="font-mono break-all">
+                {previewMeta?.envelope.replyTo ?? "—"}
+              </dd>
+              <dt className="text-muted-foreground">To (sample)</dt>
+              <dd className="font-mono break-all">{previewMeta?.sampleTo ?? "—"}</dd>
+              <dt className="text-muted-foreground">Category</dt>
+              <dd>
+                {previewMeta?.category ?? (
+                  <span className="text-muted-foreground">
+                    none (transactional, non-opt-outable)
+                  </span>
+                )}
+              </dd>
+              <dt className="text-muted-foreground">List-Unsubscribe</dt>
+              <dd className="font-mono break-all">
+                {previewMeta?.headers?.["List-Unsubscribe"] ?? (
+                  <span className="text-muted-foreground">not applied</span>
+                )}
+              </dd>
+              <dt className="text-muted-foreground">List-Unsubscribe-Post</dt>
+              <dd className="font-mono break-all">
+                {previewMeta?.headers?.["List-Unsubscribe-Post"] ?? (
+                  <span className="text-muted-foreground">not applied</span>
+                )}
+              </dd>
+            </dl>
+            <p className="mt-2 text-[11px] text-muted-foreground">
+              These are the exact envelope + headers a real send would apply. Preview only —
+              nothing is dispatched.
+            </p>
           </div>
 
           {previewError && (
