@@ -14,6 +14,16 @@ import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 
 export type ActivationStepId =
@@ -123,6 +133,9 @@ export function ActivationProgress({
   const done = steps.filter((s) => s.state === "success").length;
   const pct = Math.round((done / steps.length) * 100);
 
+  const [confirmRetryFailed, setConfirmRetryFailed] = useState(false);
+  const [confirmRetryAll, setConfirmRetryAll] = useState(false);
+
   // Auto-scroll into view when kicked off
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -200,7 +213,7 @@ export function ActivationProgress({
           <Button
             size="sm"
             variant="outline"
-            onClick={() => onRetryFailed(failedSteps.map((s) => s.id))}
+            onClick={() => setConfirmRetryFailed(true)}
             disabled={isRunning}
           >
             <RefreshCw className={cn("mr-2 h-3.5 w-3.5", isRunning && "animate-spin")} />
@@ -208,7 +221,7 @@ export function ActivationProgress({
           </Button>
         )}
         {isFailed && (
-          <Button size="sm" onClick={onRetry} disabled={isRunning}>
+          <Button size="sm" onClick={() => setConfirmRetryAll(true)} disabled={isRunning}>
             <RefreshCw className={cn("mr-2 h-3.5 w-3.5", isRunning && "animate-spin")} />
             Retry activation
           </Button>
@@ -220,6 +233,103 @@ export function ActivationProgress({
           </Button>
         )}
       </div>
+
+      <AlertDialog open={confirmRetryFailed} onOpenChange={setConfirmRetryFailed}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Retry {failedSteps.length} failed step{failedSteps.length === 1 ? "" : "s"}?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Only the failed steps below will be re-run. Successful steps will be
+              preserved and skipped.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="rounded-md border bg-muted/40 p-3">
+            <div className="mb-2 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+              Will be retried
+            </div>
+            <ul className="space-y-2">
+              {failedSteps.map((s) => (
+                <li key={s.id} className="flex items-start gap-2 text-sm">
+                  <RefreshCw className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
+                  <div className="min-w-0">
+                    <div className="font-medium text-foreground">{s.label}</div>
+                    <div className="text-xs text-muted-foreground">
+                      step id: <code className="font-mono">{s.id}</code>
+                    </div>
+                    {s.error && (
+                      <div className="mt-1 line-clamp-2 text-xs text-destructive/90">
+                        {s.error}
+                      </div>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+            {steps.some((s) => s.state === "success") && (
+              <div className="mt-3 border-t pt-2 text-[11px] text-muted-foreground">
+                Preserved:{" "}
+                {steps
+                  .filter((s) => s.state === "success")
+                  .map((s) => s.label)
+                  .join(", ")}
+              </div>
+            )}
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => onRetryFailed?.(failedSteps.map((s) => s.id))}
+            >
+              Retry {failedSteps.length} step{failedSteps.length === 1 ? "" : "s"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={confirmRetryAll} onOpenChange={setConfirmRetryAll}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Retry the full activation?</AlertDialogTitle>
+            <AlertDialogDescription>
+              All {steps.length} steps will be re-run from the beginning, including
+              steps that previously succeeded.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="rounded-md border bg-muted/40 p-3">
+            <div className="mb-2 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+              Steps to run
+            </div>
+            <ol className="space-y-1.5 text-sm">
+              {steps.map((s, i) => (
+                <li key={s.id} className="flex items-start gap-2">
+                  <span className="mt-0.5 w-4 shrink-0 text-xs text-muted-foreground">
+                    {i + 1}.
+                  </span>
+                  <div className="min-w-0">
+                    <span className="font-medium text-foreground">{s.label}</span>
+                    {s.state === "failed" && (
+                      <span className="ml-2 text-[10px] font-medium uppercase tracking-wider text-destructive">
+                        failed
+                      </span>
+                    )}
+                    {s.state === "success" && (
+                      <span className="ml-2 text-[10px] font-medium uppercase tracking-wider text-emerald-600">
+                        will re-run
+                      </span>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={onRetry}>Retry activation</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {failed?.fix && (
         <div className="mt-3 text-[11px] text-muted-foreground">
