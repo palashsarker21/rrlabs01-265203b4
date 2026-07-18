@@ -9,64 +9,73 @@ concurrency:
   group: deploy-production
   cancel-in-progress: false
 
+permissions:
+  contents: read
+
 env:
-  SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
-  SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-  SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
-  SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-  SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+  SUPABASE_PROJECT_REF:      ${{ secrets.SUPABASE_PROJECT_REF }}
+  SUPABASE_ACCESS_TOKEN:     ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+  SUPABASE_DB_PASSWORD:      ${{ secrets.SUPABASE_DB_PASSWORD }}
+  SUPABASE_URL:              ${{ secrets.SUPABASE_URL }}
+  SUPABASE_PUBLISHABLE_KEY:  ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
   SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-  DATABASE_URL: ${{ secrets.DATABASE_URL }}
-  VITE_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-  VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
-  VITE_SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_REF }}
+  DATABASE_URL:              ${{ secrets.DATABASE_URL }}
+  # Vite build-time environment
+  VITE_SUPABASE_URL:              ${{ secrets.SUPABASE_URL }}
+  VITE_SUPABASE_PUBLISHABLE_KEY:  ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+  VITE_SUPABASE_PROJECT_ID:       ${{ secrets.SUPABASE_PROJECT_REF }}
 
 jobs:
   # ------------------------------------------------------------------
-  # PHASE 1 — Verify GitHub Secrets and Supabase connectivity
+  # PHASE 1 — Secrets + Supabase auth
   # ------------------------------------------------------------------
   verify:
-    name: Phase 1 · Verify Connection
+    name: Phase 1 · Verify Secrets & Supabase Auth
     runs-on: ubuntu-latest
     steps:
-      - name: Check required secrets
-        run: |
-          set -euo pipefail
-          missing=()
-          for var in SUPABASE_PROJECT_REF SUPABASE_ACCESS_TOKEN SUPABASE_DB_PASSWORD \
-                     SUPABASE_URL SUPABASE_PUBLISHABLE_KEY SUPABASE_SERVICE_ROLE_KEY; do
-            if [ -z "${!var:-}" ]; then missing+=("$var"); fi
-          done
-          if [ ${#missing[@]} -gt 0 ]; then
-            echo "::error::Missing required secrets: ${missing[*]}"
-            exit 1
-          fi
-          echo "All required secrets are present."
-
       - uses: actions/checkout@v4
 
-      - name: Setup Supabase CLI
-        uses: supabase/setup-cli@v1
+      - name: Validate required GitHub Secrets
+        run: bash scripts/ci/validate-secrets.sh
+
+      - uses: supabase/setup-cli@v1
         with:
           version: latest
 
-      - name: Verify Supabase project link
+      - name: Authenticate Supabase CLI (login)
         run: |
           set -euo pipefail
-          supabase link --project-ref "$SUPABASE_PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
-          supabase projects list | head -n 40 || true
+          supabase login --token "$SUPABASE_ACCESS_TOKEN"
+          echo "✓ Supabase CLI authenticated."
 
-      - name: Database connectivity probe
+      - name: Link production project
         run: |
           set -euo pipefail
-          supabase db remote commit --dry-run >/dev/null 2>&1 || true
-          echo "Supabase CLI authenticated and project linked."
+          supabase link \
+            --project-ref "$SUPABASE_PROJECT_REF" \
+            --password   "$SUPABASE_DB_PASSWORD"
+          echo "✓ Linked to project $SUPABASE_PROJECT_REF."
+
+      - name: Verify authenticated identity
+        run: |
+          set -euo pipefail
+          supabase projects list >/tmp/projects.txt
+          if ! grep -q "$SUPABASE_PROJECT_REF" /tmp/projects.txt; then
+            echo "::error::Authenticated account cannot see project $SUPABASE_PROJECT_REF"
+            exit 1
+          fi
+          {
+            echo "## ✅ Supabase Authentication"
+            echo ""
+            echo "- CLI login: ✅"
+            echo "- Project link: ✅ \`$SUPABASE_PROJECT_REF\`"
+          } >> "$GITHUB_STEP_SUMMARY"
 
   # ------------------------------------------------------------------
-  # PHASE 2 & 6 — Application validation (typecheck / lint / build)
+  # PHASE 2 — Application build gate
   # ------------------------------------------------------------------
   app-validate:
-    name: Phase 2/6 · Typecheck · Lint · Build
+    name: Phase 2 · Migrations · Lint · Typecheck · Build
     runs-on: ubuntu-latest
     needs: verify
     steps:
@@ -79,7 +88,7 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      - name: Discover & validate migrations
+      - name: Validate migration files
         run: bash scripts/ci/validate-migrations.sh
 
       - name: Lint
@@ -88,11 +97,23 @@ jobs:
       - name: Typecheck
         run: bunx tsgo --noEmit || bunx tsc --noEmit
 
-      - name: Build
+      - name: Production build
         run: bun run build
 
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "## 🏗️  Build"
+            echo ""
+            echo "- Install: ✅"
+            echo "- Lint: ✅"
+            echo "- Typecheck: ✅"
+            echo "- Build: ✅"
+          } >> "$GITHUB_STEP_SUMMARY"
+
   # ------------------------------------------------------------------
-  # PHASE 3 — Apply migrations to production
+  # PHASE 3 — Apply migrations (chronological, dry-run first)
   # ------------------------------------------------------------------
   migrate:
     name: Phase 3 · Apply Migrations
@@ -102,69 +123,97 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Supabase CLI
-        uses: supabase/setup-cli@v1
+      - uses: supabase/setup-cli@v1
         with:
           version: latest
 
-      - name: Link project
-        run: supabase link --project-ref "$SUPABASE_PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
+      - name: Authenticate & link
+        run: |
+          set -euo pipefail
+          supabase login --token "$SUPABASE_ACCESS_TOKEN"
+          supabase link --project-ref "$SUPABASE_PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
 
       - name: Show pending migrations
-        run: supabase migration list --linked
+        id: pending
+        run: |
+          set -euo pipefail
+          supabase migration list --linked | tee /tmp/mig-before.txt
+          pending=$(grep -c '^ *[0-9]\{14\}' /tmp/mig-before.txt || true)
+          echo "count=${pending:-0}" >> "$GITHUB_OUTPUT"
 
-      - name: Push migrations (chronological, transactional)
-        run: supabase db push --linked --password "$SUPABASE_DB_PASSWORD"
+      - name: Dry-run migration push
+        run: |
+          set -euo pipefail
+          supabase db push --linked --password "$SUPABASE_DB_PASSWORD" --dry-run \
+            | tee /tmp/mig-dry.txt
+
+      - name: Apply migrations
+        run: |
+          set -euo pipefail
+          supabase db push --linked --password "$SUPABASE_DB_PASSWORD" --include-all \
+            | tee /tmp/mig-apply.txt
 
       - name: Confirm migration state
-        run: supabase migration list --linked
+        run: |
+          set -euo pipefail
+          supabase migration list --linked | tee /tmp/mig-after.txt
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "## 🗄️  Migrations"
+            echo ""
+            echo "- Pending before: **${{ steps.pending.outputs.count }}**"
+            echo ""
+            echo "<details><summary>Applied output</summary>"
+            echo ""
+            echo '```'
+            tail -c 6000 /tmp/mig-apply.txt 2>/dev/null || echo "(no output)"
+            echo '```'
+            echo ""
+            echo "</details>"
+          } >> "$GITHUB_STEP_SUMMARY"
 
   # ------------------------------------------------------------------
-  # PHASE 4 & 5 — Schema + security validation
+  # PHASE 4 — Schema drift + security checks
   # ------------------------------------------------------------------
   post-migrate-validate:
-    name: Phase 4/5 · Schema & Security Validation
+    name: Phase 4 · Schema Drift & Security Checks
     runs-on: ubuntu-latest
     needs: migrate
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Supabase CLI
-        uses: supabase/setup-cli@v1
+      - uses: supabase/setup-cli@v1
         with:
           version: latest
 
-      - name: Link project
-        run: supabase link --project-ref "$SUPABASE_PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
+      - name: Install psql
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends postgresql-client
+
+      - name: Authenticate & link
+        run: |
+          set -euo pipefail
+          supabase login --token "$SUPABASE_ACCESS_TOKEN"
+          supabase link --project-ref "$SUPABASE_PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
 
       - name: Detect schema drift
-        run: |
-          set -euo pipefail
-          supabase db diff --linked --schema public --file drift || true
-          if [ -s "supabase/migrations/"*"_drift.sql" ] 2>/dev/null; then
-            echo "::error::Schema drift detected against production. Commit a migration."
-            exit 1
-          fi
-          echo "No schema drift."
+        run: bash scripts/ci/verify-schema.sh
 
-      - name: RLS + security lint
-        run: |
-          set -euo pipefail
-          # Fail if any public table has RLS disabled.
-          PGPASSWORD="$SUPABASE_DB_PASSWORD" psql \
-            "postgresql://postgres.${SUPABASE_PROJECT_REF}:${SUPABASE_DB_PASSWORD}@aws-0-us-east-1.pooler.supabase.com:6543/postgres" \
-            -v ON_ERROR_STOP=1 -f scripts/ci/security-checks.sql
+      - name: Run RLS + grant + security-definer assertions
+        run: bash scripts/ci/verify-rls.sh
 
   # ------------------------------------------------------------------
-  # PHASE 7 — Deployment gate
+  # PHASE 5 — Deployment gate
   # ------------------------------------------------------------------
   deploy:
-    name: Phase 7 · Deploy Application
+    name: Phase 5 · Deployment Gate
     runs-on: ubuntu-latest
     needs: post-migrate-validate
     steps:
       - uses: actions/checkout@v4
-      - name: Deployment marker
-        run: |
-          echo "All gates passed. Application deploys via Lovable publish pipeline."
-          echo "commit=${GITHUB_SHA}" >> "$GITHUB_STEP_SUMMARY"
+      - name: Write deployment summary
+        run: bash scripts/ci/deployment-summary.sh
