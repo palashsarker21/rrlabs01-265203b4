@@ -55,6 +55,7 @@ import { Route as AuthenticatedGettingStartedCompleteRouteImport } from './route
 import { Route as AuthenticatedCheckoutStatusRouteImport } from './routes/_authenticated/checkout.status'
 import { Route as AuthenticatedBillingStatementsRouteImport } from './routes/_authenticated/billing.statements'
 import { Route as ApiPublicWebhooksStripeRouteImport } from './routes/api/public/webhooks/stripe'
+import { Route as ApiPublicWebhooksResendRouteImport } from './routes/api/public/webhooks.resend'
 import { Route as ApiPublicWebhooksLemonsqueezyRouteImport } from './routes/api/public/webhooks/lemonsqueezy'
 import { Route as ApiPublicHooksSuccessFeeMonthlyRouteImport } from './routes/api/public/hooks/success-fee-monthly'
 import { Route as ApiPublicHooksRecoveryCadenceRouteImport } from './routes/api/public/hooks/recovery-cadence'
@@ -297,6 +298,11 @@ const ApiPublicWebhooksStripeRoute = ApiPublicWebhooksStripeRouteImport.update({
   path: '/api/public/webhooks/stripe',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicWebhooksResendRoute = ApiPublicWebhooksResendRouteImport.update({
+  id: '/api/public/webhooks/resend',
+  path: '/api/public/webhooks/resend',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicWebhooksLemonsqueezyRoute =
   ApiPublicWebhooksLemonsqueezyRouteImport.update({
     id: '/api/public/webhooks/lemonsqueezy',
@@ -370,6 +376,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/recovery-cadence': typeof ApiPublicHooksRecoveryCadenceRoute
   '/api/public/hooks/success-fee-monthly': typeof ApiPublicHooksSuccessFeeMonthlyRoute
   '/api/public/webhooks/lemonsqueezy': typeof ApiPublicWebhooksLemonsqueezyRoute
+  '/api/public/webhooks/resend': typeof ApiPublicWebhooksResendRoute
   '/api/public/webhooks/stripe': typeof ApiPublicWebhooksStripeRoute
   '/api/public/webhooks/$provider/$integrationId': typeof ApiPublicWebhooksProviderIntegrationIdRoute
 }
@@ -420,6 +427,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/recovery-cadence': typeof ApiPublicHooksRecoveryCadenceRoute
   '/api/public/hooks/success-fee-monthly': typeof ApiPublicHooksSuccessFeeMonthlyRoute
   '/api/public/webhooks/lemonsqueezy': typeof ApiPublicWebhooksLemonsqueezyRoute
+  '/api/public/webhooks/resend': typeof ApiPublicWebhooksResendRoute
   '/api/public/webhooks/stripe': typeof ApiPublicWebhooksStripeRoute
   '/api/public/webhooks/$provider/$integrationId': typeof ApiPublicWebhooksProviderIntegrationIdRoute
 }
@@ -473,6 +481,7 @@ export interface FileRoutesById {
   '/api/public/hooks/recovery-cadence': typeof ApiPublicHooksRecoveryCadenceRoute
   '/api/public/hooks/success-fee-monthly': typeof ApiPublicHooksSuccessFeeMonthlyRoute
   '/api/public/webhooks/lemonsqueezy': typeof ApiPublicWebhooksLemonsqueezyRoute
+  '/api/public/webhooks/resend': typeof ApiPublicWebhooksResendRoute
   '/api/public/webhooks/stripe': typeof ApiPublicWebhooksStripeRoute
   '/api/public/webhooks/$provider/$integrationId': typeof ApiPublicWebhooksProviderIntegrationIdRoute
 }
@@ -526,6 +535,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/recovery-cadence'
     | '/api/public/hooks/success-fee-monthly'
     | '/api/public/webhooks/lemonsqueezy'
+    | '/api/public/webhooks/resend'
     | '/api/public/webhooks/stripe'
     | '/api/public/webhooks/$provider/$integrationId'
   fileRoutesByTo: FileRoutesByTo
@@ -576,6 +586,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/recovery-cadence'
     | '/api/public/hooks/success-fee-monthly'
     | '/api/public/webhooks/lemonsqueezy'
+    | '/api/public/webhooks/resend'
     | '/api/public/webhooks/stripe'
     | '/api/public/webhooks/$provider/$integrationId'
   id:
@@ -628,6 +639,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/recovery-cadence'
     | '/api/public/hooks/success-fee-monthly'
     | '/api/public/webhooks/lemonsqueezy'
+    | '/api/public/webhooks/resend'
     | '/api/public/webhooks/stripe'
     | '/api/public/webhooks/$provider/$integrationId'
   fileRoutesById: FileRoutesById
@@ -658,6 +670,7 @@ export interface RootRouteChildren {
   ApiPublicHooksRecoveryCadenceRoute: typeof ApiPublicHooksRecoveryCadenceRoute
   ApiPublicHooksSuccessFeeMonthlyRoute: typeof ApiPublicHooksSuccessFeeMonthlyRoute
   ApiPublicWebhooksLemonsqueezyRoute: typeof ApiPublicWebhooksLemonsqueezyRoute
+  ApiPublicWebhooksResendRoute: typeof ApiPublicWebhooksResendRoute
   ApiPublicWebhooksStripeRoute: typeof ApiPublicWebhooksStripeRoute
   ApiPublicWebhooksProviderIntegrationIdRoute: typeof ApiPublicWebhooksProviderIntegrationIdRoute
 }
@@ -986,6 +999,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicWebhooksStripeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/webhooks/resend': {
+      id: '/api/public/webhooks/resend'
+      path: '/api/public/webhooks/resend'
+      fullPath: '/api/public/webhooks/resend'
+      preLoaderRoute: typeof ApiPublicWebhooksResendRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/webhooks/lemonsqueezy': {
       id: '/api/public/webhooks/lemonsqueezy'
       path: '/api/public/webhooks/lemonsqueezy'
@@ -1139,6 +1159,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksRecoveryCadenceRoute: ApiPublicHooksRecoveryCadenceRoute,
   ApiPublicHooksSuccessFeeMonthlyRoute: ApiPublicHooksSuccessFeeMonthlyRoute,
   ApiPublicWebhooksLemonsqueezyRoute: ApiPublicWebhooksLemonsqueezyRoute,
+  ApiPublicWebhooksResendRoute: ApiPublicWebhooksResendRoute,
   ApiPublicWebhooksStripeRoute: ApiPublicWebhooksStripeRoute,
   ApiPublicWebhooksProviderIntegrationIdRoute:
     ApiPublicWebhooksProviderIntegrationIdRoute,
