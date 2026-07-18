@@ -128,6 +128,53 @@ function EmailSandboxPage() {
   const [historySearch, setHistorySearch] = useState("");
   const [expandedHistoryId, setExpandedHistoryId] = useState<string | null>(null);
   const [autoRunId, setAutoRunId] = useState<string | null>(null);
+  const [recipientCheck, setRecipientCheck] = useState<RecipientCheckReport | null>(null);
+  const [recipientCheckError, setRecipientCheckError] = useState<string | null>(null);
+  const [recipientChecking, setRecipientChecking] = useState(false);
+  const [ackWarnings, setAckWarnings] = useState(false);
+
+  const recipient = status?.recipient ?? null;
+
+  // Auto-run a recipient DNS check whenever the locked recipient changes.
+  useEffect(() => {
+    if (!recipient) return;
+    let cancelled = false;
+    setRecipientChecking(true);
+    setRecipientCheckError(null);
+    setAckWarnings(false);
+    checkRecipientFn({ data: { recipient } })
+      .then((r) => {
+        if (!cancelled) setRecipientCheck(r);
+      })
+      .catch((err: unknown) => {
+        if (!cancelled) {
+          setRecipientCheck(null);
+          setRecipientCheckError(err instanceof Error ? err.message : String(err));
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setRecipientChecking(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [recipient, checkRecipientFn]);
+
+  async function recheckRecipient() {
+    if (!recipient) return;
+    setRecipientChecking(true);
+    setRecipientCheckError(null);
+    try {
+      const r = await checkRecipientFn({ data: { recipient } });
+      setRecipientCheck(r);
+      setAckWarnings(false);
+    } catch (err) {
+      setRecipientCheck(null);
+      setRecipientCheckError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setRecipientChecking(false);
+    }
+  }
 
   useEffect(() => {
     const sample = TEMPLATE_SAMPLES[selected]?.data ?? {};
