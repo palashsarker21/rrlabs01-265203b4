@@ -359,7 +359,31 @@ function EmailDeliveriesPage() {
           </label>
         </div>
         <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
-          <span>{listQ.isFetching ? "Refreshing…" : `${listQ.data?.total ?? 0} match`}</span>
+          <span className="flex items-center gap-2">
+            <span
+              className={`inline-block h-2 w-2 rounded-full ${
+                !autoRefresh
+                  ? "bg-slate-400"
+                  : live === "on"
+                    ? "bg-emerald-500 animate-pulse"
+                    : live === "connecting"
+                      ? "bg-amber-500 animate-pulse"
+                      : "bg-red-500"
+              }`}
+              aria-hidden
+            />
+            <span aria-live="polite">
+              {!autoRefresh
+                ? "Auto-refresh paused"
+                : live === "on"
+                  ? "Live"
+                  : live === "connecting"
+                    ? "Connecting…"
+                    : "Polling"}
+            </span>
+            <span className="text-muted-foreground/70">·</span>
+            <span>{listQ.isFetching ? "Refreshing…" : `${listQ.data?.total ?? 0} match`}</span>
+          </span>
           <div className="flex items-center gap-3">
             <button
               onClick={handleExportCsv}
