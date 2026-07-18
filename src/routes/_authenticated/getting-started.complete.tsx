@@ -406,7 +406,7 @@ function OnboardingCompletePage() {
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               ) : allReady ? (
-                <Button onClick={runActivation} disabled={isRunning}>
+                <Button onClick={() => runActivation()} disabled={isRunning}>
                   {isRunning ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   ) : (
