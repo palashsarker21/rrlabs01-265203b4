@@ -369,6 +369,130 @@ export const generateOnboardingReport = createServerFn({ method: "POST" })
       }
     }
 
+    // Activation timeline — chronological order of step start/finish
+    const timeline = (data.activationTimeline ?? [])
+      .slice()
+      .sort((a, b) => {
+        const at = a.startedAt ?? a.finishedAt ?? "";
+        const bt = b.startedAt ?? b.finishedAt ?? "";
+        return at.localeCompare(bt);
+      });
+    if (timeline.length > 0) {
+      y -= 6;
+      ensureSpace(40);
+      drawText("Activation timeline", { size: 13, font: bold });
+      y -= 6;
+      page.drawLine({
+        start: { x: marginX, y },
+        end: { x: width - marginX, y },
+        thickness: 0.5,
+        color: border,
+      });
+      y -= 16;
+      drawText(
+        "Chronological record of each activation step (times in UTC).",
+        { size: 10, color: muted },
+      );
+      y -= 16;
+
+      // Column headers
+      const colStep = marginX;
+      const colStart = marginX + 200;
+      const colFinish = marginX + 330;
+      const colDur = marginX + 440;
+      const colState = width - marginX - 60;
+      ensureSpace(20);
+      page.drawText("Step", { x: colStep, y, size: 9, font: bold, color: muted });
+      page.drawText("Started", { x: colStart, y, size: 9, font: bold, color: muted });
+      page.drawText("Finished", { x: colFinish, y, size: 9, font: bold, color: muted });
+      page.drawText("Duration", { x: colDur, y, size: 9, font: bold, color: muted });
+      page.drawText("State", { x: colState, y, size: 9, font: bold, color: muted });
+      y -= 6;
+      page.drawLine({
+        start: { x: marginX, y },
+        end: { x: width - marginX, y },
+        thickness: 0.5,
+        color: border,
+      });
+      y -= 14;
+
+      const fmt = (iso?: string) =>
+        iso ? new Date(iso).toISOString().replace("T", " ").slice(11, 19) : "—";
+      const fmtDate = (iso?: string) =>
+        iso ? new Date(iso).toISOString().slice(0, 10) : "";
+      const duration = (a?: string, b?: string) => {
+        if (!a || !b) return "—";
+        const ms = new Date(b).getTime() - new Date(a).getTime();
+        if (!Number.isFinite(ms) || ms < 0) return "—";
+        if (ms < 1000) return `${ms}ms`;
+        const s = ms / 1000;
+        if (s < 60) return `${s.toFixed(s < 10 ? 2 : 1)}s`;
+        const m = Math.floor(s / 60);
+        const rem = Math.round(s - m * 60);
+        return `${m}m ${rem}s`;
+      };
+      const stateColor = (st: string) =>
+        st === "success"
+          ? green
+          : st === "failed"
+            ? red
+            : st === "skipped"
+              ? muted
+              : st === "running"
+                ? amber
+                : muted;
+
+      let lastDate = "";
+      for (const t of timeline) {
+        ensureSpace(18);
+        const day = fmtDate(t.startedAt ?? t.finishedAt);
+        if (day && day !== lastDate) {
+          drawText(day, { size: 8, color: muted });
+          y -= 12;
+          lastDate = day;
+        }
+        page.drawText(truncate(t.label, 30), {
+          x: colStep,
+          y,
+          size: 10,
+          font,
+          color: text,
+        });
+        page.drawText(fmt(t.startedAt), {
+          x: colStart,
+          y,
+          size: 9,
+          font,
+          color: text,
+        });
+        page.drawText(fmt(t.finishedAt), {
+          x: colFinish,
+          y,
+          size: 9,
+          font,
+          color: text,
+        });
+        page.drawText(duration(t.startedAt, t.finishedAt), {
+          x: colDur,
+          y,
+          size: 9,
+          font,
+          color: text,
+        });
+        const st = t.state.toUpperCase();
+        page.drawText(st, {
+          x: colState,
+          y,
+          size: 8,
+          font: bold,
+          color: stateColor(t.state),
+        });
+        y -= 14;
+      }
+    }
+
+
+
 
     // Footer note on last page
     ensureSpace(40);
