@@ -162,6 +162,19 @@ function OnboardingCompletePage() {
       "activate",
     ];
     const fromIdx = order.indexOf(fromStep);
+    const stepLabels: Record<ActivationStepId, string> = {
+      permission: "Permission check",
+      required: "Required providers",
+      verified: "Verified connections",
+      webhooks: "Webhook health",
+      activate: "Server activation",
+    };
+    const stepsToRun = order.slice(fromIdx);
+    const totalToRun = stepsToRun.length;
+    const isRetry = !!retryGrant || fromStep !== "permission";
+    const toastId = `activation-${Date.now()}`;
+    let completed = 0;
+
     setSteps((prev) =>
       prev.map((s) => {
         const idx = order.indexOf(s.id);
@@ -178,6 +191,26 @@ function OnboardingCompletePage() {
     );
     setPhase("running");
 
+    toast.loading(isRetry ? "Retrying activation…" : "Activating workspace…", {
+      id: toastId,
+      description: `Starting ${totalToRun} step${totalToRun === 1 ? "" : "s"}: ${stepsToRun
+        .map((s) => stepLabels[s])
+        .join(" → ")}`,
+    });
+
+    const announceRunning = (id: ActivationStepId) => {
+      toast.loading(isRetry ? "Retrying activation…" : "Activating workspace…", {
+        id: toastId,
+        description: `Step ${completed + 1} of ${totalToRun}: ${stepLabels[id]}…`,
+      });
+    };
+    const announceSuccess = (id: ActivationStepId) => {
+      completed += 1;
+      toast.loading(isRetry ? "Retrying activation…" : "Activating workspace…", {
+        id: toastId,
+        description: `✓ ${stepLabels[id]} (${completed}/${totalToRun})`,
+      });
+    };
 
     const runFrom = (id: ActivationStepId) => order.indexOf(id) >= fromIdx;
 
@@ -185,11 +218,16 @@ function OnboardingCompletePage() {
       const cls = classifyActivationError(error);
       patchStep(id, { state: "failed", error, fix: cls.fix });
       setPhase("failed");
+      toast.error(`${stepLabels[id]} failed`, {
+        id: toastId,
+        description: error,
+      });
     };
 
     // Step 1 — permission
     if (runFrom("permission")) {
       patchStep("permission", { state: "running" });
+      announceRunning("permission");
       try {
         const { data: canManage, error } = await supabase.rpc("can_manage_workspace", {
           _workspace_id: workspace.id,
@@ -201,6 +239,7 @@ function OnboardingCompletePage() {
           return;
         }
         patchStep("permission", { state: "success" });
+        announceSuccess("permission");
       } catch (e) {
         fail("permission", e instanceof Error ? e.message : "Permission check failed.");
         return;
@@ -210,13 +249,15 @@ function OnboardingCompletePage() {
     // Step 2 — required providers
     if (runFrom("required")) {
       patchStep("required", { state: "running" });
+      announceRunning("required");
       const missing = groups.filter((g) => KIND_META[g.kind].required && !g.connected);
       if (missing.length > 0) {
         const label = missing.map((g) => KIND_META[g.kind].label).join(", ");
         const first = missing[0].kind;
+        const error = `Missing required provider${missing.length === 1 ? "" : "s"}: ${label}.`;
         patchStep("required", {
           state: "failed",
-          error: `Missing required provider${missing.length === 1 ? "" : "s"}: ${label}.`,
+          error,
           fix: {
             label: `Connect ${KIND_META[first].label.toLowerCase()}`,
             to: "/integrations",
@@ -224,40 +265,52 @@ function OnboardingCompletePage() {
           },
         });
         setPhase("failed");
+        toast.error(`${stepLabels.required} failed`, { id: toastId, description: error });
         return;
       }
       patchStep("required", { state: "success" });
+      announceSuccess("required");
     }
 
     // Step 3 — verified
     if (runFrom("verified")) {
       patchStep("verified", { state: "running" });
+      announceRunning("verified");
       const notVerified = integrations.filter(
         (i) =>
           i.status === "connected" &&
           (i.verification_status !== "verified" || i.last_test_ok !== true),
       );
       if (notVerified.length > 0) {
+        const error = `${notVerified.length} connection${notVerified.length === 1 ? "" : "s"} still need to pass verification.`;
         patchStep("verified", {
           state: "failed",
-          error: `${notVerified.length} connection${notVerified.length === 1 ? "" : "s"} still need to pass verification.`,
+          error,
           fix: { label: "Verify connections", to: "/integrations" },
         });
         setPhase("failed");
+        toast.error(`${stepLabels.verified} failed`, { id: toastId, description: error });
         return;
       }
       patchStep("verified", { state: "success" });
+      announceSuccess("verified");
     }
 
     // Step 4 — webhook health
     if (runFrom("webhooks")) {
       patchStep("webhooks", { state: "running" });
+      announceRunning("webhooks");
       try {
         const connectedIds = integrations
           .filter((i) => i.status === "connected")
           .map((i) => i.id);
         if (connectedIds.length === 0) {
           patchStep("webhooks", { state: "skipped" });
+          completed += 1;
+          toast.loading(isRetry ? "Retrying activation…" : "Activating workspace…", {
+            id: toastId,
+            description: `↷ ${stepLabels.webhooks} skipped (${completed}/${totalToRun})`,
+          });
         } else {
           const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
           const { count, error } = await supabase
@@ -268,23 +321,28 @@ function OnboardingCompletePage() {
             .or("signature_valid.eq.false,status_code.gte.400");
           if (error) throw new Error(error.message);
           if ((count ?? 0) > 0) {
+            const err = `${count} webhook failure${count === 1 ? "" : "s"} in the last 24 hours must be resolved.`;
             patchStep("webhooks", {
               state: "failed",
-              error: `${count} webhook failure${count === 1 ? "" : "s"} in the last 24 hours must be resolved.`,
+              error: err,
               fix: { label: "Review webhook logs", to: "/notifications" },
             });
             setPhase("failed");
+            toast.error(`${stepLabels.webhooks} failed`, { id: toastId, description: err });
             return;
           }
           patchStep("webhooks", { state: "success" });
+          announceSuccess("webhooks");
         }
       } catch (e) {
+        const msg = e instanceof Error ? e.message : "Could not check webhook health.";
         patchStep("webhooks", {
           state: "failed",
-          error: e instanceof Error ? e.message : "Could not check webhook health.",
+          error: msg,
           fix: { label: "Review webhook logs", to: "/notifications" },
         });
         setPhase("failed");
+        toast.error(`${stepLabels.webhooks} failed`, { id: toastId, description: msg });
         return;
       }
     }
@@ -292,11 +350,16 @@ function OnboardingCompletePage() {
     // Step 5 — server activation
     if (runFrom("activate")) {
       patchStep("activate", { state: "running" });
+      announceRunning("activate");
       try {
         await activateFn({ data: { workspaceId: workspace.id, retryGrant } });
         patchStep("activate", { state: "success" });
+        announceSuccess("activate");
         setPhase("success");
-        toast.success("Recovery Engine activated");
+        toast.success("Recovery Engine activated", {
+          id: toastId,
+          description: `All ${totalToRun} step${totalToRun === 1 ? "" : "s"} completed successfully.`,
+        });
         await qc.invalidateQueries({ queryKey: ["onboarding-complete-workspace"] });
       } catch (e) {
         const msg = e instanceof Error ? e.message : "Activation failed.";
@@ -306,9 +369,11 @@ function OnboardingCompletePage() {
           patchStep("activate", { state: "idle" });
         }
         setPhase("failed");
+        toast.error(`${stepLabels[cls.stepId]} failed`, { id: toastId, description: msg });
       }
     }
   }
+
 
   async function downloadReport() {
     if (!workspace?.id) {
