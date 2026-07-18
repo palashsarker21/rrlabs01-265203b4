@@ -6,6 +6,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { ADAPTERS, getAdapterInfo } from "./integrations/catalog";
 import { assertCanConnect, PlanLimitError } from "./plan-limits.server";
 import { integrationKindFor, type ProviderKind } from "./providers/kinds";
+import { fail, type SaveResult } from "./integrations/errors";
 
 const workspaceIdSchema = z.object({ workspaceId: z.string().uuid() });
 
@@ -44,14 +45,14 @@ const saveInput = z.object({
 export const saveIntegration = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((raw) => saveInput.parse(raw))
-  .handler(async ({ data, context }) => {
+  .handler(async ({ data, context }): Promise<SaveResult> => {
     const { supabase, userId } = context;
 
     // Resolve provider metadata: prefer DB catalog (source of truth); fall
     // back to in-code catalog for legacy providers not yet in the DB.
     const { data: catRow, error: catErr } = await supabase
       .from("provider_catalog")
-      .select("code, kind, name, enabled, setup_fields")
+      .select("code, kind, name, enabled, setup_fields, docs_url")
       .eq("code", data.provider)
       .maybeSingle();
     if (catErr) throw new Error(catErr.message);
@@ -60,38 +61,58 @@ export const saveIntegration = createServerFn({ method: "POST" })
     let providerCode: string;
     let iKind: "store" | "payment_gateway" | "communication";
     let providerKind: ProviderKind;
-    let requiredKeys: string[] = [];
+    let requiredFields: { key: string; label?: string }[] = [];
+    let docsUrl: string | undefined;
 
     if (catRow) {
-      if (!catRow.enabled) throw new Error(`Provider "${catRow.name}" is currently disabled.`);
+      if (!catRow.enabled) {
+        return fail(
+          "provider_disabled",
+          `${catRow.name} is not enabled on your workspace yet.`,
+          {
+            hint: "Contact support or upgrade your plan to enable this provider.",
+            docsUrl: (catRow as { docs_url?: string | null }).docs_url ?? undefined,
+          },
+        );
+      }
       providerName = catRow.name;
       providerCode = catRow.code;
       providerKind = catRow.kind as ProviderKind;
       iKind = integrationKindFor(providerKind);
+      docsUrl = (catRow as { docs_url?: string | null }).docs_url ?? undefined;
       const fields = Array.isArray(catRow.setup_fields) ? catRow.setup_fields : [];
-      requiredKeys = fields
+      requiredFields = fields
         .filter(
           (f): f is { key: string; required?: boolean; label?: string } =>
             typeof f === "object" && f !== null && "key" in f,
         )
         .filter((f) => f.required === true)
-        .map((f) => f.key);
-      // Also validate label-based required from in-code catalog for consistency.
+        .map((f) => ({ key: f.key, label: f.label }));
+      // Merge label-based required fields from the in-code catalog so any
+      // legacy required key stays enforced with the friendlier label.
       const legacy = getAdapterInfo(data.provider);
       if (legacy) {
         for (const f of legacy.fields) {
-          if (f.required && !requiredKeys.includes(f.key)) requiredKeys.push(f.key);
+          if (f.required && !requiredFields.some((r) => r.key === f.key)) {
+            requiredFields.push({ key: f.key, label: f.label });
+          }
         }
       }
     } else {
       const info = getAdapterInfo(data.provider);
-      if (!info) throw new Error(`Unknown integration: ${data.provider}`);
+      if (!info) {
+        return fail("unknown_provider", `We don't know that integration ("${data.provider}").`, {
+          hint: "Pick a provider from the catalog and try again.",
+        });
+      }
       providerName = info.name;
       providerCode = info.provider;
       iKind = info.kind;
       providerKind =
-        info.kind === "store" ? "store" : info.kind === "payment_gateway" ? "gateway" : "email"; // best guess for legacy comms — plan limit still applies
-      requiredKeys = info.fields.filter((f) => f.required).map((f) => f.key);
+        info.kind === "store" ? "store" : info.kind === "payment_gateway" ? "gateway" : "email";
+      requiredFields = info.fields
+        .filter((f) => f.required)
+        .map((f) => ({ key: f.key, label: f.label }));
     }
 
     // Authorization: caller must be a workspace member with manage rights.
@@ -100,13 +121,27 @@ export const saveIntegration = createServerFn({ method: "POST" })
       _user_id: userId,
     });
     if (roleErr) throw new Error(roleErr.message);
-    if (!canManage)
-      throw new Error("You do not have permission to change integrations for this workspace.");
+    if (!canManage) {
+      return fail(
+        "permission_denied",
+        "You don't have permission to change integrations for this workspace.",
+        { hint: "Ask a workspace admin to connect this provider, or ask them to promote you." },
+      );
+    }
 
-    // Validate required fields.
-    for (const key of requiredKeys) {
-      if (!data.credentials[key]?.toString().trim()) {
-        throw new Error(`${key} is required.`);
+    // Validate required fields — return the exact field key so the UI can
+    // highlight the offending input inline.
+    for (const field of requiredFields) {
+      if (!data.credentials[field.key]?.toString().trim()) {
+        return fail(
+          "missing_field",
+          `${field.label ?? field.key} is required to connect ${providerName}.`,
+          {
+            field: field.key,
+            hint: "Fill in every field marked with * and we'll verify the connection automatically.",
+            docsUrl,
+          },
+        );
       }
     }
 
@@ -155,7 +190,12 @@ export const saveIntegration = createServerFn({ method: "POST" })
         try {
           await assertCanConnect(supabase, data.workspaceId, providerKind, userId);
         } catch (e) {
-          if (e instanceof PlanLimitError) return { ok: false as const, message: e.message };
+          if (e instanceof PlanLimitError) {
+            return fail("plan_limit", e.message, {
+              hint: "Upgrade your plan or disconnect an unused integration to free a slot.",
+              docsUrl: "/upgrade",
+            });
+          }
           throw e;
         }
       }
@@ -177,7 +217,10 @@ export const saveIntegration = createServerFn({ method: "POST" })
         },
         { onConflict: "workspace_id,kind,provider,provider_account_id" },
       );
-      return { ok: false as const, message: result.message };
+      return fail("provider_rejected", result.message, {
+        hint: `${providerName} rejected these credentials. Double-check keys, permissions, and that the account is live.`,
+        docsUrl,
+      });
     }
 
     // For successful connections, enforce plan limit if this is a NEW row.
@@ -191,7 +234,17 @@ export const saveIntegration = createServerFn({ method: "POST" })
       .maybeSingle();
 
     if (!existing) {
-      await assertCanConnect(supabase, data.workspaceId, providerKind, userId);
+      try {
+        await assertCanConnect(supabase, data.workspaceId, providerKind, userId);
+      } catch (e) {
+        if (e instanceof PlanLimitError) {
+          return fail("plan_limit", e.message, {
+            hint: "Upgrade your plan or disconnect an unused integration to free a slot.",
+            docsUrl: "/upgrade",
+          });
+        }
+        throw e;
+      }
     }
 
     // Encrypt credentials + generate webhook secret & verify token if needed.

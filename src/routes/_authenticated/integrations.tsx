@@ -50,6 +50,7 @@ import {
 import type { ProviderKind } from "@/lib/providers/kinds";
 import { PROVIDER_STEP_ORDER, integrationKindFor } from "@/lib/providers/kinds";
 import { webhookUrl, getBrowserOrigin } from "@/lib/providers/webhook-url";
+import type { SaveResult, SaveFailure } from "@/lib/integrations/errors";
 
 export const Route = createFileRoute("/_authenticated/integrations")({
   head: () => ({
@@ -158,23 +159,30 @@ function IntegrationCenter() {
     navigate({ to: "/auth", replace: true });
   }
 
-  async function onSave(provider: string, creds: Record<string, string>) {
-    if (!workspace?.id) return false;
+  async function onSave(provider: string, creds: Record<string, string>): Promise<SaveResult> {
+    if (!workspace?.id) {
+      return {
+        ok: false,
+        code: "internal",
+        message: "No active workspace. Refresh and try again.",
+      };
+    }
     try {
-      const res = await saveFn({
+      const res = (await saveFn({
         data: { workspaceId: workspace.id, provider, credentials: creds },
-      });
+      })) as SaveResult;
       if (res.ok) {
         toast.success(res.message);
         qc.invalidateQueries({ queryKey: ["integrations", workspace.id] });
         qc.invalidateQueries({ queryKey: ["provider-limits", workspace.id] });
-        return true;
+        return res;
       }
-      toast.error(res.message);
-      return false;
+      toast.error(res.message, { description: res.hint });
+      return res;
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Save failed.");
-      return false;
+      const message = err instanceof Error ? err.message : "Save failed.";
+      toast.error(message);
+      return { ok: false, code: "internal", message };
     }
   }
 
@@ -570,7 +578,7 @@ function ProviderCard({
   integrations: IntegrationRow[];
   statusByIntegration: Map<string, ProviderStatusRow>;
   overLimit: boolean;
-  onSave: (provider: string, creds: Record<string, string>) => Promise<boolean>;
+  onSave: (provider: string, creds: Record<string, string>) => Promise<SaveResult>;
   onTest: (id: string) => Promise<void>;
   onDisconnect: (id: string) => Promise<void>;
   onRotate: (id: string) => Promise<string | undefined>;
@@ -591,6 +599,7 @@ function ProviderCard({
   const [values, setValues] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [autoStatus, setAutoStatus] = useState<"idle" | "saving" | "saved" | "failed">("idle");
+  const [saveError, setSaveError] = useState<SaveFailure | null>(null);
   const [copiedPreview, setCopiedPreview] = useState(false);
   const disabled = !provider.enabled;
   const setupFields = Array.isArray(provider.setup_fields)
@@ -625,14 +634,16 @@ function ProviderCard({
       setAutoStatus("saving");
       setSubmitting(true);
       try {
-        const okSaved = await onSave(provider.code, values);
+        const res = await onSave(provider.code, values);
         lastSavedSigRef.current = sig;
-        if (okSaved) {
+        if (res.ok) {
           setAutoStatus("saved");
+          setSaveError(null);
           setValues({});
           setExpanded(false);
         } else {
           setAutoStatus("failed");
+          setSaveError(res);
         }
       } catch {
         setAutoStatus("failed");
@@ -665,18 +676,19 @@ function ProviderCard({
     setSubmitting(true);
     setAutoStatus("saving");
     try {
-      const okSaved = await onSave(provider.code, values);
-      if (okSaved) {
+      const res = await onSave(provider.code, values);
+      if (res.ok) {
         setAutoStatus("saved");
+        setSaveError(null);
         setValues({});
         setExpanded(false);
       } else {
         setAutoStatus("failed");
+        setSaveError(res);
       }
     } finally {
       setSubmitting(false);
     }
-
   }
 
   return (
@@ -807,49 +819,99 @@ function ProviderCard({
                   {provider.setup_instructions}
                 </p>
               )}
-              {setupFields.map((f) => (
-                <div key={f.key}>
-                  <Label htmlFor={`${provider.code}-${f.key}`} className="text-xs">
-                    {f.label ?? f.key}
-                    {f.required && <span className="ml-1 text-destructive">*</span>}
-                  </Label>
-                  {f.type === "select" && f.options ? (
-                    <select
-                      id={`${provider.code}-${f.key}`}
-                      value={values[f.key] ?? ""}
-                      onChange={(e) => setValues((v) => ({ ...v, [f.key]: e.target.value }))}
-                      className="mt-1 w-full rounded-md border border-border/60 bg-background px-3 py-2 text-sm"
+              {setupFields.map((f) => {
+                const fieldHasError = saveError?.field === f.key;
+                const onChangeField = (val: string) => {
+                  setValues((v) => ({ ...v, [f.key]: val }));
+                  if (fieldHasError) setSaveError(null);
+                };
+                return (
+                  <div key={f.key}>
+                    <Label htmlFor={`${provider.code}-${f.key}`} className="text-xs">
+                      {f.label ?? f.key}
+                      {f.required && <span className="ml-1 text-destructive">*</span>}
+                    </Label>
+                    {f.type === "select" && f.options ? (
+                      <select
+                        id={`${provider.code}-${f.key}`}
+                        value={values[f.key] ?? ""}
+                        onChange={(e) => onChangeField(e.target.value)}
+                        aria-invalid={fieldHasError || undefined}
+                        aria-describedby={fieldHasError ? `${provider.code}-${f.key}-err` : undefined}
+                        className={cn(
+                          "mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm",
+                          fieldHasError
+                            ? "border-destructive ring-1 ring-destructive/40"
+                            : "border-border/60",
+                        )}
+                      >
+                        <option value="">Select…</option>
+                        {f.options.map((opt) => (
+                          <option key={opt} value={opt}>
+                            {opt}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <Input
+                        id={`${provider.code}-${f.key}`}
+                        type={
+                          f.type === "password"
+                            ? "password"
+                            : f.type === "url"
+                              ? "url"
+                              : f.type === "email"
+                                ? "email"
+                                : f.type === "number"
+                                  ? "number"
+                                  : "text"
+                        }
+                        value={values[f.key] ?? ""}
+                        onChange={(e) => onChangeField(e.target.value)}
+                        placeholder={f.placeholder}
+                        autoComplete="off"
+                        aria-invalid={fieldHasError || undefined}
+                        aria-describedby={fieldHasError ? `${provider.code}-${f.key}-err` : undefined}
+                        className={cn(
+                          "mt-1",
+                          fieldHasError &&
+                            "border-destructive ring-1 ring-destructive/40 focus-visible:ring-destructive/40",
+                        )}
+                      />
+                    )}
+                    {fieldHasError && saveError && (
+                      <p
+                        id={`${provider.code}-${f.key}-err`}
+                        className="mt-1 text-[11px] text-destructive"
+                      >
+                        {saveError.message}
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
+              {saveError && !saveError.field && (
+                <div
+                  role="alert"
+                  className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-xs"
+                >
+                  <p className="font-medium text-destructive">{saveError.message}</p>
+                  {saveError.hint && (
+                    <p className="mt-1 text-muted-foreground">{saveError.hint}</p>
+                  )}
+                  {saveError.docsUrl && (
+                    <a
+                      href={saveError.docsUrl}
+                      target={saveError.docsUrl.startsWith("http") ? "_blank" : undefined}
+                      rel="noreferrer"
+                      className="mt-1 inline-flex items-center gap-1 text-primary hover:underline"
                     >
-                      <option value="">Select…</option>
-                      {f.options.map((opt) => (
-                        <option key={opt} value={opt}>
-                          {opt}
-                        </option>
-                      ))}
-                    </select>
-                  ) : (
-                    <Input
-                      id={`${provider.code}-${f.key}`}
-                      type={
-                        f.type === "password"
-                          ? "password"
-                          : f.type === "url"
-                            ? "url"
-                            : f.type === "email"
-                              ? "email"
-                              : f.type === "number"
-                                ? "number"
-                                : "text"
-                      }
-                      value={values[f.key] ?? ""}
-                      onChange={(e) => setValues((v) => ({ ...v, [f.key]: e.target.value }))}
-                      placeholder={f.placeholder}
-                      autoComplete="off"
-                      className="mt-1"
-                    />
+                      {saveError.code === "plan_limit" ? "View plans" : "Open setup docs"}{" "}
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
                   )}
                 </div>
-              ))}
+              )}
               <div className="flex items-center gap-3">
                 <Button type="submit" size="sm" disabled={submitting}>
                   {submitting ? (
