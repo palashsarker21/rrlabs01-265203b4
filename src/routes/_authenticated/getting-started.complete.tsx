@@ -115,7 +115,27 @@ function OnboardingCompletePage() {
   const [phase, setPhase] = useState<"idle" | "running" | "success" | "failed">("idle");
 
   function patchStep(id: ActivationStepId, patch: Partial<ActivationStep>) {
-    setSteps((prev) => prev.map((s) => (s.id === id ? { ...s, ...patch } : s)));
+    setSteps((prev) =>
+      prev.map((s) => {
+        if (s.id !== id) return s;
+        const next: ActivationStep = { ...s, ...patch };
+        if (patch.state) {
+          const now = new Date().toISOString();
+          if (patch.state === "running" && !next.startedAt) {
+            next.startedAt = now;
+          }
+          if (
+            (patch.state === "success" ||
+              patch.state === "failed" ||
+              patch.state === "skipped") &&
+            !patch.finishedAt
+          ) {
+            next.finishedAt = now;
+          }
+        }
+        return next;
+      }),
+    );
   }
 
   async function runActivation(fromStep: ActivationStepId = "permission") {
@@ -136,10 +156,18 @@ function OnboardingCompletePage() {
       prev.map((s) => {
         const idx = order.indexOf(s.id);
         if (idx < fromIdx) return s; // preserve
-        return { ...s, state: "idle", error: undefined, fix: undefined };
+        return {
+          ...s,
+          state: "idle",
+          error: undefined,
+          fix: undefined,
+          startedAt: undefined,
+          finishedAt: undefined,
+        };
       }),
     );
     setPhase("running");
+
 
     const runFrom = (id: ActivationStepId) => order.indexOf(id) >= fromIdx;
 
