@@ -330,13 +330,6 @@ export function ActivationProgress({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-        {isComplete && (
-          <Button size="sm" onClick={onGoToDashboard}>
-            Go to dashboard
-            <ArrowRight className="ml-2 h-3.5 w-3.5" />
-          </Button>
-        )}
-      </div>
 
       {failed?.fix && (
         <div className="mt-3 text-[11px] text-muted-foreground">
