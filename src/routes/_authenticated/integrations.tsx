@@ -71,6 +71,50 @@ type SetupField = {
   options?: string[];
 };
 
+/**
+ * Client-side per-field validator. Returns a human-readable error, or null
+ * when the value is acceptable. Server-side validation in `saveIntegration`
+ * remains the source of truth; this just catches obvious mistakes before
+ * a round-trip.
+ */
+function validateSetupField(f: SetupField, rawValue: string): string | null {
+  const value = (rawValue ?? "").trim();
+  const label = f.label ?? f.key;
+  if (!value) {
+    return f.required ? `${label} is required.` : null;
+  }
+  if (f.type === "url") {
+    try {
+      const u = new URL(value);
+      if (u.protocol !== "http:" && u.protocol !== "https:") {
+        return `${label} must be an http(s) URL.`;
+      }
+    } catch {
+      return `${label} must be a valid URL (e.g. https://example.com).`;
+    }
+  }
+  if (f.type === "email") {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+      return `${label} must be a valid email address.`;
+    }
+  }
+  if (f.type === "number") {
+    if (!/^-?\d+(\.\d+)?$/.test(value)) {
+      return `${label} must be a number.`;
+    }
+  }
+  if (f.type === "select" && f.options && !f.options.includes(value)) {
+    return `${label} must be one of: ${f.options.join(", ")}.`;
+  }
+  const k = f.key.toLowerCase();
+  if (k.includes("phone") && k.includes("number") && f.type !== "select") {
+    if (!value.startsWith("whatsapp:") && !/^\+?[\d\s\-().]{6,}$/.test(value)) {
+      return `${label} looks malformed.`;
+    }
+  }
+  return null;
+}
+
 function IntegrationCenter() {
   const navigate = useNavigate();
   const qc = useQueryClient();
@@ -597,6 +641,7 @@ function ProviderCard({
 }) {
   const [expanded, setExpanded] = useState(integrations.length === 0);
   const [values, setValues] = useState<Record<string, string>>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [submitting, setSubmitting] = useState(false);
   const [autoStatus, setAutoStatus] = useState<"idle" | "saving" | "saved" | "failed">("idle");
   const [saveError, setSaveError] = useState<SaveFailure | null>(null);
@@ -615,6 +660,19 @@ function ProviderCard({
   const allRequiredFilled =
     requiredKeys.length > 0 && requiredKeys.every((k) => (values[k] ?? "").trim().length > 0);
 
+  // Per-field client-side validation. Blocks autosave and submit when any
+  // rule fails; error text is shown only for fields the user has touched
+  // (or all fields after a submit attempt).
+  const fieldErrors = useMemo(() => {
+    const out: Record<string, string> = {};
+    for (const f of setupFields) {
+      const err = validateSetupField(f, values[f.key] ?? "");
+      if (err) out[f.key] = err;
+    }
+    return out;
+  }, [setupFields, values]);
+  const hasFieldErrors = Object.keys(fieldErrors).length > 0;
+
   const autoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastSavedSigRef = useRef<string>("");
 
@@ -623,7 +681,7 @@ function ProviderCard({
   // that as "Save failed" without clearing the form.
   useEffect(() => {
     if (!expanded || disabled || overLimit) return;
-    if (!allRequiredFilled) {
+    if (!allRequiredFilled || hasFieldErrors) {
       setAutoStatus("idle");
       return;
     }
@@ -655,7 +713,7 @@ function ProviderCard({
       if (autoTimerRef.current) clearTimeout(autoTimerRef.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [values, expanded, disabled, overLimit, allRequiredFilled]);
+  }, [values, expanded, disabled, overLimit, allRequiredFilled, hasFieldErrors]);
 
   async function copyPreview() {
     if (!previewUrl) return;
@@ -672,6 +730,13 @@ function ProviderCard({
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (disabled || overLimit) return;
+    if (hasFieldErrors) {
+      // Surface every error at once and stop.
+      const allTouched: Record<string, boolean> = {};
+      for (const f of setupFields) allTouched[f.key] = true;
+      setTouched(allTouched);
+      return;
+    }
     if (autoTimerRef.current) clearTimeout(autoTimerRef.current);
     setSubmitting(true);
     setAutoStatus("saving");
@@ -820,11 +885,16 @@ function ProviderCard({
                 </p>
               )}
               {setupFields.map((f) => {
-                const fieldHasError = saveError?.field === f.key;
+                const serverFieldError = saveError?.field === f.key;
+                const localError =
+                  touched[f.key] && fieldErrors[f.key] ? fieldErrors[f.key] : null;
+                const errorMessage = localError ?? (serverFieldError ? saveError!.message : null);
+                const fieldHasError = errorMessage !== null;
                 const onChangeField = (val: string) => {
                   setValues((v) => ({ ...v, [f.key]: val }));
-                  if (fieldHasError) setSaveError(null);
+                  if (serverFieldError) setSaveError(null);
                 };
+                const onBlurField = () => setTouched((t) => ({ ...t, [f.key]: true }));
                 return (
                   <div key={f.key}>
                     <Label htmlFor={`${provider.code}-${f.key}`} className="text-xs">
@@ -836,6 +906,7 @@ function ProviderCard({
                         id={`${provider.code}-${f.key}`}
                         value={values[f.key] ?? ""}
                         onChange={(e) => onChangeField(e.target.value)}
+                        onBlur={onBlurField}
                         aria-invalid={fieldHasError || undefined}
                         aria-describedby={fieldHasError ? `${provider.code}-${f.key}-err` : undefined}
                         className={cn(
@@ -868,6 +939,7 @@ function ProviderCard({
                         }
                         value={values[f.key] ?? ""}
                         onChange={(e) => onChangeField(e.target.value)}
+                        onBlur={onBlurField}
                         placeholder={f.placeholder}
                         autoComplete="off"
                         aria-invalid={fieldHasError || undefined}
@@ -879,12 +951,12 @@ function ProviderCard({
                         )}
                       />
                     )}
-                    {fieldHasError && saveError && (
+                    {errorMessage && (
                       <p
                         id={`${provider.code}-${f.key}-err`}
                         className="mt-1 text-[11px] text-destructive"
                       >
-                        {saveError.message}
+                        {errorMessage}
                       </p>
                     )}
                   </div>
