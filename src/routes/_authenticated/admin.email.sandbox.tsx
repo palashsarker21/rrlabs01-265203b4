@@ -235,6 +235,9 @@ function EmailSandboxPage() {
     if (!autoRunId) return;
     if (!parsed.ok || sendMut.isPending) return;
     if (!status?.config?.ok || !status?.recipient) return;
+    if (recipientChecking) return;
+    if (recipientCheck?.overall === "critical") return;
+    if (recipientCheck?.overall === "warning" && !ackWarnings) return;
     const id = autoRunId;
     setAutoRunId(null);
     sendMut.mutate(undefined, {
