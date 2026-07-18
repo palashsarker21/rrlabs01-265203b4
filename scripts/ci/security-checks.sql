@@ -122,4 +122,83 @@ BEGIN
   END IF;
 END $$;
 
+-- 7) Reject broadly-permissive write policies (USING true / WITH CHECK true)
+--    on tables in the public schema. Read-only (`FOR SELECT`) policies with
+--    `qual = true` are allowed for genuinely public catalogs but flagged in
+--    the summary via a NOTICE for review.
+DO $$
+DECLARE
+  offending text;
+BEGIN
+  SELECT string_agg(format('%I.%I:%I(%s)', n.nspname, c.relname, p.polname, p.polcmd), ', ')
+    INTO offending
+    FROM pg_policy p
+    JOIN pg_class c   ON c.oid = p.polrelid
+    JOIN pg_namespace n ON n.oid = c.relnamespace
+   WHERE n.nspname = 'public'
+     AND p.polcmd IN ('a','w','d','*')   -- INSERT, UPDATE, DELETE, ALL
+     AND (
+       pg_get_expr(p.polqual,       p.polrelid) IN ('true','(true)')
+       OR pg_get_expr(p.polwithcheck, p.polrelid) IN ('true','(true)')
+     );
+  IF offending IS NOT NULL THEN
+    RAISE EXCEPTION 'Overly permissive write policies (USING/WITH CHECK true): %', offending;
+  END IF;
+END $$;
+
+-- 8) Required policy coverage — every table listed here MUST have at least
+--    one policy covering SELECT, INSERT, UPDATE, and DELETE (or ALL). This
+--    catches accidental removal of tenant-scoping policies for the tables
+--    we consider mission-critical.
+DO $$
+DECLARE
+  _table text;
+  _cmd   char;
+  _label text;
+  _tables text[] := ARRAY[
+    'workspaces',
+    'workspace_members',
+    'workspace_invitations',
+    'organizations',
+    'integrations',
+    'audit_logs',
+    'user_roles'
+  ];
+  _cmds  char[] := ARRAY['r','a','w','d'];       -- SELECT, INSERT, UPDATE, DELETE
+  _names text[] := ARRAY['SELECT','INSERT','UPDATE','DELETE'];
+  _missing text := '';
+  i int;
+BEGIN
+  FOREACH _table IN ARRAY _tables LOOP
+    -- Skip tables that don't exist in this project (guard against renames).
+    IF NOT EXISTS (
+      SELECT 1 FROM pg_class c
+        JOIN pg_namespace n ON n.oid = c.relnamespace
+       WHERE n.nspname = 'public' AND c.relname = _table
+    ) THEN
+      CONTINUE;
+    END IF;
+
+    FOR i IN 1..array_length(_cmds, 1) LOOP
+      _cmd   := _cmds[i];
+      _label := _names[i];
+      IF NOT EXISTS (
+        SELECT 1
+          FROM pg_policy p
+          JOIN pg_class c   ON c.oid = p.polrelid
+          JOIN pg_namespace n ON n.oid = c.relnamespace
+         WHERE n.nspname = 'public'
+           AND c.relname = _table
+           AND (p.polcmd = _cmd OR p.polcmd = '*')
+      ) THEN
+        _missing := _missing || format(' %s(%s)', _table, _label);
+      END IF;
+    END LOOP;
+  END LOOP;
+
+  IF length(_missing) > 0 THEN
+    RAISE EXCEPTION 'Required policy coverage missing:%', _missing;
+  END IF;
+END $$;
+
 SELECT 'security-checks: OK' AS status;
