@@ -627,15 +627,37 @@ function EmailSandboxPage() {
               Locally recorded on this device. Re-run replays the exact template and JSON payload.
             </p>
           </div>
-          {history.length > 0 ? (
-            <button
-              type="button"
-              className="text-xs font-medium text-muted-foreground hover:text-rose-700"
-              onClick={clearHistory}
-            >
-              Clear history
-            </button>
-          ) : null}
+          <div className="flex items-center gap-2">
+            {history.length > 0 ? (
+              <>
+                <button
+                  type="button"
+                  className="rounded-md border px-2 py-1 text-xs font-medium hover:bg-muted disabled:opacity-50"
+                  onClick={() => exportDiagnostics(filteredHistory, "json")}
+                  disabled={filteredHistory.length === 0}
+                  title="Download the filtered history as JSON"
+                >
+                  Export JSON
+                </button>
+                <button
+                  type="button"
+                  className="rounded-md border px-2 py-1 text-xs font-medium hover:bg-muted disabled:opacity-50"
+                  onClick={() => exportDiagnostics(filteredHistory, "csv")}
+                  disabled={filteredHistory.length === 0}
+                  title="Download the filtered history as CSV"
+                >
+                  Export CSV
+                </button>
+                <button
+                  type="button"
+                  className="text-xs font-medium text-muted-foreground hover:text-rose-700"
+                  onClick={clearHistory}
+                >
+                  Clear history
+                </button>
+              </>
+            ) : null}
+          </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
