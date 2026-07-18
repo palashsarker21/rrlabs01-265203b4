@@ -293,7 +293,7 @@ function OnboardingCompletePage() {
     if (runFrom("activate")) {
       patchStep("activate", { state: "running" });
       try {
-        await activateFn({ data: { workspaceId: workspace.id } });
+        await activateFn({ data: { workspaceId: workspace.id, retryGrant } });
         patchStep("activate", { state: "success" });
         setPhase("success");
         toast.success("Recovery Engine activated");
