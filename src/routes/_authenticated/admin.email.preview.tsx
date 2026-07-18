@@ -67,6 +67,98 @@ function EmailPreviewPage() {
     }
   }, [dataText]);
 
+  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const isValidUrl = (v: unknown): v is string => {
+    if (typeof v !== "string" || !v.trim()) return false;
+    try {
+      const u = new URL(v);
+      return u.protocol === "http:" || u.protocol === "https:";
+    } catch {
+      return false;
+    }
+  };
+
+  // Variable validator — infers required fields from the template sample,
+  // enforces per-field types (URL fields end with "Url", email fields
+  // include "email"/"to"), and validates the recipient address.
+  type FieldCheck = {
+    key: string;
+    kind: "url" | "email" | "value";
+    ok: boolean;
+    message: string;
+  };
+  const validation = useMemo(() => {
+    const checks: FieldCheck[] = [];
+    const sample = TEMPLATE_SAMPLES[selected]?.data ?? {};
+    const requiredKeys = Object.keys(sample);
+    const data = parsed.ok ? parsed.value : {};
+
+    for (const key of requiredKeys) {
+      const value = (data as Record<string, unknown>)[key];
+      const lower = key.toLowerCase();
+      const kind: FieldCheck["kind"] = key.endsWith("Url")
+        ? "url"
+        : lower === "email" || lower === "to" || lower.endsWith("email")
+          ? "email"
+          : "value";
+
+      if (value === undefined || value === null) {
+        checks.push({ key, kind, ok: false, message: `Missing "${key}".` });
+        continue;
+      }
+      if (kind === "url") {
+        checks.push(
+          isValidUrl(value)
+            ? { key, kind, ok: true, message: "Valid https/http URL." }
+            : { key, kind, ok: false, message: `"${key}" must be a valid http(s) URL.` },
+        );
+        continue;
+      }
+      if (kind === "email") {
+        checks.push(
+          typeof value === "string" && EMAIL_RE.test(value)
+            ? { key, kind, ok: true, message: "Valid email." }
+            : { key, kind, ok: false, message: `"${key}" must be a valid email address.` },
+        );
+        continue;
+      }
+      if (typeof value === "string" && value.trim().length === 0) {
+        checks.push({ key, kind, ok: false, message: `"${key}" cannot be empty.` });
+        continue;
+      }
+      if (typeof value === "number" || typeof value === "boolean" || typeof value === "string") {
+        checks.push({ key, kind, ok: true, message: "Present." });
+        continue;
+      }
+      // Objects/arrays are allowed but must not be null/empty structures.
+      if (Array.isArray(value) && value.length === 0) {
+        checks.push({ key, kind, ok: false, message: `"${key}" array is empty.` });
+        continue;
+      }
+      checks.push({ key, kind, ok: true, message: "Present." });
+    }
+
+    const recipientTrim = recipient.trim();
+    const recipientOk = EMAIL_RE.test(recipientTrim);
+    const recipientMessage = !recipientTrim
+      ? "Recipient email is required to send a test."
+      : recipientOk
+        ? "Valid recipient email."
+        : "Recipient must be a valid email address.";
+
+    const fieldsOk = checks.every((c) => c.ok);
+    return {
+      checks,
+      recipient: {
+        ok: recipientOk,
+        provided: recipientTrim.length > 0,
+        message: recipientMessage,
+      },
+      canRender: parsed.ok && fieldsOk,
+      canSend: parsed.ok && fieldsOk && recipientOk,
+    };
+  }, [parsed, selected, recipient]);
+
   const preview = useMutation({
     mutationFn: () =>
       previewFn({
@@ -79,7 +171,7 @@ function EmailPreviewPage() {
       sendFn({
         data: {
           template: selected,
-          to: recipient,
+          to: recipient.trim(),
           data: parsed.ok ? parsed.value : {},
         },
       }),
@@ -101,11 +193,12 @@ function EmailPreviewPage() {
     },
   });
 
-  // Auto-render on mount and whenever inputs change and are valid.
+  // Only auto-render once the JSON is valid AND every required field passes.
   useEffect(() => {
-    if (parsed.ok) preview.mutate();
+    if (validation.canRender) preview.mutate();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selected, dataText]);
+  }, [selected, dataText, validation.canRender]);
+
 
   const previewData = preview.data;
   const previewHtml =
@@ -179,11 +272,90 @@ function EmailPreviewPage() {
             )}
           </div>
 
+          {/* Variable validator */}
+          <div
+            className="rounded-md border bg-muted/30 p-3"
+            role="region"
+            aria-label="Template variable validation"
+          >
+            <div className="flex items-center justify-between">
+              <div className="text-xs font-medium text-muted-foreground">
+                Variable validator
+              </div>
+              <span
+                className={
+                  "rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider " +
+                  (validation.canRender
+                    ? "bg-emerald-500/10 text-emerald-600"
+                    : "bg-destructive/10 text-destructive")
+                }
+              >
+                {validation.canRender ? "Ready to render" : "Fix required fields"}
+              </span>
+            </div>
+            {validation.checks.length === 0 ? (
+              <div className="mt-2 text-xs text-muted-foreground">
+                No required fields for this template.
+              </div>
+            ) : (
+              <ul className="mt-2 space-y-1.5">
+                {validation.checks.map((c) => (
+                  <li key={c.key} className="flex items-start gap-2 text-xs">
+                    <span
+                      aria-hidden="true"
+                      className={
+                        "mt-0.5 inline-block h-2 w-2 shrink-0 rounded-full " +
+                        (c.ok ? "bg-emerald-500" : "bg-destructive")
+                      }
+                    />
+                    <div className="min-w-0">
+                      <code className="font-mono text-[11px] text-foreground">{c.key}</code>
+                      <span className="ml-1 text-[10px] uppercase tracking-wider text-muted-foreground">
+                        {c.kind}
+                      </span>
+                      <div className={c.ok ? "text-muted-foreground" : "text-destructive"}>
+                        {c.message}
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <div className="mt-3 flex items-start gap-2 border-t pt-2 text-xs">
+              <span
+                aria-hidden="true"
+                className={
+                  "mt-0.5 inline-block h-2 w-2 shrink-0 rounded-full " +
+                  (validation.recipient.ok
+                    ? "bg-emerald-500"
+                    : validation.recipient.provided
+                      ? "bg-destructive"
+                      : "bg-muted-foreground/40")
+                }
+              />
+              <div>
+                <span className="font-medium">Recipient</span>
+                <div
+                  className={
+                    validation.recipient.ok
+                      ? "text-muted-foreground"
+                      : validation.recipient.provided
+                        ? "text-destructive"
+                        : "text-muted-foreground"
+                  }
+                >
+                  {validation.recipient.message}
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div>
             <label className="text-xs font-medium text-muted-foreground">Send test to</label>
             <input
               type="email"
               placeholder="you@example.com"
+              aria-invalid={validation.recipient.provided && !validation.recipient.ok}
               className="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm"
               value={recipient}
               onChange={(e) => setRecipient(e.target.value)}
@@ -191,16 +363,16 @@ function EmailPreviewPage() {
             <button
               type="button"
               className="mt-2 w-full rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
-              disabled={
-                !parsed.ok ||
-                send.isPending ||
-                !recipient ||
-                !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipient)
-              }
+              disabled={!validation.canSend || send.isPending}
               onClick={() => {
                 setSendResult(null);
                 send.mutate();
               }}
+              title={
+                !validation.canSend
+                  ? "Resolve the variable validator errors before sending"
+                  : undefined
+              }
             >
               {send.isPending ? "Sending…" : "Send test email"}
             </button>
@@ -208,6 +380,7 @@ function EmailPreviewPage() {
               <div className="mt-2 text-xs text-muted-foreground">{sendResult}</div>
             )}
           </div>
+
         </div>
 
         {/* Right column — preview */}
@@ -222,6 +395,14 @@ function EmailPreviewPage() {
               Render error: {previewError}
             </div>
           )}
+
+          {!validation.canRender && (
+            <div className="rounded-md border border-amber-500/40 bg-amber-500/5 p-3 text-sm text-amber-700 dark:text-amber-400">
+              Preview paused — resolve the variable validator errors on the left to
+              render this template.
+            </div>
+          )}
+
 
           <div className="overflow-hidden rounded-md border bg-white">
             <div className="flex items-center justify-between border-b bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
