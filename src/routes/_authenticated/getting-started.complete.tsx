@@ -115,7 +115,27 @@ function OnboardingCompletePage() {
   const [phase, setPhase] = useState<"idle" | "running" | "success" | "failed">("idle");
 
   function patchStep(id: ActivationStepId, patch: Partial<ActivationStep>) {
-    setSteps((prev) => prev.map((s) => (s.id === id ? { ...s, ...patch } : s)));
+    setSteps((prev) =>
+      prev.map((s) => {
+        if (s.id !== id) return s;
+        const next: ActivationStep = { ...s, ...patch };
+        if (patch.state) {
+          const now = new Date().toISOString();
+          if (patch.state === "running" && !next.startedAt) {
+            next.startedAt = now;
+          }
+          if (
+            (patch.state === "success" ||
+              patch.state === "failed" ||
+              patch.state === "skipped") &&
+            !patch.finishedAt
+          ) {
+            next.finishedAt = now;
+          }
+        }
+        return next;
+      }),
+    );
   }
 
   async function runActivation(fromStep: ActivationStepId = "permission") {
@@ -136,10 +156,18 @@ function OnboardingCompletePage() {
       prev.map((s) => {
         const idx = order.indexOf(s.id);
         if (idx < fromIdx) return s; // preserve
-        return { ...s, state: "idle", error: undefined, fix: undefined };
+        return {
+          ...s,
+          state: "idle",
+          error: undefined,
+          fix: undefined,
+          startedAt: undefined,
+          finishedAt: undefined,
+        };
       }),
     );
     setPhase("running");
+
 
     const runFrom = (id: ActivationStepId) => order.indexOf(id) >= fromIdx;
 
@@ -282,12 +310,23 @@ function OnboardingCompletePage() {
       const activationFailures = steps
         .filter((s) => s.state === "failed" && s.error)
         .map((s) => ({ stepId: s.id, label: s.label, error: s.error! }));
+      const activationTimeline = steps
+        .filter((s) => s.startedAt || s.finishedAt)
+        .map((s) => ({
+          stepId: s.id,
+          label: s.label,
+          state: s.state,
+          startedAt: s.startedAt,
+          finishedAt: s.finishedAt,
+        }));
       const res = await reportFn({
         data: {
           workspaceId: workspace.id,
           ...(activationFailures.length > 0 ? { activationFailures } : {}),
+          ...(activationTimeline.length > 0 ? { activationTimeline } : {}),
         },
       });
+
       const bin = atob(res.base64);
       const bytes = new Uint8Array(bin.length);
       for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
