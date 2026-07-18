@@ -35,7 +35,9 @@ if [ -z "${DATABASE_URL:-}" ]; then
 fi
 
 echo "▸ Capturing current remote migration state for diff…"
-supabase migration list --linked > /tmp/remote-after.txt
+RETRIES="${RETRIES:-4}" BASE_DELAY="${BASE_DELAY:-5}" \
+  bash "$(dirname "$0")/retry.sh" "supabase migration list (rollback)" -- \
+  bash -c 'supabase migration list --linked > /tmp/remote-after.txt'
 awk '
   /^[[:space:]]*[0-9]{14}[[:space:]]*\|[[:space:]]*[0-9]{14}/ {
     split($0, a, "|"); gsub(/ /,"",a[2]); print a[2]
