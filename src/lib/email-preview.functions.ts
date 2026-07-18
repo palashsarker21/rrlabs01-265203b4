@@ -39,6 +39,10 @@ export const previewEmailTemplateFn = createServerFn({ method: "POST" })
     }
     const React = (await import("react")).default;
     const { render } = await import("@react-email/render");
+    const { loadEmailConfig } = await import("./email/config.server");
+    const { categoryForTemplate, buildUnsubscribeUrl } = await import(
+      "./email/preferences.server"
+    );
     const entry = TEMPLATES[data.template];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const Component = entry.component as React.ComponentType<any>;
@@ -51,7 +55,47 @@ export const previewEmailTemplateFn = createServerFn({ method: "POST" })
       ]);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const subject = entry.subject(props as any);
-      return { ok: true as const, subject, html, text };
+
+      // Compute the exact headers a real send would apply — preview only, no dispatch.
+      const cfg = loadEmailConfig();
+      const sampleRecipient =
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ((props as any).to as string | undefined) ??
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ((props as any).email as string | undefined) ??
+        "preview-recipient@example.com";
+      const category = categoryForTemplate(data.template);
+      const publicBase =
+        process.env.PUBLIC_APP_URL ?? process.env.APP_URL ?? "https://rrlabs.online";
+      const unsubscribeUrl = category
+        ? buildUnsubscribeUrl(sampleRecipient, publicBase)
+        : null;
+      const headers: Record<string, string> = {};
+      if (unsubscribeUrl) {
+        headers["List-Unsubscribe"] = `<${unsubscribeUrl}>`;
+        headers["List-Unsubscribe-Post"] = "List-Unsubscribe=One-Click";
+      }
+      const envelope = cfg.ok
+        ? {
+            configured: true as const,
+            from: `${cfg.config.fromName} <${cfg.config.fromEmail}>`,
+            replyTo: cfg.config.replyTo ?? null,
+          }
+        : { configured: false as const, from: null, replyTo: null, missing: cfg.missing };
+
+      return {
+        ok: true as const,
+        subject,
+        html,
+        text,
+        preview: {
+          envelope,
+          sampleTo: sampleRecipient,
+          category,
+          unsubscribeUrl,
+          headers,
+        },
+      };
     } catch (err) {
       return {
         ok: false as const,

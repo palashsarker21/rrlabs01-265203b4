@@ -44,6 +44,7 @@ function EmailPreviewPage() {
   );
   const [recipient, setRecipient] = useState<string>("");
   const [sendResult, setSendResult] = useState<string | null>(null);
+  const [previewOnly, setPreviewOnly] = useState<boolean>(true);
 
   // When template changes, load its sample data
   useEffect(() => {
@@ -207,6 +208,10 @@ function EmailPreviewPage() {
     previewData && "ok" in previewData && previewData.ok ? previewData.subject : "";
   const previewText =
     previewData && "ok" in previewData && previewData.ok ? previewData.text : "";
+  const previewMeta =
+    previewData && "ok" in previewData && previewData.ok && "preview" in previewData
+      ? previewData.preview
+      : null;
   const previewError =
     previewData && "ok" in previewData && !previewData.ok
       ? "message" in previewData
@@ -350,31 +355,59 @@ function EmailPreviewPage() {
             </div>
           </div>
 
+          <div className="rounded-md border bg-muted/30 p-3">
+            <div className="flex items-center justify-between gap-2">
+              <div>
+                <div className="text-xs font-medium">Mode</div>
+                <div className="text-[11px] text-muted-foreground">
+                  {previewOnly
+                    ? "Preview only — renders subject, body and headers. Nothing is sent."
+                    : "Send enabled — a test email will be dispatched to the recipient below."}
+                </div>
+              </div>
+              <label className="inline-flex cursor-pointer items-center gap-2 text-xs">
+                <input
+                  type="checkbox"
+                  checked={previewOnly}
+                  onChange={(e) => setPreviewOnly(e.target.checked)}
+                />
+                Preview only
+              </label>
+            </div>
+          </div>
+
           <div>
             <label className="text-xs font-medium text-muted-foreground">Send test to</label>
             <input
               type="email"
               placeholder="you@example.com"
               aria-invalid={validation.recipient.provided && !validation.recipient.ok}
-              className="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm"
+              disabled={previewOnly}
+              className="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm disabled:opacity-50"
               value={recipient}
               onChange={(e) => setRecipient(e.target.value)}
             />
             <button
               type="button"
               className="mt-2 w-full rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
-              disabled={!validation.canSend || send.isPending}
+              disabled={previewOnly || !validation.canSend || send.isPending}
               onClick={() => {
                 setSendResult(null);
                 send.mutate();
               }}
               title={
-                !validation.canSend
-                  ? "Resolve the variable validator errors before sending"
-                  : undefined
+                previewOnly
+                  ? "Preview-only mode is on — turn it off to send a test email"
+                  : !validation.canSend
+                    ? "Resolve the variable validator errors before sending"
+                    : undefined
               }
             >
-              {send.isPending ? "Sending…" : "Send test email"}
+              {previewOnly
+                ? "Sending disabled (preview only)"
+                : send.isPending
+                  ? "Sending…"
+                  : "Send test email"}
             </button>
             {sendResult && (
               <div className="mt-2 text-xs text-muted-foreground">{sendResult}</div>
@@ -385,9 +418,52 @@ function EmailPreviewPage() {
 
         {/* Right column — preview */}
         <div className="space-y-3">
-          <div className="rounded-md border bg-muted/40 p-3">
-            <div className="text-xs text-muted-foreground">Subject</div>
-            <div className="mt-0.5 font-medium">{previewSubject || "—"}</div>
+          <div className="rounded-md border bg-muted/40 p-3 text-sm">
+            <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              Message headers
+            </div>
+            <dl className="mt-2 grid grid-cols-[110px_1fr] gap-x-3 gap-y-1 text-xs">
+              <dt className="text-muted-foreground">Subject</dt>
+              <dd className="font-medium break-words">{previewSubject || "—"}</dd>
+              <dt className="text-muted-foreground">From</dt>
+              <dd className="font-mono break-all">
+                {previewMeta?.envelope.configured
+                  ? previewMeta.envelope.from
+                  : previewMeta && !previewMeta.envelope.configured
+                    ? `unconfigured (missing: ${previewMeta.envelope.missing?.join(", ") ?? "—"})`
+                    : "—"}
+              </dd>
+              <dt className="text-muted-foreground">Reply-To</dt>
+              <dd className="font-mono break-all">
+                {previewMeta?.envelope.replyTo ?? "—"}
+              </dd>
+              <dt className="text-muted-foreground">To (sample)</dt>
+              <dd className="font-mono break-all">{previewMeta?.sampleTo ?? "—"}</dd>
+              <dt className="text-muted-foreground">Category</dt>
+              <dd>
+                {previewMeta?.category ?? (
+                  <span className="text-muted-foreground">
+                    none (transactional, non-opt-outable)
+                  </span>
+                )}
+              </dd>
+              <dt className="text-muted-foreground">List-Unsubscribe</dt>
+              <dd className="font-mono break-all">
+                {previewMeta?.headers?.["List-Unsubscribe"] ?? (
+                  <span className="text-muted-foreground">not applied</span>
+                )}
+              </dd>
+              <dt className="text-muted-foreground">List-Unsubscribe-Post</dt>
+              <dd className="font-mono break-all">
+                {previewMeta?.headers?.["List-Unsubscribe-Post"] ?? (
+                  <span className="text-muted-foreground">not applied</span>
+                )}
+              </dd>
+            </dl>
+            <p className="mt-2 text-[11px] text-muted-foreground">
+              These are the exact envelope + headers a real send would apply. Preview only —
+              nothing is dispatched.
+            </p>
           </div>
 
           {previewError && (
