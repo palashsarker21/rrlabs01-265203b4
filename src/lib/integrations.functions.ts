@@ -330,7 +330,14 @@ export const disconnectIntegration = createServerFn({ method: "POST" })
 /** Mark a workspace ready and turn on the recovery engine. */
 export const activateWorkspace = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((raw) => workspaceIdSchema.parse(raw))
+  .inputValidator((raw) =>
+    z
+      .object({
+        workspaceId: z.string().uuid(),
+        retryGrant: z.string().min(10).max(2048).optional(),
+      })
+      .parse(raw),
+  )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
 
@@ -339,6 +346,21 @@ export const activateWorkspace = createServerFn({ method: "POST" })
       _user_id: userId,
     });
     if (!canManage) throw new Error("You do not have permission to activate this workspace.");
+
+    // If this call originates from a retry-confirmation dialog, the client
+    // must present the signed grant returned by logActivationRetry. The
+    // server refuses to run the activation phase unless "activate" is in
+    // the exact set of step IDs the user confirmed.
+    if (data.retryGrant) {
+      const { verifyRetryGrant } = await import("./activation-grant.server");
+      const result = verifyRetryGrant(data.retryGrant, data.workspaceId);
+      if (!result.ok) throw new Error(result.reason);
+      if (!result.allowedStepIds.includes("activate")) {
+        throw new Error(
+          "This retry was confirmed for a subset that does not include the activation step.",
+        );
+      }
+    }
 
     // Full activation gate: ≥1 verified store + gateway + email, every
     // connected integration must have last_test_ok=true and verification_status='verified',
@@ -443,6 +465,14 @@ export const setSetupStep = createServerFn({ method: "POST" })
  * targeted. Non-blocking: the retry itself proceeds regardless of audit
  * outcome (writeAuditLog swallows failures).
  */
+const ACTIVATION_STEP_ID = z.enum([
+  "permission",
+  "required",
+  "verified",
+  "webhooks",
+  "activate",
+]);
+
 export const logActivationRetry = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((raw) =>
@@ -450,9 +480,9 @@ export const logActivationRetry = createServerFn({ method: "POST" })
       .object({
         workspaceId: z.string().uuid(),
         scope: z.enum(["all", "failed_only", "from_step"]),
-        stepIds: z.array(z.string().min(1).max(64)).min(1).max(20),
-        fromStep: z.string().min(1).max(64).optional(),
-        previousErrors: z.record(z.string(), z.string().max(500)).optional(),
+        stepIds: z.array(ACTIVATION_STEP_ID).min(1).max(5),
+        fromStep: ACTIVATION_STEP_ID.optional(),
+        previousErrors: z.record(ACTIVATION_STEP_ID, z.string().max(500)).optional(),
       })
       .parse(raw),
   )
@@ -463,6 +493,44 @@ export const logActivationRetry = createServerFn({ method: "POST" })
       _user_id: userId,
     });
     if (!canManage) throw new Error("You do not have permission to retry activation.");
+
+    // Canonicalise the requested set and enforce scope consistency so the
+    // retry grant issued below matches exactly what the user confirmed.
+    const canonical = ["permission", "required", "verified", "webhooks", "activate"] as const;
+    const unique = Array.from(new Set(data.stepIds));
+    const sorted = unique
+      .slice()
+      .sort((a, b) => canonical.indexOf(a) - canonical.indexOf(b));
+
+    if (data.scope === "all" && sorted.length !== canonical.length) {
+      throw new Error("Retry scope 'all' must include every activation step.");
+    }
+    if (data.scope === "from_step") {
+      if (!data.fromStep) throw new Error("fromStep is required for scope 'from_step'.");
+      const startIdx = canonical.indexOf(data.fromStep);
+      const expected = canonical.slice(startIdx);
+      if (
+        sorted.length !== expected.length ||
+        sorted.some((s, i) => s !== expected[i])
+      ) {
+        throw new Error(
+          "Retry step IDs do not match the confirmed fromStep sequence.",
+        );
+      }
+    }
+    if (data.scope === "failed_only") {
+      const errored = Object.keys(data.previousErrors ?? {});
+      if (errored.length === 0) {
+        throw new Error("No failed steps recorded to retry.");
+      }
+      const erroredSet = new Set(errored);
+      if (sorted.some((s) => !erroredSet.has(s))) {
+        throw new Error("Retry set includes steps that were not marked failed.");
+      }
+    }
+
+    const { issueRetryGrant } = await import("./activation-grant.server");
+    const grant = issueRetryGrant({ workspaceId: data.workspaceId, allowedStepIds: sorted });
 
     const { writeAuditLog } = await import("./audit.server");
     await writeAuditLog({
@@ -479,11 +547,17 @@ export const logActivationRetry = createServerFn({ method: "POST" })
       targetId: data.workspaceId,
       details: {
         scope: data.scope,
-        step_ids: data.stepIds,
+        step_ids: sorted,
         from_step: data.fromStep ?? null,
         previous_errors: data.previousErrors ?? {},
+        grant_expires_at: grant.expiresAt,
       },
     });
 
-    return { ok: true as const };
+    return {
+      ok: true as const,
+      grant: grant.token,
+      allowedStepIds: grant.allowedStepIds,
+      expiresAt: grant.expiresAt,
+    };
   });

@@ -145,7 +145,10 @@ function OnboardingCompletePage() {
     );
   }
 
-  async function runActivation(fromStep: ActivationStepId = "permission") {
+  async function runActivation(
+    fromStep: ActivationStepId = "permission",
+    retryGrant?: string,
+  ) {
     if (!workspace?.id) {
       toast.error("No workspace found.");
       return;
@@ -290,7 +293,7 @@ function OnboardingCompletePage() {
     if (runFrom("activate")) {
       patchStep("activate", { state: "running" });
       try {
-        await activateFn({ data: { workspaceId: workspace.id } });
+        await activateFn({ data: { workspaceId: workspace.id, retryGrant } });
         patchStep("activate", { state: "success" });
         setPhase("success");
         toast.success("Recovery Engine activated");
@@ -530,39 +533,64 @@ function OnboardingCompletePage() {
             isRunning={isRunning}
             isComplete={isComplete}
             isFailed={isFailed}
-            onRetry={() => {
-              if (workspace?.id) {
-                const stepIds = steps.map((s) => s.id);
-                const previousErrors = Object.fromEntries(
-                  steps.filter((s) => s.error).map((s) => [s.id, s.error!]),
-                );
-                logRetryFn({
+            onRetry={async () => {
+              if (!workspace?.id) return;
+              const order: ActivationStepId[] = [
+                "permission",
+                "required",
+                "verified",
+                "webhooks",
+                "activate",
+              ];
+              const previousErrors = Object.fromEntries(
+                steps.filter((s) => s.error).map((s) => [s.id, s.error!]),
+              );
+              try {
+                const res = await logRetryFn({
                   data: {
                     workspaceId: workspace.id,
                     scope: "all",
-                    stepIds,
+                    stepIds: order,
                     previousErrors,
                   },
-                }).catch(() => undefined);
+                });
+                runActivation("permission", res.grant);
+              } catch (e) {
+                toast.error(
+                  e instanceof Error ? e.message : "Could not authorize retry.",
+                );
               }
-              runActivation();
             }}
-            onRetryStep={(id) => {
-              if (workspace?.id) {
-                const stepError = steps.find((s) => s.id === id)?.error;
-                logRetryFn({
+            onRetryStep={async (id) => {
+              if (!workspace?.id) return;
+              const order: ActivationStepId[] = [
+                "permission",
+                "required",
+                "verified",
+                "webhooks",
+                "activate",
+              ];
+              const tail = order.slice(order.indexOf(id));
+              const stepError = steps.find((s) => s.id === id)?.error;
+              try {
+                const res = await logRetryFn({
                   data: {
                     workspaceId: workspace.id,
                     scope: "from_step",
-                    stepIds: [id],
+                    stepIds: tail,
                     fromStep: id,
                     previousErrors: stepError ? { [id]: stepError } : {},
                   },
-                }).catch(() => undefined);
+                });
+                runActivation(id, res.grant);
+              } catch (e) {
+                toast.error(
+                  e instanceof Error ? e.message : "Could not authorize retry.",
+                );
               }
-              runActivation(id);
             }}
-            onRetryFailed={(ids) => {
+            onRetryFailed={async (ids) => {
+              if (!workspace?.id) return;
               const order: ActivationStepId[] = [
                 "permission",
                 "required",
@@ -573,13 +601,14 @@ function OnboardingCompletePage() {
               const earliest = ids
                 .slice()
                 .sort((a, b) => order.indexOf(a) - order.indexOf(b))[0];
-              if (workspace?.id) {
-                const previousErrors = Object.fromEntries(
-                  steps
-                    .filter((s) => ids.includes(s.id) && s.error)
-                    .map((s) => [s.id, s.error!]),
-                );
-                logRetryFn({
+              if (!earliest) return;
+              const previousErrors = Object.fromEntries(
+                steps
+                  .filter((s) => ids.includes(s.id) && s.error)
+                  .map((s) => [s.id, s.error!]),
+              );
+              try {
+                const res = await logRetryFn({
                   data: {
                     workspaceId: workspace.id,
                     scope: "failed_only",
@@ -587,9 +616,13 @@ function OnboardingCompletePage() {
                     fromStep: earliest,
                     previousErrors,
                   },
-                }).catch(() => undefined);
+                });
+                runActivation(earliest, res.grant);
+              } catch (e) {
+                toast.error(
+                  e instanceof Error ? e.message : "Could not authorize retry.",
+                );
               }
-              if (earliest) runActivation(earliest);
             }}
             onGoToDashboard={() => navigate({ to: "/app" })}
           />
