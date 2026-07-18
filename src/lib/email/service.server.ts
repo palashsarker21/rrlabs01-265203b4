@@ -235,13 +235,29 @@ export async function sendEmail<P>(opts: SendOptions<P>): Promise<SendResult> {
     return { ok: false, error: "Email service unavailable.", code: "unknown" };
   }
 
+  // Build a signed unsubscribe URL for opt-outable categories only.
+  const category = categoryForTemplate(opts.template);
+  const publicBase =
+    process.env.PUBLIC_APP_URL ?? process.env.APP_URL ?? "https://rrlabs.online";
+  const unsubscribeUrl = category ? buildUnsubscribeUrl(primary, publicBase) : undefined;
+  if (unsubscribeUrl) {
+    const footerHtml = `<div style="margin-top:24px;padding-top:16px;border-top:1px solid #e2e8f0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:12px;color:#64748b;line-height:1.5">You're receiving this because you subscribed to ${category} emails from RRLabs. <a href="${unsubscribeUrl}" style="color:#0ea5a4">Unsubscribe or manage preferences</a>.</div>`;
+    const footerText = `\n\n—\nYou're receiving this because you subscribed to ${category} emails from RRLabs.\nUnsubscribe or manage preferences: ${unsubscribeUrl}\n`;
+    if (rendered.html.includes("</body>")) {
+      rendered.html = rendered.html.replace("</body>", `${footerHtml}</body>`);
+    } else {
+      rendered.html = `${rendered.html}${footerHtml}`;
+    }
+    rendered.text = `${rendered.text}${footerText}`;
+  }
+
   const { id: logId, alreadyExists } = await insertLog({
     workspace_id: opts.workspaceId ?? null,
     template: String(opts.template),
     recipient: primary,
     subject: rendered.subject,
     idempotency_key: opts.idempotencyKey,
-    metadata: { ...(opts.metadata ?? {}), tags: opts.tags ?? null, cc_count: recipients.length - 1 },
+    metadata: { ...(opts.metadata ?? {}), tags: opts.tags ?? null, cc_count: recipients.length - 1, category },
   });
 
   if (alreadyExists) {
@@ -260,6 +276,7 @@ export async function sendEmail<P>(opts: SendOptions<P>): Promise<SendResult> {
         text: rendered.text,
         replyTo: opts.replyTo,
         tags: { template: String(opts.template), ...(opts.tags ?? {}) },
+        unsubscribeUrl,
       });
       await updateLog(logId, {
         status: "sent",
