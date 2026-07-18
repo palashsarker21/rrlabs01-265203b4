@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { listEmailTemplates } from "@/lib/email.functions";
 import { getSandboxStatusFn, sendSandboxTestFn } from "@/lib/email-sandbox.functions";
+import { checkRecipientDeliverability, type RecipientCheckReport } from "@/lib/recipient-dns.functions";
 import { TEMPLATE_SAMPLES } from "@/lib/email/template-samples";
 
 export const Route = createFileRoute("/_authenticated/admin/email/sandbox")({
@@ -105,6 +106,7 @@ function EmailSandboxPage() {
   const listTpl = useServerFn(listEmailTemplates);
   const statusFn = useServerFn(getSandboxStatusFn);
   const sendFn = useServerFn(sendSandboxTestFn);
+  const checkRecipientFn = useServerFn(checkRecipientDeliverability);
 
   const templatesQ = useQuery({
     queryKey: ["email", "templates"],
@@ -126,6 +128,10 @@ function EmailSandboxPage() {
   const [historySearch, setHistorySearch] = useState("");
   const [expandedHistoryId, setExpandedHistoryId] = useState<string | null>(null);
   const [autoRunId, setAutoRunId] = useState<string | null>(null);
+  const [recipientCheck, setRecipientCheck] = useState<RecipientCheckReport | null>(null);
+  const [recipientCheckError, setRecipientCheckError] = useState<string | null>(null);
+  const [recipientChecking, setRecipientChecking] = useState(false);
+  const [ackWarnings, setAckWarnings] = useState(false);
 
   useEffect(() => {
     const sample = TEMPLATE_SAMPLES[selected]?.data ?? {};
@@ -148,6 +154,48 @@ function EmailSandboxPage() {
   const status = statusQ.data;
   const usage = status?.usage;
   const limits = status?.limits;
+  const recipient = status?.recipient ?? null;
+
+  // Auto-run a recipient DNS check whenever the locked recipient changes.
+  useEffect(() => {
+    if (!recipient) return;
+    let cancelled = false;
+    setRecipientChecking(true);
+    setRecipientCheckError(null);
+    setAckWarnings(false);
+    checkRecipientFn({ data: { recipient } })
+      .then((r) => {
+        if (!cancelled) setRecipientCheck(r);
+      })
+      .catch((err: unknown) => {
+        if (!cancelled) {
+          setRecipientCheck(null);
+          setRecipientCheckError(err instanceof Error ? err.message : String(err));
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setRecipientChecking(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [recipient, checkRecipientFn]);
+
+  async function recheckRecipient() {
+    if (!recipient) return;
+    setRecipientChecking(true);
+    setRecipientCheckError(null);
+    try {
+      const r = await checkRecipientFn({ data: { recipient } });
+      setRecipientCheck(r);
+      setAckWarnings(false);
+    } catch (err) {
+      setRecipientCheck(null);
+      setRecipientCheckError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setRecipientChecking(false);
+    }
+  }
 
   const sendMut = useMutation({
     mutationFn: async () => {
@@ -187,6 +235,9 @@ function EmailSandboxPage() {
     if (!autoRunId) return;
     if (!parsed.ok || sendMut.isPending) return;
     if (!status?.config?.ok || !status?.recipient) return;
+    if (recipientChecking) return;
+    if (recipientCheck?.overall === "critical") return;
+    if (recipientCheck?.overall === "warning" && !ackWarnings) return;
     const id = autoRunId;
     setAutoRunId(null);
     sendMut.mutate(undefined, {
@@ -320,6 +371,106 @@ function EmailSandboxPage() {
         </section>
       ) : null}
 
+      {/* Recipient deliverability */}
+      <section className="rounded-lg border p-4 space-y-3" aria-labelledby="recip-check-h">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <h2 id="recip-check-h" className="font-semibold">Recipient deliverability</h2>
+            <p className="text-xs text-muted-foreground">
+              MX, A/AAAA, SPF and DMARC lookup for{" "}
+              <span className="font-mono">{recipient ?? "your locked recipient"}</span>. Runs
+              server-side over DNS-over-HTTPS before each send.
+            </p>
+          </div>
+          <button
+            type="button"
+            className="rounded-md border px-3 py-1.5 text-xs font-medium hover:bg-muted disabled:opacity-50"
+            onClick={recheckRecipient}
+            disabled={!recipient || recipientChecking}
+          >
+            {recipientChecking ? "Checking…" : "Re-check"}
+          </button>
+        </div>
+
+        {recipientCheckError ? (
+          <p className="text-sm text-rose-700">{recipientCheckError}</p>
+        ) : recipientChecking && !recipientCheck ? (
+          <p className="text-sm text-muted-foreground">Resolving DNS records…</p>
+        ) : recipientCheck ? (
+          <>
+            <div className="flex flex-wrap items-center gap-2 text-sm">
+              <Badge
+                tone={
+                  recipientCheck.overall === "critical"
+                    ? "rose"
+                    : recipientCheck.overall === "warning"
+                      ? "amber"
+                      : "emerald"
+                }
+              >
+                {recipientCheck.overall === "ok"
+                  ? "Looks deliverable"
+                  : recipientCheck.overall === "warning"
+                    ? "Warnings"
+                    : "Likely undeliverable"}
+              </Badge>
+              {recipientCheck.domain ? (
+                <span className="text-xs text-muted-foreground">
+                  domain <span className="font-mono">{recipientCheck.domain}</span>
+                </span>
+              ) : null}
+              {recipientCheck.suggestion ? (
+                <span className="text-xs text-amber-700">
+                  Did you mean{" "}
+                  <span className="font-mono">{recipientCheck.suggestion}</span>?
+                </span>
+              ) : null}
+            </div>
+            <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              {recipientCheck.checks.map((c) => {
+                const tone =
+                  c.severity === "ok"
+                    ? "text-emerald-700"
+                    : c.severity === "info"
+                      ? "text-muted-foreground"
+                      : c.severity === "warning"
+                        ? "text-amber-700"
+                        : "text-rose-700";
+                return (
+                  <li key={c.id} className="rounded border p-2 text-xs">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-medium">{c.label}</span>
+                      <span className={tone}>{c.severity}</span>
+                    </div>
+                    {c.detail ? (
+                      <p className="mt-1 break-words text-muted-foreground">{c.detail}</p>
+                    ) : null}
+                  </li>
+                );
+              })}
+            </ul>
+            {recipientCheck.overall !== "ok" ? (
+              <label className="flex items-start gap-2 rounded border border-amber-200 bg-amber-50 p-2 text-xs text-amber-900">
+                <input
+                  type="checkbox"
+                  className="mt-0.5"
+                  checked={ackWarnings}
+                  onChange={(e) => setAckWarnings(e.target.checked)}
+                />
+                <span>
+                  I understand the deliverability warnings above and want to send anyway.
+                </span>
+              </label>
+            ) : null}
+          </>
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            Recipient will be checked automatically when it loads.
+          </p>
+        )}
+      </section>
+
+
       {/* Composer */}
       <section className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <div className="rounded-lg border p-4 space-y-3">
@@ -364,11 +515,23 @@ function EmailSandboxPage() {
               !parsed.ok ||
               sendMut.isPending ||
               !status?.config?.ok ||
-              !status?.recipient
+              !status?.recipient ||
+              recipientChecking ||
+              recipientCheck?.overall === "critical" ||
+              (recipientCheck?.overall === "warning" && !ackWarnings)
             }
           >
             {sendMut.isPending ? "Sending…" : "Send test email"}
           </button>
+          {recipientCheck?.overall === "critical" ? (
+            <p className="text-xs text-rose-700">
+              Sending is blocked because the recipient domain cannot receive mail.
+            </p>
+          ) : recipientCheck?.overall === "warning" && !ackWarnings ? (
+            <p className="text-xs text-amber-700">
+              Acknowledge the deliverability warnings above to enable sending.
+            </p>
+          ) : null}
         </div>
 
         {/* Diagnostics */}
