@@ -62,6 +62,7 @@ import { Route as ApiPublicWebhooksResendRouteImport } from './routes/api/public
 import { Route as ApiPublicWebhooksLemonsqueezyRouteImport } from './routes/api/public/webhooks/lemonsqueezy'
 import { Route as ApiPublicHooksSuccessFeeMonthlyRouteImport } from './routes/api/public/hooks/success-fee-monthly'
 import { Route as ApiPublicHooksRecoveryCadenceRouteImport } from './routes/api/public/hooks/recovery-cadence'
+import { Route as AuthenticatedAdminEmailPreviewRouteImport } from './routes/_authenticated/admin.email.preview'
 import { Route as ApiPublicWebhooksProviderIntegrationIdRouteImport } from './routes/api/public/webhooks/$provider.$integrationId'
 
 const UnsubscribeRoute = UnsubscribeRouteImport.update({
@@ -340,6 +341,12 @@ const ApiPublicHooksRecoveryCadenceRoute =
     path: '/api/public/hooks/recovery-cadence',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AuthenticatedAdminEmailPreviewRoute =
+  AuthenticatedAdminEmailPreviewRouteImport.update({
+    id: '/preview',
+    path: '/preview',
+    getParentRoute: () => AuthenticatedAdminEmailRoute,
+  } as any)
 const ApiPublicWebhooksProviderIntegrationIdRoute =
   ApiPublicWebhooksProviderIntegrationIdRouteImport.update({
     id: '/api/public/webhooks/$provider/$integrationId',
@@ -386,7 +393,7 @@ export interface FileRoutesByFullPath {
   '/docs/api': typeof DocsApiRoute
   '/error/$code': typeof ErrorCodeRoute
   '/blog/': typeof BlogIndexRoute
-  '/admin/email': typeof AuthenticatedAdminEmailRoute
+  '/admin/email': typeof AuthenticatedAdminEmailRouteWithChildren
   '/billing/statements': typeof AuthenticatedBillingStatementsRoute
   '/checkout/status': typeof AuthenticatedCheckoutStatusRoute
   '/getting-started/complete': typeof AuthenticatedGettingStartedCompleteRoute
@@ -395,6 +402,7 @@ export interface FileRoutesByFullPath {
   '/api/public/health': typeof ApiPublicHealthRoute
   '/blog/category/$category': typeof BlogCategoryCategoryRoute
   '/blog/tag/$tag': typeof BlogTagTagRoute
+  '/admin/email/preview': typeof AuthenticatedAdminEmailPreviewRoute
   '/api/public/hooks/recovery-cadence': typeof ApiPublicHooksRecoveryCadenceRoute
   '/api/public/hooks/success-fee-monthly': typeof ApiPublicHooksSuccessFeeMonthlyRoute
   '/api/public/webhooks/lemonsqueezy': typeof ApiPublicWebhooksLemonsqueezyRoute
@@ -440,7 +448,7 @@ export interface FileRoutesByTo {
   '/docs/api': typeof DocsApiRoute
   '/error/$code': typeof ErrorCodeRoute
   '/blog': typeof BlogIndexRoute
-  '/admin/email': typeof AuthenticatedAdminEmailRoute
+  '/admin/email': typeof AuthenticatedAdminEmailRouteWithChildren
   '/billing/statements': typeof AuthenticatedBillingStatementsRoute
   '/checkout/status': typeof AuthenticatedCheckoutStatusRoute
   '/getting-started/complete': typeof AuthenticatedGettingStartedCompleteRoute
@@ -449,6 +457,7 @@ export interface FileRoutesByTo {
   '/api/public/health': typeof ApiPublicHealthRoute
   '/blog/category/$category': typeof BlogCategoryCategoryRoute
   '/blog/tag/$tag': typeof BlogTagTagRoute
+  '/admin/email/preview': typeof AuthenticatedAdminEmailPreviewRoute
   '/api/public/hooks/recovery-cadence': typeof ApiPublicHooksRecoveryCadenceRoute
   '/api/public/hooks/success-fee-monthly': typeof ApiPublicHooksSuccessFeeMonthlyRoute
   '/api/public/webhooks/lemonsqueezy': typeof ApiPublicWebhooksLemonsqueezyRoute
@@ -497,7 +506,7 @@ export interface FileRoutesById {
   '/docs/api': typeof DocsApiRoute
   '/error/$code': typeof ErrorCodeRoute
   '/blog/': typeof BlogIndexRoute
-  '/_authenticated/admin/email': typeof AuthenticatedAdminEmailRoute
+  '/_authenticated/admin/email': typeof AuthenticatedAdminEmailRouteWithChildren
   '/_authenticated/billing/statements': typeof AuthenticatedBillingStatementsRoute
   '/_authenticated/checkout/status': typeof AuthenticatedCheckoutStatusRoute
   '/_authenticated/getting-started/complete': typeof AuthenticatedGettingStartedCompleteRoute
@@ -506,6 +515,7 @@ export interface FileRoutesById {
   '/api/public/health': typeof ApiPublicHealthRoute
   '/blog/category/$category': typeof BlogCategoryCategoryRoute
   '/blog/tag/$tag': typeof BlogTagTagRoute
+  '/_authenticated/admin/email/preview': typeof AuthenticatedAdminEmailPreviewRoute
   '/api/public/hooks/recovery-cadence': typeof ApiPublicHooksRecoveryCadenceRoute
   '/api/public/hooks/success-fee-monthly': typeof ApiPublicHooksSuccessFeeMonthlyRoute
   '/api/public/webhooks/lemonsqueezy': typeof ApiPublicWebhooksLemonsqueezyRoute
@@ -563,6 +573,7 @@ export interface FileRouteTypes {
     | '/api/public/health'
     | '/blog/category/$category'
     | '/blog/tag/$tag'
+    | '/admin/email/preview'
     | '/api/public/hooks/recovery-cadence'
     | '/api/public/hooks/success-fee-monthly'
     | '/api/public/webhooks/lemonsqueezy'
@@ -617,6 +628,7 @@ export interface FileRouteTypes {
     | '/api/public/health'
     | '/blog/category/$category'
     | '/blog/tag/$tag'
+    | '/admin/email/preview'
     | '/api/public/hooks/recovery-cadence'
     | '/api/public/hooks/success-fee-monthly'
     | '/api/public/webhooks/lemonsqueezy'
@@ -673,6 +685,7 @@ export interface FileRouteTypes {
     | '/api/public/health'
     | '/blog/category/$category'
     | '/blog/tag/$tag'
+    | '/_authenticated/admin/email/preview'
     | '/api/public/hooks/recovery-cadence'
     | '/api/public/hooks/success-fee-monthly'
     | '/api/public/webhooks/lemonsqueezy'
@@ -1086,6 +1099,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksRecoveryCadenceRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/admin/email/preview': {
+      id: '/_authenticated/admin/email/preview'
+      path: '/preview'
+      fullPath: '/admin/email/preview'
+      preLoaderRoute: typeof AuthenticatedAdminEmailPreviewRouteImport
+      parentRoute: typeof AuthenticatedAdminEmailRoute
+    }
     '/api/public/webhooks/$provider/$integrationId': {
       id: '/api/public/webhooks/$provider/$integrationId'
       path: '/api/public/webhooks/$provider/$integrationId'
@@ -1096,12 +1116,26 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedAdminEmailRouteChildren {
+  AuthenticatedAdminEmailPreviewRoute: typeof AuthenticatedAdminEmailPreviewRoute
+}
+
+const AuthenticatedAdminEmailRouteChildren: AuthenticatedAdminEmailRouteChildren =
+  {
+    AuthenticatedAdminEmailPreviewRoute: AuthenticatedAdminEmailPreviewRoute,
+  }
+
+const AuthenticatedAdminEmailRouteWithChildren =
+  AuthenticatedAdminEmailRoute._addFileChildren(
+    AuthenticatedAdminEmailRouteChildren,
+  )
+
 interface AuthenticatedAdminRouteChildren {
-  AuthenticatedAdminEmailRoute: typeof AuthenticatedAdminEmailRoute
+  AuthenticatedAdminEmailRoute: typeof AuthenticatedAdminEmailRouteWithChildren
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
-  AuthenticatedAdminEmailRoute: AuthenticatedAdminEmailRoute,
+  AuthenticatedAdminEmailRoute: AuthenticatedAdminEmailRouteWithChildren,
 }
 
 const AuthenticatedAdminRouteWithChildren =

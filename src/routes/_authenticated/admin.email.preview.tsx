@@ -10,7 +10,7 @@ import {
 } from "@/lib/email-preview.functions";
 import { TEMPLATE_SAMPLES } from "@/lib/email/template-samples";
 
-export const Route = createFileRoute("/_authenticated/admin/email.preview")({
+export const Route = createFileRoute("/_authenticated/admin/email/preview")({
   head: () => ({
     meta: [{ title: "Email templates — Admin — RRLabs" }],
   }),
