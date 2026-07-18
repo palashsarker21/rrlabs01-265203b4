@@ -124,52 +124,131 @@ export const getDeliveryFn = createServerFn({ method: "POST" })
     return { log, events: events ?? [], replays: replays ?? [], replayOf };
   });
 
+async function replayLogById(
+  logId: string,
+  actorUserId: string,
+): Promise<{ result: Awaited<ReturnType<typeof import("./email/service.server").sendEmail>>; durationMs: number; replayOf: string }> {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+  const { data: log, error } = await supabaseAdmin
+    .from("email_logs")
+    .select("id,template,recipient,workspace_id,metadata")
+    .eq("id", logId)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!log) throw new Error("Delivery not found");
+
+  const { isTemplateName } = await import("./email/templates/registry");
+  if (!isTemplateName(log.template)) {
+    throw new Error(`Template "${log.template}" is no longer available.`);
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const meta = (log.metadata ?? {}) as Record<string, any>;
+  let payload = meta.data;
+  if (!payload || typeof payload !== "object") {
+    const { TEMPLATE_SAMPLES } = await import("./email/template-samples");
+    payload = TEMPLATE_SAMPLES[log.template]?.data ?? {};
+  }
+
+  const { sendEmail } = await import("./email/service.server");
+  const started = Date.now();
+  const result = await sendEmail<Record<string, unknown>>({
+    template: log.template as never,
+    to: log.recipient,
+    data: payload as Record<string, unknown>,
+    workspaceId: log.workspace_id,
+    metadata: {
+      [REPLAY_TAG]: true,
+      replay_of: logId,
+      replayed_by: actorUserId,
+      data: payload,
+    },
+  });
+  const durationMs = Date.now() - started;
+  return { result, durationMs, replayOf: logId };
+}
+
 export const replayDeliveryFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((v: unknown) => IdInput.parse(v))
   .handler(async ({ data, context }) => {
     await assertSuperAdmin(context);
+    return replayLogById(data.id, context.userId);
+  });
+
+const BulkReplayInput = z.object({
+  ids: z.array(z.string().uuid()).max(50).optional().default([]),
+  messageIds: z.array(z.string().trim().min(1)).max(50).optional().default([]),
+});
+
+export const bulkReplayDeliveriesFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((v: unknown) => BulkReplayInput.parse(v))
+  .handler(async ({ data, context }) => {
+    await assertSuperAdmin(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    const { data: log, error } = await supabaseAdmin
-      .from("email_logs")
-      .select("id,template,recipient,workspace_id,metadata")
-      .eq("id", data.id)
-      .maybeSingle();
-    if (error) throw new Error(error.message);
-    if (!log) throw new Error("Delivery not found");
-
-    const { isTemplateName } = await import("./email/templates/registry");
-    if (!isTemplateName(log.template)) {
-      throw new Error(`Template "${log.template}" is no longer available.`);
+    // Resolve any provided provider_message_id values to log IDs.
+    const resolved = new Map<string, string>(); // key -> logId
+    for (const id of data.ids) resolved.set(id, id);
+    if (data.messageIds.length > 0) {
+      const { data: rows, error } = await supabaseAdmin
+        .from("email_logs")
+        .select("id,provider_message_id")
+        .in("provider_message_id", data.messageIds);
+      if (error) throw new Error(error.message);
+      for (const r of rows ?? []) {
+        if (r.provider_message_id) resolved.set(String(r.provider_message_id), r.id);
+      }
+      for (const mid of data.messageIds) {
+        if (!resolved.has(mid)) resolved.set(mid, "__notfound__");
+      }
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const meta = (log.metadata ?? {}) as Record<string, any>;
-    let payload = meta.data;
-    if (!payload || typeof payload !== "object") {
-      const { TEMPLATE_SAMPLES } = await import("./email/template-samples");
-      payload = TEMPLATE_SAMPLES[log.template]?.data ?? {};
+    if (resolved.size === 0) throw new Error("Provide at least one delivery to replay.");
+    if (resolved.size > 50) throw new Error("Bulk replay is capped at 50 items per request.");
+
+    type Item = {
+      input: string;
+      logId: string | null;
+      ok: boolean;
+      newLogId?: string;
+      durationMs?: number;
+      error?: string;
+    };
+    const items: Item[] = [];
+
+    for (const [input, logId] of resolved.entries()) {
+      if (logId === "__notfound__") {
+        items.push({ input, logId: null, ok: false, error: "No delivery found for that message ID." });
+        continue;
+      }
+      try {
+        const r = await replayLogById(logId, context.userId);
+        items.push({
+          input,
+          logId,
+          ok: Boolean(r.result.ok),
+          newLogId: r.result.ok ? r.result.id : undefined,
+          durationMs: r.durationMs,
+          error: r.result.ok ? undefined : r.result.error,
+        });
+      } catch (err) {
+        items.push({
+          input,
+          logId,
+          ok: false,
+          error: err instanceof Error ? err.message : String(err),
+        });
+      }
     }
 
-    const { sendEmail } = await import("./email/service.server");
-    const started = Date.now();
-    const result = await sendEmail<Record<string, unknown>>({
-      template: log.template as never,
-      to: log.recipient,
-      data: payload as Record<string, unknown>,
-      workspaceId: log.workspace_id,
-      metadata: {
-        [REPLAY_TAG]: true,
-        replay_of: data.id,
-        replayed_by: context.userId,
-        data: payload,
-      },
-    });
-    const durationMs = Date.now() - started;
-
-    return { result, durationMs, replayOf: data.id };
+    const succeeded = items.filter((i) => i.ok).length;
+    const failed = items.length - succeeded;
+    return { total: items.length, succeeded, failed, items };
   });
+
 
 export const listTemplateOptionsFn = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
