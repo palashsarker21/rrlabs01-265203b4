@@ -260,7 +260,15 @@ function OnboardingCompletePage() {
     }
     setDownloadingReport(true);
     try {
-      const res = await reportFn({ data: { workspaceId: workspace.id } });
+      const activationFailures = steps
+        .filter((s) => s.state === "failed" && s.error)
+        .map((s) => ({ stepId: s.id, label: s.label, error: s.error! }));
+      const res = await reportFn({
+        data: {
+          workspaceId: workspace.id,
+          ...(activationFailures.length > 0 ? { activationFailures } : {}),
+        },
+      });
       const bin = atob(res.base64);
       const bytes = new Uint8Array(bin.length);
       for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
