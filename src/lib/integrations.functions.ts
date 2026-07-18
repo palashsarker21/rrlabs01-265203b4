@@ -7,6 +7,7 @@ import { ADAPTERS, getAdapterInfo } from "./integrations/catalog";
 import { assertCanConnect, PlanLimitError } from "./plan-limits.server";
 import { integrationKindFor, type ProviderKind } from "./providers/kinds";
 import { fail, type SaveResult } from "./integrations/errors";
+import { validateRequiredFields } from "./integrations/validate-required";
 
 const workspaceIdSchema = z.object({ workspaceId: z.string().uuid() });
 
@@ -131,19 +132,13 @@ export const saveIntegration = createServerFn({ method: "POST" })
 
     // Validate required fields — return the exact field key so the UI can
     // highlight the offending input inline.
-    for (const field of requiredFields) {
-      if (!data.credentials[field.key]?.toString().trim()) {
-        return fail(
-          "missing_field",
-          `${field.label ?? field.key} is required to connect ${providerName}.`,
-          {
-            field: field.key,
-            hint: "Fill in every field marked with * and we'll verify the connection automatically.",
-            docsUrl,
-          },
-        );
-      }
-    }
+    const missing = validateRequiredFields(
+      providerName,
+      requiredFields,
+      data.credentials,
+      docsUrl,
+    );
+    if (missing) return missing;
 
     // Test against upstream provider.
     const { getAdapter } = await import("./integrations/registry.server");
