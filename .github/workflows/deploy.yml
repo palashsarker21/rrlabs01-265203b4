@@ -103,8 +103,20 @@ jobs:
         env: { RETRIES: "3", BASE_DELAY: "10" }
         run: bash scripts/ci/retry.sh "bun install" -- bun install --frozen-lockfile
 
+      - name: Prepare log dir
+        run: mkdir -p /tmp/ci-logs
+
       - name: Validate migration files
-        run: bash scripts/ci/validate-migrations.sh
+        run: bash scripts/ci/validate-migrations.sh 2>&1 | tee /tmp/ci-logs/validate-migrations.log
+
+      - name: Upload validation logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase2-app-validate-logs
+          path: /tmp/ci-logs/
+          retention-days: 30
+          if-no-files-found: warn
 
       - name: Lint
         run: bun run lint
