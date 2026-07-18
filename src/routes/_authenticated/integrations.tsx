@@ -681,7 +681,7 @@ function ProviderCard({
   // that as "Save failed" without clearing the form.
   useEffect(() => {
     if (!expanded || disabled || overLimit) return;
-    if (!allRequiredFilled) {
+    if (!allRequiredFilled || hasFieldErrors) {
       setAutoStatus("idle");
       return;
     }
