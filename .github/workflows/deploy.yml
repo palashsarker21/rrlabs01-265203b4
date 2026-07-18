@@ -5,9 +5,16 @@ on:
     branches: [main]
   workflow_dispatch:
 
+## Concurrency strategy
+# Workflow-level group covers the pre-migration phases (verify + build).
+# Rapid successive pushes cancel superseded pre-migration runs so we don't
+# waste minutes on stale commits. Once a run reaches the `migrate` job (or
+# later), that job re-declares its own concurrency group with
+# cancel-in-progress: false, which QUEUES any newer run behind the in-flight
+# database change. A migration or rollback is never interrupted mid-flight.
 concurrency:
-  group: deploy-production
-  cancel-in-progress: false
+  group: deploy-production-pre-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
@@ -120,6 +127,12 @@ jobs:
     runs-on: ubuntu-latest
     needs: app-validate
     environment: production
+    # Serialize DB-mutating work across the ENTIRE repo (all refs).
+    # cancel-in-progress: false queues concurrent runs so an in-flight
+    # migration or rollback is never interrupted.
+    concurrency:
+      group: deploy-production-apply
+      cancel-in-progress: false
     outputs:
       snapshot_ok: ${{ steps.snapshot.outcome }}
       apply_ok:    ${{ steps.apply.outcome }}
@@ -219,6 +232,12 @@ jobs:
     name: Phase 4 · Schema Drift & Security Checks
     runs-on: ubuntu-latest
     needs: migrate
+    # Same serialization group as migrate: post-migration checks hold the
+    # production lock so a newer push can't start applying migrations while
+    # we're still validating (or rolling back) the current deployment.
+    concurrency:
+      group: deploy-production-apply
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
 
@@ -252,6 +271,11 @@ jobs:
     runs-on: ubuntu-latest
     needs: [migrate, post-migrate-validate]
     if: failure() && needs.migrate.result == 'success' && needs.post-migrate-validate.result == 'failure'
+    # Rollback MUST hold the same production lock — a queued newer run
+    # cannot start migrating until this rollback finishes.
+    concurrency:
+      group: deploy-production-apply
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
 
