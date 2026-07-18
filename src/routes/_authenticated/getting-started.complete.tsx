@@ -67,6 +67,7 @@ function OnboardingCompletePage() {
   const catalogFn = useServerFn(listProviderCatalog);
   const activateFn = useServerFn(activateWorkspace);
   const reportFn = useServerFn(generateOnboardingReport);
+  const logRetryFn = useServerFn(logActivationRetry);
   const [downloadingReport, setDownloadingReport] = useState(false);
 
   const { data: workspace, isLoading: wsLoading } = useQuery({
