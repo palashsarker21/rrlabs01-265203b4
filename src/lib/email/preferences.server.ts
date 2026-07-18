@@ -111,17 +111,6 @@ export function verifyUnsubscribeToken(token: string): { email: string } | null 
  * DB helpers
  * ------------------------------------------------------------------ */
 
-export type PreferenceMap = Record<EmailCategory, boolean>;
-
-export function defaultPreferences(): PreferenceMap {
-  return {
-    billing: true,
-    analytics: true,
-    recovery: true,
-    product: true,
-    marketing: true,
-  };
-}
 
 export async function loadPreferencesFor(email: string): Promise<PreferenceMap> {
   const prefs = defaultPreferences();
