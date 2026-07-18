@@ -140,21 +140,19 @@ function EmailSandboxPage() {
         <section className="rounded-lg border p-4">
           <h2 className="mb-2 font-semibold">DNS checks</h2>
           <ul className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-            {status.dns.map((d) => (
+            {status.dns.map((d) => {
+              const state = d.valid ? "ok" : d.found ? "warning" : "missing";
+              const tone =
+                state === "ok"
+                  ? "text-emerald-700"
+                  : state === "warning"
+                    ? "text-amber-700"
+                    : "text-rose-700";
+              return (
               <li key={d.record} className="rounded border p-2 text-xs">
                 <div className="flex items-center justify-between">
                   <span className="font-mono">{d.record}</span>
-                  <span
-                    className={
-                      d.status === "ok"
-                        ? "text-emerald-700"
-                        : d.status === "warning"
-                          ? "text-amber-700"
-                          : "text-rose-700"
-                    }
-                  >
-                    {d.status}
-                  </span>
+                  <span className={tone}>{state}</span>
                 </div>
                 {d.note ? <p className="mt-1 text-muted-foreground">{d.note}</p> : null}
               </li>
