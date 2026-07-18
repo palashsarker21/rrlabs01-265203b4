@@ -271,6 +271,11 @@ jobs:
     runs-on: ubuntu-latest
     needs: [migrate, post-migrate-validate]
     if: failure() && needs.migrate.result == 'success' && needs.post-migrate-validate.result == 'failure'
+    # Rollback MUST hold the same production lock — a queued newer run
+    # cannot start migrating until this rollback finishes.
+    concurrency:
+      group: deploy-production-apply
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
 
