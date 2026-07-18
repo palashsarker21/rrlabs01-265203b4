@@ -232,6 +232,12 @@ jobs:
     name: Phase 4 · Schema Drift & Security Checks
     runs-on: ubuntu-latest
     needs: migrate
+    # Same serialization group as migrate: post-migration checks hold the
+    # production lock so a newer push can't start applying migrations while
+    # we're still validating (or rolling back) the current deployment.
+    concurrency:
+      group: deploy-production-apply
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
 
