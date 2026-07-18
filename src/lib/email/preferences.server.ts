@@ -12,40 +12,16 @@
 import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import type { TemplateName } from "./templates/registry";
+import {
+  EMAIL_CATEGORIES,
+  EMAIL_CATEGORY_LABELS,
+  defaultPreferences,
+  type EmailCategory,
+  type PreferenceMap,
+} from "./preferences";
 
-export const EMAIL_CATEGORIES = [
-  "billing",
-  "analytics",
-  "recovery",
-  "product",
-  "marketing",
-] as const;
-export type EmailCategory = (typeof EMAIL_CATEGORIES)[number];
-
-export const EMAIL_CATEGORY_LABELS: Record<EmailCategory, { label: string; description: string }> =
-  {
-    billing: {
-      label: "Billing & payments",
-      description:
-        "Invoices, payment receipts, monthly success-fee statements, and trial reminders.",
-    },
-    analytics: {
-      label: "Analytics & reports",
-      description: "Weekly recovery reports and recovery summary emails.",
-    },
-    recovery: {
-      label: "Recovery activity",
-      description: "Notifications about the recovery engine's activity for your workspace.",
-    },
-    product: {
-      label: "Product updates",
-      description: "Feature announcements, roadmap news, and product changelogs.",
-    },
-    marketing: {
-      label: "Tips & offers",
-      description: "Best-practice tips, guides, and occasional promotional offers.",
-    },
-  };
+export { EMAIL_CATEGORIES, EMAIL_CATEGORY_LABELS, defaultPreferences };
+export type { EmailCategory, PreferenceMap };
 
 /**
  * Map every template to a category — or `null` for transactional emails
