@@ -368,6 +368,106 @@ function EmailSandboxPage() {
         </section>
       ) : null}
 
+      {/* Recipient deliverability */}
+      <section className="rounded-lg border p-4 space-y-3" aria-labelledby="recip-check-h">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <h2 id="recip-check-h" className="font-semibold">Recipient deliverability</h2>
+            <p className="text-xs text-muted-foreground">
+              MX, A/AAAA, SPF and DMARC lookup for{" "}
+              <span className="font-mono">{recipient ?? "your locked recipient"}</span>. Runs
+              server-side over DNS-over-HTTPS before each send.
+            </p>
+          </div>
+          <button
+            type="button"
+            className="rounded-md border px-3 py-1.5 text-xs font-medium hover:bg-muted disabled:opacity-50"
+            onClick={recheckRecipient}
+            disabled={!recipient || recipientChecking}
+          >
+            {recipientChecking ? "Checking…" : "Re-check"}
+          </button>
+        </div>
+
+        {recipientCheckError ? (
+          <p className="text-sm text-rose-700">{recipientCheckError}</p>
+        ) : recipientChecking && !recipientCheck ? (
+          <p className="text-sm text-muted-foreground">Resolving DNS records…</p>
+        ) : recipientCheck ? (
+          <>
+            <div className="flex flex-wrap items-center gap-2 text-sm">
+              <Badge
+                tone={
+                  recipientCheck.overall === "critical"
+                    ? "rose"
+                    : recipientCheck.overall === "warning"
+                      ? "amber"
+                      : "emerald"
+                }
+              >
+                {recipientCheck.overall === "ok"
+                  ? "Looks deliverable"
+                  : recipientCheck.overall === "warning"
+                    ? "Warnings"
+                    : "Likely undeliverable"}
+              </Badge>
+              {recipientCheck.domain ? (
+                <span className="text-xs text-muted-foreground">
+                  domain <span className="font-mono">{recipientCheck.domain}</span>
+                </span>
+              ) : null}
+              {recipientCheck.suggestion ? (
+                <span className="text-xs text-amber-700">
+                  Did you mean{" "}
+                  <span className="font-mono">{recipientCheck.suggestion}</span>?
+                </span>
+              ) : null}
+            </div>
+            <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              {recipientCheck.checks.map((c) => {
+                const tone =
+                  c.severity === "ok"
+                    ? "text-emerald-700"
+                    : c.severity === "info"
+                      ? "text-muted-foreground"
+                      : c.severity === "warning"
+                        ? "text-amber-700"
+                        : "text-rose-700";
+                return (
+                  <li key={c.id} className="rounded border p-2 text-xs">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-medium">{c.label}</span>
+                      <span className={tone}>{c.severity}</span>
+                    </div>
+                    {c.detail ? (
+                      <p className="mt-1 break-words text-muted-foreground">{c.detail}</p>
+                    ) : null}
+                  </li>
+                );
+              })}
+            </ul>
+            {recipientCheck.overall !== "ok" ? (
+              <label className="flex items-start gap-2 rounded border border-amber-200 bg-amber-50 p-2 text-xs text-amber-900">
+                <input
+                  type="checkbox"
+                  className="mt-0.5"
+                  checked={ackWarnings}
+                  onChange={(e) => setAckWarnings(e.target.checked)}
+                />
+                <span>
+                  I understand the deliverability warnings above and want to send anyway.
+                </span>
+              </label>
+            ) : null}
+          </>
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            Recipient will be checked automatically when it loads.
+          </p>
+        )}
+      </section>
+
+
       {/* Composer */}
       <section className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <div className="rounded-lg border p-4 space-y-3">
