@@ -263,6 +263,15 @@ jobs:
             echo "</details>"
           } >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Upload migration logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase3-migrate-logs
+          path: /tmp/ci-logs/
+          retention-days: 30
+          if-no-files-found: warn
+
   # ------------------------------------------------------------------
   # PHASE 4 — Schema drift + security checks
   # ------------------------------------------------------------------
