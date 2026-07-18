@@ -349,6 +349,59 @@ function OnboardingCompletePage() {
     }
   }
 
+  const failedSteps = steps.filter((s) => s.state === "failed" && s.error);
+
+  async function copyFailureReport() {
+    if (failedSteps.length === 0) {
+      toast.info("No activation failures to copy.");
+      return;
+    }
+    const stamp = new Date().toISOString().replace("T", " ").slice(0, 19) + " UTC";
+    const header = [
+      "RRLabs — Activation failure report",
+      `Workspace: ${workspace?.name ?? "—"}${workspace?.id ? ` (${workspace.id})` : ""}`,
+      `Generated: ${stamp}`,
+      `Failed steps: ${failedSteps.length}`,
+      "",
+    ].join("\n");
+    const body = failedSteps
+      .map((s, i) => {
+        const started = s.startedAt
+          ? new Date(s.startedAt).toISOString().replace("T", " ").slice(0, 19) + " UTC"
+          : "—";
+        const finished = s.finishedAt
+          ? new Date(s.finishedAt).toISOString().replace("T", " ").slice(0, 19) + " UTC"
+          : "—";
+        return [
+          `${i + 1}. [${s.id}] ${s.label}`,
+          `   Started:  ${started}`,
+          `   Finished: ${finished}`,
+          `   Error:    ${s.error}`,
+        ].join("\n");
+      })
+      .join("\n\n");
+    const text = `${header}${body}\n`;
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+      }
+      toast.success("Failure report copied to clipboard");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to copy report.");
+    }
+  }
+
+
+
   const isRunning = phase === "running";
   const isComplete = phase === "success";
   const isFailed = phase === "failed";
