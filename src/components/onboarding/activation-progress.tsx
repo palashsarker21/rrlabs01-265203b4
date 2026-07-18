@@ -7,8 +7,11 @@ import {
   Rocket,
   RefreshCw,
   ArrowRight,
+  ChevronDown,
+  Copy,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
