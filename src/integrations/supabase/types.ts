@@ -999,6 +999,66 @@ export type Database = {
         }
         Relationships: []
       }
+      email_webhook_logs: {
+        Row: {
+          body_snippet: string | null
+          created_at: string
+          error: string | null
+          event_type: string | null
+          headers: Json
+          id: string
+          matched_log_id: string | null
+          outcome: string
+          payload: Json | null
+          processing_ms: number | null
+          provider: string
+          provider_message_id: string | null
+          received_at: string
+          signature_valid: boolean
+          status_code: number
+          svix_id: string | null
+          svix_timestamp: string | null
+        }
+        Insert: {
+          body_snippet?: string | null
+          created_at?: string
+          error?: string | null
+          event_type?: string | null
+          headers?: Json
+          id?: string
+          matched_log_id?: string | null
+          outcome: string
+          payload?: Json | null
+          processing_ms?: number | null
+          provider?: string
+          provider_message_id?: string | null
+          received_at?: string
+          signature_valid?: boolean
+          status_code: number
+          svix_id?: string | null
+          svix_timestamp?: string | null
+        }
+        Update: {
+          body_snippet?: string | null
+          created_at?: string
+          error?: string | null
+          event_type?: string | null
+          headers?: Json
+          id?: string
+          matched_log_id?: string | null
+          outcome?: string
+          payload?: Json | null
+          processing_ms?: number | null
+          provider?: string
+          provider_message_id?: string | null
+          received_at?: string
+          signature_valid?: boolean
+          status_code?: number
+          svix_id?: string | null
+          svix_timestamp?: string | null
+        }
+        Relationships: []
+      }
       feature_flags: {
         Row: {
           beta: boolean
