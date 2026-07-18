@@ -103,6 +103,7 @@ export function ActivationProgress({
   steps,
   onRetry,
   onRetryStep,
+  onRetryFailed,
   onGoToDashboard,
   isRunning,
   isComplete,
@@ -111,12 +112,14 @@ export function ActivationProgress({
   steps: ActivationStep[];
   onRetry: () => void;
   onRetryStep?: (id: ActivationStepId) => void;
+  onRetryFailed?: (ids: ActivationStepId[]) => void;
   onGoToDashboard: () => void;
   isRunning: boolean;
   isComplete: boolean;
   isFailed: boolean;
 }) {
-  const failed = steps.find((s) => s.state === "failed");
+  const failedSteps = steps.filter((s) => s.state === "failed");
+  const failed = failedSteps[0];
   const done = steps.filter((s) => s.state === "success").length;
   const pct = Math.round((done / steps.length) * 100);
 
@@ -193,6 +196,17 @@ export function ActivationProgress({
 
       {/* Footer actions */}
       <div className="mt-6 flex flex-wrap items-center justify-end gap-2">
+        {isFailed && failedSteps.length > 0 && onRetryFailed && (
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => onRetryFailed(failedSteps.map((s) => s.id))}
+            disabled={isRunning}
+          >
+            <RefreshCw className={cn("mr-2 h-3.5 w-3.5", isRunning && "animate-spin")} />
+            Retry failed step{failedSteps.length === 1 ? "" : "s"} ({failedSteps.length})
+          </Button>
+        )}
         {isFailed && (
           <Button size="sm" onClick={onRetry} disabled={isRunning}>
             <RefreshCw className={cn("mr-2 h-3.5 w-3.5", isRunning && "animate-spin")} />
