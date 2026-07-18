@@ -436,3 +436,54 @@ export const setSetupStep = createServerFn({ method: "POST" })
       .eq("id", data.workspaceId);
     return { ok: true as const };
   });
+
+/**
+ * Record that a user triggered a retry of the activation flow. Writes to
+ * `audit_logs` so admins can see who retried and which step IDs were
+ * targeted. Non-blocking: the retry itself proceeds regardless of audit
+ * outcome (writeAuditLog swallows failures).
+ */
+export const logActivationRetry = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((raw) =>
+    z
+      .object({
+        workspaceId: z.string().uuid(),
+        scope: z.enum(["all", "failed_only", "from_step"]),
+        stepIds: z.array(z.string().min(1).max(64)).min(1).max(20),
+        fromStep: z.string().min(1).max(64).optional(),
+        previousErrors: z.record(z.string(), z.string().max(500)).optional(),
+      })
+      .parse(raw),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { data: canManage } = await supabase.rpc("can_manage_workspace", {
+      _workspace_id: data.workspaceId,
+      _user_id: userId,
+    });
+    if (!canManage) throw new Error("You do not have permission to retry activation.");
+
+    const { writeAuditLog } = await import("./audit.server");
+    await writeAuditLog({
+      workspaceId: data.workspaceId,
+      actorId: userId,
+      actorEmail: (context.claims as { email?: string })?.email ?? null,
+      action:
+        data.scope === "failed_only"
+          ? "activation.retry_failed_steps"
+          : data.scope === "from_step"
+            ? "activation.retry_from_step"
+            : "activation.retry",
+      targetType: "workspace",
+      targetId: data.workspaceId,
+      details: {
+        scope: data.scope,
+        step_ids: data.stepIds,
+        from_step: data.fromStep ?? null,
+        previous_errors: data.previousErrors ?? {},
+      },
+    });
+
+    return { ok: true as const };
+  });
