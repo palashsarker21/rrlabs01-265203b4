@@ -309,20 +309,32 @@ jobs:
           bash scripts/ci/retry.sh "supabase link" -- \
             supabase link --project-ref "$SUPABASE_PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
 
+      - name: Prepare log dir
+        run: mkdir -p /tmp/ci-logs
+
       - name: Detect schema drift (post-deploy re-diff)
-        run: bash scripts/ci/verify-schema.sh
+        run: |
+          set -o pipefail
+          bash scripts/ci/verify-schema.sh 2>&1 | tee /tmp/ci-logs/schema-diff.log
 
       - name: Confirm migration order & checksums
-        run: bash scripts/ci/verify-migration-order.sh
+        run: |
+          set -o pipefail
+          bash scripts/ci/verify-migration-order.sh 2>&1 | tee /tmp/ci-logs/migration-order.log
 
       - name: Run RLS + grant + security-definer + required-policy assertions
-        run: bash scripts/ci/verify-rls.sh
+        run: |
+          set -o pipefail
+          bash scripts/ci/verify-rls.sh 2>&1 | tee /tmp/ci-logs/security-checks.log
 
-  # ------------------------------------------------------------------
-  # PHASE 4b — Cross-job rollback if post-migrate validation failed
-  # (a fresh runner needs the snapshot artifact from the migrate job)
-  # ------------------------------------------------------------------
-  rollback:
+      - name: Upload post-migrate verification logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase4-post-migrate-verification-logs
+          path: /tmp/ci-logs/
+          retention-days: 30
+          if-no-files-found: warn
     name: Phase 4b · Automated Rollback
     runs-on: ubuntu-latest
     needs: [migrate, post-migrate-validate]
