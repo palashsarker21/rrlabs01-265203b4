@@ -26,7 +26,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { BrandLockup } from "@/components/brand-mark";
 import { cn } from "@/lib/utils";
-import { listWorkspaceIntegrations, activateWorkspace } from "@/lib/integrations.functions";
+import {
+  listWorkspaceIntegrations,
+  activateWorkspace,
+  logActivationRetry,
+} from "@/lib/integrations.functions";
 import { listProviderCatalog } from "@/lib/providers.functions";
 import { PROVIDER_STEP_ORDER, type ProviderKind } from "@/lib/providers/kinds";
 import { generateOnboardingReport } from "@/lib/onboarding-report.functions";
@@ -63,6 +67,7 @@ function OnboardingCompletePage() {
   const catalogFn = useServerFn(listProviderCatalog);
   const activateFn = useServerFn(activateWorkspace);
   const reportFn = useServerFn(generateOnboardingReport);
+  const logRetryFn = useServerFn(logActivationRetry);
   const [downloadingReport, setDownloadingReport] = useState(false);
 
   const { data: workspace, isLoading: wsLoading } = useQuery({
@@ -525,8 +530,38 @@ function OnboardingCompletePage() {
             isRunning={isRunning}
             isComplete={isComplete}
             isFailed={isFailed}
-            onRetry={() => runActivation()}
-            onRetryStep={(id) => runActivation(id)}
+            onRetry={() => {
+              if (workspace?.id) {
+                const stepIds = steps.map((s) => s.id);
+                const previousErrors = Object.fromEntries(
+                  steps.filter((s) => s.error).map((s) => [s.id, s.error!]),
+                );
+                logRetryFn({
+                  data: {
+                    workspaceId: workspace.id,
+                    scope: "all",
+                    stepIds,
+                    previousErrors,
+                  },
+                }).catch(() => undefined);
+              }
+              runActivation();
+            }}
+            onRetryStep={(id) => {
+              if (workspace?.id) {
+                const stepError = steps.find((s) => s.id === id)?.error;
+                logRetryFn({
+                  data: {
+                    workspaceId: workspace.id,
+                    scope: "from_step",
+                    stepIds: [id],
+                    fromStep: id,
+                    previousErrors: stepError ? { [id]: stepError } : {},
+                  },
+                }).catch(() => undefined);
+              }
+              runActivation(id);
+            }}
             onRetryFailed={(ids) => {
               const order: ActivationStepId[] = [
                 "permission",
@@ -538,6 +573,22 @@ function OnboardingCompletePage() {
               const earliest = ids
                 .slice()
                 .sort((a, b) => order.indexOf(a) - order.indexOf(b))[0];
+              if (workspace?.id) {
+                const previousErrors = Object.fromEntries(
+                  steps
+                    .filter((s) => ids.includes(s.id) && s.error)
+                    .map((s) => [s.id, s.error!]),
+                );
+                logRetryFn({
+                  data: {
+                    workspaceId: workspace.id,
+                    scope: "failed_only",
+                    stepIds: ids,
+                    fromStep: earliest,
+                    previousErrors,
+                  },
+                }).catch(() => undefined);
+              }
               if (earliest) runActivation(earliest);
             }}
             onGoToDashboard={() => navigate({ to: "/app" })}
