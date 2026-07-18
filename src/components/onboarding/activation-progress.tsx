@@ -175,54 +175,12 @@ export function ActivationProgress({
       {/* Steps */}
       <ol className="mt-5 space-y-3">
         {steps.map((s) => (
-          <li key={s.id} className="flex items-start gap-3">
-            <div className="mt-0.5">{iconFor(s.state)}</div>
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center justify-between gap-2">
-                <div
-                  className={cn(
-                    "text-sm font-medium",
-                    s.state === "failed"
-                      ? "text-destructive"
-                      : s.state === "success"
-                        ? "text-foreground"
-                        : "text-foreground",
-                  )}
-                >
-                  {s.label}
-                </div>
-                <span
-                  className={cn(
-                    "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider",
-                    s.state === "success" && "bg-emerald-500/10 text-emerald-500",
-                    s.state === "failed" && "bg-destructive/10 text-destructive",
-                    s.state === "running" && "bg-primary/10 text-primary",
-                    (s.state === "idle" || s.state === "skipped") &&
-                      "bg-muted text-muted-foreground",
-                  )}
-                >
-                  {s.state}
-                </span>
-              </div>
-              <div className="mt-0.5 text-xs text-muted-foreground">{s.description}</div>
-              {s.state === "failed" && s.error && (
-                <div className="mt-2 rounded-md border border-destructive/30 bg-destructive/5 p-3 text-xs text-destructive">
-                  <div className="font-medium">Why this failed</div>
-                  <div className="mt-1 text-destructive/90">{s.error}</div>
-                  {s.fix && (
-                    <div className="mt-3">
-                      <Button asChild size="sm" variant="outline">
-                        <Link to={s.fix.to} hash={s.fix.hash}>
-                          {s.fix.label}
-                          <ArrowRight className="ml-1 h-3 w-3" />
-                        </Link>
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </li>
+          <StepRow
+            key={s.id}
+            step={s}
+            isRunning={isRunning}
+            onRetryStep={onRetryStep}
+          />
         ))}
       </ol>
 
@@ -249,6 +207,128 @@ export function ActivationProgress({
         </div>
       )}
     </div>
+  );
+}
+
+function StepRow({
+  step: s,
+  isRunning,
+  onRetryStep,
+}: {
+  step: ActivationStep;
+  isRunning: boolean;
+  onRetryStep?: (id: ActivationStepId) => void;
+}) {
+  const hasFailure = s.state === "failed" && !!s.error;
+  const [open, setOpen] = useState(hasFailure);
+
+  // Auto-expand when a step transitions into failed.
+  useEffect(() => {
+    if (hasFailure) setOpen(true);
+  }, [hasFailure]);
+
+  const copyError = async () => {
+    if (!s.error) return;
+    try {
+      await navigator.clipboard.writeText(`[${s.id}] ${s.label}: ${s.error}`);
+      toast.success("Error copied to clipboard");
+    } catch {
+      toast.error("Could not copy to clipboard");
+    }
+  };
+
+  return (
+    <li className="flex items-start gap-3">
+      <div className="mt-0.5">{iconFor(s.state)}</div>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center justify-between gap-2">
+          <button
+            type="button"
+            onClick={() => hasFailure && setOpen((v) => !v)}
+            disabled={!hasFailure}
+            className={cn(
+              "flex min-w-0 items-center gap-1.5 text-left text-sm font-medium",
+              s.state === "failed" ? "text-destructive" : "text-foreground",
+              hasFailure ? "cursor-pointer hover:underline" : "cursor-default",
+            )}
+            aria-expanded={hasFailure ? open : undefined}
+            aria-controls={hasFailure ? `step-details-${s.id}` : undefined}
+          >
+            <span className="truncate">{s.label}</span>
+            {hasFailure && (
+              <ChevronDown
+                className={cn(
+                  "h-3.5 w-3.5 shrink-0 transition-transform",
+                  open ? "rotate-180" : "rotate-0",
+                )}
+              />
+            )}
+          </button>
+          <span
+            className={cn(
+              "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider",
+              s.state === "success" && "bg-emerald-500/10 text-emerald-500",
+              s.state === "failed" && "bg-destructive/10 text-destructive",
+              s.state === "running" && "bg-primary/10 text-primary",
+              (s.state === "idle" || s.state === "skipped") &&
+                "bg-muted text-muted-foreground",
+            )}
+          >
+            {s.state}
+          </span>
+        </div>
+        <div className="mt-0.5 text-xs text-muted-foreground">{s.description}</div>
+
+        {hasFailure && open && (
+          <div
+            id={`step-details-${s.id}`}
+            className="mt-2 rounded-md border border-destructive/30 bg-destructive/5 p-3 text-xs text-destructive"
+          >
+            <div className="flex items-center justify-between gap-2">
+              <div className="font-medium">Why this failed</div>
+              <button
+                type="button"
+                onClick={copyError}
+                className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wider text-destructive/80 hover:bg-destructive/10 hover:text-destructive"
+                aria-label="Copy error message"
+              >
+                <Copy className="h-3 w-3" />
+                Copy
+              </button>
+            </div>
+            <pre className="mt-1 whitespace-pre-wrap break-words font-mono text-[11px] leading-snug text-destructive/90">
+              {s.error}
+            </pre>
+            <div className="mt-1 text-[10px] uppercase tracking-wider text-destructive/70">
+              step id: {s.id}
+            </div>
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              {onRetryStep && (
+                <Button
+                  size="sm"
+                  variant="default"
+                  onClick={() => onRetryStep(s.id)}
+                  disabled={isRunning}
+                >
+                  <RefreshCw
+                    className={cn("mr-1.5 h-3 w-3", isRunning && "animate-spin")}
+                  />
+                  Retry this step
+                </Button>
+              )}
+              {s.fix && (
+                <Button asChild size="sm" variant="outline">
+                  <Link to={s.fix.to} hash={s.fix.hash}>
+                    {s.fix.label}
+                    <ArrowRight className="ml-1 h-3 w-3" />
+                  </Link>
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </li>
   );
 }
 
