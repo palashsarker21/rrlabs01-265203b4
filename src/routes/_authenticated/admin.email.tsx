@@ -131,7 +131,15 @@ function AdminEmailPage() {
       ) : null}
 
       <section className="rounded-lg border p-4 space-y-3">
-        <h2 className="font-semibold">Send test email</h2>
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="font-semibold">Send test email</h2>
+          <a
+            href="/admin/email/preview"
+            className="text-xs font-medium text-primary hover:underline"
+          >
+            Open template preview →
+          </a>
+        </div>
         <div className="flex flex-col gap-2 sm:flex-row">
           <input
             className="flex-1 rounded-md border px-3 py-2 text-sm"
