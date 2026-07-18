@@ -335,6 +335,12 @@ jobs:
           path: /tmp/ci-logs/
           retention-days: 30
           if-no-files-found: warn
+
+  # ------------------------------------------------------------------
+  # PHASE 4b — Cross-job rollback if post-migrate validation failed
+  # (a fresh runner needs the snapshot artifact from the migrate job)
+  # ------------------------------------------------------------------
+  rollback:
     name: Phase 4b · Automated Rollback
     runs-on: ubuntu-latest
     needs: [migrate, post-migrate-validate]
