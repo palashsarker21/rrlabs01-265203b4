@@ -14,7 +14,9 @@ ARTIFACT_DIR="${ARTIFACT_DIR:-/tmp/pre-migration}"
 mkdir -p "$ARTIFACT_DIR"
 
 echo "▸ Capturing remote migration state…"
-supabase migration list --linked | tee "$ARTIFACT_DIR/remote-migrations.txt" >/dev/null
+RETRIES="${RETRIES:-4}" BASE_DELAY="${BASE_DELAY:-5}" \
+  bash "$(dirname "$0")/retry.sh" "supabase migration list (snapshot)" -- \
+  bash -c 'supabase migration list --linked | tee "$0" >/dev/null' "$ARTIFACT_DIR/remote-migrations.txt"
 
 # Extract applied versions (14-digit timestamps in the REMOTE column).
 # `supabase migration list` prints:  LOCAL | REMOTE | TIME
@@ -34,14 +36,16 @@ cat "$ARTIFACT_DIR/applied-before.txt" || true
 
 echo "▸ Dumping current schema (structure only)…"
 if [ -n "${DATABASE_URL:-}" ]; then
-  # Use pg_dump directly for a portable, deterministic dump.
-  pg_dump \
-    --schema-only \
-    --no-owner \
-    --no-privileges \
-    --schema=public \
-    --file="$ARTIFACT_DIR/schema-before.sql" \
-    "$DATABASE_URL"
+  # Retry pg_dump on transient network errors; the dump is read-only.
+  RETRIES="${RETRIES:-4}" BASE_DELAY="${BASE_DELAY:-5}" \
+    bash "$(dirname "$0")/retry.sh" "pg_dump schema-only" -- \
+    pg_dump \
+      --schema-only \
+      --no-owner \
+      --no-privileges \
+      --schema=public \
+      --file="$ARTIFACT_DIR/schema-before.sql" \
+      "$DATABASE_URL"
   echo "✓ Schema dump saved to $ARTIFACT_DIR/schema-before.sql ($(wc -l < "$ARTIFACT_DIR/schema-before.sql") lines)"
 else
   echo "::warning::DATABASE_URL not set; skipping pg_dump snapshot."
