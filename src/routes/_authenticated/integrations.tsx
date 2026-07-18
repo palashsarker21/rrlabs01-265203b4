@@ -634,14 +634,16 @@ function ProviderCard({
       setAutoStatus("saving");
       setSubmitting(true);
       try {
-        const okSaved = await onSave(provider.code, values);
+        const res = await onSave(provider.code, values);
         lastSavedSigRef.current = sig;
-        if (okSaved) {
+        if (res.ok) {
           setAutoStatus("saved");
+          setSaveError(null);
           setValues({});
           setExpanded(false);
         } else {
           setAutoStatus("failed");
+          setSaveError(res);
         }
       } catch {
         setAutoStatus("failed");
