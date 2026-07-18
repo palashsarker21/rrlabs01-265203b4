@@ -1021,20 +1021,21 @@ function EmailDeliveriesPage() {
               <button
                 className="rounded-md border px-3 py-1.5 text-sm"
                 onClick={() => setBulkConfirmOpen(false)}
-                disabled={bulkReplay.isPending}
+                disabled={bulkRun?.running}
               >
                 Cancel
               </button>
               <button
                 className="rounded-md bg-primary px-3 py-1.5 text-sm text-primary-foreground disabled:opacity-50"
-                disabled={bulkReplay.isPending || bulkTotal === 0}
+                disabled={bulkRun?.running || bulkTotal === 0}
                 onClick={() =>
-                  bulkReplay.mutate({ ids: bulkIds, messageIds: pastedMessageIds })
+                  void runBulkReplay({ ids: bulkIds, messageIds: pastedMessageIds })
                 }
               >
-                {bulkReplay.isPending ? "Replaying…" : `Replay ${bulkTotal}`}
+                {bulkRun?.running ? "Replaying…" : `Replay ${bulkTotal}`}
               </button>
             </div>
+
           </div>
         </div>
       ) : null}
