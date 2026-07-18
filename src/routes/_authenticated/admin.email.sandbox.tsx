@@ -138,6 +138,8 @@ function exportDiagnostics(entries: HistoryEntry[], format: "json" | "csv") {
   );
   const csv = [headers.join(","), ...rows].join("\r\n");
   triggerDownload(`sandbox-diagnostics-${ts}.csv`, "text/csv", csv);
+}
+
 
 function summarizeOutcome(outcome: SendOutcome): {
   status: HistoryEntry["status"];
