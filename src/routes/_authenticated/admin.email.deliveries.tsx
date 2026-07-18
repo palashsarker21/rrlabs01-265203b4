@@ -272,18 +272,28 @@ function EmailDeliveriesPage() {
         </div>
         <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
           <span>{listQ.isFetching ? "Refreshing…" : `${listQ.data?.total ?? 0} match`}</span>
-          <button
-            onClick={() => {
-              setStatus("all");
-              setTemplate("");
-              setRecipient("");
-              setMessageId("");
-              setPage(0);
-            }}
-            className="underline"
-          >
-            Clear filters
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleExportCsv}
+              disabled={exporting || (listQ.data?.total ?? 0) === 0}
+              className="underline disabled:opacity-50"
+              title="Download filtered deliveries as CSV (up to 1000 rows)"
+            >
+              {exporting ? "Exporting…" : "Export CSV"}
+            </button>
+            <button
+              onClick={() => {
+                setStatus("all");
+                setTemplate("");
+                setRecipient("");
+                setMessageId("");
+                setPage(0);
+              }}
+              className="underline"
+            >
+              Clear filters
+            </button>
+          </div>
         </div>
       </section>
 
