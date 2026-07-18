@@ -331,13 +331,29 @@ function EmailSandboxPage() {
           )}
         </div>
         <div className="rounded-lg border p-3 text-sm">
-          <div className="text-xs uppercase tracking-wide text-muted-foreground">Rate limit</div>
+          <div className="flex items-center justify-between gap-2">
+            <div className="text-xs uppercase tracking-wide text-muted-foreground">Rate limit</div>
+            {usage && limits ? (
+              <div className="text-[10px] text-muted-foreground tabular-nums">
+                {Math.max(0, limits.perMinute - usage.minute)}/min ·{" "}
+                {Math.max(0, limits.perHour - usage.hour)}/hr ·{" "}
+                {Math.max(0, limits.perDay - usage.day)}/day left
+              </div>
+            ) : null}
+          </div>
           {usage && limits ? (
-            <div className="mt-1 grid grid-cols-3 gap-2 text-xs">
-              <UsageMeter label="minute" used={usage.minute} cap={limits.perMinute} />
-              <UsageMeter label="hour" used={usage.hour} cap={limits.perHour} />
-              <UsageMeter label="day" used={usage.day} cap={limits.perDay} />
-            </div>
+            <>
+              <div className="mt-2 grid grid-cols-3 gap-2 text-xs">
+                <UsageMeter label="per minute" used={usage.minute} cap={limits.perMinute} />
+                <UsageMeter label="per hour" used={usage.hour} cap={limits.perHour} />
+                <UsageMeter label="per day" used={usage.day} cap={limits.perDay} />
+              </div>
+              <p className="mt-2 text-[11px] leading-snug text-muted-foreground">
+                Sends are counted per admin (that's you). When any window hits its cap, further
+                test sends are throttled server-side until that window rolls over — the composer
+                blocks and shows which limit was hit before any email is queued.
+              </p>
+            </>
           ) : (
             <div className="mt-1 text-xs text-muted-foreground">…</div>
           )}
@@ -508,6 +524,42 @@ function EmailSandboxPage() {
               Sends to <span className="font-mono">{status?.recipient ?? "your account email"}</span>.
             </p>
           )}
+          {(() => {
+            if (!usage || !limits) return null;
+            const windows = [
+              { key: "minute", label: "this minute", used: usage.minute, cap: limits.perMinute },
+              { key: "hour", label: "this hour", used: usage.hour, cap: limits.perHour },
+              { key: "day", label: "today", used: usage.day, cap: limits.perDay },
+            ] as const;
+            const tightest = windows
+              .map((w) => ({ ...w, left: Math.max(0, w.cap - w.used) }))
+              .sort((a, b) => a.left - b.left)[0];
+            const blocked = tightest.left <= 0;
+            const near = !blocked && tightest.left <= 1;
+            const tone = blocked
+              ? "border-rose-200 bg-rose-50 text-rose-800"
+              : near
+              ? "border-amber-200 bg-amber-50 text-amber-800"
+              : "border-emerald-200 bg-emerald-50 text-emerald-800";
+            return (
+              <div className={`rounded-md border px-3 py-2 text-xs ${tone}`}>
+                {blocked ? (
+                  <>
+                    <strong>Throttled ({tightest.label}).</strong> You've used {tightest.used}/
+                    {tightest.cap} sends for {tightest.label}. Clicking Send will be rejected
+                    server-side until the {tightest.key} window rolls over.
+                  </>
+                ) : (
+                  <>
+                    <strong>Before you send:</strong> this will consume 1 of your remaining{" "}
+                    {tightest.left} sends {tightest.label} (also {Math.max(0, limits.perMinute - usage.minute)}/min,{" "}
+                    {Math.max(0, limits.perHour - usage.hour)}/hr,{" "}
+                    {Math.max(0, limits.perDay - usage.day)}/day). Hitting any cap throttles further test sends.
+                  </>
+                )}
+              </div>
+            );
+          })()}
           <button
             className="rounded-md bg-teal-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
             onClick={() => sendMut.mutate()}
@@ -518,7 +570,11 @@ function EmailSandboxPage() {
               !status?.recipient ||
               recipientChecking ||
               recipientCheck?.overall === "critical" ||
-              (recipientCheck?.overall === "warning" && !ackWarnings)
+              (recipientCheck?.overall === "warning" && !ackWarnings) ||
+              (!!usage && !!limits &&
+                (usage.minute >= limits.perMinute ||
+                  usage.hour >= limits.perHour ||
+                  usage.day >= limits.perDay))
             }
           >
             {sendMut.isPending ? "Sending…" : "Send test email"}
