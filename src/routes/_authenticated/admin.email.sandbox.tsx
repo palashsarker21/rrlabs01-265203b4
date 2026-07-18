@@ -106,6 +106,7 @@ function EmailSandboxPage() {
   const listTpl = useServerFn(listEmailTemplates);
   const statusFn = useServerFn(getSandboxStatusFn);
   const sendFn = useServerFn(sendSandboxTestFn);
+  const checkRecipientFn = useServerFn(checkRecipientDeliverability);
 
   const templatesQ = useQuery({
     queryKey: ["email", "templates"],
