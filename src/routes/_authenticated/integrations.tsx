@@ -676,18 +676,19 @@ function ProviderCard({
     setSubmitting(true);
     setAutoStatus("saving");
     try {
-      const okSaved = await onSave(provider.code, values);
-      if (okSaved) {
+      const res = await onSave(provider.code, values);
+      if (res.ok) {
         setAutoStatus("saved");
+        setSaveError(null);
         setValues({});
         setExpanded(false);
       } else {
         setAutoStatus("failed");
+        setSaveError(res);
       }
     } finally {
       setSubmitting(false);
     }
-
   }
 
   return (
