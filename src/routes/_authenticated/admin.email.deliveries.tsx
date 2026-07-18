@@ -6,6 +6,7 @@ import {
   listDeliveriesFn,
   getDeliveryFn,
   replayDeliveryFn,
+  bulkReplayDeliveriesFn,
   listTemplateOptionsFn,
 } from "@/lib/email-delivery.functions";
 
