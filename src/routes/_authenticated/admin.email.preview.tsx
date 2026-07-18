@@ -44,6 +44,7 @@ function EmailPreviewPage() {
   );
   const [recipient, setRecipient] = useState<string>("");
   const [sendResult, setSendResult] = useState<string | null>(null);
+  const [previewOnly, setPreviewOnly] = useState<boolean>(true);
 
   // When template changes, load its sample data
   useEffect(() => {
