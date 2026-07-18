@@ -133,6 +133,9 @@ export function ActivationProgress({
   const done = steps.filter((s) => s.state === "success").length;
   const pct = Math.round((done / steps.length) * 100);
 
+  const [confirmRetryFailed, setConfirmRetryFailed] = useState(false);
+  const [confirmRetryAll, setConfirmRetryAll] = useState(false);
+
   // Auto-scroll into view when kicked off
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
