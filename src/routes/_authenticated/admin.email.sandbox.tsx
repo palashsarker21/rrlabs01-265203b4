@@ -512,11 +512,23 @@ function EmailSandboxPage() {
               !parsed.ok ||
               sendMut.isPending ||
               !status?.config?.ok ||
-              !status?.recipient
+              !status?.recipient ||
+              recipientChecking ||
+              recipientCheck?.overall === "critical" ||
+              (recipientCheck?.overall === "warning" && !ackWarnings)
             }
           >
             {sendMut.isPending ? "Sending…" : "Send test email"}
           </button>
+          {recipientCheck?.overall === "critical" ? (
+            <p className="text-xs text-rose-700">
+              Sending is blocked because the recipient domain cannot receive mail.
+            </p>
+          ) : recipientCheck?.overall === "warning" && !ackWarnings ? (
+            <p className="text-xs text-amber-700">
+              Acknowledge the deliverability warnings above to enable sending.
+            </p>
+          ) : null}
         </div>
 
         {/* Diagnostics */}
