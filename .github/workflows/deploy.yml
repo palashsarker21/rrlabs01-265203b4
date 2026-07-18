@@ -100,7 +100,8 @@ jobs:
           bun-version: latest
 
       - name: Install dependencies
-        run: bun install --frozen-lockfile
+        env: { RETRIES: "3", BASE_DELAY: "10" }
+        run: bash scripts/ci/retry.sh "bun install" -- bun install --frozen-lockfile
 
       - name: Validate migration files
         run: bash scripts/ci/validate-migrations.sh
@@ -151,15 +152,21 @@ jobs:
           version: latest
 
       - name: Install psql
-        run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y --no-install-recommends postgresql-client
-
-      - name: Authenticate & link
+        env: { RETRIES: "3", BASE_DELAY: "5" }
         run: |
           set -euo pipefail
-          supabase login --token "$SUPABASE_ACCESS_TOKEN"
-          supabase link --project-ref "$SUPABASE_PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
+          bash scripts/ci/retry.sh "apt update" -- sudo apt-get update -qq
+          bash scripts/ci/retry.sh "apt install postgresql-client" -- \
+            sudo apt-get install -y --no-install-recommends postgresql-client
+
+      - name: Authenticate & link
+        env: { RETRIES: "4", BASE_DELAY: "5" }
+        run: |
+          set -euo pipefail
+          bash scripts/ci/retry.sh "supabase login" -- \
+            supabase login --token "$SUPABASE_ACCESS_TOKEN"
+          bash scripts/ci/retry.sh "supabase link" -- \
+            supabase link --project-ref "$SUPABASE_PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
 
       - name: Capture pre-migration snapshot
         id: snapshot
@@ -177,18 +184,25 @@ jobs:
 
       - name: Show pending migrations
         id: pending
+        env: { RETRIES: "4", BASE_DELAY: "5" }
         run: |
           set -euo pipefail
-          supabase migration list --linked | tee /tmp/mig-before.txt
+          bash scripts/ci/retry.sh "migration list (before)" -- \
+            bash -c 'supabase migration list --linked | tee /tmp/mig-before.txt'
           pending=$(grep -c '^ *[0-9]\{14\}' /tmp/mig-before.txt || true)
           echo "count=${pending:-0}" >> "$GITHUB_OUTPUT"
 
       - name: Dry-run migration push
+        env: { RETRIES: "3", BASE_DELAY: "5" }
         run: |
           set -euo pipefail
-          supabase db push --linked --password "$SUPABASE_DB_PASSWORD" --dry-run \
-            | tee /tmp/mig-dry.txt
+          # Dry-run is read-only → safe to retry on network flakes.
+          bash scripts/ci/retry.sh "db push --dry-run" -- \
+            bash -c 'supabase db push --linked --password "$SUPABASE_DB_PASSWORD" --dry-run | tee /tmp/mig-dry.txt'
 
+      # NO retry wrapper — a partial apply must NOT be replayed automatically.
+      # Failures here are handled by the rollback step below, using the
+      # pre-migration snapshot + paired down-migrations.
       - name: Apply migrations
         id: apply
         run: |
@@ -198,9 +212,11 @@ jobs:
 
       - name: Confirm migration state
         if: always()
+        env: { RETRIES: "4", BASE_DELAY: "5" }
         run: |
           set -euo pipefail
-          supabase migration list --linked | tee /tmp/mig-after.txt || true
+          bash scripts/ci/retry.sh "migration list (after)" -- \
+            bash -c 'supabase migration list --linked | tee /tmp/mig-after.txt' || true
 
       # -----------------------------------------------------------------
       # In-job automatic rollback for partial application failures.
