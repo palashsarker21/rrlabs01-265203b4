@@ -119,7 +119,7 @@ export async function sendBillingNotification(args: SendArgs): Promise<void> {
     return;
   }
 
-  const result = await trySendEmail(args.kind, recipient, payload);
+  const result = await trySendEmail(args.kind, recipient, args.workspaceId, payload);
   await supabaseAdmin.from("notification_logs").insert({
     workspace_id: args.workspaceId,
     subscription_id: args.subscriptionId ?? null,
