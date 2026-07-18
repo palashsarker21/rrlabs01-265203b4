@@ -527,6 +527,19 @@ function OnboardingCompletePage() {
             isFailed={isFailed}
             onRetry={() => runActivation()}
             onRetryStep={(id) => runActivation(id)}
+            onRetryFailed={(ids) => {
+              const order: ActivationStepId[] = [
+                "permission",
+                "required",
+                "verified",
+                "webhooks",
+                "activate",
+              ];
+              const earliest = ids
+                .slice()
+                .sort((a, b) => order.indexOf(a) - order.indexOf(b))[0];
+              if (earliest) runActivation(earliest);
+            }}
             onGoToDashboard={() => navigate({ to: "/app" })}
           />
         )}
