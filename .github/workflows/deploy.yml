@@ -127,6 +127,12 @@ jobs:
     runs-on: ubuntu-latest
     needs: app-validate
     environment: production
+    # Serialize DB-mutating work across the ENTIRE repo (all refs).
+    # cancel-in-progress: false queues concurrent runs so an in-flight
+    # migration or rollback is never interrupted.
+    concurrency:
+      group: deploy-production-apply
+      cancel-in-progress: false
     outputs:
       snapshot_ok: ${{ steps.snapshot.outcome }}
       apply_ok:    ${{ steps.apply.outcome }}
