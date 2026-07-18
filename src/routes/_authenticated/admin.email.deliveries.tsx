@@ -168,18 +168,102 @@ function EmailDeliveriesPage() {
     onError: (err) => setReplayMsg((err as Error).message),
   });
 
-  const bulkReplay = useMutation({
-    mutationFn: (payload: { ids: string[]; messageIds: string[] }) =>
-      bulkReplayFn({ data: payload }),
-    onSuccess: (res) => {
-      setBulkResult(res);
-      setBulkConfirmOpen(false);
-      setSelectedIds(new Set());
-      setPastedIds("");
-      qc.invalidateQueries({ queryKey: ["admin", "email", "deliveries"] });
-    },
-    onError: (err) => setReplayMsg((err as Error).message),
-  });
+  async function runBulkReplay(payload: { ids: string[]; messageIds: string[] }) {
+    let resolved;
+    try {
+      resolved = await resolveBulkFn({ data: payload });
+    } catch (err) {
+      setReplayMsg((err as Error).message);
+      return;
+    }
+    const initial: BulkItem[] = resolved.items.map((r) => ({
+      input: r.input,
+      logId: r.logId,
+      recipient: r.recipient,
+      template: r.template,
+      status: r.error ? "error" : "pending",
+      error: r.error,
+    }));
+    setBulkRun({
+      running: true,
+      startedAt: Date.now(),
+      finishedAt: null,
+      items: initial,
+      cancelRequested: false,
+    });
+    setBulkConfirmOpen(false);
+    setSelectedIds(new Set());
+    setPastedIds("");
+
+    // Process sequentially so rate limits and per-item progress are honored.
+    for (let i = 0; i < initial.length; i++) {
+      const item = initial[i];
+      // Read the latest state via a functional update to see cancelRequested.
+      let cancelled = false;
+      setBulkRun((s) => {
+        if (!s) return s;
+        cancelled = s.cancelRequested;
+        return s;
+      });
+      if (cancelled) break;
+      if (!item.logId) continue; // pre-marked error
+
+      setBulkRun((s) =>
+        s
+          ? {
+              ...s,
+              items: s.items.map((it, idx) =>
+                idx === i ? { ...it, status: "running" } : it,
+              ),
+            }
+          : s,
+      );
+
+      try {
+        const res = await replayFn({ data: { id: item.logId } });
+        setBulkRun((s) =>
+          s
+            ? {
+                ...s,
+                items: s.items.map((it, idx) =>
+                  idx === i
+                    ? {
+                        ...it,
+                        status: res.result.ok ? "ok" : "error",
+                        newLogId: res.result.ok ? res.result.id : undefined,
+                        durationMs: res.durationMs,
+                        error: res.result.ok ? undefined : res.result.error,
+                      }
+                    : it,
+                ),
+              }
+            : s,
+        );
+      } catch (err) {
+        setBulkRun((s) =>
+          s
+            ? {
+                ...s,
+                items: s.items.map((it, idx) =>
+                  idx === i
+                    ? {
+                        ...it,
+                        status: "error",
+                        error: err instanceof Error ? err.message : String(err),
+                      }
+                    : it,
+                ),
+              }
+            : s,
+        );
+      }
+    }
+
+    setBulkRun((s) => (s ? { ...s, running: false, finishedAt: Date.now() } : s));
+    qc.invalidateQueries({ queryKey: ["admin", "email", "deliveries"] });
+  }
+
+
 
   const rows = listQ.data?.rows ?? [];
   const counts = listQ.data?.counts;
