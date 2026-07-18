@@ -122,6 +122,10 @@ function EmailSandboxPage() {
     JSON.stringify(TEMPLATE_SAMPLES["welcome"]?.data ?? {}, null, 2),
   );
   const [lastOutcome, setLastOutcome] = useState<SendOutcome | null>(null);
+  const [history, setHistory] = useState<HistoryEntry[]>(() => loadHistory());
+  const [historySearch, setHistorySearch] = useState("");
+  const [expandedHistoryId, setExpandedHistoryId] = useState<string | null>(null);
+  const [autoRunId, setAutoRunId] = useState<string | null>(null);
 
   useEffect(() => {
     const sample = TEMPLATE_SAMPLES[selected]?.data ?? {};
@@ -153,8 +157,87 @@ function EmailSandboxPage() {
     onSuccess: (r) => {
       setLastOutcome(r);
       statusQ.refetch();
+
+      const summary = summarizeOutcome(r);
+      const templateEntry = templates.find((t) => t.name === selected);
+      const entry: HistoryEntry = {
+        id:
+          typeof crypto !== "undefined" && "randomUUID" in crypto
+            ? crypto.randomUUID()
+            : `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
+        sentAt: new Date().toISOString(),
+        template: selected,
+        templateDisplayName: templateEntry?.displayName,
+        dataText,
+        recipient: status?.recipient ?? "",
+        outcome: r,
+        ...summary,
+      };
+      setHistory((prev) => {
+        const next = [entry, ...prev].slice(0, HISTORY_MAX);
+        saveHistory(next);
+        return next;
+      });
+      setExpandedHistoryId(entry.id);
     },
   });
+
+  // Auto-run a queued "re-run from history" after state settles.
+  useEffect(() => {
+    if (!autoRunId) return;
+    if (!parsed.ok || sendMut.isPending) return;
+    if (!status?.config?.ok || !status?.recipient) return;
+    const id = autoRunId;
+    setAutoRunId(null);
+    sendMut.mutate(undefined, {
+      onSettled: () => setExpandedHistoryId((cur) => cur ?? id),
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoRunId, parsed.ok, dataText, selected, status?.config?.ok, status?.recipient]);
+
+  function rerunEntry(entry: HistoryEntry) {
+    setSelected(entry.template);
+    setDataText(entry.dataText);
+    setLastOutcome(null);
+    setAutoRunId(entry.id);
+  }
+
+  function removeHistoryEntry(id: string) {
+    setHistory((prev) => {
+      const next = prev.filter((e) => e.id !== id);
+      saveHistory(next);
+      return next;
+    });
+    setExpandedHistoryId((cur) => (cur === id ? null : cur));
+  }
+
+  function clearHistory() {
+    setHistory([]);
+    saveHistory([]);
+    setExpandedHistoryId(null);
+  }
+
+  const filteredHistory = useMemo(() => {
+    const q = historySearch.trim().toLowerCase();
+    if (!q) return history;
+    return history.filter((e) => {
+      const hay = [
+        e.template,
+        e.templateDisplayName ?? "",
+        e.recipient,
+        e.subject ?? "",
+        e.messageId ?? "",
+        e.logId ?? "",
+        e.errorMessage ?? "",
+        e.status,
+        e.dataText,
+      ]
+        .join(" \u0001 ")
+        .toLowerCase();
+      return hay.includes(q);
+    });
+  }, [history, historySearch]);
+
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 p-6">
