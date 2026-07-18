@@ -54,6 +54,7 @@ function EmailDeliveriesPage() {
   const listFn = useServerFn(listDeliveriesFn);
   const getFn = useServerFn(getDeliveryFn);
   const replayFn = useServerFn(replayDeliveryFn);
+  const bulkReplayFn = useServerFn(bulkReplayDeliveriesFn);
   const tplFn = useServerFn(listTemplateOptionsFn);
 
   const [status, setStatus] = useState<StatusFilter>("all");
