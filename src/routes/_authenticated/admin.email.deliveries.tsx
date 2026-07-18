@@ -72,19 +72,24 @@ function EmailDeliveriesPage() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
   const [pastedIds, setPastedIds] = useState("");
   const [bulkConfirmOpen, setBulkConfirmOpen] = useState(false);
-  const [bulkResult, setBulkResult] = useState<{
-    total: number;
-    succeeded: number;
-    failed: number;
-    items: Array<{
-      input: string;
-      logId: string | null;
-      ok: boolean;
-      newLogId?: string;
-      durationMs?: number;
-      error?: string;
-    }>;
+  type BulkItem = {
+    input: string;
+    logId: string | null;
+    recipient: string | null;
+    template: string | null;
+    status: "pending" | "running" | "ok" | "error";
+    newLogId?: string;
+    durationMs?: number;
+    error?: string;
+  };
+  const [bulkRun, setBulkRun] = useState<{
+    running: boolean;
+    startedAt: number | null;
+    finishedAt: number | null;
+    items: BulkItem[];
+    cancelRequested: boolean;
   } | null>(null);
+
   const [exporting, setExporting] = useState(false);
   const [live, setLive] = useState<"connecting" | "on" | "off">("connecting");
   const [autoRefresh, setAutoRefresh] = useState(true);
