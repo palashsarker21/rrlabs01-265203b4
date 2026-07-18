@@ -67,6 +67,98 @@ function EmailPreviewPage() {
     }
   }, [dataText]);
 
+  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const isValidUrl = (v: unknown): v is string => {
+    if (typeof v !== "string" || !v.trim()) return false;
+    try {
+      const u = new URL(v);
+      return u.protocol === "http:" || u.protocol === "https:";
+    } catch {
+      return false;
+    }
+  };
+
+  // Variable validator — infers required fields from the template sample,
+  // enforces per-field types (URL fields end with "Url", email fields
+  // include "email"/"to"), and validates the recipient address.
+  type FieldCheck = {
+    key: string;
+    kind: "url" | "email" | "value";
+    ok: boolean;
+    message: string;
+  };
+  const validation = useMemo(() => {
+    const checks: FieldCheck[] = [];
+    const sample = TEMPLATE_SAMPLES[selected]?.data ?? {};
+    const requiredKeys = Object.keys(sample);
+    const data = parsed.ok ? parsed.value : {};
+
+    for (const key of requiredKeys) {
+      const value = (data as Record<string, unknown>)[key];
+      const lower = key.toLowerCase();
+      const kind: FieldCheck["kind"] = key.endsWith("Url")
+        ? "url"
+        : lower === "email" || lower === "to" || lower.endsWith("email")
+          ? "email"
+          : "value";
+
+      if (value === undefined || value === null) {
+        checks.push({ key, kind, ok: false, message: `Missing "${key}".` });
+        continue;
+      }
+      if (kind === "url") {
+        checks.push(
+          isValidUrl(value)
+            ? { key, kind, ok: true, message: "Valid https/http URL." }
+            : { key, kind, ok: false, message: `"${key}" must be a valid http(s) URL.` },
+        );
+        continue;
+      }
+      if (kind === "email") {
+        checks.push(
+          typeof value === "string" && EMAIL_RE.test(value)
+            ? { key, kind, ok: true, message: "Valid email." }
+            : { key, kind, ok: false, message: `"${key}" must be a valid email address.` },
+        );
+        continue;
+      }
+      if (typeof value === "string" && value.trim().length === 0) {
+        checks.push({ key, kind, ok: false, message: `"${key}" cannot be empty.` });
+        continue;
+      }
+      if (typeof value === "number" || typeof value === "boolean" || typeof value === "string") {
+        checks.push({ key, kind, ok: true, message: "Present." });
+        continue;
+      }
+      // Objects/arrays are allowed but must not be null/empty structures.
+      if (Array.isArray(value) && value.length === 0) {
+        checks.push({ key, kind, ok: false, message: `"${key}" array is empty.` });
+        continue;
+      }
+      checks.push({ key, kind, ok: true, message: "Present." });
+    }
+
+    const recipientTrim = recipient.trim();
+    const recipientOk = EMAIL_RE.test(recipientTrim);
+    const recipientMessage = !recipientTrim
+      ? "Recipient email is required to send a test."
+      : recipientOk
+        ? "Valid recipient email."
+        : "Recipient must be a valid email address.";
+
+    const fieldsOk = checks.every((c) => c.ok);
+    return {
+      checks,
+      recipient: {
+        ok: recipientOk,
+        provided: recipientTrim.length > 0,
+        message: recipientMessage,
+      },
+      canRender: parsed.ok && fieldsOk,
+      canSend: parsed.ok && fieldsOk && recipientOk,
+    };
+  }, [parsed, selected, recipient]);
+
   const preview = useMutation({
     mutationFn: () =>
       previewFn({
@@ -79,7 +171,7 @@ function EmailPreviewPage() {
       sendFn({
         data: {
           template: selected,
-          to: recipient,
+          to: recipient.trim(),
           data: parsed.ok ? parsed.value : {},
         },
       }),
@@ -101,11 +193,12 @@ function EmailPreviewPage() {
     },
   });
 
-  // Auto-render on mount and whenever inputs change and are valid.
+  // Only auto-render once the JSON is valid AND every required field passes.
   useEffect(() => {
-    if (parsed.ok) preview.mutate();
+    if (validation.canRender) preview.mutate();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selected, dataText]);
+  }, [selected, dataText, validation.canRender]);
+
 
   const previewData = preview.data;
   const previewHtml =
