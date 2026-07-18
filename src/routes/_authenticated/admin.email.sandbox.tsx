@@ -156,7 +156,8 @@ function EmailSandboxPage() {
                 </div>
                 {d.note ? <p className="mt-1 text-muted-foreground">{d.note}</p> : null}
               </li>
-            ))}
+              );
+            })}
           </ul>
         </section>
       ) : null}
