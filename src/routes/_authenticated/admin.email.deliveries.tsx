@@ -156,6 +156,54 @@ function EmailDeliveriesPage() {
   const allVisibleSelected =
     rows.length > 0 && rows.every((r) => selectedIds.has(r.id));
 
+  function csvEscape(v: unknown): string {
+    if (v === null || v === undefined) return "";
+    const s = typeof v === "string" ? v : typeof v === "object" ? JSON.stringify(v) : String(v);
+    return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  }
+
+  async function handleExportCsv() {
+    setExporting(true);
+    try {
+      const res = await listFn({
+        data: { status, template, recipient, messageId, limit: 1000, offset: 0 },
+      });
+      const cols = [
+        "id",
+        "created_at",
+        "status",
+        "attempts",
+        "template",
+        "recipient",
+        "subject",
+        "provider",
+        "provider_message_id",
+        "sent_at",
+        "failed_at",
+        "last_error",
+      ] as const;
+      const header = cols.join(",");
+      const lines = (res.rows ?? []).map((r: Record<string, unknown>) =>
+        cols.map((c) => csvEscape(r[c])).join(","),
+      );
+      const csv = [header, ...lines].join("\r\n");
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      const ts = new Date().toISOString().replace(/[:.]/g, "-");
+      a.download = `deliveries-${ts}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      setReplayMsg(`Export failed: ${(err as Error).message}`);
+    } finally {
+      setExporting(false);
+    }
+  }
+
   function toggleRow(id: string) {
     setSelectedIds((prev) => {
       const next = new Set(prev);
