@@ -578,7 +578,7 @@ function ProviderCard({
   integrations: IntegrationRow[];
   statusByIntegration: Map<string, ProviderStatusRow>;
   overLimit: boolean;
-  onSave: (provider: string, creds: Record<string, string>) => Promise<boolean>;
+  onSave: (provider: string, creds: Record<string, string>) => Promise<SaveResult>;
   onTest: (id: string) => Promise<void>;
   onDisconnect: (id: string) => Promise<void>;
   onRotate: (id: string) => Promise<string | undefined>;
