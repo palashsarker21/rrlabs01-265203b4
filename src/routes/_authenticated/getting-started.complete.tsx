@@ -431,7 +431,8 @@ function OnboardingCompletePage() {
             isRunning={isRunning}
             isComplete={isComplete}
             isFailed={isFailed}
-            onRetry={runActivation}
+            onRetry={() => runActivation()}
+            onRetryStep={(id) => runActivation(id)}
             onGoToDashboard={() => navigate({ to: "/app" })}
           />
         )}
