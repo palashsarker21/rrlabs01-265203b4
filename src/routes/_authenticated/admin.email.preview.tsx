@@ -208,6 +208,10 @@ function EmailPreviewPage() {
     previewData && "ok" in previewData && previewData.ok ? previewData.subject : "";
   const previewText =
     previewData && "ok" in previewData && previewData.ok ? previewData.text : "";
+  const previewMeta =
+    previewData && "ok" in previewData && previewData.ok && "preview" in previewData
+      ? previewData.preview
+      : null;
   const previewError =
     previewData && "ok" in previewData && !previewData.ok
       ? "message" in previewData
