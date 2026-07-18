@@ -26,7 +26,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { BrandLockup } from "@/components/brand-mark";
 import { cn } from "@/lib/utils";
-import { listWorkspaceIntegrations, activateWorkspace } from "@/lib/integrations.functions";
+import {
+  listWorkspaceIntegrations,
+  activateWorkspace,
+  logActivationRetry,
+} from "@/lib/integrations.functions";
 import { listProviderCatalog } from "@/lib/providers.functions";
 import { PROVIDER_STEP_ORDER, type ProviderKind } from "@/lib/providers/kinds";
 import { generateOnboardingReport } from "@/lib/onboarding-report.functions";
