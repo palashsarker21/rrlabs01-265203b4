@@ -159,23 +159,30 @@ function IntegrationCenter() {
     navigate({ to: "/auth", replace: true });
   }
 
-  async function onSave(provider: string, creds: Record<string, string>) {
-    if (!workspace?.id) return false;
+  async function onSave(provider: string, creds: Record<string, string>): Promise<SaveResult> {
+    if (!workspace?.id) {
+      return {
+        ok: false,
+        code: "internal",
+        message: "No active workspace. Refresh and try again.",
+      };
+    }
     try {
-      const res = await saveFn({
+      const res = (await saveFn({
         data: { workspaceId: workspace.id, provider, credentials: creds },
-      });
+      })) as SaveResult;
       if (res.ok) {
         toast.success(res.message);
         qc.invalidateQueries({ queryKey: ["integrations", workspace.id] });
         qc.invalidateQueries({ queryKey: ["provider-limits", workspace.id] });
-        return true;
+        return res;
       }
-      toast.error(res.message);
-      return false;
+      toast.error(res.message, { description: res.hint });
+      return res;
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Save failed.");
-      return false;
+      const message = err instanceof Error ? err.message : "Save failed.";
+      toast.error(message);
+      return { ok: false, code: "internal", message };
     }
   }
 
