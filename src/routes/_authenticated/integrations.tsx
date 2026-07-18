@@ -599,6 +599,7 @@ function ProviderCard({
   const [values, setValues] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [autoStatus, setAutoStatus] = useState<"idle" | "saving" | "saved" | "failed">("idle");
+  const [saveError, setSaveError] = useState<SaveFailure | null>(null);
   const [copiedPreview, setCopiedPreview] = useState(false);
   const disabled = !provider.enabled;
   const setupFields = Array.isArray(provider.setup_fields)
