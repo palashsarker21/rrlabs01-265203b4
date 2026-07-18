@@ -16,6 +16,11 @@ import { render } from "@react-email/render";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { loadEmailConfig, type EmailConfig } from "./config.server";
 import { TEMPLATES, type TemplateName, isTemplateName } from "./templates/registry";
+import {
+  buildUnsubscribeUrl,
+  categoryForTemplate,
+  shouldSendToRecipient,
+} from "./preferences.server";
 
 export type SendResult =
   | { ok: true; id: string; messageId: string | null; skipped?: boolean; reason?: string }
