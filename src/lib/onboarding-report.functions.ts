@@ -5,7 +5,16 @@ import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { PROVIDER_STEP_ORDER, type ProviderKind } from "@/lib/providers/kinds";
 
-const inputSchema = z.object({ workspaceId: z.string().uuid() });
+const activationFailureSchema = z.object({
+  stepId: z.string(),
+  label: z.string(),
+  error: z.string(),
+});
+
+const inputSchema = z.object({
+  workspaceId: z.string().uuid(),
+  activationFailures: z.array(activationFailureSchema).optional(),
+});
 
 const KIND_LABEL: Record<ProviderKind, { label: string; required: boolean }> = {
   store: { label: "Store", required: true },
@@ -292,6 +301,64 @@ export const generateOnboardingReport = createServerFn({ method: "POST" })
       }
       y -= 6;
     }
+
+    // Activation failures (only when the caller supplies them)
+    const failures = data.activationFailures ?? [];
+    if (failures.length > 0 && !engineActive) {
+      y -= 6;
+      ensureSpace(40);
+      drawText("Activation failures", { size: 13, font: bold, color: red });
+      y -= 6;
+      page.drawLine({
+        start: { x: marginX, y },
+        end: { x: width - marginX, y },
+        thickness: 0.5,
+        color: border,
+      });
+      y -= 16;
+      drawText(
+        `The last activation attempt did not complete. ${failures.length} step${failures.length === 1 ? "" : "s"} failed:`,
+        { size: 10, color: muted },
+      );
+      y -= 16;
+
+      for (const f of failures) {
+        ensureSpace(60);
+        // Step label with red bullet
+        page.drawCircle({ x: marginX + 4, y: y + 3, size: 2.5, color: red });
+        drawText(`   ${f.label}`, { size: 11, font: bold });
+        // step id badge
+        const badgeText = f.stepId.toUpperCase();
+        const badgeWidth = bold.widthOfTextAtSize(badgeText, 8) + 12;
+        page.drawRectangle({
+          x: width - marginX - badgeWidth,
+          y: y - 2,
+          width: badgeWidth,
+          height: 14,
+          color: red,
+          opacity: 0.12,
+        });
+        page.drawText(badgeText, {
+          x: width - marginX - badgeWidth + 6,
+          y: y + 1,
+          size: 8,
+          font: bold,
+          color: red,
+        });
+        y -= 16;
+
+        // Error message, wrapped, verbatim
+        drawText("      Error:", { size: 9, color: muted });
+        y -= 12;
+        for (const line of wrap(f.error, 82)) {
+          ensureSpace(14);
+          drawText(`      ${line}`, { size: 10, color: text });
+          y -= 12;
+        }
+        y -= 6;
+      }
+    }
+
 
     // Footer note on last page
     ensureSpace(40);
