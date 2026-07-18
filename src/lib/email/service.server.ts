@@ -16,6 +16,11 @@ import { render } from "@react-email/render";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { loadEmailConfig, type EmailConfig } from "./config.server";
 import { TEMPLATES, type TemplateName, isTemplateName } from "./templates/registry";
+import {
+  buildUnsubscribeUrl,
+  categoryForTemplate,
+  shouldSendToRecipient,
+} from "./preferences.server";
 
 export type SendResult =
   | { ok: true; id: string; messageId: string | null; skipped?: boolean; reason?: string }
@@ -114,12 +119,25 @@ async function renderTemplate(name: TemplateName, data: unknown): Promise<{ subj
 
 async function sendViaResend(
   config: EmailConfig,
-  args: { to: string[]; subject: string; html: string; text: string; replyTo?: string; tags?: Record<string, string> },
+  args: {
+    to: string[];
+    subject: string;
+    html: string;
+    text: string;
+    replyTo?: string;
+    tags?: Record<string, string>;
+    unsubscribeUrl?: string;
+  },
 ): Promise<{ messageId: string | null }> {
   const client = new Resend(config.apiKey);
   const tagList = args.tags
     ? Object.entries(args.tags).map(([name, value]) => ({ name, value: String(value).slice(0, 256) }))
     : undefined;
+  const headers: Record<string, string> = {};
+  if (args.unsubscribeUrl) {
+    headers["List-Unsubscribe"] = `<${args.unsubscribeUrl}>`;
+    headers["List-Unsubscribe-Post"] = "List-Unsubscribe=One-Click";
+  }
   const { data, error } = await client.emails.send({
     from: `${config.fromName} <${config.fromEmail}>`,
     to: args.to,
@@ -128,6 +146,7 @@ async function sendViaResend(
     text: args.text,
     replyTo: args.replyTo ?? config.replyTo,
     tags: tagList,
+    headers: Object.keys(headers).length ? headers : undefined,
   });
   if (error) {
     throw new Error(error.message ?? "Resend API error");
@@ -152,6 +171,38 @@ export async function sendEmail<P>(opts: SendOptions<P>): Promise<SendResult> {
   }
 
   const primary = recipients[0]!;
+
+  // Honor opt-outs BEFORE hitting the provider. Transactional templates
+  // (returned by categoryForTemplate as null) bypass this check.
+  const optCheck = await shouldSendToRecipient(primary, opts.template).catch(() => ({
+    allowed: true as const,
+    category: categoryForTemplate(opts.template),
+  }));
+  if (!optCheck.allowed) {
+    try {
+      const r = await insertLog({
+        workspace_id: opts.workspaceId ?? null,
+        template: String(opts.template),
+        recipient: primary,
+        subject: "(unsubscribed)",
+        idempotency_key: opts.idempotencyKey,
+        metadata: { ...(opts.metadata ?? {}), status: "skipped_unsubscribed", category: optCheck.category },
+      });
+      await updateLog(r.id, {
+        status: "skipped",
+        last_error: `recipient unsubscribed from category "${optCheck.category ?? ""}"`,
+        failed_at: new Date().toISOString(),
+      });
+    } catch { /* ignore */ }
+    log("info", "skipped_unsubscribed", { template: opts.template, category: optCheck.category });
+    return {
+      ok: true,
+      id: "skipped",
+      messageId: null,
+      skipped: true,
+      reason: `unsubscribed:${optCheck.category ?? ""}`,
+    };
+  }
 
   if (!cfg.ok) {
     log("error", "unconfigured", { missing: cfg.missing, template: opts.template });
@@ -184,13 +235,29 @@ export async function sendEmail<P>(opts: SendOptions<P>): Promise<SendResult> {
     return { ok: false, error: "Email service unavailable.", code: "unknown" };
   }
 
+  // Build a signed unsubscribe URL for opt-outable categories only.
+  const category = categoryForTemplate(opts.template);
+  const publicBase =
+    process.env.PUBLIC_APP_URL ?? process.env.APP_URL ?? "https://rrlabs.online";
+  const unsubscribeUrl = category ? buildUnsubscribeUrl(primary, publicBase) : undefined;
+  if (unsubscribeUrl) {
+    const footerHtml = `<div style="margin-top:24px;padding-top:16px;border-top:1px solid #e2e8f0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:12px;color:#64748b;line-height:1.5">You're receiving this because you subscribed to ${category} emails from RRLabs. <a href="${unsubscribeUrl}" style="color:#0ea5a4">Unsubscribe or manage preferences</a>.</div>`;
+    const footerText = `\n\n—\nYou're receiving this because you subscribed to ${category} emails from RRLabs.\nUnsubscribe or manage preferences: ${unsubscribeUrl}\n`;
+    if (rendered.html.includes("</body>")) {
+      rendered.html = rendered.html.replace("</body>", `${footerHtml}</body>`);
+    } else {
+      rendered.html = `${rendered.html}${footerHtml}`;
+    }
+    rendered.text = `${rendered.text}${footerText}`;
+  }
+
   const { id: logId, alreadyExists } = await insertLog({
     workspace_id: opts.workspaceId ?? null,
     template: String(opts.template),
     recipient: primary,
     subject: rendered.subject,
     idempotency_key: opts.idempotencyKey,
-    metadata: { ...(opts.metadata ?? {}), tags: opts.tags ?? null, cc_count: recipients.length - 1 },
+    metadata: { ...(opts.metadata ?? {}), tags: opts.tags ?? null, cc_count: recipients.length - 1, category },
   });
 
   if (alreadyExists) {
@@ -209,6 +276,7 @@ export async function sendEmail<P>(opts: SendOptions<P>): Promise<SendResult> {
         text: rendered.text,
         replyTo: opts.replyTo,
         tags: { template: String(opts.template), ...(opts.tags ?? {}) },
+        unsubscribeUrl,
       });
       await updateLog(logId, {
         status: "sent",

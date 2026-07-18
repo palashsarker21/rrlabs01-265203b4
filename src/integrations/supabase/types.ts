@@ -969,6 +969,36 @@ export type Database = {
           },
         ]
       }
+      email_subscription_preferences: {
+        Row: {
+          category: Database["public"]["Enums"]["email_pref_category"]
+          created_at: string
+          email: string
+          id: string
+          source: string | null
+          subscribed: boolean
+          updated_at: string
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["email_pref_category"]
+          created_at?: string
+          email: string
+          id?: string
+          source?: string | null
+          subscribed?: boolean
+          updated_at?: string
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["email_pref_category"]
+          created_at?: string
+          email?: string
+          id?: string
+          source?: string | null
+          subscribed?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       feature_flags: {
         Row: {
           beta: boolean
@@ -2477,6 +2507,12 @@ export type Database = {
       alert_status: "open" | "acknowledged" | "dismissed"
       app_role: "super_admin" | "admin" | "user"
       blog_post_status: "draft" | "scheduled" | "published" | "archived"
+      email_pref_category:
+        | "billing"
+        | "analytics"
+        | "recovery"
+        | "product"
+        | "marketing"
       incident_impact: "none" | "minor" | "major" | "critical"
       incident_status:
         | "investigating"
@@ -2660,6 +2696,13 @@ export const Constants = {
       alert_status: ["open", "acknowledged", "dismissed"],
       app_role: ["super_admin", "admin", "user"],
       blog_post_status: ["draft", "scheduled", "published", "archived"],
+      email_pref_category: [
+        "billing",
+        "analytics",
+        "recovery",
+        "product",
+        "marketing",
+      ],
       incident_impact: ["none", "minor", "major", "critical"],
       incident_status: [
         "investigating",
