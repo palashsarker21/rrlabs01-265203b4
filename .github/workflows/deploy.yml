@@ -313,15 +313,21 @@ jobs:
           version: latest
 
       - name: Install psql
-        run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y --no-install-recommends postgresql-client
-
-      - name: Authenticate & link
+        env: { RETRIES: "3", BASE_DELAY: "5" }
         run: |
           set -euo pipefail
-          supabase login --token "$SUPABASE_ACCESS_TOKEN"
-          supabase link --project-ref "$SUPABASE_PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
+          bash scripts/ci/retry.sh "apt update" -- sudo apt-get update -qq
+          bash scripts/ci/retry.sh "apt install postgresql-client" -- \
+            sudo apt-get install -y --no-install-recommends postgresql-client
+
+      - name: Authenticate & link
+        env: { RETRIES: "4", BASE_DELAY: "5" }
+        run: |
+          set -euo pipefail
+          bash scripts/ci/retry.sh "supabase login" -- \
+            supabase login --token "$SUPABASE_ACCESS_TOKEN"
+          bash scripts/ci/retry.sh "supabase link" -- \
+            supabase link --project-ref "$SUPABASE_PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
 
       - name: Download pre-migration snapshot
         uses: actions/download-artifact@v4
