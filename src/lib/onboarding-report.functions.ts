@@ -5,7 +5,16 @@ import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { PROVIDER_STEP_ORDER, type ProviderKind } from "@/lib/providers/kinds";
 
-const inputSchema = z.object({ workspaceId: z.string().uuid() });
+const activationFailureSchema = z.object({
+  stepId: z.string(),
+  label: z.string(),
+  error: z.string(),
+});
+
+const inputSchema = z.object({
+  workspaceId: z.string().uuid(),
+  activationFailures: z.array(activationFailureSchema).optional(),
+});
 
 const KIND_LABEL: Record<ProviderKind, { label: string; required: boolean }> = {
   store: { label: "Store", required: true },
