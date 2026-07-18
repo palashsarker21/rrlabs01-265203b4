@@ -19,7 +19,7 @@
 set -euo pipefail
 
 ARTIFACT_DIR="${ARTIFACT_DIR:-/tmp/pre-migration}"
-ROLLBACK_DIR="supabase/migrations/rollback"
+ROLLBACK_DIR="scripts/ci/rollback"
 STRICT="${STRICT:-1}"
 SUMMARY="${GITHUB_STEP_SUMMARY:-/dev/null}"
 
