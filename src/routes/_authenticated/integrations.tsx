@@ -50,6 +50,7 @@ import {
 import type { ProviderKind } from "@/lib/providers/kinds";
 import { PROVIDER_STEP_ORDER, integrationKindFor } from "@/lib/providers/kinds";
 import { webhookUrl, getBrowserOrigin } from "@/lib/providers/webhook-url";
+import type { SaveResult, SaveFailure } from "@/lib/integrations/errors";
 
 export const Route = createFileRoute("/_authenticated/integrations")({
   head: () => ({
