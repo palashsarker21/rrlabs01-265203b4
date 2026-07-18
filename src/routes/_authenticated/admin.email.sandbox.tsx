@@ -133,6 +133,27 @@ function EmailSandboxPage() {
   const [recipientChecking, setRecipientChecking] = useState(false);
   const [ackWarnings, setAckWarnings] = useState(false);
 
+  useEffect(() => {
+    const sample = TEMPLATE_SAMPLES[selected]?.data ?? {};
+    setDataText(JSON.stringify(sample, null, 2));
+    setLastOutcome(null);
+  }, [selected]);
+
+  const parsed = useMemo(() => {
+    try {
+      const value = JSON.parse(dataText || "{}");
+      if (typeof value !== "object" || value === null || Array.isArray(value)) {
+        return { ok: false as const, error: "Data must be a JSON object." };
+      }
+      return { ok: true as const, value: value as Record<string, unknown> };
+    } catch (err) {
+      return { ok: false as const, error: err instanceof Error ? err.message : String(err) };
+    }
+  }, [dataText]);
+
+  const status = statusQ.data;
+  const usage = status?.usage;
+  const limits = status?.limits;
   const recipient = status?.recipient ?? null;
 
   // Auto-run a recipient DNS check whenever the locked recipient changes.
@@ -175,28 +196,6 @@ function EmailSandboxPage() {
       setRecipientChecking(false);
     }
   }
-
-  useEffect(() => {
-    const sample = TEMPLATE_SAMPLES[selected]?.data ?? {};
-    setDataText(JSON.stringify(sample, null, 2));
-    setLastOutcome(null);
-  }, [selected]);
-
-  const parsed = useMemo(() => {
-    try {
-      const value = JSON.parse(dataText || "{}");
-      if (typeof value !== "object" || value === null || Array.isArray(value)) {
-        return { ok: false as const, error: "Data must be a JSON object." };
-      }
-      return { ok: true as const, value: value as Record<string, unknown> };
-    } catch (err) {
-      return { ok: false as const, error: err instanceof Error ? err.message : String(err) };
-    }
-  }, [dataText]);
-
-  const status = statusQ.data;
-  const usage = status?.usage;
-  const limits = status?.limits;
 
   const sendMut = useMutation({
     mutationFn: async () => {
