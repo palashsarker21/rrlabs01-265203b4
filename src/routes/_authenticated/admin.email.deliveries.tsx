@@ -8,10 +8,12 @@ import {
   getDeliveryFn,
   replayDeliveryFn,
   bulkReplayDeliveriesFn,
+  resolveBulkReplayFn,
   listTemplateOptionsFn,
 } from "@/lib/email-delivery.functions";
 
 type StatusFilter = "all" | "queued" | "sent" | "failed" | "skipped" | "retried";
+
 
 export const Route = createFileRoute("/_authenticated/admin/email/deliveries")({
   head: () => ({
