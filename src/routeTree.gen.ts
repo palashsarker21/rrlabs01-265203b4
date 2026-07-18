@@ -64,6 +64,7 @@ import { Route as ApiPublicHooksSuccessFeeMonthlyRouteImport } from './routes/ap
 import { Route as ApiPublicHooksRecoveryCadenceRouteImport } from './routes/api/public/hooks/recovery-cadence'
 import { Route as AuthenticatedAdminEmailSandboxRouteImport } from './routes/_authenticated/admin.email.sandbox'
 import { Route as AuthenticatedAdminEmailPreviewRouteImport } from './routes/_authenticated/admin.email.preview'
+import { Route as AuthenticatedAdminEmailDeliveriesRouteImport } from './routes/_authenticated/admin.email.deliveries'
 import { Route as ApiPublicWebhooksProviderIntegrationIdRouteImport } from './routes/api/public/webhooks/$provider.$integrationId'
 
 const UnsubscribeRoute = UnsubscribeRouteImport.update({
@@ -354,6 +355,12 @@ const AuthenticatedAdminEmailPreviewRoute =
     path: '/preview',
     getParentRoute: () => AuthenticatedAdminEmailRoute,
   } as any)
+const AuthenticatedAdminEmailDeliveriesRoute =
+  AuthenticatedAdminEmailDeliveriesRouteImport.update({
+    id: '/deliveries',
+    path: '/deliveries',
+    getParentRoute: () => AuthenticatedAdminEmailRoute,
+  } as any)
 const ApiPublicWebhooksProviderIntegrationIdRoute =
   ApiPublicWebhooksProviderIntegrationIdRouteImport.update({
     id: '/api/public/webhooks/$provider/$integrationId',
@@ -409,6 +416,7 @@ export interface FileRoutesByFullPath {
   '/api/public/health': typeof ApiPublicHealthRoute
   '/blog/category/$category': typeof BlogCategoryCategoryRoute
   '/blog/tag/$tag': typeof BlogTagTagRoute
+  '/admin/email/deliveries': typeof AuthenticatedAdminEmailDeliveriesRoute
   '/admin/email/preview': typeof AuthenticatedAdminEmailPreviewRoute
   '/admin/email/sandbox': typeof AuthenticatedAdminEmailSandboxRoute
   '/api/public/hooks/recovery-cadence': typeof ApiPublicHooksRecoveryCadenceRoute
@@ -465,6 +473,7 @@ export interface FileRoutesByTo {
   '/api/public/health': typeof ApiPublicHealthRoute
   '/blog/category/$category': typeof BlogCategoryCategoryRoute
   '/blog/tag/$tag': typeof BlogTagTagRoute
+  '/admin/email/deliveries': typeof AuthenticatedAdminEmailDeliveriesRoute
   '/admin/email/preview': typeof AuthenticatedAdminEmailPreviewRoute
   '/admin/email/sandbox': typeof AuthenticatedAdminEmailSandboxRoute
   '/api/public/hooks/recovery-cadence': typeof ApiPublicHooksRecoveryCadenceRoute
@@ -524,6 +533,7 @@ export interface FileRoutesById {
   '/api/public/health': typeof ApiPublicHealthRoute
   '/blog/category/$category': typeof BlogCategoryCategoryRoute
   '/blog/tag/$tag': typeof BlogTagTagRoute
+  '/_authenticated/admin/email/deliveries': typeof AuthenticatedAdminEmailDeliveriesRoute
   '/_authenticated/admin/email/preview': typeof AuthenticatedAdminEmailPreviewRoute
   '/_authenticated/admin/email/sandbox': typeof AuthenticatedAdminEmailSandboxRoute
   '/api/public/hooks/recovery-cadence': typeof ApiPublicHooksRecoveryCadenceRoute
@@ -583,6 +593,7 @@ export interface FileRouteTypes {
     | '/api/public/health'
     | '/blog/category/$category'
     | '/blog/tag/$tag'
+    | '/admin/email/deliveries'
     | '/admin/email/preview'
     | '/admin/email/sandbox'
     | '/api/public/hooks/recovery-cadence'
@@ -639,6 +650,7 @@ export interface FileRouteTypes {
     | '/api/public/health'
     | '/blog/category/$category'
     | '/blog/tag/$tag'
+    | '/admin/email/deliveries'
     | '/admin/email/preview'
     | '/admin/email/sandbox'
     | '/api/public/hooks/recovery-cadence'
@@ -697,6 +709,7 @@ export interface FileRouteTypes {
     | '/api/public/health'
     | '/blog/category/$category'
     | '/blog/tag/$tag'
+    | '/_authenticated/admin/email/deliveries'
     | '/_authenticated/admin/email/preview'
     | '/_authenticated/admin/email/sandbox'
     | '/api/public/hooks/recovery-cadence'
@@ -1126,6 +1139,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminEmailPreviewRouteImport
       parentRoute: typeof AuthenticatedAdminEmailRoute
     }
+    '/_authenticated/admin/email/deliveries': {
+      id: '/_authenticated/admin/email/deliveries'
+      path: '/deliveries'
+      fullPath: '/admin/email/deliveries'
+      preLoaderRoute: typeof AuthenticatedAdminEmailDeliveriesRouteImport
+      parentRoute: typeof AuthenticatedAdminEmailRoute
+    }
     '/api/public/webhooks/$provider/$integrationId': {
       id: '/api/public/webhooks/$provider/$integrationId'
       path: '/api/public/webhooks/$provider/$integrationId'
@@ -1137,12 +1157,15 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedAdminEmailRouteChildren {
+  AuthenticatedAdminEmailDeliveriesRoute: typeof AuthenticatedAdminEmailDeliveriesRoute
   AuthenticatedAdminEmailPreviewRoute: typeof AuthenticatedAdminEmailPreviewRoute
   AuthenticatedAdminEmailSandboxRoute: typeof AuthenticatedAdminEmailSandboxRoute
 }
 
 const AuthenticatedAdminEmailRouteChildren: AuthenticatedAdminEmailRouteChildren =
   {
+    AuthenticatedAdminEmailDeliveriesRoute:
+      AuthenticatedAdminEmailDeliveriesRoute,
     AuthenticatedAdminEmailPreviewRoute: AuthenticatedAdminEmailPreviewRoute,
     AuthenticatedAdminEmailSandboxRoute: AuthenticatedAdminEmailSandboxRoute,
   }
