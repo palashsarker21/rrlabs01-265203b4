@@ -396,6 +396,14 @@ function EmailPreviewPage() {
             </div>
           )}
 
+          {!validation.canRender && (
+            <div className="rounded-md border border-amber-500/40 bg-amber-500/5 p-3 text-sm text-amber-700 dark:text-amber-400">
+              Preview paused — resolve the variable validator errors on the left to
+              render this template.
+            </div>
+          )}
+
+
           <div className="overflow-hidden rounded-md border bg-white">
             <div className="flex items-center justify-between border-b bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
               <span>HTML preview</span>
