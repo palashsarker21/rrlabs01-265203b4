@@ -26,6 +26,81 @@ export const Route = createFileRoute("/_authenticated/admin/email/sandbox")({
 
 type SendOutcome = Awaited<ReturnType<typeof sendSandboxTestFn>>;
 
+type HistoryEntry = {
+  id: string;
+  sentAt: string;
+  template: string;
+  templateDisplayName?: string;
+  dataText: string;
+  recipient: string;
+  status: "sent" | "skipped" | "failed" | "blocked";
+  durationMs?: number;
+  messageId?: string;
+  logId?: string;
+  subject?: string;
+  errorMessage?: string;
+  outcome: SendOutcome;
+};
+
+const HISTORY_KEY = "rrlabs.sandbox.history.v1";
+const HISTORY_MAX = 50;
+
+function loadHistory(): HistoryEntry[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = window.localStorage.getItem(HISTORY_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? (parsed as HistoryEntry[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveHistory(entries: HistoryEntry[]) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(HISTORY_KEY, JSON.stringify(entries.slice(0, HISTORY_MAX)));
+  } catch {
+    // ignore quota / unavailable storage
+  }
+}
+
+function summarizeOutcome(outcome: SendOutcome): {
+  status: HistoryEntry["status"];
+  durationMs?: number;
+  messageId?: string;
+  logId?: string;
+  subject?: string;
+  errorMessage?: string;
+} {
+  if (outcome.ok === false) {
+    return {
+      status: "blocked",
+      errorMessage: outcome.error,
+    };
+  }
+  const r = outcome.result;
+  const d = outcome.diagnostics;
+  const skipped = r.ok && (r as { skipped?: boolean }).skipped;
+  const status: HistoryEntry["status"] = !r.ok
+    ? "failed"
+    : skipped
+      ? "skipped"
+      : "sent";
+  return {
+    status,
+    durationMs: outcome.durationMs,
+    messageId: d.messageId ?? undefined,
+    logId: d.logId ?? (r.ok ? r.id : undefined),
+    subject: d.subject ?? undefined,
+    errorMessage: !r.ok
+      ? `${r.code}: ${r.error}`
+      : d.lastError ?? undefined,
+  };
+}
+
+
 function EmailSandboxPage() {
   const listTpl = useServerFn(listEmailTemplates);
   const statusFn = useServerFn(getSandboxStatusFn);
