@@ -641,6 +641,7 @@ function ProviderCard({
 }) {
   const [expanded, setExpanded] = useState(integrations.length === 0);
   const [values, setValues] = useState<Record<string, string>>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [submitting, setSubmitting] = useState(false);
   const [autoStatus, setAutoStatus] = useState<"idle" | "saving" | "saved" | "failed">("idle");
   const [saveError, setSaveError] = useState<SaveFailure | null>(null);
@@ -658,6 +659,19 @@ function ProviderCard({
   );
   const allRequiredFilled =
     requiredKeys.length > 0 && requiredKeys.every((k) => (values[k] ?? "").trim().length > 0);
+
+  // Per-field client-side validation. Blocks autosave and submit when any
+  // rule fails; error text is shown only for fields the user has touched
+  // (or all fields after a submit attempt).
+  const fieldErrors = useMemo(() => {
+    const out: Record<string, string> = {};
+    for (const f of setupFields) {
+      const err = validateSetupField(f, values[f.key] ?? "");
+      if (err) out[f.key] = err;
+    }
+    return out;
+  }, [setupFields, values]);
+  const hasFieldErrors = Object.keys(fieldErrors).length > 0;
 
   const autoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastSavedSigRef = useRef<string>("");
