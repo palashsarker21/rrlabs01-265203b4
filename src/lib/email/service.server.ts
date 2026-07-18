@@ -172,6 +172,38 @@ export async function sendEmail<P>(opts: SendOptions<P>): Promise<SendResult> {
 
   const primary = recipients[0]!;
 
+  // Honor opt-outs BEFORE hitting the provider. Transactional templates
+  // (returned by categoryForTemplate as null) bypass this check.
+  const optCheck = await shouldSendToRecipient(primary, opts.template).catch(() => ({
+    allowed: true as const,
+    category: categoryForTemplate(opts.template),
+  }));
+  if (!optCheck.allowed) {
+    try {
+      const r = await insertLog({
+        workspace_id: opts.workspaceId ?? null,
+        template: String(opts.template),
+        recipient: primary,
+        subject: "(unsubscribed)",
+        idempotency_key: opts.idempotencyKey,
+        metadata: { ...(opts.metadata ?? {}), status: "skipped_unsubscribed", category: optCheck.category },
+      });
+      await updateLog(r.id, {
+        status: "skipped",
+        last_error: `recipient unsubscribed from category "${optCheck.category ?? ""}"`,
+        failed_at: new Date().toISOString(),
+      });
+    } catch { /* ignore */ }
+    log("info", "skipped_unsubscribed", { template: opts.template, category: optCheck.category });
+    return {
+      ok: true,
+      id: "skipped",
+      messageId: null,
+      skipped: true,
+      reason: `unsubscribed:${optCheck.category ?? ""}`,
+    };
+  }
+
   if (!cfg.ok) {
     log("error", "unconfigured", { missing: cfg.missing, template: opts.template });
     // Still persist a log so admins can see attempted sends.
