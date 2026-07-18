@@ -5,9 +5,16 @@ on:
     branches: [main]
   workflow_dispatch:
 
+## Concurrency strategy
+# Workflow-level group covers the pre-migration phases (verify + build).
+# Rapid successive pushes cancel superseded pre-migration runs so we don't
+# waste minutes on stale commits. Once a run reaches the `migrate` job (or
+# later), that job re-declares its own concurrency group with
+# cancel-in-progress: false, which QUEUES any newer run behind the in-flight
+# database change. A migration or rollback is never interrupted mid-flight.
 concurrency:
-  group: deploy-production
-  cancel-in-progress: false
+  group: deploy-production-pre-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
