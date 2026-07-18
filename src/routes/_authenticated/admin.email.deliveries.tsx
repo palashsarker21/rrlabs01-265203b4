@@ -96,8 +96,44 @@ function EmailDeliveriesPage() {
   const listQ = useQuery({
     queryKey: ["admin", "email", "deliveries", filters],
     queryFn: () => listFn({ data: filters }),
-    refetchInterval: 15_000,
+    refetchInterval: autoRefresh ? (live === "on" ? 30_000 : 10_000) : false,
+    refetchOnWindowFocus: autoRefresh,
   });
+
+  useEffect(() => {
+    if (!autoRefresh) {
+      setLive("off");
+      return;
+    }
+    setLive("connecting");
+    let debounce: ReturnType<typeof setTimeout> | null = null;
+    const scheduleRefresh = () => {
+      if (debounce) clearTimeout(debounce);
+      debounce = setTimeout(() => {
+        qc.invalidateQueries({ queryKey: ["admin", "email", "deliveries"] });
+      }, 400);
+    };
+    const channel = supabase
+      .channel("admin-email-deliveries")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "email_logs" },
+        scheduleRefresh,
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "email_events" },
+        scheduleRefresh,
+      )
+      .subscribe((s) => {
+        if (s === "SUBSCRIBED") setLive("on");
+        else if (s === "CHANNEL_ERROR" || s === "TIMED_OUT" || s === "CLOSED") setLive("off");
+      });
+    return () => {
+      if (debounce) clearTimeout(debounce);
+      supabase.removeChannel(channel);
+    };
+  }, [autoRefresh, qc]);
 
   const tplQ = useQuery({
     queryKey: ["admin", "email", "deliveries", "templates"],
