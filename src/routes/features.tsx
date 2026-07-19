@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { buildBreadcrumbScript, canonicalFor } from "@/lib/seo/breadcrumbs";
 import {
   ArrowRight,
   Bot,
@@ -31,6 +32,8 @@ export const Route = createFileRoute("/features")({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
+    links: [{ rel: "canonical", href: canonicalFor("/features") }],
+    scripts: [buildBreadcrumbScript([{ name: "Features", path: "/features" }])],
   }),
 });
 

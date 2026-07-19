@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { buildBreadcrumbScript, canonicalFor } from "@/lib/seo/breadcrumbs";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MarketingHeader, MarketingFooter } from "@/components/marketing-chrome";
@@ -20,6 +21,8 @@ export const Route = createFileRoute("/about")({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
+    links: [{ rel: "canonical", href: canonicalFor("/about") }],
+    scripts: [buildBreadcrumbScript([{ name: "About", path: "/about" }])],
   }),
 });
 
