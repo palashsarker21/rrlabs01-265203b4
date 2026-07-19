@@ -112,11 +112,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
               "@type": "Organization",
               "@id": `${SITE_URL}/#organization`,
               name: BRAND.company,
+              legalName: BRAND.legalOwner,
               alternateName: BRAND.name,
               url: SITE_URL,
               logo: absoluteUrl(LOGO.full),
+              image: absoluteUrl(LOGO.ogImage),
+              description: BRAND.description,
               email: "support@rrlabs.online",
               telephone: "+8801323405346",
+              serviceType: "Revenue Recovery SaaS",
+              areaServed: "Worldwide",
               contactPoint: [
                 {
                   "@type": "ContactPoint",
@@ -148,6 +153,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
               url: SITE_URL,
               name: BRAND.name,
               publisher: { "@id": `${SITE_URL}/#organization` },
+              potentialAction: {
+                "@type": "SearchAction",
+                target: {
+                  "@type": "EntryPoint",
+                  urlTemplate: `${SITE_URL}/blog/search?q={search_term_string}`,
+                },
+                "query-input": "required name=search_term_string",
+              },
             },
             {
               "@type": "SoftwareApplication",
