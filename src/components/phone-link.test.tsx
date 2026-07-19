@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+/// <reference types="vitest-axe/extend-expect" />
 import "@testing-library/jest-dom/vitest";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
