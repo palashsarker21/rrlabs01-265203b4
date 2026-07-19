@@ -175,6 +175,7 @@ describe("PhoneList", () => {
 
   it("has no detectable axe violations", async () => {
     const { container } = render(<PhoneList />);
-    expect(await axe(container)).toHaveNoViolations();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (expect(await axe(container)) as any).toHaveNoViolations();
   });
 });
