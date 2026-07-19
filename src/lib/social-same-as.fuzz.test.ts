@@ -83,7 +83,9 @@ const malformedInput = fc.oneof(
     "   ",
     "\n\t",
     "https://",
-    "https:///path",
+    // Note: "https:///path" is intentionally omitted — WHATWG URL parsing
+    // treats it as https://path/ (hostname "path"), which the normalizer
+    // legitimately accepts as an absolute https URL.
     "not a url",
   ),
   // Random non-string values (the function accepts unknown-ish input).
