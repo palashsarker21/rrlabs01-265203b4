@@ -1,7 +1,7 @@
 import { Facebook, Github, Instagram, Linkedin, Twitter, Youtube } from "lucide-react";
 import type { ComponentType, SVGProps } from "react";
 import { cn } from "@/lib/utils";
-import { SOCIAL_PROFILES, type SocialPlatform, type SocialProfile } from "@/lib/brand";
+import { ENABLED_SOCIAL_PROFILES, type SocialPlatform, type SocialProfile } from "@/lib/brand";
 
 /**
  * Threads has no Lucide icon yet — inline the official monochrome glyph.
