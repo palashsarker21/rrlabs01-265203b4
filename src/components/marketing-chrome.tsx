@@ -1,10 +1,11 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, Menu, X, Github, Linkedin, Twitter, Mail, Phone, MapPin } from "lucide-react";
+import { ArrowRight, Menu, X, Mail, Phone, MapPin } from "lucide-react";
 import { useEffect, useState } from "react";
 import { BrandLockup } from "@/components/brand-mark";
+import { SocialLinks } from "@/components/social-links";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { BRAND, CONTACT, SOCIAL } from "@/lib/brand";
+import { BRAND, CONTACT } from "@/lib/brand";
 
 const PRIMARY_NAV = [
   { to: "/features", label: "Features" },
