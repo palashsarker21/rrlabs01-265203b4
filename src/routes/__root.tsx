@@ -117,6 +117,22 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
               logo: absoluteUrl(LOGO.full),
               email: "support@rrlabs.online",
               telephone: "+8801323405346",
+              contactPoint: [
+                {
+                  "@type": "ContactPoint",
+                  telephone: "+8801323405346",
+                  contactType: "customer service",
+                  availableLanguage: ["en", "bn"],
+                },
+                {
+                  "@type": "ContactPoint",
+                  telephone: "+8801934857886",
+                  contactType: "customer support",
+                  contactOption: "TollFree",
+                  availableLanguage: ["en", "bn"],
+                  description: "WhatsApp Business",
+                },
+              ],
               address: {
                 "@type": "PostalAddress",
                 streetAddress: "60, Chowhaddi, Dotto Kendua-7901",

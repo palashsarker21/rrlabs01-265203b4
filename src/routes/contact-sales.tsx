@@ -3,9 +3,10 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
-import { ArrowRight, CheckCircle2, Mail, Phone, ShieldCheck } from "lucide-react";
+import { ArrowRight, CheckCircle2, Mail, ShieldCheck } from "lucide-react";
 
 import { MarketingHeader, MarketingFooter } from "@/components/marketing-chrome";
+import { PhoneList } from "@/components/phone-link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -126,15 +127,10 @@ function ContactSalesPage() {
             >
               <Mail className="h-4 w-4" /> {CONTACT.supportEmail}
             </a>
-            {CONTACT.phones.map((p) => (
-              <a
-                key={p}
-                href={`tel:${p}`}
-                className="mt-1 flex items-center gap-2 text-neutral-800 hover:text-emerald-700"
-              >
-                <Phone className="h-4 w-4" /> {p}
-              </a>
-            ))}
+            <PhoneList
+              className="mt-1"
+              linkClassName="text-neutral-800 hover:text-emerald-700"
+            />
           </div>
         </div>
 

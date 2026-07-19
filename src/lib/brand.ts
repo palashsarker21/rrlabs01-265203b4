@@ -34,6 +34,29 @@ export const CONTACT = {
   website: SITE_URL,
 } as const;
 
+export type PhoneKind = "primary" | "whatsapp";
+export interface PhoneEntry {
+  number: string;
+  label: string;
+  kind: PhoneKind;
+  ariaLabel: string;
+}
+
+export const CONTACT_PHONES: readonly PhoneEntry[] = [
+  {
+    number: "+8801323405346",
+    label: "Primary",
+    kind: "primary",
+    ariaLabel: "Call +8801323405346",
+  },
+  {
+    number: "+8801934857886",
+    label: "WhatsApp Business",
+    kind: "whatsapp",
+    ariaLabel: "Call WhatsApp Business +8801934857886",
+  },
+];
+
 export const SOCIAL = {
   facebook: "https://www.facebook.com/rrlabsonline",
   linkedin: "https://www.linkedin.com/company/rrlabsonline",
