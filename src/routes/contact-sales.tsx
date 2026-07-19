@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
-import { ArrowRight, CheckCircle2, Mail, Phone, ShieldCheck } from "lucide-react";
+import { ArrowRight, CheckCircle2, Mail, ShieldCheck } from "lucide-react";
 
 import { MarketingHeader, MarketingFooter } from "@/components/marketing-chrome";
 import { Button } from "@/components/ui/button";
