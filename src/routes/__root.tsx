@@ -122,6 +122,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
                 addressRegion: "Dhaka",
                 addressCountry: "BD",
               },
+              sameAs: SOCIAL_SAME_AS,
             },
             {
               "@type": "WebSite",
