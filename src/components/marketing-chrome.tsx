@@ -3,6 +3,7 @@ import { ArrowRight, Menu, X, Mail, MapPin } from "lucide-react";
 import { useEffect, useState } from "react";
 import { BrandLockup } from "@/components/brand-mark";
 import { SocialLinks } from "@/components/social-links";
+import { PhoneList } from "@/components/phone-link";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { BRAND, CONTACT } from "@/lib/brand";
