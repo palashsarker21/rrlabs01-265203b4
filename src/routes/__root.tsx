@@ -12,7 +12,7 @@ import { Toaster } from "sonner";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { supabase } from "../integrations/supabase/client";
-import { BRAND, SITE_URL, LOGO, absoluteUrl } from "../lib/brand";
+import { BRAND, SITE_URL, LOGO, absoluteUrl, SOCIAL_SAME_AS } from "../lib/brand";
 import { ErrorPage } from "../components/error-page";
 import { ErrorBoundary } from "../components/error-boundary";
 import { DebugErrorPanel } from "../components/debug-error-panel";
