@@ -6,6 +6,7 @@ import { z } from "zod";
 import { ArrowRight, CheckCircle2, Mail, ShieldCheck } from "lucide-react";
 
 import { MarketingHeader, MarketingFooter } from "@/components/marketing-chrome";
+import { PhoneList } from "@/components/phone-link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
