@@ -70,6 +70,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:image:width", content: "1200" },
       { property: "og:image:height", content: "630" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:site", content: "@rrlabsonline" },
+      { name: "twitter:creator", content: "@rrlabsonline" },
       { name: "twitter:title", content: `${BRAND.name} — ${BRAND.tagline}` },
       { name: "twitter:description", content: BRAND.description },
       { name: "twitter:image", content: absoluteUrl(LOGO.ogImage) },
