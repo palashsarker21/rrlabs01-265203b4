@@ -1,9 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Mail, Phone, MapPin, Globe } from "lucide-react";
+import { Mail, Phone, MapPin, Globe, Copy } from "lucide-react";
+import { toast } from "sonner";
 import { MarketingHeader, MarketingFooter } from "@/components/marketing-chrome";
 import { SocialLinks } from "@/components/social-links";
 import { PhoneList } from "@/components/phone-link";
 import { CONTACT, SITE_URL, BRAND } from "@/lib/brand";
+import { trackEvent } from "@/lib/analytics/events";
+import { buildBreadcrumbScript, canonicalFor } from "@/lib/seo/breadcrumbs";
 
 export const Route = createFileRoute("/contact")({
   component: ContactPage,
@@ -17,12 +20,30 @@ export const Route = createFileRoute("/contact")({
       { property: "og:title", content: `Contact ${BRAND.name}` },
       { property: "og:description", content: `Talk to the team behind ${BRAND.name}.` },
       { property: "og:type", content: "website" },
-      { property: "og:url", content: `${SITE_URL}/contact` },
+      { property: "og:url", content: canonicalFor("/contact") },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: `Contact ${BRAND.name}` },
+      { name: "twitter:description", content: `Talk to the team behind ${BRAND.name}.` },
     ],
     links: [{ rel: "canonical", href: `${SITE_URL}/contact` }],
+    scripts: [buildBreadcrumbScript([{ name: "Contact", path: "/contact" }])],
   }),
 });
+
+async function copyText(value: string, label: string, platform: string) {
+  try {
+    if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(value);
+    }
+    toast.success(`${label} copied.`);
+    trackEvent(platform === "email" ? "email_copy" : "website_copy", {
+      component: "contact",
+      platform,
+    });
+  } catch {
+    toast.error(`Could not copy ${label.toLowerCase()}.`);
+  }
+}
 
 function ContactPage() {
   const { address } = CONTACT;
@@ -39,14 +60,29 @@ function ContactPage() {
         </p>
 
         <div className="mt-12 grid gap-5 sm:grid-cols-2">
-          <a
-            href={`mailto:${CONTACT.supportEmail}`}
-            className="rounded-xl border border-border/60 bg-card/50 p-6 backdrop-blur transition hover:border-primary/50"
-          >
+          <div className="rounded-xl border border-border/60 bg-card/50 p-6 backdrop-blur transition hover:border-primary/50">
             <Mail className="h-5 w-5 text-primary" />
             <h3 className="mt-3 font-semibold text-foreground">Email</h3>
-            <p className="mt-1 text-sm text-muted-foreground">{CONTACT.supportEmail}</p>
-          </a>
+            <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
+              <a
+                href={`mailto:${CONTACT.supportEmail}`}
+                onClick={() =>
+                  trackEvent("email_click", { component: "contact", platform: "support" })
+                }
+                className="hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
+              >
+                {CONTACT.supportEmail}
+              </a>
+              <button
+                type="button"
+                aria-label={`Copy ${CONTACT.supportEmail}`}
+                onClick={() => void copyText(CONTACT.supportEmail, "Email", "email")}
+                className="inline-flex h-6 w-6 items-center justify-center rounded text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <Copy className="h-3.5 w-3.5" aria-hidden="true" />
+              </button>
+            </div>
+          </div>
           <div className="rounded-xl border border-border/60 bg-card/50 p-6 backdrop-blur">
             <Phone className="h-5 w-5 text-primary" />
             <h3 className="mt-3 font-semibold text-foreground">Phone</h3>
@@ -65,16 +101,31 @@ function ContactPage() {
               {address.country}
             </address>
           </div>
-          <a
-            href={CONTACT.website}
-            target="_blank"
-            rel="noreferrer"
-            className="rounded-xl border border-border/60 bg-card/50 p-6 backdrop-blur transition hover:border-primary/50 sm:col-span-2"
-          >
+          <div className="rounded-xl border border-border/60 bg-card/50 p-6 backdrop-blur transition hover:border-primary/50 sm:col-span-2">
             <Globe className="h-5 w-5 text-primary" />
             <h3 className="mt-3 font-semibold text-foreground">Website</h3>
-            <p className="mt-1 text-sm text-muted-foreground">{CONTACT.website}</p>
-          </a>
+            <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
+              <a
+                href={CONTACT.website}
+                target="_blank"
+                rel="noreferrer"
+                onClick={() =>
+                  trackEvent("website_click", { component: "contact", platform: "website" })
+                }
+                className="hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
+              >
+                {CONTACT.website}
+              </a>
+              <button
+                type="button"
+                aria-label={`Copy ${CONTACT.website}`}
+                onClick={() => void copyText(CONTACT.website, "Website", "website")}
+                className="inline-flex h-6 w-6 items-center justify-center rounded text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <Copy className="h-3.5 w-3.5" aria-hidden="true" />
+              </button>
+            </div>
+          </div>
         </div>
 
         <section aria-labelledby="official-socials" className="mt-16">

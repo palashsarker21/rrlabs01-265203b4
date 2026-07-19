@@ -2,6 +2,7 @@ import { Copy, Phone as PhoneIcon, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import { CONTACT_PHONES, type PhoneEntry } from "@/lib/brand";
 import { cn } from "@/lib/utils";
+import { trackEvent } from "@/lib/analytics/events";
 
 interface PhoneLinkProps {
   entry: PhoneEntry;
@@ -9,7 +10,7 @@ interface PhoneLinkProps {
   linkClassName?: string;
 }
 
-async function copyToClipboard(value: string) {
+async function copyToClipboard(value: string, kind: PhoneEntry["kind"]) {
   try {
     if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
       await navigator.clipboard.writeText(value);
@@ -25,6 +26,7 @@ async function copyToClipboard(value: string) {
       document.body.removeChild(el);
     }
     toast.success("Phone number copied.");
+    trackEvent("phone_copy", { component: "phone-link", platform: kind });
   } catch {
     toast.error("Could not copy phone number.");
   }
@@ -42,6 +44,7 @@ export function PhoneLink({ entry, className, linkClassName }: PhoneLinkProps) {
       <a
         href={`tel:${entry.number}`}
         aria-label={entry.ariaLabel}
+        onClick={() => trackEvent("phone_click", { component: "phone-link", platform: entry.kind })}
         className={cn(
           "inline-flex items-center gap-2 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded",
           linkClassName,
@@ -60,7 +63,7 @@ export function PhoneLink({ entry, className, linkClassName }: PhoneLinkProps) {
       ) : null}
       <button
         type="button"
-        onClick={() => void copyToClipboard(entry.number)}
+        onClick={() => void copyToClipboard(entry.number, entry.kind)}
         aria-label={`Copy ${entry.number}`}
         className="inline-flex h-6 w-6 items-center justify-center rounded text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >

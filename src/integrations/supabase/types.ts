@@ -100,6 +100,39 @@ export type Database = {
           },
         ]
       }
+      analytics_events: {
+        Row: {
+          component: string | null
+          created_at: string
+          id: string
+          meta: Json | null
+          name: string
+          page: string | null
+          platform: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          component?: string | null
+          created_at?: string
+          id?: string
+          meta?: Json | null
+          name: string
+          page?: string | null
+          platform?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          component?: string | null
+          created_at?: string
+          id?: string
+          meta?: Json | null
+          name?: string
+          page?: string | null
+          platform?: string | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       announcement_dismissals: {
         Row: {
           announcement_id: string
