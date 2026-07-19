@@ -196,15 +196,10 @@ export function MarketingFooter() {
               >
                 <Mail className="h-4 w-4" /> {CONTACT.supportEmail}
               </a>
-              {CONTACT.phones.map((p) => (
-                <a
-                  key={p}
-                  href={`tel:${p}`}
-                  className="flex items-center gap-2 hover:text-foreground"
-                >
-                  <Phone className="h-4 w-4" /> {p}
-                </a>
-              ))}
+              <PhoneList
+                className="!space-y-1"
+                linkClassName="text-muted-foreground hover:text-foreground"
+              />
               <div className="flex items-start gap-2">
                 <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
                 <address className="not-italic leading-relaxed">
