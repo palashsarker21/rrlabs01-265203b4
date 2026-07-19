@@ -3,14 +3,18 @@
 Loads /contact, clicks the "Copy <number>" button for each contact phone,
 and verifies:
 
-  1. Clipboard receives the exact E.164 number.
+  1. The component calls `navigator.clipboard.writeText(<number>)` with the
+     exact E.164 value.
   2. A sonner toast appears with text "Phone number copied.".
   3. The toast is announced to assistive tech:
        - It lives inside a Sonner region element carrying `aria-live`
          (`polite` or `assertive`).
-       - The toast itself exposes `role="status"` (or `role="alert"`) so
-         screen readers pick it up as a live announcement.
+       - The toast itself exposes `role="status"` (or `role="alert"`).
        - The toast is not `aria-hidden`.
+
+The clipboard API is stubbed on every new document so the assertion is
+deterministic in headless Chromium (system clipboard is unreliable in
+a sandbox). The stub still exercises the same code path the browser uses.
 
 Run: `python3 tests/e2e/phone-copy-a11y.spec.py` while the dev server is
 serving http://localhost:8080.
@@ -31,9 +35,23 @@ TOAST_TEXT = "Phone number copied."
 SCREENSHOTS = Path(__file__).parent / "screenshots"
 SCREENSHOTS.mkdir(parents=True, exist_ok=True)
 
+INSTRUMENT_SCRIPT = """
+window.__clipboardWrites = [];
+(() => {
+  const stub = async (v) => { window.__clipboardWrites.push(String(v)); };
+  try {
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText: stub, readText: async () => '' },
+    });
+  } catch (e) {
+    if (navigator.clipboard) navigator.clipboard.writeText = stub;
+  }
+})();
+"""
+
 
 async def click_copy_and_verify(page, number: str, shot_prefix: str):
-    # Reset the recorded writeText calls (installed via init script).
     await page.evaluate("window.__clipboardWrites = []")
 
     button = page.get_by_role("button", name=f"Copy {number}").first
@@ -41,27 +59,24 @@ async def click_copy_and_verify(page, number: str, shot_prefix: str):
     await button.scroll_into_view_if_needed()
     await button.click()
 
-    # --- 1. The component called navigator.clipboard.writeText(number) -----
-    # We instrument writeText via init script because headless Chromium's
-    # system clipboard is unreliable in a sandbox; instrumenting the actual
-    # browser API is what the code path exercises.
-    writes = []
-    for _ in range(20):
+    # --- 1. The component called clipboard.writeText with the number -------
+    writes: list[str] = []
+    for _ in range(30):
         writes = await page.evaluate("window.__clipboardWrites")
         if number in writes:
             break
         await page.wait_for_timeout(50)
     assert number in writes, (
-        f"expected navigator.clipboard.writeText({number!r}) to be called; "
+        f"expected navigator.clipboard.writeText({number!r}); "
         f"recorded calls: {writes!r}"
     )
 
-    # --- 2. Toast is rendered with the exact copy --------------------------
+    # --- 2. Toast rendered with the exact user-facing copy -----------------
     toast = page.locator("[data-sonner-toast]").filter(has_text=TOAST_TEXT).first
     await expect(toast).to_be_visible()
 
-    # --- 3. Announced to screen readers ------------------------------------
-    # (a) The Sonner region wrapping toasts must carry aria-live.
+    # --- 3. Announced to assistive tech ------------------------------------
+    # (a) Sonner region wraps toasts in an aria-live container.
     region_live = await page.evaluate(
         """
         () => {
@@ -78,71 +93,58 @@ async def click_copy_and_verify(page, number: str, shot_prefix: str):
         """
     )
     assert region_live in ("polite", "assertive"), (
-        f"expected Sonner region to have aria-live=polite|assertive, got {region_live!r}"
+        f"Sonner region must have aria-live=polite|assertive, got {region_live!r}"
     )
 
-    # (b) The toast itself is exposed as a live status/alert.
+    # (b) Toast itself carries role=status or role=alert.
     role = await toast.get_attribute("role")
     assert role in ("status", "alert"), (
-        f"expected toast role=status|alert, got {role!r}"
+        f"toast role must be status|alert, got {role!r}"
     )
 
-    # (c) The toast is not hidden from AT.
+    # (c) Toast must not be hidden from assistive tech.
     aria_hidden = await toast.get_attribute("aria-hidden")
     assert aria_hidden in (None, "false"), (
-        f"toast must not be aria-hidden, got aria-hidden={aria_hidden!r}"
+        f"toast must not be aria-hidden; got aria-hidden={aria_hidden!r}"
     )
 
-    # (d) The announced text contains the user-facing message.
+    # (d) The announced text contains the exact message.
     text = (await toast.inner_text()).strip()
     assert TOAST_TEXT in text, f"toast text missing announcement: {text!r}"
 
     await page.screenshot(path=str(SCREENSHOTS / f"{shot_prefix}_copy_{number}.png"))
 
-    # Dismiss so the next assertion starts clean.
+    # Clear toasts so the next assertion starts clean.
     await page.evaluate(
-        """
-        () => document.querySelectorAll('[data-sonner-toast]').forEach(t => t.remove())
-        """
+        "() => document.querySelectorAll('[data-sonner-toast]').forEach(t => t.remove())"
     )
 
 
 async def main() -> int:
     async with async_playwright() as pw:
         browser = await pw.chromium.launch(headless=True)
-        context = await browser.new_context(
-            viewport={"width": 1280, "height": 1800},
-        )
+        context = await browser.new_context(viewport={"width": 1280, "height": 1800})
+        # Grant permissions so the real API also works if the stub is bypassed.
         await context.grant_permissions(
             ["clipboard-read", "clipboard-write"], origin=BASE
         )
+        # Install the stub on every new document (survives client-side nav).
+        await context.add_init_script(INSTRUMENT_SCRIPT)
         page = await context.new_page()
 
-INSTRUMENT_SCRIPT = """
-() => {
-  window.__clipboardWrites = [];
-  const nav = navigator;
-  const stub = async (v) => { window.__clipboardWrites.push(String(v)); };
-  try {
-    Object.defineProperty(nav, 'clipboard', {
-      configurable: true,
-      value: { writeText: stub, readText: async () => '' },
-    });
-  } catch (e) {
-    if (nav.clipboard) nav.clipboard.writeText = stub;
-  }
-}
-"""
-
-
         await page.goto(f"{BASE}/contact", wait_until="domcontentloaded")
-        await expect(page.get_by_role("button", name=f"Copy {PRIMARY}").first).to_be_visible()
+        # Re-install after hydration in case anything restored the real API.
+        await page.evaluate(INSTRUMENT_SCRIPT)
+        await expect(
+            page.get_by_role("button", name=f"Copy {PRIMARY}").first
+        ).to_be_visible()
 
         for n in NUMBERS:
             await click_copy_and_verify(page, n, "contact")
 
-        # Also verify the same behavior on the footer PhoneList on the home page.
+        # Verify the same behavior on the footer PhoneList on the home page.
         await page.goto(BASE, wait_until="domcontentloaded")
+        await page.evaluate(INSTRUMENT_SCRIPT)
         footer_button = page.get_by_role("button", name=f"Copy {PRIMARY}").first
         await footer_button.scroll_into_view_if_needed()
         await click_copy_and_verify(page, PRIMARY, "footer")
