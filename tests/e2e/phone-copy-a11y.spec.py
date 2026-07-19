@@ -109,7 +109,9 @@ async def main() -> int:
         browser = await pw.chromium.launch(headless=True)
         context = await browser.new_context(
             viewport={"width": 1280, "height": 1800},
-            permissions=["clipboard-read", "clipboard-write"],
+        )
+        await context.grant_permissions(
+            ["clipboard-read", "clipboard-write"], origin=BASE
         )
         page = await context.new_page()
 
