@@ -150,10 +150,8 @@ async def click_copy_and_verify(page, number: str, shot_prefix: str):
 
     await page.screenshot(path=str(SCREENSHOTS / f"{shot_prefix}_copy_{number}.png"))
 
-    # Clear toasts so the next assertion starts clean.
-    await page.evaluate(
-        "() => document.querySelectorAll('[data-sonner-toast]').forEach(t => t.remove())"
-    )
+    # Cleanup is handled at the top of the next iteration (closes Sonner
+    # state, not just DOM), so nothing to do here.
 
 
 async def main() -> int:
