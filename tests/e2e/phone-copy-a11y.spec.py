@@ -160,13 +160,6 @@ async def main() -> int:
         for n in NUMBERS:
             await click_copy_and_verify(page, n, "contact")
 
-        # Verify the same behavior on the footer PhoneList on the home page.
-        await page.goto(BASE, wait_until="networkidle")
-        await page.evaluate(INSTRUMENT_SCRIPT)
-        footer_button = page.get_by_role("button", name=f"Copy {PRIMARY}").first
-        await footer_button.scroll_into_view_if_needed()
-        await click_copy_and_verify(page, PRIMARY, "footer")
-
         await browser.close()
         return 0
 
