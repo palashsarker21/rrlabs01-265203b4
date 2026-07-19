@@ -143,17 +143,50 @@ export function normalizeSocialUrl(raw: string | undefined | null): string | nul
  * the single sanitized list that both `SocialLinks` and JSON-LD consume.
  */
 export const ENABLED_SOCIAL_PROFILES: readonly SocialProfile[] = (() => {
-  const seen = new Set<string>();
+  const seen = new Map<string, string>(); // normalized href -> first platform
   const out: SocialProfile[] = [];
+  const invalid: Array<{ platform: string; href: string }> = [];
+  const duplicates: Array<{ platform: string; href: string; firstSeenAs: string }> = [];
+
   for (const p of SOCIAL_PROFILES) {
     if (!p.enabled) continue;
     const href = normalizeSocialUrl(p.href);
-    if (!href) continue;
+    if (!href) {
+      invalid.push({ platform: p.platform, href: p.href });
+      continue;
+    }
     const key = href.toLowerCase();
-    if (seen.has(key)) continue;
-    seen.add(key);
+    const firstSeenAs = seen.get(key);
+    if (firstSeenAs !== undefined) {
+      duplicates.push({ platform: p.platform, href, firstSeenAs });
+      continue;
+    }
+    seen.set(key, p.platform);
     out.push({ ...p, href });
   }
+
+  // Dev-only diagnostics. Guarded so this never runs in production bundles.
+  // `import.meta.env.DEV` is inlined to `false` by Vite at build time, so the
+  // whole block is dead-code-eliminated in production.
+  if (import.meta.env.DEV && (invalid.length > 0 || duplicates.length > 0)) {
+    if (invalid.length > 0) {
+      // eslint-disable-next-line no-console
+      console.warn(
+        `[brand] SOCIAL_PROFILES contains ${invalid.length} invalid URL(s). ` +
+          `These profiles are enabled but their href is not a safe absolute https:// URL and will be dropped:`,
+        invalid,
+      );
+    }
+    if (duplicates.length > 0) {
+      // eslint-disable-next-line no-console
+      console.warn(
+        `[brand] SOCIAL_PROFILES contains ${duplicates.length} duplicate URL(s). ` +
+          `These profiles normalize to a URL already registered by another platform and will be dropped:`,
+        duplicates,
+      );
+    }
+  }
+
   return out;
 })();
 
