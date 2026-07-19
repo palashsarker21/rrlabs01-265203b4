@@ -17,8 +17,7 @@ afterEach(() => cleanup());
 describe.each(VARIANTS)("SocialLinks a11y (axe + names + keyboard) — %s", (variant) => {
   it("has no axe-detectable accessibility violations", async () => {
     const { container } = render(<SocialLinks variant={variant} ariaLabel="Follow RRLabs" />);
-    const results = await axe(container);
-    expect(results).toHaveNoViolations();
+    (expect(await axe(container)) as any).toHaveNoViolations();
   });
 
   it("every link has a unique, non-empty accessible name derived from SOCIAL_PROFILES labels", () => {
