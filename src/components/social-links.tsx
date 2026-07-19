@@ -1,7 +1,7 @@
 import { Facebook, Github, Instagram, Linkedin, Twitter, Youtube } from "lucide-react";
 import type { ComponentType, SVGProps } from "react";
 import { cn } from "@/lib/utils";
-import { SOCIAL_PROFILES, type SocialPlatform, type SocialProfile } from "@/lib/brand";
+import { ENABLED_SOCIAL_PROFILES, type SocialPlatform, type SocialProfile } from "@/lib/brand";
 
 /**
  * Threads has no Lucide icon yet — inline the official monochrome glyph.
@@ -54,7 +54,7 @@ export interface SocialLinksProps {
 }
 
 function getVisibleProfiles(filter?: readonly SocialPlatform[]): SocialProfile[] {
-  const enabled = SOCIAL_PROFILES.filter((p) => p.enabled && p.href && PLATFORM_ICON[p.platform]);
+  const enabled = ENABLED_SOCIAL_PROFILES.filter((p) => PLATFORM_ICON[p.platform]);
   if (!filter?.length) return enabled;
   const map = new Map(enabled.map((p) => [p.platform, p]));
   return filter.map((k) => map.get(k)).filter((p): p is SocialProfile => Boolean(p));

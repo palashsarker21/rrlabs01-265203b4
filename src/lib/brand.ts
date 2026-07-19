@@ -91,10 +91,53 @@ export const SOCIAL_PROFILES: readonly SocialProfile[] = [
   { platform: "medium", label: "Medium", href: "", enabled: false },
 ];
 
+/**
+ * Normalize a social profile URL. Returns `null` for anything that is not a
+ * safe, absolute `https://` URL. Trims whitespace, lowercases the host, and
+ * removes a lone trailing slash so equivalent URLs compare equal.
+ */
+export function normalizeSocialUrl(raw: string | undefined | null): string | null {
+  if (typeof raw !== "string") return null;
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+  let url: URL;
+  try {
+    url = new URL(trimmed);
+  } catch {
+    return null;
+  }
+  if (url.protocol !== "https:") return null;
+  if (!url.hostname) return null;
+  url.hostname = url.hostname.toLowerCase();
+  if (url.pathname === "/") url.pathname = "";
+  // Drop hash; keep query in case a profile ever needs one.
+  url.hash = "";
+  return url.toString().replace(/\/$/, "");
+}
+
+/**
+ * Enabled social profiles, filtered to safe URLs and deduplicated. This is
+ * the single sanitized list that both `SocialLinks` and JSON-LD consume.
+ */
+export const ENABLED_SOCIAL_PROFILES: readonly SocialProfile[] = (() => {
+  const seen = new Set<string>();
+  const out: SocialProfile[] = [];
+  for (const p of SOCIAL_PROFILES) {
+    if (!p.enabled) continue;
+    const href = normalizeSocialUrl(p.href);
+    if (!href) continue;
+    const key = href.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push({ ...p, href });
+  }
+  return out;
+})();
+
 /** URLs of every publicly listed, enabled profile — used in JSON-LD `sameAs`. */
-export const SOCIAL_SAME_AS: readonly string[] = SOCIAL_PROFILES.filter(
-  (p) => p.enabled && p.href,
-).map((p) => p.href);
+export const SOCIAL_SAME_AS: readonly string[] = ENABLED_SOCIAL_PROFILES.map(
+  (p) => p.href,
+);
 
 export const LOGO = {
   full: "/brand/logo.png",
