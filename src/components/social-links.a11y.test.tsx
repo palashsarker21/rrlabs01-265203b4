@@ -16,6 +16,7 @@ async function runAxe(node: HTMLElement) {
 }
 
 describe("SocialLinks accessibility (axe-core)", () => {
+  afterEach(() => cleanup());
   it("has no axe violations in the default (icons) variant", async () => {
     const { container } = render(
       <main>
