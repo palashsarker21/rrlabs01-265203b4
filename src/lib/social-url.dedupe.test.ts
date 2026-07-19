@@ -9,9 +9,7 @@ type TestProfile = { platform: string; href: string; enabled?: boolean };
  * curated, so we can't feed duplicates through it at runtime — but the
  * algorithm itself must stay stable.
  */
-function dedupeCaseInsensitive(
-  profiles: Array<Pick<SocialProfile, "platform" | "href"> & { enabled?: boolean }>,
-) {
+function dedupeCaseInsensitive(profiles: TestProfile[]) {
   const seen = new Map<string, string>();
   const kept: Array<{ platform: string; href: string }> = [];
   const dropped: Array<{ platform: string; href: string; firstSeenAs: string }> = [];
