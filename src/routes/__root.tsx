@@ -12,7 +12,7 @@ import { Toaster } from "sonner";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { supabase } from "../integrations/supabase/client";
-import { BRAND, SITE_URL, LOGO, absoluteUrl } from "../lib/brand";
+import { BRAND, SITE_URL, LOGO, absoluteUrl, SOCIAL_SAME_AS } from "../lib/brand";
 import { ErrorPage } from "../components/error-page";
 import { ErrorBoundary } from "../components/error-boundary";
 import { DebugErrorPanel } from "../components/debug-error-panel";
@@ -70,6 +70,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:image:width", content: "1200" },
       { property: "og:image:height", content: "630" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:site", content: "@rrlabsonline" },
+      { name: "twitter:creator", content: "@rrlabsonline" },
       { name: "twitter:title", content: `${BRAND.name} — ${BRAND.tagline}` },
       { name: "twitter:description", content: BRAND.description },
       { name: "twitter:image", content: absoluteUrl(LOGO.ogImage) },
@@ -122,6 +124,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
                 addressRegion: "Dhaka",
                 addressCountry: "BD",
               },
+              sameAs: SOCIAL_SAME_AS,
             },
             {
               "@type": "WebSite",

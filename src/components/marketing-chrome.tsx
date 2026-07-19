@@ -1,10 +1,11 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, Menu, X, Github, Linkedin, Twitter, Mail, Phone, MapPin } from "lucide-react";
+import { ArrowRight, Menu, X, Mail, Phone, MapPin } from "lucide-react";
 import { useEffect, useState } from "react";
 import { BrandLockup } from "@/components/brand-mark";
+import { SocialLinks } from "@/components/social-links";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { BRAND, CONTACT, SOCIAL } from "@/lib/brand";
+import { BRAND, CONTACT } from "@/lib/brand";
 
 const PRIMARY_NAV = [
   { to: "/features", label: "Features" },
@@ -225,34 +226,9 @@ export function MarketingFooter() {
                 {CONTACT.website}
               </a>
             </div>
-            <div className="mt-6 flex items-center gap-3">
-              <a
-                href={SOCIAL.linkedin}
-                target="_blank"
-                rel="noreferrer"
-                aria-label="LinkedIn"
-                className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border/60 text-muted-foreground transition-colors hover:text-foreground"
-              >
-                <Linkedin className="h-4 w-4" />
-              </a>
-              <a
-                href={SOCIAL.x}
-                target="_blank"
-                rel="noreferrer"
-                aria-label="X"
-                className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border/60 text-muted-foreground transition-colors hover:text-foreground"
-              >
-                <Twitter className="h-4 w-4" />
-              </a>
-              <a
-                href={SOCIAL.github}
-                target="_blank"
-                rel="noreferrer"
-                aria-label="GitHub"
-                className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border/60 text-muted-foreground transition-colors hover:text-foreground"
-              >
-                <Github className="h-4 w-4" />
-              </a>
+            <div className="mt-6">
+              <h4 className="text-sm font-semibold text-foreground">Follow us</h4>
+              <SocialLinks className="mt-3" ariaLabel="RRLabs on social media" />
             </div>
           </div>
 

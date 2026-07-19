@@ -2,6 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MarketingHeader, MarketingFooter } from "@/components/marketing-chrome";
+import { SocialLinks } from "@/components/social-links";
+import { BRAND } from "@/lib/brand";
 
 export const Route = createFileRoute("/about")({
   component: AboutPage,
@@ -55,6 +57,20 @@ function AboutPage() {
             </Button>
           </Link>
         </div>
+
+        <section aria-labelledby="follow-rrlabs" className="mt-16 border-t border-border/60 pt-10">
+          <h2
+            id="follow-rrlabs"
+            className="text-2xl font-semibold tracking-tight text-foreground"
+          >
+            Follow {BRAND.company}
+          </h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Product updates, engineering deep-dives, and payment-recovery research — straight from
+            the team.
+          </p>
+          <SocialLinks className="mt-6" ariaLabel={`${BRAND.name} on social media`} />
+        </section>
       </main>
       <MarketingFooter />
     </div>
