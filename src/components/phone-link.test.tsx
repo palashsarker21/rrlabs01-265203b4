@@ -129,11 +129,13 @@ describe("PhoneLink", () => {
 
   it("has no detectable axe violations for either entry kind", async () => {
     const { container: c1 } = render(<PhoneLink entry={primary} />);
-    expect(await axe(c1)).toHaveNoViolations();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (expect(await axe(c1)) as any).toHaveNoViolations();
     cleanup();
 
     const { container: c2 } = render(<PhoneLink entry={whatsapp} />);
-    expect(await axe(c2)).toHaveNoViolations();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (expect(await axe(c2)) as any).toHaveNoViolations();
   });
 });
 
