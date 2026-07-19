@@ -1,26 +1,90 @@
-# Enterprise Public-Site Upgrade — Plan
+# Wave 2 — Enterprise Public-Site Upgrade (extend-only)
 
-Audit-first. Extend existing code; never rebuild working behavior.
+Wave 1 already shipped: central registries (`SOCIAL_PROFILES`, `CONTACT_PHONES`, `COMPANY_METADATA` in `src/lib/brand.ts`), Organization + WebSite JSON-LD with SearchAction, breadcrumb helper (`src/lib/seo/breadcrumbs.ts`), Trust Center (`src/routes/security.tsx`), Contact copy-actions, analytics registry + `analytics_events` table + server fn, ShareButtons component, social/phone click tracking, sitemap.xml (registry-driven), robots.txt with AI-bot rules. 51 tests pass.
 
-## Wave 1 — shipped now
-- Extend Organization JSON-LD (legalName, description, image, serviceType, areaServed).
-- WebSite JSON-LD SearchAction (already had WebSite entity — add potentialAction).
-- Central breadcrumb generator (`src/lib/seo/breadcrumbs.ts`) — reusable by every leaf route.
-- Share bar component (LinkedIn, X, Facebook, Threads, Copy Link) with analytics.
-- Analytics events registry + client (`src/lib/analytics/events.ts`) — dataLayer push + persistence.
-- `analytics_events` table + RLS + admin read policy.
-- Contact page: Copy Email + Copy Website (Copy Phone already existed) + click analytics on tel/mailto/website.
-- Social/Phone link analytics wired.
-- Trust Center: extended `/security` route with Platform Security, Privacy, Encryption, Infrastructure, Data Protection, Responsible Disclosure, Subprocessors, Compliance Roadmap ("planned / in progress" — no dates), Incident History ("No reportable incidents to date"), Backup Strategy, Disaster Recovery, plus BreadcrumbList JSON-LD.
-- Sitemap already registry-driven — verified.
-- robots.txt already correct (Allow public + Disallow private + AI bots + Sitemap directive) — verified.
+Wave 2 extends that surface. Nothing existing is removed or reshaped; new code plugs into existing modules.
 
-## Wave 2 — deferred (requires user sign-off on scope; each is 1–2 days of work)
-- **Full live-probe Status system** (15+ components, 30s cache, history, alerts, retries, individual timeouts, per-provider dry-runs). Requires new probe framework, `system_health` table, cron scheduler, provider probe modules. The existing `/api/public/health` + `/status` page is left untouched.
-- Per-blog-post BreadcrumbList emission (helper is ready; wiring per-route is mechanical).
-- Route-level share buttons on `blog.$slug` and docs pages.
-- E2E tests for share/copy/analytics event dispatch.
-- Prefetch tuning + font-display swap audit.
+## Scope by section
 
-## Company metadata
-User did not supply foundingDate/founder/areaServed/serviceType overrides. Using safe defaults: `areaServed: "Worldwide"`, `serviceType: "Revenue Recovery SaaS"`. foundingDate + founder omitted (will not fabricate).
+### SEO / Structured Data (items 1–8)
+- Extend Organization JSON-LD in `src/routes/__root.tsx`: add `email`, `telephone`, `address` (from `COMPANY_METADATA`), `foundingDate`, `founder`, expand `contactPoint` to include both `CONTACT_PHONES` entries with `contactType` + `availableLanguage`. Keep existing `@graph` shape.
+- Wire `buildBreadcrumbScript` (already exists) into every top-level public route's `head().scripts`: `/features`, `/pricing`, `/blog`, `/docs`, `/faq`, `/about`, `/contact`, `/security`, `/status`, `/integrations`, plus `blog.$slug` and `docs.$slug` (dynamic label from loader).
+- Audit + fill OG/Twitter parity per route via a new helper `src/lib/seo/meta.ts` (`buildPageMeta({title, description, path, image?})` → returns the full `meta[]` array). Refactor each public route's `head()` to call it — same output, one source of truth.
+- Canonical: helper already emits absolute URLs; ensure every public leaf uses `canonicalFor(path)` in `head().links`.
+- Sitemap: audit `src/routes/sitemap[.]xml.ts` `ROUTE_REGISTRY` — add any missing legal/integrations paths; keep dynamic blog fetch.
+- robots.txt: verified in Wave 1; re-audit against new routes.
+
+### Trust Center (item 9)
+Already shipped in Wave 1. Verify all 10 sections render, add missing "Data Protection" callout (retention, deletion rights, DPA link) if not already present.
+
+### Status Page — live probes (item 10)
+New infrastructure, opt-in and cache-guarded:
+- Migration: `system_health_probes` table (component, status enum healthy|degraded|outage, latency_ms, checked_at, detail) + `system_health_history` (daily rollup). RLS: public SELECT of latest snapshot only; service_role writes.
+- Server route `src/routes/api/public/health/probe.ts`: cron-callable POST that runs probes for Website, Dashboard, API, Auth, Email (Resend), Webhooks (last 5min error rate from `webhook_logs`), Recovery Engine (job_queue backlog), Database (`select 1`), AI Services (Lovable AI ping). Signed with `apikey` header. 30s soft-cache via table timestamps.
+- pg_cron: schedule every 60s calling the probe route.
+- `src/routes/status.tsx`: extend existing page to read latest snapshot via new public server fn `getSystemHealth()`; keep existing incidents UI intact. Show per-component pill (healthy/degraded/outage) + last-checked timestamp.
+
+### Sharing (item 4)
+- `ShareButtons` already built. Wire into `blog.$slug.tsx` above article body and into `docs.$slug` (if present) — analytics events already fire.
+
+### Contact (item 11)
+Copy Email/Website/Phone + toasts already shipped in Wave 1. Add Click-to-email `mailto:` and Click-to-website analytics events (registry entry `email_click`, `website_click`) — hooks already exist; just wire onClick.
+
+### Analytics (item 12)
+- Extend `AnalyticsEventName` union with `email_click`, `website_click`, `share_click`, `copy_action` (generic).
+- Add `workspace_id` optional field to server fn schema; when authenticated, attach via bearer middleware. Anonymous events remain accepted.
+- No provider swap; dataLayer + `analytics_events` table.
+
+### Performance (item 13)
+- Add `<Link preload="intent">` to primary nav links in `__root.tsx` (TanStack already supports; verify current setting).
+- Move Lucide icons in ShareButtons to per-icon imports (already tree-shaken; verify).
+- Add `loading="lazy"` + `decoding="async"` to non-LCP `<img>` on marketing routes; keep hero image eager.
+- Verify `preconnect` for Google Fonts in `__root.tsx` head.links.
+
+### Accessibility (item 14)
+- Run `axe-core` snapshot test across `/`, `/contact`, `/security`, `/status`, `/pricing`, `/blog`.
+- Add `prefers-reduced-motion` guards to any framer-motion / CSS animations on new components.
+- Verify focus-visible rings on ShareButtons + copy buttons; add if missing.
+
+### Central Config (items 15–16)
+- Add `FUTURE_SOCIAL_PROFILES` to `src/lib/brand.ts` (Product Hunt, Crunchbase, G2, Capterra, Dev.to, Hashnode, Medium) with `enabled: false`. Existing filter already drops disabled entries — zero UI change until flipped.
+
+### Tests (item 17)
+Add:
+- `src/lib/seo/meta.test.ts` — `buildPageMeta` produces title/description/canonical/og/twitter parity for a fixture route.
+- `src/routes/__root.organization-jsonld.test.tsx` — asserts new Organization fields (email, address, foundingDate, both phones).
+- `src/lib/seo/breadcrumbs.test.ts` — asserts BreadcrumbList shape + absolute URLs.
+- `src/components/share-buttons.test.tsx` — asserts href for each network, copy action fires `share_click`, keyboard activation.
+- `tests/e2e/analytics-dispatch.spec.py` — clicks a social link, asserts dataLayer push + Supabase insert into `analytics_events`.
+- Extend existing `run_rls_test_suite` with `system_health_probes` cross-tenant read denial.
+
+## Technical section
+
+New files:
+- `src/lib/seo/meta.ts`, `src/lib/seo/meta.test.ts`
+- `src/routes/api/public/health/probe.ts`
+- `src/lib/system-health.functions.ts` (public read)
+- Migration: `system_health_probes`, `system_health_history` + GRANTs + RLS + pg_cron schedule
+- 5 test files above
+
+Extended (no behavior removed):
+- `src/routes/__root.tsx` (Organization graph fields, preconnect audit)
+- `src/routes/status.tsx` (probe pills added under existing UI)
+- `src/routes/blog.$slug.tsx`, `src/routes/docs.$slug.tsx` (ShareButtons + BreadcrumbList)
+- Every top-level public route (`head()` → `buildPageMeta` + breadcrumb script)
+- `src/lib/brand.ts` (`FUTURE_SOCIAL_PROFILES`, disabled)
+- `src/lib/analytics/events.ts` + `src/lib/analytics.functions.ts` (new event names, optional workspace_id)
+- `src/routes/contact.tsx` (email/website click analytics)
+- `src/routes/sitemap[.]xml.ts` (audit registry entries)
+
+Deferred (call out explicitly, not built here):
+- BYO status-page vendor integration (Instatus/StatusPage) — the probe table is compatible if you later want to switch.
+- Per-provider probe timeouts >5s or synthetic browser probes — start with in-worker HTTP probes.
+
+## Verification gate
+Before final report: `tsgo --noEmit` clean, all existing 51 tests + new tests pass, `supabase--linter` no new WARN, manual smoke on `/`, `/contact`, `/security`, `/status`, `/blog/[any-post]`.
+
+## Deliverable
+Final Implementation Report as requested (files changed, new components/hooks/utils, schema generators, analytics events, structured data, SEO, a11y, perf, test coverage, QA results, remaining blockers if any).
+
+Approve to proceed, or tell me which sections to drop / re-order.
