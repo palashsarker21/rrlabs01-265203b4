@@ -2,6 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MarketingHeader, MarketingFooter } from "@/components/marketing-chrome";
+import { SocialLinks } from "@/components/social-links";
+import { BRAND } from "@/lib/brand";
 
 export const Route = createFileRoute("/about")({
   component: AboutPage,
