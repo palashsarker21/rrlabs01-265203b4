@@ -132,7 +132,7 @@ async def main() -> int:
         await context.add_init_script(INSTRUMENT_SCRIPT)
         page = await context.new_page()
 
-        await page.goto(f"{BASE}/contact", wait_until="domcontentloaded")
+        await page.goto(f"{BASE}/contact", wait_until="networkidle")
         # Re-install after hydration in case anything restored the real API.
         await page.evaluate(INSTRUMENT_SCRIPT)
         await expect(
@@ -143,7 +143,7 @@ async def main() -> int:
             await click_copy_and_verify(page, n, "contact")
 
         # Verify the same behavior on the footer PhoneList on the home page.
-        await page.goto(BASE, wait_until="domcontentloaded")
+        await page.goto(BASE, wait_until="networkidle")
         await page.evaluate(INSTRUMENT_SCRIPT)
         footer_button = page.get_by_role("button", name=f"Copy {PRIMARY}").first
         await footer_button.scroll_into_view_if_needed()
