@@ -54,7 +54,7 @@ export interface SocialLinksProps {
 }
 
 function getVisibleProfiles(filter?: readonly SocialPlatform[]): SocialProfile[] {
-  const enabled = SOCIAL_PROFILES.filter((p) => p.enabled && p.href && PLATFORM_ICON[p.platform]);
+  const enabled = ENABLED_SOCIAL_PROFILES.filter((p) => PLATFORM_ICON[p.platform]);
   if (!filter?.length) return enabled;
   const map = new Map(enabled.map((p) => [p.platform, p]));
   return filter.map((k) => map.get(k)).filter((p): p is SocialProfile => Boolean(p));
