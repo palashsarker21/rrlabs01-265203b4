@@ -35,10 +35,66 @@ export const CONTACT = {
 } as const;
 
 export const SOCIAL = {
-  linkedin: "https://www.linkedin.com/company/rrlabs",
-  x: "https://x.com/rrlabs",
-  github: "https://github.com/rrlabs",
+  facebook: "https://www.facebook.com/rrlabsonline",
+  linkedin: "https://www.linkedin.com/company/rrlabsonline",
+  x: "https://x.com/rrlabsonline",
+  instagram: "https://www.instagram.com/rrlabsonline",
+  threads: "https://www.threads.com/@rrlabsonline",
+  youtube: "https://www.youtube.com/@rrlabsonline",
+  github: "https://github.com/RRLabsOnline",
 } as const;
+
+/**
+ * Ordered, enable-flagged registry of official social profiles. The
+ * `SocialLinks` component renders every entry with `enabled: true`. Reserved
+ * platforms stay `enabled: false` so they can be turned on later by config
+ * only, with no code changes elsewhere.
+ */
+export type SocialPlatform =
+  | "github"
+  | "linkedin"
+  | "x"
+  | "facebook"
+  | "instagram"
+  | "threads"
+  | "youtube"
+  | "producthunt"
+  | "crunchbase"
+  | "g2"
+  | "capterra"
+  | "devto"
+  | "hashnode"
+  | "medium";
+
+export interface SocialProfile {
+  platform: SocialPlatform;
+  label: string;
+  href: string;
+  enabled: boolean;
+}
+
+export const SOCIAL_PROFILES: readonly SocialProfile[] = [
+  { platform: "github", label: "GitHub", href: SOCIAL.github, enabled: true },
+  { platform: "linkedin", label: "LinkedIn", href: SOCIAL.linkedin, enabled: true },
+  { platform: "x", label: "X (Twitter)", href: SOCIAL.x, enabled: true },
+  { platform: "facebook", label: "Facebook", href: SOCIAL.facebook, enabled: true },
+  { platform: "instagram", label: "Instagram", href: SOCIAL.instagram, enabled: true },
+  { platform: "threads", label: "Threads", href: SOCIAL.threads, enabled: true },
+  { platform: "youtube", label: "YouTube", href: SOCIAL.youtube, enabled: true },
+  // Reserved — flip `enabled: true` and set `href` once the profile exists.
+  { platform: "producthunt", label: "Product Hunt", href: "", enabled: false },
+  { platform: "crunchbase", label: "Crunchbase", href: "", enabled: false },
+  { platform: "g2", label: "G2", href: "", enabled: false },
+  { platform: "capterra", label: "Capterra", href: "", enabled: false },
+  { platform: "devto", label: "Dev.to", href: "", enabled: false },
+  { platform: "hashnode", label: "Hashnode", href: "", enabled: false },
+  { platform: "medium", label: "Medium", href: "", enabled: false },
+];
+
+/** URLs of every publicly listed, enabled profile — used in JSON-LD `sameAs`. */
+export const SOCIAL_SAME_AS: readonly string[] = SOCIAL_PROFILES.filter(
+  (p) => p.enabled && p.href,
+).map((p) => p.href);
 
 export const LOGO = {
   full: "/brand/logo.png",
