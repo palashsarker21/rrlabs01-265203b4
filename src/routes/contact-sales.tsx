@@ -126,15 +126,10 @@ function ContactSalesPage() {
             >
               <Mail className="h-4 w-4" /> {CONTACT.supportEmail}
             </a>
-            {CONTACT.phones.map((p) => (
-              <a
-                key={p}
-                href={`tel:${p}`}
-                className="mt-1 flex items-center gap-2 text-neutral-800 hover:text-emerald-700"
-              >
-                <Phone className="h-4 w-4" /> {p}
-              </a>
-            ))}
+            <PhoneList
+              className="mt-1"
+              linkClassName="text-neutral-800 hover:text-emerald-700"
+            />
           </div>
         </div>
 
