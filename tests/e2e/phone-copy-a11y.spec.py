@@ -96,11 +96,23 @@ async def click_copy_and_verify(page, number: str, shot_prefix: str):
         f"Sonner region must have aria-live=polite|assertive, got {region_live!r}"
     )
 
-    # (b) Toast itself carries role=status or role=alert.
-    role = await toast.get_attribute("role")
-    assert role in ("status", "alert"), (
-        f"toast role must be status|alert, got {role!r}"
+    # (b) The live region has an accessible name so AT users know its purpose.
+    region_label = await page.evaluate(
+        """
+        () => {
+          const t = document.querySelector('[data-sonner-toast]');
+          let el = t && t.parentElement;
+          while (el) {
+            if (el.getAttribute && el.getAttribute('aria-live')) {
+              return el.getAttribute('aria-label');
+            }
+            el = el.parentElement;
+          }
+          return null;
+        }
+        """
     )
+    assert region_label, "Sonner live region must expose an aria-label"
 
     # (c) Toast must not be hidden from assistive tech.
     aria_hidden = await toast.get_attribute("aria-hidden")
@@ -108,7 +120,13 @@ async def click_copy_and_verify(page, number: str, shot_prefix: str):
         f"toast must not be aria-hidden; got aria-hidden={aria_hidden!r}"
     )
 
-    # (d) The announced text contains the exact message.
+    # (d) The toast is marked as a success (semantic signal, not just color).
+    data_type = await toast.get_attribute("data-type")
+    assert data_type == "success", (
+        f"toast should signal success via data-type; got {data_type!r}"
+    )
+
+    # (e) The announced text contains the exact message.
     text = (await toast.inner_text()).strip()
     assert TOAST_TEXT in text, f"toast text missing announcement: {text!r}"
 
