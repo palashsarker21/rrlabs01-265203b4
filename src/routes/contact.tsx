@@ -83,6 +83,23 @@ function ContactPage() {
             <p className="mt-1 text-sm text-muted-foreground">{CONTACT.website}</p>
           </a>
         </div>
+
+        <section aria-labelledby="official-socials" className="mt-16">
+          <h2
+            id="official-socials"
+            className="text-2xl font-semibold tracking-tight text-foreground"
+          >
+            Official social profiles
+          </h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Verified accounts. Any other profile claiming to be {BRAND.name} is not us.
+          </p>
+          <SocialLinks
+            variant="list"
+            className="mt-6"
+            ariaLabel={`${BRAND.name} official social profiles`}
+          />
+        </section>
       </main>
       <MarketingFooter />
     </div>
