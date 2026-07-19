@@ -1,9 +1,7 @@
 import { describe, expect, it } from "vitest";
-import {
-  ENABLED_SOCIAL_PROFILES,
-  normalizeSocialUrl,
-  type SocialProfile,
-} from "@/lib/brand";
+import { ENABLED_SOCIAL_PROFILES, normalizeSocialUrl } from "@/lib/brand";
+
+type TestProfile = { platform: string; href: string; enabled?: boolean };
 
 /**
  * Mirrors the case-insensitive dedup logic in `ENABLED_SOCIAL_PROFILES` so we
