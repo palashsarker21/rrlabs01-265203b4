@@ -33,24 +33,27 @@ SCREENSHOTS.mkdir(parents=True, exist_ok=True)
 
 
 async def click_copy_and_verify(page, number: str, shot_prefix: str):
-    # Reset clipboard so the assertion is unambiguous.
-    await page.evaluate("navigator.clipboard.writeText('')")
+    # Reset the recorded writeText calls (installed via init script).
+    await page.evaluate("window.__clipboardWrites = []")
 
     button = page.get_by_role("button", name=f"Copy {number}").first
     await expect(button).to_be_visible()
     await button.scroll_into_view_if_needed()
     await button.click()
 
-    # --- 1. Clipboard has the number ---------------------------------------
-    # Poll briefly — the click handler is async.
-    clipboard = ""
+    # --- 1. The component called navigator.clipboard.writeText(number) -----
+    # We instrument writeText via init script because headless Chromium's
+    # system clipboard is unreliable in a sandbox; instrumenting the actual
+    # browser API is what the code path exercises.
+    writes = []
     for _ in range(20):
-        clipboard = await page.evaluate("navigator.clipboard.readText()")
-        if clipboard == number:
+        writes = await page.evaluate("window.__clipboardWrites")
+        if number in writes:
             break
         await page.wait_for_timeout(50)
-    assert clipboard == number, (
-        f"clipboard mismatch for {number}: expected {number!r}, got {clipboard!r}"
+    assert number in writes, (
+        f"expected navigator.clipboard.writeText({number!r}) to be called; "
+        f"recorded calls: {writes!r}"
     )
 
     # --- 2. Toast is rendered with the exact copy --------------------------
