@@ -2,6 +2,7 @@ import { Facebook, Github, Instagram, Linkedin, Twitter, Youtube } from "lucide-
 import type { ComponentType, SVGProps } from "react";
 import { cn } from "@/lib/utils";
 import { ENABLED_SOCIAL_PROFILES, type SocialPlatform, type SocialProfile } from "@/lib/brand";
+import { trackEvent } from "@/lib/analytics/events";
 
 /**
  * Threads has no Lucide icon yet — inline the official monochrome glyph.
@@ -92,6 +93,7 @@ export function SocialLinks({
                 href={p.href}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() => trackEvent("social_link_click", { component: "social-list", platform: p.platform })}
                 title={`${p.label} — opens in a new tab`}
                 aria-label={`${p.label} (opens in a new tab)`}
                 className="group flex items-center gap-3 rounded-lg border border-border/60 bg-card/50 p-3 text-sm text-muted-foreground backdrop-blur transition-colors hover:border-primary/50 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
@@ -122,6 +124,7 @@ export function SocialLinks({
               href={p.href}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() => trackEvent("social_link_click", { component: "social-icons", platform: p.platform })}
               title={`${p.label} — opens in a new tab`}
               aria-label={`${p.label} (opens in a new tab)`}
               className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border/60 text-muted-foreground transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/50 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
