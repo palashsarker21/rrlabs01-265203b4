@@ -49,13 +49,15 @@ describe("SocialLinks", () => {
   });
 
   it("labels the group with the default aria-label", () => {
-    const { getByRole } = render(<SocialLinks />);
-    expect(getByRole("list").getAttribute("aria-label")).toBe("Official social profiles");
+    const { container } = render(<SocialLinks />);
+    expect(container.querySelector("ul")?.getAttribute("aria-label")).toBe(
+      "Official social profiles",
+    );
   });
 
   it("honors a custom ariaLabel", () => {
-    const { getByRole } = render(<SocialLinks ariaLabel="Follow us" />);
-    expect(getByRole("list").getAttribute("aria-label")).toBe("Follow us");
+    const { container } = render(<SocialLinks ariaLabel="Follow us" />);
+    expect(container.querySelector("ul")?.getAttribute("aria-label")).toBe("Follow us");
   });
 
   it("respects the platforms filter and renders in the given order", () => {
