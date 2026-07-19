@@ -53,6 +53,21 @@ window.__clipboardWrites = [];
 
 async def click_copy_and_verify(page, number: str, shot_prefix: str):
     await page.evaluate("window.__clipboardWrites = []")
+    # Clear any existing toasts AND flush Sonner's internal state so it doesn't
+    # dedupe an identical success message from the previous iteration.
+    await page.evaluate(
+        """
+        () => {
+          document.querySelectorAll('[data-sonner-toast]').forEach(t => {
+            const closer = t.querySelector('[data-close-button]');
+            if (closer) closer.click(); else t.remove();
+          });
+        }
+        """
+    )
+    await page.wait_for_timeout(400)
+
+    prior_count = await page.locator("[data-sonner-toast]").count()
 
     button = page.get_by_role("button", name=f"Copy {number}").first
     await expect(button).to_be_visible()
@@ -61,7 +76,7 @@ async def click_copy_and_verify(page, number: str, shot_prefix: str):
 
     # --- 1. The component called clipboard.writeText with the number -------
     writes: list[str] = []
-    for _ in range(30):
+    for _ in range(40):
         writes = await page.evaluate("window.__clipboardWrites")
         if number in writes:
             break
@@ -71,7 +86,10 @@ async def click_copy_and_verify(page, number: str, shot_prefix: str):
         f"recorded calls: {writes!r}"
     )
 
-    # --- 2. Toast rendered with the exact user-facing copy -----------------
+    # --- 2. A NEW toast appears with the exact user-facing copy ------------
+    await expect(page.locator("[data-sonner-toast]")).to_have_count(
+        prior_count + 1, timeout=5000
+    )
     toast = page.locator("[data-sonner-toast]").filter(has_text=TOAST_TEXT).first
     await expect(toast).to_be_visible()
 
