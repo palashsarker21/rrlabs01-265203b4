@@ -116,23 +116,24 @@ async def main() -> int:
         await context.grant_permissions(
             ["clipboard-read", "clipboard-write"], origin=BASE
         )
-        # Instrument clipboard.writeText so we can assert the exact value
-        # passed by the component, regardless of the sandbox clipboard state.
-        await context.add_init_script(
-            """
-            window.__clipboardWrites = [];
-            const orig = navigator.clipboard && navigator.clipboard.writeText
-              ? navigator.clipboard.writeText.bind(navigator.clipboard)
-              : null;
-            if (navigator.clipboard) {
-              navigator.clipboard.writeText = async (v) => {
-                window.__clipboardWrites.push(v);
-                if (orig) { try { await orig(v); } catch {} }
-              };
-            }
-            """
-        )
         page = await context.new_page()
+
+INSTRUMENT_SCRIPT = """
+() => {
+  window.__clipboardWrites = [];
+  const nav = navigator;
+  const stub = async (v) => { window.__clipboardWrites.push(String(v)); };
+  try {
+    Object.defineProperty(nav, 'clipboard', {
+      configurable: true,
+      value: { writeText: stub, readText: async () => '' },
+    });
+  } catch (e) {
+    if (nav.clipboard) nav.clipboard.writeText = stub;
+  }
+}
+"""
+
 
         await page.goto(f"{BASE}/contact", wait_until="domcontentloaded")
         await expect(page.get_by_role("button", name=f"Copy {PRIMARY}").first).to_be_visible()
