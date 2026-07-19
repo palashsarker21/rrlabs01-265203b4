@@ -57,7 +57,6 @@ function AboutPage() {
             </Button>
           </Link>
         </div>
-        </div>
 
         <section aria-labelledby="follow-rrlabs" className="mt-16 border-t border-border/60 pt-10">
           <h2
