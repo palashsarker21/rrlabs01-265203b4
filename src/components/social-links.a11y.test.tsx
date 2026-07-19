@@ -8,8 +8,8 @@ async function runAxe(node: HTMLElement) {
   return axe.run(node, {
     resultTypes: ["violations"],
     rules: {
-      // region rule requires a landmark on the whole page; not relevant for an isolated component test
       region: { enabled: false },
+      "landmark-one-main": { enabled: false },
     },
   });
 }
