@@ -50,15 +50,7 @@ function ContactPage() {
           <div className="rounded-xl border border-border/60 bg-card/50 p-6 backdrop-blur">
             <Phone className="h-5 w-5 text-primary" />
             <h3 className="mt-3 font-semibold text-foreground">Phone</h3>
-            <ul className="mt-1 space-y-1 text-sm text-muted-foreground">
-              {CONTACT.phones.map((p) => (
-                <li key={p}>
-                  <a href={`tel:${p}`} className="hover:text-foreground">
-                    {p}
-                  </a>
-                </li>
-              ))}
-            </ul>
+            <PhoneList className="mt-2 text-sm text-muted-foreground" />
           </div>
           <div className="rounded-xl border border-border/60 bg-card/50 p-6 backdrop-blur sm:col-span-2">
             <MapPin className="h-5 w-5 text-primary" />
