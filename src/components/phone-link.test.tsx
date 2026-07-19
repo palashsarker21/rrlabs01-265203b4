@@ -1,8 +1,12 @@
 // @vitest-environment jsdom
+import "@testing-library/jest-dom/vitest";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import * as axeMatchers from "vitest-axe/matchers";
 import { axe } from "vitest-axe";
+
+expect.extend(axeMatchers);
 
 import { PhoneLink, PhoneList } from "@/components/phone-link";
 import { CONTACT_PHONES, type PhoneEntry } from "@/lib/brand";
