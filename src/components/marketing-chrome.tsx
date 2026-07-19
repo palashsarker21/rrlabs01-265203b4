@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, Menu, X, Mail, Phone, MapPin } from "lucide-react";
+import { ArrowRight, Menu, X, Mail, MapPin } from "lucide-react";
 import { useEffect, useState } from "react";
 import { BrandLockup } from "@/components/brand-mark";
 import { SocialLinks } from "@/components/social-links";
