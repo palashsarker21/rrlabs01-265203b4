@@ -116,6 +116,22 @@ async def main() -> int:
         await context.grant_permissions(
             ["clipboard-read", "clipboard-write"], origin=BASE
         )
+        # Instrument clipboard.writeText so we can assert the exact value
+        # passed by the component, regardless of the sandbox clipboard state.
+        await context.add_init_script(
+            """
+            window.__clipboardWrites = [];
+            const orig = navigator.clipboard && navigator.clipboard.writeText
+              ? navigator.clipboard.writeText.bind(navigator.clipboard)
+              : null;
+            if (navigator.clipboard) {
+              navigator.clipboard.writeText = async (v) => {
+                window.__clipboardWrites.push(v);
+                if (orig) { try { await orig(v); } catch {} }
+              };
+            }
+            """
+        )
         page = await context.new_page()
 
         await page.goto(f"{BASE}/contact", wait_until="domcontentloaded")
