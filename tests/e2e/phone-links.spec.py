@@ -53,18 +53,20 @@ async def verify_tel_click(page, number: str, shot_name: str):
 
 
 async def verify_copy_toast(page, number: str, shot_name: str):
-    # Dismiss any lingering toast so the assertion targets a fresh one.
-    await page.evaluate(
-        "document.querySelectorAll('[data-sonner-toast]').forEach(n => n.remove())"
-    )
+    prior = await page.locator("[data-sonner-toast]").count()
     button = page.get_by_role("button", name=f"Copy {number}").first
     await expect(button).to_be_visible()
     await button.scroll_into_view_if_needed()
     await button.click()
-    toast = page.locator("[data-sonner-toast]", has_text=TOAST_TEXT).first
-    await expect(toast).to_be_visible(timeout=3000)
+    # Wait for a NEW toast to be added, then assert its text matches.
+    await page.wait_for_function(
+        "prior => document.querySelectorAll('[data-sonner-toast]').length > prior",
+        arg=prior,
+        timeout=5000,
+    )
+    toast = page.locator("[data-sonner-toast]").last
+    await expect(toast).to_have_text(TOAST_TEXT, timeout=3000)
     await page.screenshot(path=str(SCREENSHOTS / shot_name))
-    # Verify the clipboard actually received the number.
     copied = await page.evaluate("navigator.clipboard.readText()")
     assert copied == number, f"clipboard mismatch: expected {number}, got {copied!r}"
 
