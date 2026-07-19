@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Mail, MessageSquare, Phone, MapPin, Globe } from "lucide-react";
 import { MarketingHeader, MarketingFooter } from "@/components/marketing-chrome";
+import { SocialLinks } from "@/components/social-links";
 import { CONTACT, SITE_URL, BRAND } from "@/lib/brand";
 
 export const Route = createFileRoute("/contact")({
