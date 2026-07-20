@@ -133,6 +133,55 @@ function VerifyEmailPage() {
             </Button>
           </div>
         )}
+
+        {status !== "verified" && (
+          <div className="mt-6 border-t border-border/60 pt-6 text-left">
+            <Label htmlFor="resend-email" className="text-xs uppercase tracking-wider text-muted-foreground">
+              Didn&apos;t get the email?
+            </Label>
+            <div className="mt-2 flex flex-col gap-2 sm:flex-row">
+              <Input
+                id="resend-email"
+                type="email"
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@company.com"
+                disabled={resendState === "sending"}
+              />
+              <Button
+                type="button"
+                onClick={handleResend}
+                disabled={resendState === "sending" || cooldown > 0}
+                className="shrink-0"
+              >
+                {resendState === "sending" ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
+                    Sending…
+                  </>
+                ) : cooldown > 0 ? (
+                  `Resend in ${cooldown}s`
+                ) : (
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4" aria-hidden />
+                    Resend email
+                  </>
+                )}
+              </Button>
+            </div>
+            <div className="mt-2 min-h-5 text-xs" aria-live="polite">
+              {resendState === "sent" && (
+                <span className="text-emerald-600 dark:text-emerald-400">
+                  If your account needs verification, a new link is on its way.
+                </span>
+              )}
+              {resendState === "error" && (
+                <span className="text-destructive">{resendError}</span>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
