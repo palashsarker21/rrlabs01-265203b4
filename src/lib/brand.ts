@@ -22,7 +22,10 @@ export const SITE_URL = "https://www.rrlabs.online";
 
 export const CONTACT = {
   supportEmail: "support@rrlabs.online",
-  phones: ["+8801323405346", "+8801934857886"] as const,
+  founderEmail: "founder@rrlabs.online",
+  businessEmail: "founder@rrlabs.online",
+  phones: ["+8801323405346", "+8801934857886", "+8801557749217"] as const,
+  whatsappBusinessNumber: "+8801557749217",
   address: {
     line1: "60, Chowhaddi, Dotto Kendua",
     line2: "Madaripur Sadar",
@@ -34,7 +37,7 @@ export const CONTACT = {
   website: SITE_URL,
 } as const;
 
-export type PhoneKind = "primary" | "whatsapp";
+export type PhoneKind = "primary" | "secondary" | "whatsapp";
 export interface PhoneEntry {
   number: string;
   label: string;
@@ -51,11 +54,18 @@ export const CONTACT_PHONES: readonly PhoneEntry[] = [
   },
   {
     number: "+8801934857886",
+    label: "Secondary",
+    kind: "secondary",
+    ariaLabel: "Call +8801934857886",
+  },
+  {
+    number: "+8801557749217",
     label: "WhatsApp Business",
     kind: "whatsapp",
-    ariaLabel: "Call WhatsApp Business +8801934857886",
+    ariaLabel: "Message WhatsApp Business +8801557749217",
   },
 ];
+
 
 export const SOCIAL = {
   facebook: "https://www.facebook.com/rrlabsonline",
