@@ -127,26 +127,28 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
               logo: absoluteUrl(LOGO.full),
               image: absoluteUrl(LOGO.ogImage),
               description: BRAND.description,
-              email: "support@rrlabs.online",
-              telephone: "+8801323405346",
+              email: CONTACT.supportEmail,
+              telephone: CONTACT_PHONES[0].number,
               serviceType: "Revenue Recovery SaaS",
               areaServed: "Worldwide",
-              contactPoint: [
-                {
-                  "@type": "ContactPoint",
-                  telephone: "+8801323405346",
-                  contactType: "customer service",
-                  availableLanguage: ["en", "bn"],
-                },
-                {
-                  "@type": "ContactPoint",
-                  telephone: "+8801934857886",
-                  contactType: "customer support",
-                  contactOption: "TollFree",
-                  availableLanguage: ["en", "bn"],
-                  description: "WhatsApp Business",
-                },
-              ],
+              contactPoint: CONTACT_PHONES.map((p) => ({
+                "@type": "ContactPoint",
+                telephone: p.number,
+                contactType:
+                  p.kind === "whatsapp"
+                    ? "customer support"
+                    : p.kind === "primary"
+                      ? "customer service"
+                      : "customer support",
+                availableLanguage: ["en", "bn"],
+                ...(p.kind === "whatsapp"
+                  ? {
+                      contactOption: "HearingImpairedSupported",
+                      description: "WhatsApp Business",
+                    }
+                  : {}),
+              })),
+
               address: {
                 "@type": "PostalAddress",
                 streetAddress: "60, Chowhaddi, Dotto Kendua-7901",
