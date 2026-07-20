@@ -12,6 +12,13 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { createLovableGateway, DEFAULT_CHAT_MODEL } from "@/lib/ai-gateway.server";
 import { decryptJSON } from "@/lib/crypto.server";
 import { sendEmailViaResend, sendWhatsAppText } from "./dispatch.server";
+import { classifyFailure } from "./classify.server";
+import {
+  decideRecovery,
+  DEFAULT_AUTOMATION,
+  type AutomationSettings,
+} from "./decide.server";
+import { matchTemplate, type TemplateRow as MatchTemplateRow } from "./match-template.server";
 
 // ---------------------------------------------------------------------------
 // AI analysis
@@ -180,6 +187,47 @@ async function loadTemplates(workspaceId: string, step: number): Promise<Templat
   return (data ?? []) as TemplateRow[];
 }
 
+async function loadAllTemplatesForMatching(
+  workspaceId: string,
+): Promise<MatchTemplateRow[]> {
+  const { data } = await supabaseAdmin
+    .from("recovery_templates")
+    .select(
+      "id, workspace_id, step, channel, subject, body_text, body_html, failure_classification, country, language, gateway, product_kind, customer_segment, tone, source, usage_count, success_count, confidence, enabled",
+    )
+    .eq("workspace_id", workspaceId)
+    .eq("enabled", true);
+  return (data ?? []) as unknown as MatchTemplateRow[];
+}
+
+async function loadAutomationSettings(workspaceId: string): Promise<AutomationSettings> {
+  const { data } = await supabaseAdmin
+    .from("workspace_automation_settings")
+    .select(
+      "timezone, quiet_hours, max_retries, preferred_channels, ai_enabled, retry_schedule_minutes, template_reuse_threshold",
+    )
+    .eq("workspace_id", workspaceId)
+    .maybeSingle();
+  if (!data) return DEFAULT_AUTOMATION;
+  const q = (data.quiet_hours ?? null) as { start?: number; end?: number } | null;
+  return {
+    timezone: data.timezone ?? DEFAULT_AUTOMATION.timezone,
+    quiet_hours:
+      q && typeof q.start === "number" && typeof q.end === "number"
+        ? { start: q.start, end: q.end }
+        : DEFAULT_AUTOMATION.quiet_hours,
+    max_retries: data.max_retries ?? DEFAULT_AUTOMATION.max_retries,
+    preferred_channels:
+      (data.preferred_channels as string[] | null) ?? DEFAULT_AUTOMATION.preferred_channels,
+    ai_enabled: data.ai_enabled ?? DEFAULT_AUTOMATION.ai_enabled,
+    retry_schedule_minutes:
+      (data.retry_schedule_minutes as number[] | null) ??
+      DEFAULT_AUTOMATION.retry_schedule_minutes,
+    template_reuse_threshold:
+      Number(data.template_reuse_threshold ?? DEFAULT_AUTOMATION.template_reuse_threshold),
+  };
+}
+
 export async function runRecoveryForEvent({ eventId }: RunRecoveryArgs): Promise<void> {
   const { data: event, error } = await supabaseAdmin
     .from("recovery_events")
@@ -232,39 +280,144 @@ export async function runRecoveryForEvent({ eventId }: RunRecoveryArgs): Promise
     (raw.update_payment_url as string | undefined) ??
     null;
 
+  // Wave D: classify failure + load automation settings.
+  const classification = classifyFailure({
+    failure_code: event.failure_code,
+    failure_message: event.failure_message,
+  });
+  const automation = await loadAutomationSettings(event.workspace_id);
+
+  // Wave D: derive available channels from connected communication integrations.
+  const integrations = await loadIntegrations(event.workspace_id);
+  const commIntegrations = integrations.filter((i) => i.kind === "communication");
+  const channelsAvailable = Array.from(
+    new Set(
+      commIntegrations
+        .map((i): string | null =>
+          i.provider === "resend"
+            ? "email"
+            : i.provider === "whatsapp_cloud"
+              ? "whatsapp"
+              : null,
+        )
+        .filter((c: string | null): c is string => c !== null),
+    ),
+  );
+
+  const preferredLanguage =
+    (raw.preferred_language as string | undefined) ??
+    ((event as { preferred_language?: string }).preferred_language ?? null);
+
+  const decision = decideRecovery({
+    step: currentStep,
+    classification,
+    preferred_language: preferredLanguage,
+    channels_available: channelsAvailable,
+    automation,
+  });
+
+  // Short-circuit paths from the decision engine.
+  if (!decision.should_send && decision.reason === "max_retries_reached") {
+    await supabaseAdmin
+      .from("recovery_events")
+      .update({
+        status: "abandoned",
+        abandoned_at: new Date().toISOString(),
+        failure_classification: classification,
+        decision: decision as never,
+      })
+      .eq("id", event.id);
+    return;
+  }
+  if (!decision.should_send && decision.reason === "no_channel_connected") {
+    await supabaseAdmin
+      .from("recovery_events")
+      .update({
+        status: "failed",
+        next_run_at: decision.send_at.toISOString(),
+        failure_classification: classification,
+        decision: decision as never,
+      })
+      .eq("id", event.id);
+    return;
+  }
+
   const cached = (event.ai_analysis ?? null) as Partial<RecoveryAnalysis> | null;
+
+  // Wave D: attempt template match first; fall back to AI only when confidence is low.
+  const stepNumber = currentStep + 1;
+  const allTemplates = await loadAllTemplatesForMatching(event.workspace_id);
+  const emailMatch = matchTemplate(allTemplates, {
+    step: stepNumber,
+    channel: "email",
+    classification,
+    language: decision.language,
+  }, automation.template_reuse_threshold);
+  const waMatch = matchTemplate(allTemplates, {
+    step: stepNumber,
+    channel: "whatsapp",
+    classification,
+    language: decision.language,
+  }, automation.template_reuse_threshold);
+
+  const needAi =
+    automation.ai_enabled &&
+    (!emailMatch.matched || !waMatch.matched) &&
+    !(cached && cached.email_subject && cached.email_body && cached.whatsapp_text);
+
   const analysis: RecoveryAnalysis =
     cached && cached.email_subject && cached.email_body && cached.whatsapp_text
       ? (cached as RecoveryAnalysis)
-      : await analyzeFailure({
-          failure_code: event.failure_code,
-          failure_message: event.failure_message,
-          amount_cents: event.amount_cents,
-          currency: event.currency,
-          customer_name: customer?.name ?? null,
-          customer_email: customer?.email ?? null,
-          business_name: workspace.name,
-          update_payment_url: updateUrl,
-        });
+      : needAi
+        ? await analyzeFailure({
+            failure_code: event.failure_code,
+            failure_message: event.failure_message,
+            amount_cents: event.amount_cents,
+            currency: event.currency,
+            customer_name: customer?.name ?? null,
+            customer_email: customer?.email ?? null,
+            business_name: workspace.name,
+            update_payment_url: updateUrl,
+          })
+        : {
+            category: "other",
+            severity: "medium",
+            summary: event.failure_message ?? "Payment could not be processed.",
+            next_action: decision.suggest_update_payment_method ? "ask_update_card" : "retry_later",
+            email_subject: emailMatch.template?.subject ?? "Payment update needed",
+            email_body:
+              emailMatch.template?.body_text ??
+              "We tried to process your recent payment but it didn't go through. Please update your payment method when you get a moment.",
+            whatsapp_text:
+              waMatch.template?.body_text ??
+              "Quick note — your recent payment didn't go through. Could you take a look?",
+          };
 
   await supabaseAdmin
     .from("recovery_events")
     .update({
       status: "recovering",
       failure_category: analysis.category,
+      failure_classification: classification,
       next_action: analysis.next_action,
       ai_summary: analysis.summary,
       ai_analysis: analysis as never,
+      decision: decision as never,
+      template_id: (emailMatch.template ?? waMatch.template)?.id ?? null,
+      template_confidence: Math.max(emailMatch.confidence, waMatch.confidence),
+      notification_channel: decision.channel,
     })
     .eq("id", event.id);
 
-  const stepNumber = currentStep + 1;
-  const templates = await loadTemplates(event.workspace_id, stepNumber);
-  const emailTpl = templates.find((t) => t.channel === "email");
-  const waTpl = templates.find((t) => t.channel === "whatsapp");
-
-  const integrations = await loadIntegrations(event.workspace_id);
-  const commIntegrations = integrations.filter((i) => i.kind === "communication");
+  const stepTemplates = await loadTemplates(event.workspace_id, stepNumber);
+  const emailTpl =
+    (emailMatch.matched ? emailMatch.template : null) ??
+    stepTemplates.find((t) => t.channel === "email") ??
+    null;
+  const waTpl =
+    (waMatch.matched ? waMatch.template : null) ??
+    stepTemplates.find((t) => t.channel === "whatsapp") ??
+    null;
 
   let anySent = false;
 
@@ -312,6 +465,28 @@ export async function runRecoveryForEvent({ eventId }: RunRecoveryArgs): Promise
         })
         .eq("id", attempt!.id);
 
+      // Wave D: learning loop — log the template match + bump usage counters.
+      if (emailMatch.template) {
+        await supabaseAdmin.from("recovery_template_matches").insert({
+          workspace_id: event.workspace_id,
+          event_id: event.id,
+          template_id: emailMatch.template.id,
+          step: stepNumber,
+          channel: "email",
+          matched: emailMatch.matched,
+          confidence: emailMatch.confidence,
+          match_keys: emailMatch.match_keys as never,
+          outcome: result.ok ? "sent" : "failed",
+        });
+        await supabaseAdmin
+          .from("recovery_templates")
+          .update({
+            usage_count: (emailMatch.template.usage_count ?? 0) + 1,
+            last_used_at: new Date().toISOString(),
+          })
+          .eq("id", emailMatch.template.id);
+      }
+
       anySent = anySent || result.ok;
     }
 
@@ -350,19 +525,46 @@ export async function runRecoveryForEvent({ eventId }: RunRecoveryArgs): Promise
         })
         .eq("id", attempt!.id);
 
+      if (waMatch.template) {
+        await supabaseAdmin.from("recovery_template_matches").insert({
+          workspace_id: event.workspace_id,
+          event_id: event.id,
+          template_id: waMatch.template.id,
+          step: stepNumber,
+          channel: "whatsapp",
+          matched: waMatch.matched,
+          confidence: waMatch.confidence,
+          match_keys: waMatch.match_keys as never,
+          outcome: result.ok ? "sent" : "failed",
+        });
+        await supabaseAdmin
+          .from("recovery_templates")
+          .update({
+            usage_count: (waMatch.template.usage_count ?? 0) + 1,
+            last_used_at: new Date().toISOString(),
+          })
+          .eq("id", waMatch.template.id);
+      }
+
       anySent = anySent || result.ok;
     }
   }
 
-  const nextAt = nextRunAt(stepNumber);
-  const isLastStep = nextAt === null;
+  // Wave D: schedule the next run via the decision engine (quiet-hours aware),
+  // falling back to the legacy cadence when we've exhausted the schedule.
+  const legacyNextAt = nextRunAt(stepNumber);
+  const nextAtIso =
+    decision.next_step < automation.max_retries
+      ? decision.send_at.toISOString()
+      : legacyNextAt;
+  const isLastStep = nextAtIso === null;
 
   await supabaseAdmin
     .from("recovery_events")
     .update({
       attempts_count: (event.attempts_count ?? 0) + 1,
       cadence_step: stepNumber,
-      next_run_at: nextAt,
+      next_run_at: nextAtIso,
       status: isLastStep ? "abandoned" : anySent ? "recovering" : "failed",
       abandoned_at: isLastStep ? new Date().toISOString() : null,
     })
