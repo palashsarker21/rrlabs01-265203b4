@@ -1,90 +1,100 @@
-# Wave 2 — Enterprise Public-Site Upgrade (extend-only)
+# RRLabs Screenshot-Ready UI Polish
 
-Wave 1 already shipped: central registries (`SOCIAL_PROFILES`, `CONTACT_PHONES`, `COMPANY_METADATA` in `src/lib/brand.ts`), Organization + WebSite JSON-LD with SearchAction, breadcrumb helper (`src/lib/seo/breadcrumbs.ts`), Trust Center (`src/routes/security.tsx`), Contact copy-actions, analytics registry + `analytics_events` table + server fn, ShareButtons component, social/phone click tracking, sitemap.xml (registry-driven), robots.txt with AI-bot rules. 51 tests pass.
+Given the surface area (~40 public routes, ~30 authenticated routes, admin, onboarding, settings) touching every screen at once is high-risk. This plan lands the polish in **safe, verifiable waves** built entirely on top of the existing design tokens in `src/styles.css` and the shadcn primitives already in `src/components/ui/`. Nothing is rebuilt; only spacing/typography/state polish is applied.
 
-Wave 2 extends that surface. Nothing existing is removed or reshaped; new code plugs into existing modules.
+## Audit summary (current state)
 
-## Scope by section
+Strengths already in place:
+- Cohesive light-first token system in `src/styles.css` (semantic colors, radii, chart scale).
+- shadcn/ui primitives used consistently; brand centralized in `src/lib/brand.ts`.
+- Route architecture is clean (TanStack file-based, `_authenticated` gate).
 
-### SEO / Structured Data (items 1–8)
-- Extend Organization JSON-LD in `src/routes/__root.tsx`: add `email`, `telephone`, `address` (from `COMPANY_METADATA`), `foundingDate`, `founder`, expand `contactPoint` to include both `CONTACT_PHONES` entries with `contactType` + `availableLanguage`. Keep existing `@graph` shape.
-- Wire `buildBreadcrumbScript` (already exists) into every top-level public route's `head().scripts`: `/features`, `/pricing`, `/blog`, `/docs`, `/faq`, `/about`, `/contact`, `/security`, `/status`, `/integrations`, plus `blog.$slug` and `docs.$slug` (dynamic label from loader).
-- Audit + fill OG/Twitter parity per route via a new helper `src/lib/seo/meta.ts` (`buildPageMeta({title, description, path, image?})` → returns the full `meta[]` array). Refactor each public route's `head()` to call it — same output, one source of truth.
-- Canonical: helper already emits absolute URLs; ensure every public leaf uses `canonicalFor(path)` in `head().links`.
-- Sitemap: audit `src/routes/sitemap[.]xml.ts` `ROUTE_REGISTRY` — add any missing legal/integrations paths; keep dynamic blog fetch.
-- robots.txt: verified in Wave 1; re-audit against new routes.
+Gaps to fix (recurring, cross-cutting):
+1. **Typography scale drift** — headings jump between `text-2xl/3xl/4xl` inconsistently; no defined display/heading/eyebrow tokens.
+2. **Card density inconsistency** — mix of `p-4`, `p-5`, `p-6`, `space-y-*` values across dashboard, analytics, integrations.
+3. **KPI cards** — plain numbers, no eyebrow labels, no delta chips, no icon slot standard.
+4. **Empty states** — many pages render bare "No data" strings; no illustrated/iconized empty component.
+5. **Loading states** — mix of spinners and ad‑hoc skeletons; no shared `<PageSkeleton>` / `<TableSkeleton>` primitives.
+6. **Status badges** — inconsistent colors between success/warning/destructive across integrations, billing, email delivery.
+7. **Table polish** — header weight, row hover, zebra, sticky headers, empty rows, pagination alignment vary per page.
+8. **Focus rings** — some custom buttons/links miss visible `:focus-visible` ring (WCAG 2.2 AA).
+9. **Icon sizing** — Lucide icons appear as `h-4`, `h-5`, `size-4`, `size-5` mixed within same card.
+10. **Hover/transition** — cards lack the subtle lift + border tint used by Linear/Vercel; buttons transition durations vary.
+11. **Recovery workflow view** — currently a vertical list; not screenshot-worthy as described (needs a proper stepper diagram).
+12. **Auth screens** — solid, but hero side lacks the split-panel product proof used by Clerk/Supabase.
 
-### Trust Center (item 9)
-Already shipped in Wave 1. Verify all 10 sections render, add missing "Data Protection" callout (retention, deletion rights, DPA link) if not already present.
+## Waves
 
-### Status Page — live probes (item 10)
-New infrastructure, opt-in and cache-guarded:
-- Migration: `system_health_probes` table (component, status enum healthy|degraded|outage, latency_ms, checked_at, detail) + `system_health_history` (daily rollup). RLS: public SELECT of latest snapshot only; service_role writes.
-- Server route `src/routes/api/public/health/probe.ts`: cron-callable POST that runs probes for Website, Dashboard, API, Auth, Email (Resend), Webhooks (last 5min error rate from `webhook_logs`), Recovery Engine (job_queue backlog), Database (`select 1`), AI Services (Lovable AI ping). Signed with `apikey` header. 30s soft-cache via table timestamps.
-- pg_cron: schedule every 60s calling the probe route.
-- `src/routes/status.tsx`: extend existing page to read latest snapshot via new public server fn `getSystemHealth()`; keep existing incidents UI intact. Show per-component pill (healthy/degraded/outage) + last-checked timestamp.
+Each wave is independently shippable and reversible.
 
-### Sharing (item 4)
-- `ShareButtons` already built. Wire into `blog.$slug.tsx` above article body and into `docs.$slug` (if present) — analytics events already fire.
+### Wave 1 — Foundations (design tokens + shared primitives)
+- Extend `src/styles.css` with tokens (no rename, additive only): `--shadow-xs/sm/md/lg` tuned for white surfaces; `--tracking-tight`; refined `--muted-foreground` for AA on white; `.text-eyebrow` utility.
+- Add typography utility layer: display/h1/h2/h3/eyebrow/kicker classes (via `@utility`).
+- New shared components under `src/components/ui/`:
+  - `page-header.tsx` — title, eyebrow, description, actions slot.
+  - `stat-card.tsx` — icon, eyebrow, value, delta chip, footnote.
+  - `empty-state.tsx` — icon, title, description, primary/secondary action.
+  - `section-card.tsx` — Linear-style card with header row + optional toolbar.
+  - `data-table-shell.tsx` — wraps existing tables with consistent header, toolbar, pagination alignment (opt-in, no forced migration).
+  - `skeleton-block.tsx` variants (kpi, row, chart).
+- Standardize `Badge` variants (`success`, `warning`, `info`, `neutral`) in existing `badge.tsx` (append, don't replace).
 
-### Contact (item 11)
-Copy Email/Website/Phone + toasts already shipped in Wave 1. Add Click-to-email `mailto:` and Click-to-website analytics events (registry entry `email_click`, `website_click`) — hooks already exist; just wire onClick.
+### Wave 2 — Dashboard + Analytics
+- Apply `PageHeader` + `StatCard` to `_authenticated/dashboard.tsx`, `analytics.tsx`, `events.tsx`.
+- Normalize chart container padding, add subtle grid, unify Recharts tooltip style via shared `chart-tooltip.tsx`.
+- Consistent KPI row: 4-up on lg, 2-up on md, 1-up on sm; equal heights.
+- Replace bare "No data" with `EmptyState`.
 
-### Analytics (item 12)
-- Extend `AnalyticsEventName` union with `email_click`, `website_click`, `share_click`, `copy_action` (generic).
-- Add `workspace_id` optional field to server fn schema; when authenticated, attach via bearer middleware. Anonymous events remain accepted.
-- No provider swap; dataLayer + `analytics_events` table.
+### Wave 3 — Recovery Engine workflow (screenshot centerpiece)
+- New presentational component `recovery-workflow-diagram.tsx` — horizontal stepper on desktop, vertical on mobile:
+  `Failed Payment → AI Analysis → Recovery Score → Email → WhatsApp → Retry Schedule → Recovered Revenue`.
+- Icons per step, subtle animated pulse on active step, status pill, ETA under each.
+- Uses realistic demo data from existing engine when available; no fake metrics.
 
-### Performance (item 13)
-- Add `<Link preload="intent">` to primary nav links in `__root.tsx` (TanStack already supports; verify current setting).
-- Move Lucide icons in ShareButtons to per-icon imports (already tree-shaken; verify).
-- Add `loading="lazy"` + `decoding="async"` to non-LCP `<img>` on marketing routes; keep hero image eager.
-- Verify `preconnect` for Google Fonts in `__root.tsx` head.links.
+### Wave 4 — Integrations grid
+- Uniform integration card: logo (48px), name, one-line description, status badge, primary action.
+- Consistent connection states: Not connected / Connecting / Connected / Needs attention / Verified.
+- Card hover: `border-primary/40`, `shadow-sm` → `shadow-md`, 150ms.
 
-### Accessibility (item 14)
-- Run `axe-core` snapshot test across `/`, `/contact`, `/security`, `/status`, `/pricing`, `/blog`.
-- Add `prefers-reduced-motion` guards to any framer-motion / CSS animations on new components.
-- Verify focus-visible rings on ShareButtons + copy buttons; add if missing.
+### Wave 5 — Settings + Auth
+- Settings: uniform tabbed shell, form spacing (`space-y-6`), helper text under inputs, inline validation icons.
+- Auth (`auth.tsx`, `forgot-password`, `reset-password`, `verify-email`): add optional right-side product proof panel behind an env-safe flag; left panel unchanged in functionality. Improve field spacing, focus rings, and password strength card padding only.
 
-### Central Config (items 15–16)
-- Add `FUTURE_SOCIAL_PROFILES` to `src/lib/brand.ts` (Product Hunt, Crunchbase, G2, Capterra, Dev.to, Hashnode, Medium) with `enabled: false`. Existing filter already drops disabled entries — zero UI change until flipped.
+### Wave 6 — Tables + Badges + Icons sweep
+- Apply `data-table-shell` to admin/email/billing/team tables.
+- Icon size lint: standardize to `size-4` (inline text) and `size-5` (buttons/cards) per component with a codemod-style search-replace, verified per file.
+- Focus-visible audit for interactive elements missing rings.
 
-### Tests (item 17)
-Add:
-- `src/lib/seo/meta.test.ts` — `buildPageMeta` produces title/description/canonical/og/twitter parity for a fixture route.
-- `src/routes/__root.organization-jsonld.test.tsx` — asserts new Organization fields (email, address, foundingDate, both phones).
-- `src/lib/seo/breadcrumbs.test.ts` — asserts BreadcrumbList shape + absolute URLs.
-- `src/components/share-buttons.test.tsx` — asserts href for each network, copy action fires `share_click`, keyboard activation.
-- `tests/e2e/analytics-dispatch.spec.py` — clicks a social link, asserts dataLayer push + Supabase insert into `analytics_events`.
-- Extend existing `run_rls_test_suite` with `system_health_probes` cross-tenant read denial.
+### Wave 7 — Marketing (landing, pricing, features, about, contact, security, docs)
+- Section rhythm: `py-20 sm:py-24 lg:py-28` standard; container `max-w-6xl` for content, `max-w-7xl` for grids.
+- Hero typography scale: display 56/64/72 responsive; body `text-lg text-muted-foreground`.
+- FAQ: unify Accordion styling, add hover, better spacing.
+- Footer alignment fixes; consistent column gap.
 
-## Technical section
+## Guardrails
 
-New files:
-- `src/lib/seo/meta.ts`, `src/lib/seo/meta.test.ts`
-- `src/routes/api/public/health/probe.ts`
-- `src/lib/system-health.functions.ts` (public read)
-- Migration: `system_health_probes`, `system_health_history` + GRANTs + RLS + pg_cron schedule
-- 5 test files above
+- No route removed. No prop signatures changed on shared components — new components are additive; existing routes migrate opt-in wave by wave.
+- Zero business-logic touches: server functions, migrations, RLS, integrations left alone.
+- Type strictness maintained; `tsgo` clean per wave.
+- A11y: every new component ships with `aria-*`, visible focus ring, and `size` variants that clear 44×44 tap targets on mobile.
+- Bundle: no new heavy deps. Reuse `lucide-react`, `recharts`, `class-variance-authority` already installed.
+- Perf: purely presentational changes; no new client fetches. Animations use `transition-{colors,shadow,transform}` under 200ms — no layout-shift.
 
-Extended (no behavior removed):
-- `src/routes/__root.tsx` (Organization graph fields, preconnect audit)
-- `src/routes/status.tsx` (probe pills added under existing UI)
-- `src/routes/blog.$slug.tsx`, `src/routes/docs.$slug.tsx` (ShareButtons + BreadcrumbList)
-- Every top-level public route (`head()` → `buildPageMeta` + breadcrumb script)
-- `src/lib/brand.ts` (`FUTURE_SOCIAL_PROFILES`, disabled)
-- `src/lib/analytics/events.ts` + `src/lib/analytics.functions.ts` (new event names, optional workspace_id)
-- `src/routes/contact.tsx` (email/website click analytics)
-- `src/routes/sitemap[.]xml.ts` (audit registry entries)
+## Technical notes
 
-Deferred (call out explicitly, not built here):
-- BYO status-page vendor integration (Instatus/StatusPage) — the probe table is compatible if you later want to switch.
-- Per-provider probe timeouts >5s or synthetic browser probes — start with in-worker HTTP probes.
+- New utilities go into `src/styles.css` via `@utility` (Tailwind v4 correct form).
+- Shared components go under `src/components/ui/` and are re-exported from an `index.ts` for ergonomics.
+- Migrations per route are done as small search-replace edits, verified by `bun run build` after each wave.
+- Existing tests remain green; new snapshot tests only if a component is highly visual (e.g. `stat-card`).
 
-## Verification gate
-Before final report: `tsgo --noEmit` clean, all existing 51 tests + new tests pass, `supabase--linter` no new WARN, manual smoke on `/`, `/contact`, `/security`, `/status`, `/blog/[any-post]`.
+## Deliverables per wave
 
-## Deliverable
-Final Implementation Report as requested (files changed, new components/hooks/utils, schema generators, analytics events, structured data, SEO, a11y, perf, test coverage, QA results, remaining blockers if any).
+1. List of files touched.
+2. Screenshot-ready pages produced.
+3. A11y notes (contrast, focus, motion).
+4. Build + typecheck pass.
 
-Approve to proceed, or tell me which sections to drop / re-order.
+## Suggested execution order
+
+Wave 1 → 2 → 3 → 4 → 5 → 6 → 7. Each wave = one commit-sized change.
+Please approve to start with **Wave 1 (Foundations)**, or tell me which wave to prioritize (e.g. jump straight to Wave 3 for the workflow hero shot).
