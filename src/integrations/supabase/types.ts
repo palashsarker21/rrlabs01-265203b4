@@ -1529,6 +1529,27 @@ export type Database = {
         }
         Relationships: []
       }
+      permissions: {
+        Row: {
+          category: string
+          created_at: string
+          description: string
+          key: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description: string
+          key: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string
+          key?: string
+        }
+        Relationships: []
+      }
       plans: {
         Row: {
           code: string
@@ -2200,6 +2221,29 @@ export type Database = {
           },
         ]
       }
+      role_permissions: {
+        Row: {
+          permission_key: string
+          role: Database["public"]["Enums"]["workspace_role"]
+        }
+        Insert: {
+          permission_key: string
+          role: Database["public"]["Enums"]["workspace_role"]
+        }
+        Update: {
+          permission_key?: string
+          role?: Database["public"]["Enums"]["workspace_role"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "role_permissions_permission_key_fkey"
+            columns: ["permission_key"]
+            isOneToOne: false
+            referencedRelation: "permissions"
+            referencedColumns: ["key"]
+          },
+        ]
+      }
       subscriptions: {
         Row: {
           cancelled_at: string | null
@@ -2662,6 +2706,51 @@ export type Database = {
           },
         ]
       }
+      workspace_member_permissions: {
+        Row: {
+          created_at: string
+          granted: boolean
+          id: string
+          permission_key: string
+          updated_at: string
+          user_id: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          granted?: boolean
+          id?: string
+          permission_key: string
+          updated_at?: string
+          user_id: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          granted?: boolean
+          id?: string
+          permission_key?: string
+          updated_at?: string
+          user_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_member_permissions_permission_key_fkey"
+            columns: ["permission_key"]
+            isOneToOne: false
+            referencedRelation: "permissions"
+            referencedColumns: ["key"]
+          },
+          {
+            foreignKeyName: "workspace_member_permissions_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workspace_members: {
         Row: {
           created_at: string
@@ -2824,6 +2913,10 @@ export type Database = {
         Returns: string
       }
       expire_trial_workspaces: { Args: never; Returns: number }
+      has_permission: {
+        Args: { _permission: string; _user_id: string; _workspace_id: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -2874,6 +2967,10 @@ export type Database = {
         }[]
       }
       workspace_can_send: { Args: { _workspace_id: string }; Returns: boolean }
+      workspace_permissions_of: {
+        Args: { _user_id: string; _workspace_id: string }
+        Returns: string[]
+      }
       workspace_provider_limit: {
         Args: { _kind: string; _workspace_id: string }
         Returns: number
