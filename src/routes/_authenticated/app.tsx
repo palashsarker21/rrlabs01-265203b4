@@ -342,7 +342,19 @@ function AppShell() {
               ))}
             </ul>
           ) : (
-            <EmptyState />
+            <EmptyState
+              icon={<Mail className="size-5" />}
+              title="No activity yet"
+              description="Connect your payment gateway to start recovering failed payments automatically."
+              action={
+                <Button asChild size="sm" variant="outline">
+                  <Link to="/setup">
+                    Configure integrations
+                    <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+                  </Link>
+                </Button>
+              }
+            />
           )}
         </section>
 
@@ -357,34 +369,6 @@ function AppShell() {
   );
 }
 
-function StatCard({
-  label,
-  value,
-  accent,
-  loading,
-}: {
-  label: string;
-  value: React.ReactNode;
-  accent?: boolean;
-  loading?: boolean;
-}) {
-  return (
-    <div
-      className={`rounded-xl border p-4 ${
-        accent ? "border-primary/40 bg-primary/5" : "border-border/60 bg-background/40"
-      }`}
-    >
-      <p className="text-xs uppercase tracking-wider text-muted-foreground">{label}</p>
-      {loading ? (
-        <div className="mt-2 h-7 w-24 animate-pulse rounded bg-muted" />
-      ) : (
-        <p className={`mt-2 text-2xl font-semibold ${accent ? "text-primary" : "text-foreground"}`}>
-          {value}
-        </p>
-      )}
-    </div>
-  );
-}
 
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, string> = {
