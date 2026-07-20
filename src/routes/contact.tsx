@@ -131,6 +131,83 @@ function ContactPage() {
           </div>
         </div>
 
+        <section aria-labelledby="channels" className="mt-16">
+          <h2 id="channels" className="text-2xl font-semibold tracking-tight text-foreground">
+            How to reach the right team
+          </h2>
+          <dl className="mt-6 grid gap-5 sm:grid-cols-2">
+            <div className="rounded-xl border border-border/60 bg-card/40 p-5">
+              <dt className="text-sm font-semibold text-foreground">Sales &amp; pricing</dt>
+              <dd className="mt-2 text-sm text-muted-foreground">
+                Enterprise plans, custom cadences, procurement, and DPAs.{" "}
+                <a
+                  className="text-foreground underline underline-offset-4"
+                  href={`mailto:${CONTACT.supportEmail}?subject=Sales%20inquiry`}
+                >
+                  {CONTACT.supportEmail}
+                </a>
+              </dd>
+            </div>
+            <div className="rounded-xl border border-border/60 bg-card/40 p-5">
+              <dt className="text-sm font-semibold text-foreground">Product support</dt>
+              <dd className="mt-2 text-sm text-muted-foreground">
+                Account, billing, integrations, and product questions.{" "}
+                <a
+                  className="text-foreground underline underline-offset-4"
+                  href={`mailto:${CONTACT.supportEmail}`}
+                >
+                  {CONTACT.supportEmail}
+                </a>
+              </dd>
+            </div>
+            <div className="rounded-xl border border-border/60 bg-card/40 p-5">
+              <dt className="text-sm font-semibold text-foreground">Technical &amp; API</dt>
+              <dd className="mt-2 text-sm text-muted-foreground">
+                Webhooks, adapters, SDK, and developer questions. Include workspace ID and request
+                ID where possible.
+              </dd>
+            </div>
+            <div className="rounded-xl border border-border/60 bg-card/40 p-5">
+              <dt className="text-sm font-semibold text-foreground">Security disclosure</dt>
+              <dd className="mt-2 text-sm text-muted-foreground">
+                Responsible disclosure and vulnerability reports.{" "}
+                <a
+                  className="text-foreground underline underline-offset-4"
+                  href={`mailto:${CONTACT.supportEmail}?subject=Security%20disclosure`}
+                >
+                  {CONTACT.supportEmail}
+                </a>
+                . See our <a href="/security" className="underline underline-offset-4">Security page</a> for scope.
+              </dd>
+            </div>
+            <div className="rounded-xl border border-border/60 bg-card/40 p-5">
+              <dt className="text-sm font-semibold text-foreground">Partnerships</dt>
+              <dd className="mt-2 text-sm text-muted-foreground">
+                Integrations, resellers, agencies, and co-marketing.
+              </dd>
+            </div>
+            <div className="rounded-xl border border-border/60 bg-card/40 p-5">
+              <dt className="text-sm font-semibold text-foreground">Media &amp; press</dt>
+              <dd className="mt-2 text-sm text-muted-foreground">
+                Interviews, quotes, and briefings on payment recovery and applied AI.
+              </dd>
+            </div>
+          </dl>
+        </section>
+
+        <section aria-labelledby="response" className="mt-14 rounded-2xl border border-border/60 bg-card/40 p-6">
+          <h2 id="response" className="text-xl font-semibold text-foreground">
+            Response expectations
+          </h2>
+          <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+            <li>Sales and product support: within one business day, Monday–Friday.</li>
+            <li>Technical support with a workspace and request ID: same business day where possible.</li>
+            <li>Security disclosures: acknowledged within 24 hours, triaged within 3 business days.</li>
+            <li>Live platform status is published on our <a href="/status" className="underline underline-offset-4">Status page</a>.</li>
+          </ul>
+        </section>
+
+
         <section aria-labelledby="official-socials" className="mt-16">
           <h2
             id="official-socials"
