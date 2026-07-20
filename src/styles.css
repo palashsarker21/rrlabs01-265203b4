@@ -117,6 +117,70 @@
   }
 }
 
+/* Typography scale — enterprise SaaS hierarchy (Linear/Vercel/Stripe cadence). */
+@utility text-eyebrow {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
+}
+@utility text-display {
+  font-size: clamp(2.5rem, 4.5vw, 4.25rem);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  font-weight: 700;
+}
+@utility text-h1 {
+  font-size: clamp(1.875rem, 2.5vw, 2.5rem);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  font-weight: 700;
+}
+@utility text-h2 {
+  font-size: 1.5rem;
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+  font-weight: 600;
+}
+@utility text-h3 {
+  font-size: 1.125rem;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  font-weight: 600;
+}
+@utility text-kicker {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: hsl(var(--muted-foreground));
+}
+
+/* Elevation — tuned for white surfaces (Stripe/Linear feel). */
+@utility shadow-elevated {
+  box-shadow:
+    0 1px 2px hsl(220 43% 11% / 0.04),
+    0 4px 12px hsl(220 43% 11% / 0.05);
+}
+@utility shadow-elevated-hover {
+  box-shadow:
+    0 2px 4px hsl(220 43% 11% / 0.05),
+    0 10px 24px hsl(220 43% 11% / 0.08);
+}
+
+/* Card lift — used across dashboard/integrations for hover polish. */
+@utility card-hover {
+  transition:
+    border-color 150ms ease,
+    box-shadow 200ms ease,
+    transform 200ms ease;
+}
+@utility card-hover:hover {
+  border-color: hsl(var(--primary) / 0.35);
+  box-shadow:
+    0 2px 4px hsl(220 43% 11% / 0.05),
+    0 10px 24px hsl(220 43% 11% / 0.08);
+}
+
 @theme inline {
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
