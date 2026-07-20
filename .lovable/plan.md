@@ -1,100 +1,88 @@
-# RRLabs Screenshot-Ready UI Polish
 
-Given the surface area (~40 public routes, ~30 authenticated routes, admin, onboarding, settings) touching every screen at once is high-risk. This plan lands the polish in **safe, verifiable waves** built entirely on top of the existing design tokens in `src/styles.css` and the shadcn primitives already in `src/components/ui/`. Nothing is rebuilt; only spacing/typography/state polish is applied.
+# Recovery Engine v2 — Audit & Wave Plan
 
-## Audit summary (current state)
+## 1. Audit findings (what already works)
 
-Strengths already in place:
-- Cohesive light-first token system in `src/styles.css` (semantic colors, radii, chart scale).
-- shadcn/ui primitives used consistently; brand centralized in `src/lib/brand.ts`.
-- Route architecture is clean (TanStack file-based, `_authenticated` gate).
+Reused as-is (do NOT rebuild):
 
-Gaps to fix (recurring, cross-cutting):
-1. **Typography scale drift** — headings jump between `text-2xl/3xl/4xl` inconsistently; no defined display/heading/eyebrow tokens.
-2. **Card density inconsistency** — mix of `p-4`, `p-5`, `p-6`, `space-y-*` values across dashboard, analytics, integrations.
-3. **KPI cards** — plain numbers, no eyebrow labels, no delta chips, no icon slot standard.
-4. **Empty states** — many pages render bare "No data" strings; no illustrated/iconized empty component.
-5. **Loading states** — mix of spinners and ad‑hoc skeletons; no shared `<PageSkeleton>` / `<TableSkeleton>` primitives.
-6. **Status badges** — inconsistent colors between success/warning/destructive across integrations, billing, email delivery.
-7. **Table polish** — header weight, row hover, zebra, sticky headers, empty rows, pagination alignment vary per page.
-8. **Focus rings** — some custom buttons/links miss visible `:focus-visible` ring (WCAG 2.2 AA).
-9. **Icon sizing** — Lucide icons appear as `h-4`, `h-5`, `size-4`, `size-5` mixed within same card.
-10. **Hover/transition** — cards lack the subtle lift + border tint used by Linear/Vercel; buttons transition durations vary.
-11. **Recovery workflow view** — currently a vertical list; not screenshot-worthy as described (needs a proper stepper diagram).
-12. **Auth screens** — solid, but hero side lacks the split-panel product proof used by Clerk/Supabase.
+- **Schema**: `recovery_events` (24 cols, cadence_step + next_run_at scheduler already in place), `recovery_attempts` (21 cols incl. ai_model, prompt tokens, delivery timestamps), `recovery_templates` (per workspace/step/channel), `customers`, `integrations`, `job_queue`, `webhook_logs`, `email_logs`, `email_webhook_logs`, `notification_logs`, `notification_preferences`, `alerts` with dedupe + severity, `audit_logs`, `analytics_events`, `success_fee_*`. RLS + workspace isolation is complete via `is_workspace_member` / `can_manage_workspace` / `is_super_admin`.
+- **Engine**: `src/lib/recovery/engine.server.ts` (502 LOC) — analyze → schedule → dispatch loop with cadence steps and status transitions.
+- **Dispatch**: `src/lib/recovery/dispatch.server.ts` — channel routing (Email/WhatsApp) via existing integrations.
+- **Webhooks**: `api/public/webhooks/stripe.ts`, `lemonsqueezy.ts`, generic `$provider.$integrationId.ts` — signature verification + logging already in `webhook_logs`.
+- **AI gateway**: `src/lib/ai-gateway.server.ts` — thin wrapper on Lovable AI (`google/gemini-3-flash-preview` default).
+- **Cron**: `api/public/hooks/recovery-cadence.ts` + `success-fee-monthly.ts` via `pg_net` + apikey pattern.
+- **Notifications/alerts**: triggers for integration_error, webhook_issue, recovery_attempt_failed, activation_status.
+- **Analytics**: `recovery-analytics.functions.ts` (KPIs), `recovery-events-search.functions.ts` (drill-down + CSV/PDF), analytics dashboard wired.
+- **Email**: Resend infra with 15 templates, unsubscribe center, sandbox, deliveries, webhooks.
+- **WhatsApp**: multi-tenant Cloud API adapter + webhook.
+- **Security**: RLS suite (`run_rls_test_suite`), password policy, HMAC webhook verify, rotation, audit triggers.
 
-## Waves
+### Gaps vs the target architecture
 
-Each wave is independently shippable and reversible.
+| Area | Gap |
+|---|---|
+| Failure classification | `failure_category` exists but no canonical enum/rules (soft/hard/expired/insufficient/auth-required/CVC/fraud/temp/timeout/network/unknown). |
+| Customer intelligence | No `recovery_score` / `risk_score` / `clv` / `churn_score` / `customer_segment` / `preferred_language` / `preferred_timezone` columns. |
+| Template reuse | `recovery_templates` unique on `(workspace, step, channel)` — no matching on failure/language/country/segment. No confidence scoring, no AI-generated template caching. |
+| AI decision engine | Engine generates copy but does not persist decision (channel, tone, send-time, retry schedule, template match confidence, `ai_cost`, `prompt_version`, `last_ai_version`). |
+| Multilingual | No language detect/select at event/customer level. |
+| Learning loop | Attempts capture delivered/opened via `email_webhook_logs` but no aggregated template/country/language/gateway performance materialized view. |
+| Queue reliability | `job_queue` exists but no explicit DLQ status, retry-limit + exponential-backoff policy for AI + dispatch. |
+| Automation settings | No per-workspace quiet hours / business hours / holiday calendar / max retries / preferred channels row. |
+| Customer portal | Only checkout status + upgrade — no self-serve retry / update payment method / invoice download. |
+| Observability | Structured logs partial; no AI usage/queue metrics endpoint. |
 
-### Wave 1 — Foundations (design tokens + shared primitives)
-- Extend `src/styles.css` with tokens (no rename, additive only): `--shadow-xs/sm/md/lg` tuned for white surfaces; `--tracking-tight`; refined `--muted-foreground` for AA on white; `.text-eyebrow` utility.
-- Add typography utility layer: display/h1/h2/h3/eyebrow/kicker classes (via `@utility`).
-- New shared components under `src/components/ui/`:
-  - `page-header.tsx` — title, eyebrow, description, actions slot.
-  - `stat-card.tsx` — icon, eyebrow, value, delta chip, footnote.
-  - `empty-state.tsx` — icon, title, description, primary/secondary action.
-  - `section-card.tsx` — Linear-style card with header row + optional toolbar.
-  - `data-table-shell.tsx` — wraps existing tables with consistent header, toolbar, pagination alignment (opt-in, no forced migration).
-  - `skeleton-block.tsx` variants (kpi, row, chart).
-- Standardize `Badge` variants (`success`, `warning`, `info`, `neutral`) in existing `badge.tsx` (append, don't replace).
+## 2. Non-negotiable guardrails
 
-### Wave 2 — Dashboard + Analytics
-- Apply `PageHeader` + `StatCard` to `_authenticated/dashboard.tsx`, `analytics.tsx`, `events.tsx`.
-- Normalize chart container padding, add subtle grid, unify Recharts tooltip style via shared `chart-tooltip.tsx`.
-- Consistent KPI row: 4-up on lg, 2-up on md, 1-up on sm; equal heights.
-- Replace bare "No data" with `EmptyState`.
+- Only additive migrations (new columns/tables/enums/indexes). No drops, no renames, no policy loosening.
+- Every new `public` table: GRANTs + RLS + policies + updated_at trigger in the same migration.
+- Reuse existing tables — extend, don't shadow. Templates get new columns + a second matching index; do not create `recovery_templates_v2`.
+- All new server logic in `createServerFn` or `src/routes/api/public/*` (TanStack) — no new Supabase Edge Functions.
+- AI-only when template match confidence < threshold; cache generated copy back into `recovery_templates` with match keys.
+- Gemini via existing `ai-gateway.server.ts`; provider abstraction accepts OpenAI/Claude later without touching call sites.
+- Strict TS, mobile-first, WCAG 2.2 AA, workspace isolation preserved.
 
-### Wave 3 — Recovery Engine workflow (screenshot centerpiece)
-- New presentational component `recovery-workflow-diagram.tsx` — horizontal stepper on desktop, vertical on mobile:
-  `Failed Payment → AI Analysis → Recovery Score → Email → WhatsApp → Retry Schedule → Recovered Revenue`.
-- Icons per step, subtle animated pulse on active step, status pill, ETA under each.
-- Uses realistic demo data from existing engine when available; no fake metrics.
+## 3. Waves (each independently shippable + reversible)
 
-### Wave 4 — Integrations grid
-- Uniform integration card: logo (48px), name, one-line description, status badge, primary action.
-- Consistent connection states: Not connected / Connecting / Connected / Needs attention / Verified.
-- Card hover: `border-primary/40`, `shadow-sm` → `shadow-md`, 150ms.
+### Wave A — Schema & classification (foundation)
+Additive migration:
+- Enum `failure_classification` (soft_decline, hard_decline, expired_card, insufficient_funds, auth_required, incorrect_cvc, fraud_suspected, temporary_bank, gateway_timeout, network_error, unknown).
+- `recovery_events`: add `failure_classification`, `recovery_score`, `risk_score`, `preferred_language`, `preferred_timezone`, `notification_channel`, `template_id`, `template_confidence`, `last_ai_version`, `prompt_version`, `ai_processing_ms`, `ai_cost_micros`.
+- `recovery_attempts`: add `delivery_status`, `read_status`, `click_status`, `opened_at`, `clicked_at`, `read_at`, `provider_error_code`, `template_id`.
+- `recovery_templates`: add `failure_classification`, `country`, `language`, `gateway`, `product_kind`, `customer_segment`, `source` (curated|ai_generated), `usage_count`, `success_count`, `last_used_at`, `confidence`.
+- `customers`: add `preferred_language`, `preferred_timezone`, `country`, `clv_cents`, `churn_score`, `segment`.
+- New table `workspace_automation_settings` (business_hours jsonb, quiet_hours jsonb, timezone, holiday_calendar jsonb, max_retries int, preferred_channels text[], ai_enabled bool, retry_schedule_minutes int[]).
+- New table `recovery_template_matches` (audit which template matched which event — for the learning loop) or persist inline on event.
 
-### Wave 5 — Settings + Auth
-- Settings: uniform tabbed shell, form spacing (`space-y-6`), helper text under inputs, inline validation icons.
-- Auth (`auth.tsx`, `forgot-password`, `reset-password`, `verify-email`): add optional right-side product proof panel behind an env-safe flag; left panel unchanged in functionality. Improve field spacing, focus rings, and password strength card padding only.
+### Wave B — Failure classifier + AI decision engine
+`src/lib/recovery/classify.server.ts`: pure function mapping Stripe/LS decline codes → `failure_classification`.
+`src/lib/recovery/decide.server.ts`: given event + customer intelligence, returns `{channel, language, tone, send_at, retry_schedule, template_match, need_generation}`.
+Wire into engine BEFORE dispatch; persist decision on event. Zero behavior change when AI disabled.
 
-### Wave 6 — Tables + Badges + Icons sweep
-- Apply `data-table-shell` to admin/email/billing/team tables.
-- Icon size lint: standardize to `size-4` (inline text) and `size-5` (buttons/cards) per component with a codemod-style search-replace, verified per file.
-- Focus-visible audit for interactive elements missing rings.
+### Wave C — Template matcher + AI generation cache
+`matchTemplate(workspaceId, {classification, language, country, gateway, product_kind, segment, step, channel})` → returns best row + confidence. If ≥ threshold reuse, else generate via Gemini and INSERT new template with match keys + `source=ai_generated`. Increment `usage_count` on use, `success_count` when the event recovers.
 
-### Wave 7 — Marketing (landing, pricing, features, about, contact, security, docs)
-- Section rhythm: `py-20 sm:py-24 lg:py-28` standard; container `max-w-6xl` for content, `max-w-7xl` for grids.
-- Hero typography scale: display 56/64/72 responsive; body `text-lg text-muted-foreground`.
-- FAQ: unify Accordion styling, add hover, better spacing.
-- Footer alignment fixes; consistent column gap.
+### Wave D — Queue reliability + retry policy
+Extend `job_queue` with `dlq` status, `attempt_count`, `next_attempt_at`, `last_error`. Exponential backoff helper. Idempotency on `(workspace, external_event_id, step, channel)` — already partially covered by `recovery_events` unique constraint; add for attempts.
 
-## Guardrails
+### Wave E — Automation settings UI + engine honors them
+Settings page under `_authenticated/settings.automation.tsx`. Engine reads quiet hours + retry schedule + max_retries before scheduling `next_run_at`.
 
-- No route removed. No prop signatures changed on shared components — new components are additive; existing routes migrate opt-in wave by wave.
-- Zero business-logic touches: server functions, migrations, RLS, integrations left alone.
-- Type strictness maintained; `tsgo` clean per wave.
-- A11y: every new component ships with `aria-*`, visible focus ring, and `size` variants that clear 44×44 tap targets on mobile.
-- Bundle: no new heavy deps. Reuse `lucide-react`, `recharts`, `class-variance-authority` already installed.
-- Perf: purely presentational changes; no new client fetches. Animations use `transition-{colors,shadow,transform}` under 200ms — no layout-shift.
+### Wave F — Learning loop + expanded analytics
+Materialized view / server fn aggregating template/country/language/gateway performance. Dashboard adds MRR/ARR saved, recovery time, WhatsApp read rate, per-country/language/gateway breakdowns. AI success rate + template success rate cards.
 
-## Technical notes
+### Wave G — Customer portal (public, tokenized)
+`/portal/$token` public route with signed HMAC token (14-day expiry). Actions: view invoice, retry payment (creates Stripe/LS checkout), update payment method (portal link), contact support. Zero auth, but every action re-verifies token + event ownership.
 
-- New utilities go into `src/styles.css` via `@utility` (Tailwind v4 correct form).
-- Shared components go under `src/components/ui/` and are re-exported from an `index.ts` for ergonomics.
-- Migrations per route are done as small search-replace edits, verified by `bun run build` after each wave.
-- Existing tests remain green; new snapshot tests only if a component is highly visual (e.g. `stat-card`).
+### Wave H — Observability + tests
+Structured log helper `logRecoveryEvent(stage, event_id, meta)`; admin metrics page for AI usage (tokens, cost, cache hit rate), queue depth, DLQ count. Vitest coverage: classifier map, template matcher, decision engine, quiet-hours scheduler, DLQ handoff, token verification.
 
-## Deliverables per wave
+## 4. Deliverables per wave
 
-1. List of files touched.
-2. Screenshot-ready pages produced.
-3. A11y notes (contrast, focus, motion).
-4. Build + typecheck pass.
+Files touched + migration diff + type-check clean + at least one screenshot for UI waves.
 
-## Suggested execution order
+## 5. Suggested execution order
 
-Wave 1 → 2 → 3 → 4 → 5 → 6 → 7. Each wave = one commit-sized change.
-Please approve to start with **Wave 1 (Foundations)**, or tell me which wave to prioritize (e.g. jump straight to Wave 3 for the workflow hero shot).
+A → B → C → D → E → F → G → H. Each wave = one commit-sized change.
+
+**Approve to start with Wave A (Schema & classification)**, or say which wave to jump to (e.g. straight to C if you want AI template reuse first).
