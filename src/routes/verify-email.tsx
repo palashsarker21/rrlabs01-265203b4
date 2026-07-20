@@ -22,7 +22,7 @@ export const Route = createFileRoute("/verify-email")({
 
 type Status = "pending" | "verified" | "failed";
 
-function VerifyEmailPage() {
+export function VerifyEmailPage() {
   const navigate = useNavigate();
   const [status, setStatus] = useState<Status>("pending");
   const [message, setMessage] = useState<string>("");
