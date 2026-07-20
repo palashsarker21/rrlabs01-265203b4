@@ -293,14 +293,14 @@ export async function runRecoveryForEvent({ eventId }: RunRecoveryArgs): Promise
   const channelsAvailable = Array.from(
     new Set(
       commIntegrations
-        .map((i) =>
+        .map((i): string | null =>
           i.provider === "resend"
             ? "email"
             : i.provider === "whatsapp_cloud"
               ? "whatsapp"
               : null,
         )
-        .filter((c): c is string => c !== null),
+        .filter((c: string | null): c is string => c !== null),
     ),
   );
 
