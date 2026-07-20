@@ -12,6 +12,13 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { createLovableGateway, DEFAULT_CHAT_MODEL } from "@/lib/ai-gateway.server";
 import { decryptJSON } from "@/lib/crypto.server";
 import { sendEmailViaResend, sendWhatsAppText } from "./dispatch.server";
+import { classifyFailure } from "./classify.server";
+import {
+  decideRecovery,
+  DEFAULT_AUTOMATION,
+  type AutomationSettings,
+} from "./decide.server";
+import { matchTemplate, type TemplateRow as MatchTemplateRow } from "./match-template.server";
 
 // ---------------------------------------------------------------------------
 // AI analysis
