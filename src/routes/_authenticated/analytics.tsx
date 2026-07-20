@@ -198,35 +198,41 @@ function AnalyticsPage() {
           aria-label="Key metrics"
           className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4"
         >
-          <KpiCard
-            icon={<DollarSign className="size-4" />}
-            label="Revenue recovered"
-            value={money(data?.recoveredCents ?? 0, data?.currency)}
-            hint={money(data?.atRiskCents ?? 0, data?.currency) + " at risk"}
-            loading={query.isLoading}
-          />
-          <KpiCard
-            icon={<TrendingUp className="size-4" />}
-            label="Recovery rate"
-            value={`${Math.round((data?.recoveryRate ?? 0) * 100)}%`}
-            hint={`${data?.totalRecovered ?? 0} of ${data?.totalEvents ?? 0} events`}
-            loading={query.isLoading}
-            accent
-          />
-          <KpiCard
-            icon={<Activity className="size-4" />}
-            label="Events"
-            value={String(data?.totalEvents ?? 0)}
-            hint={`${data?.totalInFlight ?? 0} in flight · ${data?.totalAbandoned ?? 0} abandoned`}
-            loading={query.isLoading}
-          />
-          <KpiCard
-            icon={<MailCheck className="size-4" />}
-            label="Messages delivered"
-            value={String(data?.attemptsDelivered ?? 0)}
-            hint={`${data?.attemptsSent ?? 0} sent · ${data?.attemptsFailed ?? 0} failed`}
-            loading={query.isLoading}
-          />
+          {query.isLoading ? (
+            <>
+              <SkeletonKpi />
+              <SkeletonKpi />
+              <SkeletonKpi />
+              <SkeletonKpi />
+            </>
+          ) : (
+            <>
+              <StatCard
+                icon={<DollarSign className="size-4" />}
+                label="Revenue recovered"
+                value={money(data?.recoveredCents ?? 0, data?.currency)}
+                footnote={`${money(data?.atRiskCents ?? 0, data?.currency)} at risk`}
+              />
+              <StatCard
+                icon={<TrendingUp className="size-4" />}
+                label="Recovery rate"
+                value={`${Math.round((data?.recoveryRate ?? 0) * 100)}%`}
+                footnote={`${data?.totalRecovered ?? 0} of ${data?.totalEvents ?? 0} events`}
+              />
+              <StatCard
+                icon={<Activity className="size-4" />}
+                label="Events"
+                value={String(data?.totalEvents ?? 0)}
+                footnote={`${data?.totalInFlight ?? 0} in flight · ${data?.totalAbandoned ?? 0} abandoned`}
+              />
+              <StatCard
+                icon={<MailCheck className="size-4" />}
+                label="Messages delivered"
+                value={String(data?.attemptsDelivered ?? 0)}
+                footnote={`${data?.attemptsSent ?? 0} sent · ${data?.attemptsFailed ?? 0} failed`}
+              />
+            </>
+          )}
         </section>
 
         {/* Revenue recovered over time */}
