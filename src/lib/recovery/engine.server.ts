@@ -187,6 +187,47 @@ async function loadTemplates(workspaceId: string, step: number): Promise<Templat
   return (data ?? []) as TemplateRow[];
 }
 
+async function loadAllTemplatesForMatching(
+  workspaceId: string,
+): Promise<MatchTemplateRow[]> {
+  const { data } = await supabaseAdmin
+    .from("recovery_templates")
+    .select(
+      "id, workspace_id, step, channel, subject, body_text, body_html, failure_classification, country, language, gateway, product_kind, customer_segment, tone, source, usage_count, success_count, confidence, enabled",
+    )
+    .eq("workspace_id", workspaceId)
+    .eq("enabled", true);
+  return (data ?? []) as unknown as MatchTemplateRow[];
+}
+
+async function loadAutomationSettings(workspaceId: string): Promise<AutomationSettings> {
+  const { data } = await supabaseAdmin
+    .from("workspace_automation_settings")
+    .select(
+      "timezone, quiet_hours, max_retries, preferred_channels, ai_enabled, retry_schedule_minutes, template_reuse_threshold",
+    )
+    .eq("workspace_id", workspaceId)
+    .maybeSingle();
+  if (!data) return DEFAULT_AUTOMATION;
+  const q = (data.quiet_hours ?? null) as { start?: number; end?: number } | null;
+  return {
+    timezone: data.timezone ?? DEFAULT_AUTOMATION.timezone,
+    quiet_hours:
+      q && typeof q.start === "number" && typeof q.end === "number"
+        ? { start: q.start, end: q.end }
+        : DEFAULT_AUTOMATION.quiet_hours,
+    max_retries: data.max_retries ?? DEFAULT_AUTOMATION.max_retries,
+    preferred_channels:
+      (data.preferred_channels as string[] | null) ?? DEFAULT_AUTOMATION.preferred_channels,
+    ai_enabled: data.ai_enabled ?? DEFAULT_AUTOMATION.ai_enabled,
+    retry_schedule_minutes:
+      (data.retry_schedule_minutes as number[] | null) ??
+      DEFAULT_AUTOMATION.retry_schedule_minutes,
+    template_reuse_threshold:
+      Number(data.template_reuse_threshold ?? DEFAULT_AUTOMATION.template_reuse_threshold),
+  };
+}
+
 export async function runRecoveryForEvent({ eventId }: RunRecoveryArgs): Promise<void> {
   const { data: event, error } = await supabaseAdmin
     .from("recovery_events")
