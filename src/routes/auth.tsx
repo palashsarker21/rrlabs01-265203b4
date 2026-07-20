@@ -1,8 +1,8 @@
 import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { z } from "zod";
 import { toast } from "sonner";
-import { AlertCircle, Loader2, ShieldCheck } from "lucide-react";
+import { AlertCircle, Copy, KeyRound, Loader2, ShieldCheck, Sparkles } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -13,11 +13,24 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BrandMark } from "@/components/brand-mark";
 import { PasswordInput } from "@/components/auth/password-input";
 import { PasswordStrength, useCapsLock } from "@/components/auth/password-strength";
-import { evaluatePassword, safeRedirectPath } from "@/lib/auth/password-policy";
+import {
+  ConsentCheckboxes,
+  allRequiredConsentsAccepted,
+  initialConsent,
+  type ConsentState,
+} from "@/components/auth/consent-checkboxes";
+import { AuthFooter } from "@/components/auth/auth-footer";
+import {
+  CONSENT_VERSION,
+  evaluatePassword,
+  generateStrongPassword,
+  safeRedirectPath,
+} from "@/lib/auth/password-policy";
 
 const searchSchema = z.object({
   redirect: z.string().optional(),
   mode: z.enum(["signin", "signup"]).optional(),
+  reason: z.enum(["session_expired", "signed_out", "invalid_link"]).optional(),
 });
 
 export const Route = createFileRoute("/auth")({
@@ -33,20 +46,40 @@ export const Route = createFileRoute("/auth")({
 });
 
 const REMEMBER_KEY = "rrlabs.auth.remember-email";
+const LAST_LOGIN_KEY = "rrlabs.auth.last-login";
 
 function AuthPage() {
   const navigate = useNavigate();
   const search = useSearch({ from: "/auth" });
   const [mode, setMode] = useState<"signin" | "signup">(search.mode ?? "signin");
+
+  // Shared
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [displayName, setDisplayName] = useState("");
   const [remember, setRemember] = useState(true);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [banner, setBanner] = useState<string | null>(null);
+  const [lastLogin, setLastLogin] = useState<string | null>(null);
+
+  // Sign up specific
+  const [fullName, setFullName] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [consent, setConsent] = useState<ConsentState>(initialConsent);
+
   const emailRef = useRef<HTMLInputElement>(null);
   const capsOn = useCapsLock();
+
+  const pwEval = useMemo(() => evaluatePassword(password), [password]);
+  const passwordsMatch = password.length > 0 && password === confirmPassword;
+  const canSignUp =
+    pwEval.strong &&
+    passwordsMatch &&
+    fullName.trim().length >= 2 &&
+    email.trim().length > 3 &&
+    allRequiredConsentsAccepted(consent) &&
+    !loading;
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -57,12 +90,23 @@ function AuthPage() {
     try {
       const saved = localStorage.getItem(REMEMBER_KEY);
       if (saved) setEmail(saved);
+      const last = localStorage.getItem(LAST_LOGIN_KEY);
+      if (last) setLastLogin(last);
     } catch {
       /* ignore */
     }
-    // Autofocus
     setTimeout(() => emailRef.current?.focus(), 50);
   }, [navigate, search.redirect]);
+
+  useEffect(() => {
+    if (search.reason === "session_expired") {
+      setBanner("Your session has expired. Please sign in again.");
+    } else if (search.reason === "signed_out") {
+      setBanner("You have been signed out.");
+    } else if (search.reason === "invalid_link") {
+      setBanner("That authentication link is invalid or has expired.");
+    }
+  }, [search.reason]);
 
   async function handleEmailSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -70,9 +114,16 @@ function AuthPage() {
     setFormError(null);
 
     if (mode === "signup") {
-      const ev = evaluatePassword(password);
-      if (!ev.strong) {
+      if (!pwEval.strong) {
         setFormError("Please choose a password that meets all requirements.");
+        return;
+      }
+      if (!passwordsMatch) {
+        setFormError("Passwords do not match.");
+        return;
+      }
+      if (!allRequiredConsentsAccepted(consent)) {
+        setFormError("Please accept all required consents to create your account.");
         return;
       }
     }
@@ -84,8 +135,22 @@ function AuthPage() {
           email,
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}${safeRedirectPath(search.redirect)}`,
-            data: { display_name: displayName || email.split("@")[0] },
+            emailRedirectTo: `${window.location.origin}/verify-email`,
+            data: {
+              full_name: fullName.trim(),
+              display_name: fullName.trim() || email.split("@")[0],
+              accepted_terms: consent.terms,
+              accepted_privacy: consent.privacy,
+              accepted_data_processing: consent.dataProcessing,
+              accepted_service_comms: consent.serviceComms,
+              marketing_email_opt_in: consent.marketing,
+              whatsapp_notifications_opt_in: consent.whatsapp,
+              sms_notifications_opt_in: consent.sms,
+              product_updates_opt_in: consent.productUpdates,
+              consent_version: CONSENT_VERSION,
+              consent_user_agent:
+                typeof navigator !== "undefined" ? navigator.userAgent : undefined,
+            },
           },
         });
         if (error) throw error;
@@ -94,6 +159,11 @@ function AuthPage() {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         toast.success("Welcome back.");
+        try {
+          localStorage.setItem(LAST_LOGIN_KEY, new Date().toISOString());
+        } catch {
+          /* ignore */
+        }
       }
 
       try {
@@ -105,7 +175,6 @@ function AuthPage() {
 
       navigate({ to: safeRedirectPath(search.redirect), replace: true });
     } catch (err) {
-      // Generic message to avoid email enumeration
       const raw = err instanceof Error ? err.message : "Authentication failed";
       const safe =
         mode === "signin" && /invalid|credentials|password/i.test(raw)
@@ -135,6 +204,23 @@ function AuthPage() {
       toast.error(message);
     } finally {
       setGoogleLoading(false);
+    }
+  }
+
+  function handleGeneratePassword() {
+    const pw = generateStrongPassword(16);
+    setPassword(pw);
+    setConfirmPassword(pw);
+    toast.success("Strong password generated.");
+  }
+
+  async function handleCopyPassword() {
+    if (!password) return;
+    try {
+      await navigator.clipboard.writeText(password);
+      toast.success("Password copied to clipboard.");
+    } catch {
+      toast.error("Unable to copy — please copy manually.");
     }
   }
 
@@ -168,6 +254,17 @@ function AuthPage() {
               <TabsTrigger value="signin">Sign in</TabsTrigger>
               <TabsTrigger value="signup">Create account</TabsTrigger>
             </TabsList>
+
+            {banner && (
+              <div
+                role="status"
+                aria-live="polite"
+                className="mt-4 flex items-start gap-2 rounded-md border border-amber-500/50 bg-amber-500/10 p-3 text-sm text-amber-700 dark:text-amber-300"
+              >
+                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+                <span>{banner}</span>
+              </div>
+            )}
 
             {formError && (
               <div
@@ -216,8 +313,26 @@ function AuthPage() {
                   />
                   Remember me on this device
                 </label>
+                {lastLogin && (
+                  <p className="text-xs text-muted-foreground">
+                    Last sign-in on this device:{" "}
+                    <time dateTime={lastLogin}>
+                      {new Date(lastLogin).toLocaleString(undefined, {
+                        dateStyle: "medium",
+                        timeStyle: "short",
+                      })}
+                    </time>
+                  </p>
+                )}
                 <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Sign in"}
+                  {loading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
+                      Signing in…
+                    </>
+                  ) : (
+                    "Sign in"
+                  )}
                 </Button>
               </form>
             </TabsContent>
@@ -225,18 +340,42 @@ function AuthPage() {
             <TabsContent value="signup" className="mt-6">
               <form onSubmit={handleEmailSubmit} className="space-y-4" noValidate>
                 <div className="space-y-2">
-                  <Label htmlFor="name">Name</Label>
+                  <Label htmlFor="full-name">Full name</Label>
                   <Input
-                    id="name"
+                    id="full-name"
                     autoComplete="name"
-                    value={displayName}
-                    onChange={(e) => setDisplayName(e.target.value)}
+                    required
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
                     placeholder="Jane Doe"
+                    aria-required
                   />
                 </div>
                 <EmailField email={email} setEmail={setEmail} />
                 <div className="space-y-2">
-                  <Label htmlFor="new-password">Password</Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="new-password">Password</Label>
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={handleGeneratePassword}
+                        className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      >
+                        <Sparkles className="h-3 w-3" aria-hidden />
+                        Generate
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleCopyPassword}
+                        disabled={!password}
+                        className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs text-muted-foreground hover:text-foreground disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        aria-label="Copy password to clipboard"
+                      >
+                        <Copy className="h-3 w-3" aria-hidden />
+                        Copy
+                      </button>
+                    </div>
+                  </div>
                   <PasswordInput
                     id="new-password"
                     autoComplete="new-password"
@@ -246,6 +385,7 @@ function AuthPage() {
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Create a strong password"
                     aria-describedby="password-strength"
+                    aria-invalid={password.length > 0 && !pwEval.strong}
                   />
                   {capsOn && (
                     <p className="text-xs text-amber-600 dark:text-amber-400" aria-live="polite">
@@ -256,20 +396,40 @@ function AuthPage() {
                     <PasswordStrength password={password} />
                   </div>
                 </div>
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Create account"}
+                <div className="space-y-2">
+                  <Label htmlFor="confirm-password">Confirm password</Label>
+                  <PasswordInput
+                    id="confirm-password"
+                    autoComplete="new-password"
+                    required
+                    minLength={8}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Repeat the password"
+                    aria-invalid={confirmPassword.length > 0 && !passwordsMatch}
+                  />
+                  {confirmPassword.length > 0 && !passwordsMatch && (
+                    <p className="text-xs text-destructive" aria-live="polite">
+                      Passwords do not match.
+                    </p>
+                  )}
+                </div>
+
+                <ConsentCheckboxes value={consent} onChange={setConsent} disabled={loading} />
+
+                <Button type="submit" className="w-full" disabled={!canSignUp}>
+                  {loading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
+                      Creating account…
+                    </>
+                  ) : (
+                    <>
+                      <KeyRound className="mr-2 h-4 w-4" aria-hidden />
+                      Create account
+                    </>
+                  )}
                 </Button>
-                <p className="text-center text-xs text-muted-foreground">
-                  By creating an account you agree to our{" "}
-                  <Link to="/terms" className="underline underline-offset-4 hover:text-foreground">
-                    Terms
-                  </Link>{" "}
-                  and{" "}
-                  <Link to="/privacy" className="underline underline-offset-4 hover:text-foreground">
-                    Privacy Policy
-                  </Link>
-                  .
-                </p>
               </form>
             </TabsContent>
           </Tabs>
@@ -302,6 +462,8 @@ function AuthPage() {
           <ShieldCheck className="h-3.5 w-3.5" />
           Encrypted end-to-end · SOC 2-ready foundation
         </div>
+
+        <AuthFooter />
       </div>
     </div>
   );
