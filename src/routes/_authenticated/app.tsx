@@ -390,25 +390,6 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-function EmptyState() {
-  return (
-    <div className="p-10 text-center">
-      <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
-        <Mail className="h-5 w-5" />
-      </div>
-      <h3 className="mt-3 text-sm font-medium text-foreground">No activity yet</h3>
-      <p className="mx-auto mt-1 max-w-sm text-xs text-muted-foreground">
-        Connect your payment gateway to start recovering failed payments automatically.
-      </p>
-      <Button asChild size="sm" variant="outline" className="mt-4">
-        <Link to="/setup">
-          Configure integrations
-          <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
-        </Link>
-      </Button>
-    </div>
-  );
-}
 
 function GettingStarted({ setupStep, engineOn }: { setupStep: number; engineOn: boolean }) {
   const items = [
