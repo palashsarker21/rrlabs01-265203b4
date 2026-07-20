@@ -44,7 +44,6 @@ function AccessDeniedPage() {
             <Link to="/contact">Contact support</Link>
           </Button>
         </div>
-      </div>
         <AuthFooter />
       </div>
     </div>

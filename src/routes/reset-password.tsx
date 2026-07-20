@@ -171,7 +171,6 @@ function ResetPasswordPage() {
             </form>
           )}
         </div>
-      </div>
         <AuthFooter />
       </div>
     </div>

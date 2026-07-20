@@ -183,7 +183,6 @@ function VerifyEmailPage() {
             </div>
           </div>
         )}
-      </div>
         <AuthFooter />
       </div>
     </div>

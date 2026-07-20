@@ -36,7 +36,6 @@ function SessionExpiredPage() {
             </Link>
           </Button>
         </div>
-      </div>
         <AuthFooter />
       </div>
     </div>

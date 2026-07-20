@@ -111,7 +111,6 @@ function ForgotPasswordPage() {
             </Link>
           </div>
         </div>
-      </div>
         <AuthFooter />
       </div>
     </div>
