@@ -511,8 +511,13 @@ function MiniStat({ label, value }: { label: string; value: string }) {
 
 function EmptyChart() {
   return (
-    <div className="flex h-64 items-center justify-center text-xs text-muted-foreground">
-      No data yet for this range.
-    </div>
+    <EmptyState
+      compact
+      className="h-64"
+      icon={<BarChart3 className="size-5" />}
+      title="No data yet"
+      description="No events recorded for this range. Once activity flows in, you'll see the breakdown here."
+    />
   );
 }
+
