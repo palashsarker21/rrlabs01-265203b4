@@ -261,6 +261,99 @@ exports[`SocialLinks snapshots > matches the icons variant snapshot 1`] = `
       </span>
     </a>
   </li>
+  <li>
+    <a
+      aria-label="Crunchbase (opens in a new tab)"
+      class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border/60 text-muted-foreground transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/50 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+      href="https://www.crunchbase.com/organization/revenue-recovery-labs"
+      rel="noopener noreferrer"
+      target="_blank"
+      title="Crunchbase — opens in a new tab"
+    >
+      <svg
+        aria-hidden="true"
+        class="h-4 w-4"
+        fill="none"
+        focusable="false"
+        viewBox="0 0 24 24"
+      >
+        <rect
+          height="20"
+          rx="4"
+          stroke="currentColor"
+          stroke-width="1.6"
+          width="20"
+          x="2"
+          y="2"
+        />
+        <text
+          fill="currentColor"
+          font-family="ui-sans-serif, system-ui, sans-serif"
+          font-size="10"
+          font-weight="800"
+          text-anchor="middle"
+          x="12"
+          y="16"
+        >
+          cb
+        </text>
+      </svg>
+      <span
+        class="sr-only"
+      >
+        Crunchbase
+      </span>
+    </a>
+  </li>
+  <li>
+    <a
+      aria-label="G2 (opens in a new tab)"
+      class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border/60 text-muted-foreground transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/50 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+      href="https://www.g2.com/products/revenue-recovery-labs"
+      rel="noopener noreferrer"
+      target="_blank"
+      title="G2 — opens in a new tab"
+    >
+      <svg
+        aria-hidden="true"
+        class="h-4 w-4"
+        fill="none"
+        focusable="false"
+        viewBox="0 0 24 24"
+      >
+        <circle
+          cx="12"
+          cy="12"
+          r="11"
+          stroke="currentColor"
+          stroke-width="1.6"
+        />
+        <path
+          d="M8.2 9.2a3 3 0 1 1 4.6 3.5L8 17h5.4"
+          fill="none"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="1.6"
+        />
+        <text
+          fill="currentColor"
+          font-family="ui-sans-serif, system-ui, sans-serif"
+          font-size="8"
+          font-weight="700"
+          x="14.6"
+          y="16.4"
+        >
+          2
+        </text>
+      </svg>
+      <span
+        class="sr-only"
+      >
+        G2
+      </span>
+    </a>
+  </li>
 </ul>
 `;
 
@@ -522,6 +615,99 @@ exports[`SocialLinks snapshots > matches the icons variant with a custom classNa
         class="sr-only"
       >
         YouTube
+      </span>
+    </a>
+  </li>
+  <li>
+    <a
+      aria-label="Crunchbase (opens in a new tab)"
+      class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border/60 text-muted-foreground transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/50 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+      href="https://www.crunchbase.com/organization/revenue-recovery-labs"
+      rel="noopener noreferrer"
+      target="_blank"
+      title="Crunchbase — opens in a new tab"
+    >
+      <svg
+        aria-hidden="true"
+        class="h-4 w-4"
+        fill="none"
+        focusable="false"
+        viewBox="0 0 24 24"
+      >
+        <rect
+          height="20"
+          rx="4"
+          stroke="currentColor"
+          stroke-width="1.6"
+          width="20"
+          x="2"
+          y="2"
+        />
+        <text
+          fill="currentColor"
+          font-family="ui-sans-serif, system-ui, sans-serif"
+          font-size="10"
+          font-weight="800"
+          text-anchor="middle"
+          x="12"
+          y="16"
+        >
+          cb
+        </text>
+      </svg>
+      <span
+        class="sr-only"
+      >
+        Crunchbase
+      </span>
+    </a>
+  </li>
+  <li>
+    <a
+      aria-label="G2 (opens in a new tab)"
+      class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border/60 text-muted-foreground transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/50 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+      href="https://www.g2.com/products/revenue-recovery-labs"
+      rel="noopener noreferrer"
+      target="_blank"
+      title="G2 — opens in a new tab"
+    >
+      <svg
+        aria-hidden="true"
+        class="h-4 w-4"
+        fill="none"
+        focusable="false"
+        viewBox="0 0 24 24"
+      >
+        <circle
+          cx="12"
+          cy="12"
+          r="11"
+          stroke="currentColor"
+          stroke-width="1.6"
+        />
+        <path
+          d="M8.2 9.2a3 3 0 1 1 4.6 3.5L8 17h5.4"
+          fill="none"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="1.6"
+        />
+        <text
+          fill="currentColor"
+          font-family="ui-sans-serif, system-ui, sans-serif"
+          font-size="8"
+          font-weight="700"
+          x="14.6"
+          y="16.4"
+        >
+          2
+        </text>
+      </svg>
+      <span
+        class="sr-only"
+      >
+        G2
       </span>
     </a>
   </li>
@@ -848,6 +1034,117 @@ exports[`SocialLinks snapshots > matches the list variant snapshot 1`] = `
           class="truncate text-xs"
         >
           www.youtube.com/@rrlabsonline
+        </span>
+      </span>
+    </a>
+  </li>
+  <li>
+    <a
+      aria-label="Crunchbase (opens in a new tab)"
+      class="group flex items-center gap-3 rounded-lg border border-border/60 bg-card/50 p-3 text-sm text-muted-foreground backdrop-blur transition-colors hover:border-primary/50 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+      href="https://www.crunchbase.com/organization/revenue-recovery-labs"
+      rel="noopener noreferrer"
+      target="_blank"
+      title="Crunchbase — opens in a new tab"
+    >
+      <svg
+        aria-hidden="true"
+        class="h-5 w-5 shrink-0 text-primary"
+        fill="none"
+        focusable="false"
+        viewBox="0 0 24 24"
+      >
+        <rect
+          height="20"
+          rx="4"
+          stroke="currentColor"
+          stroke-width="1.6"
+          width="20"
+          x="2"
+          y="2"
+        />
+        <text
+          fill="currentColor"
+          font-family="ui-sans-serif, system-ui, sans-serif"
+          font-size="10"
+          font-weight="800"
+          text-anchor="middle"
+          x="12"
+          y="16"
+        >
+          cb
+        </text>
+      </svg>
+      <span
+        class="flex min-w-0 flex-1 flex-col"
+      >
+        <span
+          class="font-medium text-foreground"
+        >
+          Crunchbase
+        </span>
+        <span
+          class="truncate text-xs"
+        >
+          www.crunchbase.com/organization/revenue-recovery-labs
+        </span>
+      </span>
+    </a>
+  </li>
+  <li>
+    <a
+      aria-label="G2 (opens in a new tab)"
+      class="group flex items-center gap-3 rounded-lg border border-border/60 bg-card/50 p-3 text-sm text-muted-foreground backdrop-blur transition-colors hover:border-primary/50 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+      href="https://www.g2.com/products/revenue-recovery-labs"
+      rel="noopener noreferrer"
+      target="_blank"
+      title="G2 — opens in a new tab"
+    >
+      <svg
+        aria-hidden="true"
+        class="h-5 w-5 shrink-0 text-primary"
+        fill="none"
+        focusable="false"
+        viewBox="0 0 24 24"
+      >
+        <circle
+          cx="12"
+          cy="12"
+          r="11"
+          stroke="currentColor"
+          stroke-width="1.6"
+        />
+        <path
+          d="M8.2 9.2a3 3 0 1 1 4.6 3.5L8 17h5.4"
+          fill="none"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="1.6"
+        />
+        <text
+          fill="currentColor"
+          font-family="ui-sans-serif, system-ui, sans-serif"
+          font-size="8"
+          font-weight="700"
+          x="14.6"
+          y="16.4"
+        >
+          2
+        </text>
+      </svg>
+      <span
+        class="flex min-w-0 flex-1 flex-col"
+      >
+        <span
+          class="font-medium text-foreground"
+        >
+          G2
+        </span>
+        <span
+          class="truncate text-xs"
+        >
+          www.g2.com/products/revenue-recovery-labs
         </span>
       </span>
     </a>
