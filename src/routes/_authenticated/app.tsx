@@ -22,6 +22,9 @@ import {
 
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { StatCard } from "@/components/ui/stat-card";
+import { EmptyState } from "@/components/ui/empty-state";
+import { SectionCard } from "@/components/ui/section-card";
 import { BrandLockup } from "@/components/brand-mark";
 import { TrialBadge, TrialReminderBanner, WorkspaceStatusBadge } from "@/components/trial-badge";
 import { computeTrialInfo } from "@/lib/trial";
@@ -255,22 +258,25 @@ function AppShell() {
           className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4"
         >
           <StatCard
+            icon={<TrendingUp className="size-4" />}
             label="Recovered revenue"
             value={money(statsData?.recoveredAmountCents ?? 0, statsData?.currency)}
             loading={statsQuery.isLoading}
           />
           <StatCard
+            icon={<Activity className="size-4" />}
             label="Failed payments"
             value={statsData?.total ?? 0}
             loading={statsQuery.isLoading}
           />
           <StatCard
+            icon={<Sparkles className="size-4" />}
             label="Recovery rate"
             value={`${Math.round((statsData?.recoveryRate ?? 0) * 100)}%`}
-            accent
             loading={statsQuery.isLoading}
           />
           <StatCard
+            icon={<Mail className="size-4" />}
             label="Messages sent"
             value={statsData?.recovered ?? 0}
             loading={statsQuery.isLoading}
@@ -336,7 +342,19 @@ function AppShell() {
               ))}
             </ul>
           ) : (
-            <EmptyState />
+            <EmptyState
+              icon={<Mail className="size-5" />}
+              title="No activity yet"
+              description="Connect your payment gateway to start recovering failed payments automatically."
+              action={
+                <Button asChild size="sm" variant="outline">
+                  <Link to="/setup">
+                    Configure integrations
+                    <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+                  </Link>
+                </Button>
+              }
+            />
           )}
         </section>
 
@@ -351,34 +369,6 @@ function AppShell() {
   );
 }
 
-function StatCard({
-  label,
-  value,
-  accent,
-  loading,
-}: {
-  label: string;
-  value: React.ReactNode;
-  accent?: boolean;
-  loading?: boolean;
-}) {
-  return (
-    <div
-      className={`rounded-xl border p-4 ${
-        accent ? "border-primary/40 bg-primary/5" : "border-border/60 bg-background/40"
-      }`}
-    >
-      <p className="text-xs uppercase tracking-wider text-muted-foreground">{label}</p>
-      {loading ? (
-        <div className="mt-2 h-7 w-24 animate-pulse rounded bg-muted" />
-      ) : (
-        <p className={`mt-2 text-2xl font-semibold ${accent ? "text-primary" : "text-foreground"}`}>
-          {value}
-        </p>
-      )}
-    </div>
-  );
-}
 
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, string> = {
@@ -400,25 +390,6 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-function EmptyState() {
-  return (
-    <div className="p-10 text-center">
-      <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
-        <Mail className="h-5 w-5" />
-      </div>
-      <h3 className="mt-3 text-sm font-medium text-foreground">No activity yet</h3>
-      <p className="mx-auto mt-1 max-w-sm text-xs text-muted-foreground">
-        Connect your payment gateway to start recovering failed payments automatically.
-      </p>
-      <Button asChild size="sm" variant="outline" className="mt-4">
-        <Link to="/setup">
-          Configure integrations
-          <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
-        </Link>
-      </Button>
-    </div>
-  );
-}
 
 function GettingStarted({ setupStep, engineOn }: { setupStep: number; engineOn: boolean }) {
   const items = [

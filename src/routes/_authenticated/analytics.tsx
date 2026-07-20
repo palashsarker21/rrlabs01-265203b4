@@ -30,6 +30,12 @@ import {
 
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { StatCard } from "@/components/ui/stat-card";
+import { SectionCard } from "@/components/ui/section-card";
+import { EmptyState } from "@/components/ui/empty-state";
+import { ChartTooltipContent } from "@/components/ui/chart-tooltip";
+import { SkeletonKpi, SkeletonChart } from "@/components/ui/skeleton-block";
+import { BarChart3 } from "lucide-react";
 import { getRecoveryAnalytics } from "@/lib/recovery-analytics.functions";
 
 export const Route = createFileRoute("/_authenticated/analytics")({
@@ -192,35 +198,41 @@ function AnalyticsPage() {
           aria-label="Key metrics"
           className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4"
         >
-          <KpiCard
-            icon={<DollarSign className="size-4" />}
-            label="Revenue recovered"
-            value={money(data?.recoveredCents ?? 0, data?.currency)}
-            hint={money(data?.atRiskCents ?? 0, data?.currency) + " at risk"}
-            loading={query.isLoading}
-          />
-          <KpiCard
-            icon={<TrendingUp className="size-4" />}
-            label="Recovery rate"
-            value={`${Math.round((data?.recoveryRate ?? 0) * 100)}%`}
-            hint={`${data?.totalRecovered ?? 0} of ${data?.totalEvents ?? 0} events`}
-            loading={query.isLoading}
-            accent
-          />
-          <KpiCard
-            icon={<Activity className="size-4" />}
-            label="Events"
-            value={String(data?.totalEvents ?? 0)}
-            hint={`${data?.totalInFlight ?? 0} in flight · ${data?.totalAbandoned ?? 0} abandoned`}
-            loading={query.isLoading}
-          />
-          <KpiCard
-            icon={<MailCheck className="size-4" />}
-            label="Messages delivered"
-            value={String(data?.attemptsDelivered ?? 0)}
-            hint={`${data?.attemptsSent ?? 0} sent · ${data?.attemptsFailed ?? 0} failed`}
-            loading={query.isLoading}
-          />
+          {query.isLoading ? (
+            <>
+              <SkeletonKpi />
+              <SkeletonKpi />
+              <SkeletonKpi />
+              <SkeletonKpi />
+            </>
+          ) : (
+            <>
+              <StatCard
+                icon={<DollarSign className="size-4" />}
+                label="Revenue recovered"
+                value={money(data?.recoveredCents ?? 0, data?.currency)}
+                footnote={`${money(data?.atRiskCents ?? 0, data?.currency)} at risk`}
+              />
+              <StatCard
+                icon={<TrendingUp className="size-4" />}
+                label="Recovery rate"
+                value={`${Math.round((data?.recoveryRate ?? 0) * 100)}%`}
+                footnote={`${data?.totalRecovered ?? 0} of ${data?.totalEvents ?? 0} events`}
+              />
+              <StatCard
+                icon={<Activity className="size-4" />}
+                label="Events"
+                value={String(data?.totalEvents ?? 0)}
+                footnote={`${data?.totalInFlight ?? 0} in flight · ${data?.totalAbandoned ?? 0} abandoned`}
+              />
+              <StatCard
+                icon={<MailCheck className="size-4" />}
+                label="Messages delivered"
+                value={String(data?.attemptsDelivered ?? 0)}
+                footnote={`${data?.attemptsSent ?? 0} sent · ${data?.attemptsFailed ?? 0} failed`}
+              />
+            </>
+          )}
         </section>
 
         {/* Revenue recovered over time */}
@@ -454,39 +466,6 @@ function AnalyticsPage() {
   );
 }
 
-function KpiCard({
-  icon,
-  label,
-  value,
-  hint,
-  accent,
-  loading,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-  hint?: string;
-  accent?: boolean;
-  loading?: boolean;
-}) {
-  return (
-    <div
-      className={
-        "rounded-lg border bg-card p-4 " +
-        (accent ? "border-primary/40 bg-primary/5" : "")
-      }
-    >
-      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-        <span className={accent ? "text-primary" : ""}>{icon}</span>
-        {label}
-      </div>
-      <div className="mt-1 text-2xl font-semibold tabular-nums">
-        {loading ? <span className="text-muted-foreground">…</span> : value}
-      </div>
-      {hint ? <div className="mt-1 text-xs text-muted-foreground">{hint}</div> : null}
-    </div>
-  );
-}
 
 function MiniStat({ label, value }: { label: string; value: string }) {
   return (
@@ -499,8 +478,13 @@ function MiniStat({ label, value }: { label: string; value: string }) {
 
 function EmptyChart() {
   return (
-    <div className="flex h-64 items-center justify-center text-xs text-muted-foreground">
-      No data yet for this range.
-    </div>
+    <EmptyState
+      compact
+      className="h-64"
+      icon={<BarChart3 className="size-5" />}
+      title="No data yet"
+      description="No events recorded for this range. Once activity flows in, you'll see the breakdown here."
+    />
   );
 }
+
