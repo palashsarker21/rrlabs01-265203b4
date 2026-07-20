@@ -466,39 +466,6 @@ function AnalyticsPage() {
   );
 }
 
-function KpiCard({
-  icon,
-  label,
-  value,
-  hint,
-  accent,
-  loading,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-  hint?: string;
-  accent?: boolean;
-  loading?: boolean;
-}) {
-  return (
-    <div
-      className={
-        "rounded-lg border bg-card p-4 " +
-        (accent ? "border-primary/40 bg-primary/5" : "")
-      }
-    >
-      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-        <span className={accent ? "text-primary" : ""}>{icon}</span>
-        {label}
-      </div>
-      <div className="mt-1 text-2xl font-semibold tabular-nums">
-        {loading ? <span className="text-muted-foreground">…</span> : value}
-      </div>
-      {hint ? <div className="mt-1 text-xs text-muted-foreground">{hint}</div> : null}
-    </div>
-  );
-}
 
 function MiniStat({ label, value }: { label: string; value: string }) {
   return (
