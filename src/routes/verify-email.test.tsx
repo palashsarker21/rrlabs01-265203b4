@@ -52,6 +52,7 @@ const { navigate, resend, getUser, onAuthStateChange, toastSuccess, toastError }
 import { VerifyEmailPage } from "./verify-email";
 
 beforeEach(() => {
+  vi.useRealTimers();
   resend.mockReset();
   getUser.mockReset();
   getUser.mockResolvedValue({ data: { user: { email: "jane@example.com" } } });
@@ -65,6 +66,7 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup();
+  vi.useRealTimers();
 });
 
 async function renderPage() {
