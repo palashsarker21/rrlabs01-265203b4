@@ -59,6 +59,7 @@ import { Route as BlogCategoryCategoryRouteImport } from './routes/blog.category
 import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
 import { Route as AuthenticatedSettingsSecurityRouteImport } from './routes/_authenticated/settings.security'
 import { Route as AuthenticatedSettingsEmailPreferencesRouteImport } from './routes/_authenticated/settings.email-preferences'
+import { Route as AuthenticatedSettingsChangePasswordRouteImport } from './routes/_authenticated/settings.change-password'
 import { Route as AuthenticatedInviteTokenRouteImport } from './routes/_authenticated/invite.$token'
 import { Route as AuthenticatedIntegrationsWhatsappRouteImport } from './routes/_authenticated/integrations.whatsapp'
 import { Route as AuthenticatedGettingStartedCompleteRouteImport } from './routes/_authenticated/getting-started.complete'
@@ -331,6 +332,12 @@ const AuthenticatedSettingsEmailPreferencesRoute =
     path: '/settings/email-preferences',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedSettingsChangePasswordRoute =
+  AuthenticatedSettingsChangePasswordRouteImport.update({
+    id: '/settings/change-password',
+    path: '/settings/change-password',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedInviteTokenRoute =
   AuthenticatedInviteTokenRouteImport.update({
     id: '/invite/$token',
@@ -476,6 +483,7 @@ export interface FileRoutesByFullPath {
   '/getting-started/complete': typeof AuthenticatedGettingStartedCompleteRoute
   '/integrations/whatsapp': typeof AuthenticatedIntegrationsWhatsappRoute
   '/invite/$token': typeof AuthenticatedInviteTokenRoute
+  '/settings/change-password': typeof AuthenticatedSettingsChangePasswordRoute
   '/settings/email-preferences': typeof AuthenticatedSettingsEmailPreferencesRoute
   '/settings/security': typeof AuthenticatedSettingsSecurityRoute
   '/api/public/health': typeof ApiPublicHealthRoute
@@ -542,6 +550,7 @@ export interface FileRoutesByTo {
   '/getting-started/complete': typeof AuthenticatedGettingStartedCompleteRoute
   '/integrations/whatsapp': typeof AuthenticatedIntegrationsWhatsappRoute
   '/invite/$token': typeof AuthenticatedInviteTokenRoute
+  '/settings/change-password': typeof AuthenticatedSettingsChangePasswordRoute
   '/settings/email-preferences': typeof AuthenticatedSettingsEmailPreferencesRoute
   '/settings/security': typeof AuthenticatedSettingsSecurityRoute
   '/api/public/health': typeof ApiPublicHealthRoute
@@ -611,6 +620,7 @@ export interface FileRoutesById {
   '/_authenticated/getting-started/complete': typeof AuthenticatedGettingStartedCompleteRoute
   '/_authenticated/integrations/whatsapp': typeof AuthenticatedIntegrationsWhatsappRoute
   '/_authenticated/invite/$token': typeof AuthenticatedInviteTokenRoute
+  '/_authenticated/settings/change-password': typeof AuthenticatedSettingsChangePasswordRoute
   '/_authenticated/settings/email-preferences': typeof AuthenticatedSettingsEmailPreferencesRoute
   '/_authenticated/settings/security': typeof AuthenticatedSettingsSecurityRoute
   '/api/public/health': typeof ApiPublicHealthRoute
@@ -680,6 +690,7 @@ export interface FileRouteTypes {
     | '/getting-started/complete'
     | '/integrations/whatsapp'
     | '/invite/$token'
+    | '/settings/change-password'
     | '/settings/email-preferences'
     | '/settings/security'
     | '/api/public/health'
@@ -746,6 +757,7 @@ export interface FileRouteTypes {
     | '/getting-started/complete'
     | '/integrations/whatsapp'
     | '/invite/$token'
+    | '/settings/change-password'
     | '/settings/email-preferences'
     | '/settings/security'
     | '/api/public/health'
@@ -814,6 +826,7 @@ export interface FileRouteTypes {
     | '/_authenticated/getting-started/complete'
     | '/_authenticated/integrations/whatsapp'
     | '/_authenticated/invite/$token'
+    | '/_authenticated/settings/change-password'
     | '/_authenticated/settings/email-preferences'
     | '/_authenticated/settings/security'
     | '/api/public/health'
@@ -1221,6 +1234,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsEmailPreferencesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/settings/change-password': {
+      id: '/_authenticated/settings/change-password'
+      path: '/settings/change-password'
+      fullPath: '/settings/change-password'
+      preLoaderRoute: typeof AuthenticatedSettingsChangePasswordRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/invite/$token': {
       id: '/_authenticated/invite/$token'
       path: '/invite/$token'
@@ -1427,6 +1447,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedUpgradeRoute: typeof AuthenticatedUpgradeRoute
   AuthenticatedBillingStatementsRoute: typeof AuthenticatedBillingStatementsRoute
   AuthenticatedInviteTokenRoute: typeof AuthenticatedInviteTokenRoute
+  AuthenticatedSettingsChangePasswordRoute: typeof AuthenticatedSettingsChangePasswordRoute
   AuthenticatedSettingsEmailPreferencesRoute: typeof AuthenticatedSettingsEmailPreferencesRoute
   AuthenticatedSettingsSecurityRoute: typeof AuthenticatedSettingsSecurityRoute
 }
@@ -1448,6 +1469,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedUpgradeRoute: AuthenticatedUpgradeRoute,
   AuthenticatedBillingStatementsRoute: AuthenticatedBillingStatementsRoute,
   AuthenticatedInviteTokenRoute: AuthenticatedInviteTokenRoute,
+  AuthenticatedSettingsChangePasswordRoute:
+    AuthenticatedSettingsChangePasswordRoute,
   AuthenticatedSettingsEmailPreferencesRoute:
     AuthenticatedSettingsEmailPreferencesRoute,
   AuthenticatedSettingsSecurityRoute: AuthenticatedSettingsSecurityRoute,

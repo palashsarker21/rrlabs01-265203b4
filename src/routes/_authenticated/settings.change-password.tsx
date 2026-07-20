@@ -126,8 +126,8 @@ function ChangePasswordPage() {
           </CardHeader>
           <CardContent className="flex flex-wrap gap-2">
             <Button onClick={() => navigate({ to: "/app" })}>Back to dashboard</Button>
-            <Button variant="outline" onClick={() => navigate({ to: "/_authenticated/settings/security" as never })}>
-              Manage sessions
+            <Button asChild variant="outline">
+              <Link to="/settings/security">Manage sessions</Link>
             </Button>
           </CardContent>
         </Card>
