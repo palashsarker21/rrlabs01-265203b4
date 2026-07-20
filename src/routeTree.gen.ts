@@ -47,6 +47,7 @@ import { Route as AuthenticatedSetupRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedRlsVerificationRouteImport } from './routes/_authenticated/rls-verification'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
+import { Route as AuthenticatedMarketplaceRouteImport } from './routes/_authenticated/marketplace'
 import { Route as AuthenticatedIntegrationsRouteImport } from './routes/_authenticated/integrations'
 import { Route as AuthenticatedGettingStartedRouteImport } from './routes/_authenticated/getting-started'
 import { Route as AuthenticatedEventsRouteImport } from './routes/_authenticated/events'
@@ -65,12 +66,15 @@ import { Route as AuthenticatedIntegrationsWhatsappRouteImport } from './routes/
 import { Route as AuthenticatedGettingStartedCompleteRouteImport } from './routes/_authenticated/getting-started.complete'
 import { Route as AuthenticatedCheckoutStatusRouteImport } from './routes/_authenticated/checkout.status'
 import { Route as AuthenticatedBillingStatementsRouteImport } from './routes/_authenticated/billing.statements'
+import { Route as AuthenticatedAdminMarketplaceRouteImport } from './routes/_authenticated/admin.marketplace'
 import { Route as AuthenticatedAdminEmailRouteImport } from './routes/_authenticated/admin.email'
 import { Route as ApiPublicWebhooksStripeRouteImport } from './routes/api/public/webhooks/stripe'
 import { Route as ApiPublicWebhooksResendRouteImport } from './routes/api/public/webhooks.resend'
 import { Route as ApiPublicWebhooksLemonsqueezyRouteImport } from './routes/api/public/webhooks/lemonsqueezy'
 import { Route as ApiPublicHooksSuccessFeeMonthlyRouteImport } from './routes/api/public/hooks/success-fee-monthly'
 import { Route as ApiPublicHooksRecoveryCadenceRouteImport } from './routes/api/public/hooks/recovery-cadence'
+import { Route as AuthenticatedMarketplaceTemplatesIdRouteImport } from './routes/_authenticated/marketplace.templates.$id'
+import { Route as AuthenticatedMarketplaceFlowsIdRouteImport } from './routes/_authenticated/marketplace.flows.$id'
 import { Route as AuthenticatedAdminEmailWebhooksRouteImport } from './routes/_authenticated/admin.email.webhooks'
 import { Route as AuthenticatedAdminEmailSandboxRouteImport } from './routes/_authenticated/admin.email.sandbox'
 import { Route as AuthenticatedAdminEmailPreviewRouteImport } from './routes/_authenticated/admin.email.preview'
@@ -268,6 +272,12 @@ const AuthenticatedNotificationsRoute =
     path: '/notifications',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedMarketplaceRoute =
+  AuthenticatedMarketplaceRouteImport.update({
+    id: '/marketplace',
+    path: '/marketplace',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedIntegrationsRoute =
   AuthenticatedIntegrationsRouteImport.update({
     id: '/integrations',
@@ -368,6 +378,12 @@ const AuthenticatedBillingStatementsRoute =
     path: '/billing/statements',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAdminMarketplaceRoute =
+  AuthenticatedAdminMarketplaceRouteImport.update({
+    id: '/marketplace',
+    path: '/marketplace',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminEmailRoute = AuthenticatedAdminEmailRouteImport.update({
   id: '/email',
   path: '/email',
@@ -400,6 +416,18 @@ const ApiPublicHooksRecoveryCadenceRoute =
     id: '/api/public/hooks/recovery-cadence',
     path: '/api/public/hooks/recovery-cadence',
     getParentRoute: () => rootRouteImport,
+  } as any)
+const AuthenticatedMarketplaceTemplatesIdRoute =
+  AuthenticatedMarketplaceTemplatesIdRouteImport.update({
+    id: '/templates/$id',
+    path: '/templates/$id',
+    getParentRoute: () => AuthenticatedMarketplaceRoute,
+  } as any)
+const AuthenticatedMarketplaceFlowsIdRoute =
+  AuthenticatedMarketplaceFlowsIdRouteImport.update({
+    id: '/flows/$id',
+    path: '/flows/$id',
+    getParentRoute: () => AuthenticatedMarketplaceRoute,
   } as any)
 const AuthenticatedAdminEmailWebhooksRoute =
   AuthenticatedAdminEmailWebhooksRouteImport.update({
@@ -466,6 +494,7 @@ export interface FileRoutesByFullPath {
   '/events': typeof AuthenticatedEventsRoute
   '/getting-started': typeof AuthenticatedGettingStartedRouteWithChildren
   '/integrations': typeof AuthenticatedIntegrationsRouteWithChildren
+  '/marketplace': typeof AuthenticatedMarketplaceRouteWithChildren
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/rls-verification': typeof AuthenticatedRlsVerificationRoute
@@ -478,6 +507,7 @@ export interface FileRoutesByFullPath {
   '/error/$code': typeof ErrorCodeRoute
   '/blog/': typeof BlogIndexRoute
   '/admin/email': typeof AuthenticatedAdminEmailRouteWithChildren
+  '/admin/marketplace': typeof AuthenticatedAdminMarketplaceRoute
   '/billing/statements': typeof AuthenticatedBillingStatementsRoute
   '/checkout/status': typeof AuthenticatedCheckoutStatusRoute
   '/getting-started/complete': typeof AuthenticatedGettingStartedCompleteRoute
@@ -493,6 +523,8 @@ export interface FileRoutesByFullPath {
   '/admin/email/preview': typeof AuthenticatedAdminEmailPreviewRoute
   '/admin/email/sandbox': typeof AuthenticatedAdminEmailSandboxRoute
   '/admin/email/webhooks': typeof AuthenticatedAdminEmailWebhooksRoute
+  '/marketplace/flows/$id': typeof AuthenticatedMarketplaceFlowsIdRoute
+  '/marketplace/templates/$id': typeof AuthenticatedMarketplaceTemplatesIdRoute
   '/api/public/hooks/recovery-cadence': typeof ApiPublicHooksRecoveryCadenceRoute
   '/api/public/hooks/success-fee-monthly': typeof ApiPublicHooksSuccessFeeMonthlyRoute
   '/api/public/webhooks/lemonsqueezy': typeof ApiPublicWebhooksLemonsqueezyRoute
@@ -533,6 +565,7 @@ export interface FileRoutesByTo {
   '/events': typeof AuthenticatedEventsRoute
   '/getting-started': typeof AuthenticatedGettingStartedRouteWithChildren
   '/integrations': typeof AuthenticatedIntegrationsRouteWithChildren
+  '/marketplace': typeof AuthenticatedMarketplaceRouteWithChildren
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/rls-verification': typeof AuthenticatedRlsVerificationRoute
@@ -545,6 +578,7 @@ export interface FileRoutesByTo {
   '/error/$code': typeof ErrorCodeRoute
   '/blog': typeof BlogIndexRoute
   '/admin/email': typeof AuthenticatedAdminEmailRouteWithChildren
+  '/admin/marketplace': typeof AuthenticatedAdminMarketplaceRoute
   '/billing/statements': typeof AuthenticatedBillingStatementsRoute
   '/checkout/status': typeof AuthenticatedCheckoutStatusRoute
   '/getting-started/complete': typeof AuthenticatedGettingStartedCompleteRoute
@@ -560,6 +594,8 @@ export interface FileRoutesByTo {
   '/admin/email/preview': typeof AuthenticatedAdminEmailPreviewRoute
   '/admin/email/sandbox': typeof AuthenticatedAdminEmailSandboxRoute
   '/admin/email/webhooks': typeof AuthenticatedAdminEmailWebhooksRoute
+  '/marketplace/flows/$id': typeof AuthenticatedMarketplaceFlowsIdRoute
+  '/marketplace/templates/$id': typeof AuthenticatedMarketplaceTemplatesIdRoute
   '/api/public/hooks/recovery-cadence': typeof ApiPublicHooksRecoveryCadenceRoute
   '/api/public/hooks/success-fee-monthly': typeof ApiPublicHooksSuccessFeeMonthlyRoute
   '/api/public/webhooks/lemonsqueezy': typeof ApiPublicWebhooksLemonsqueezyRoute
@@ -603,6 +639,7 @@ export interface FileRoutesById {
   '/_authenticated/events': typeof AuthenticatedEventsRoute
   '/_authenticated/getting-started': typeof AuthenticatedGettingStartedRouteWithChildren
   '/_authenticated/integrations': typeof AuthenticatedIntegrationsRouteWithChildren
+  '/_authenticated/marketplace': typeof AuthenticatedMarketplaceRouteWithChildren
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/rls-verification': typeof AuthenticatedRlsVerificationRoute
@@ -615,6 +652,7 @@ export interface FileRoutesById {
   '/error/$code': typeof ErrorCodeRoute
   '/blog/': typeof BlogIndexRoute
   '/_authenticated/admin/email': typeof AuthenticatedAdminEmailRouteWithChildren
+  '/_authenticated/admin/marketplace': typeof AuthenticatedAdminMarketplaceRoute
   '/_authenticated/billing/statements': typeof AuthenticatedBillingStatementsRoute
   '/_authenticated/checkout/status': typeof AuthenticatedCheckoutStatusRoute
   '/_authenticated/getting-started/complete': typeof AuthenticatedGettingStartedCompleteRoute
@@ -630,6 +668,8 @@ export interface FileRoutesById {
   '/_authenticated/admin/email/preview': typeof AuthenticatedAdminEmailPreviewRoute
   '/_authenticated/admin/email/sandbox': typeof AuthenticatedAdminEmailSandboxRoute
   '/_authenticated/admin/email/webhooks': typeof AuthenticatedAdminEmailWebhooksRoute
+  '/_authenticated/marketplace/flows/$id': typeof AuthenticatedMarketplaceFlowsIdRoute
+  '/_authenticated/marketplace/templates/$id': typeof AuthenticatedMarketplaceTemplatesIdRoute
   '/api/public/hooks/recovery-cadence': typeof ApiPublicHooksRecoveryCadenceRoute
   '/api/public/hooks/success-fee-monthly': typeof ApiPublicHooksSuccessFeeMonthlyRoute
   '/api/public/webhooks/lemonsqueezy': typeof ApiPublicWebhooksLemonsqueezyRoute
@@ -673,6 +713,7 @@ export interface FileRouteTypes {
     | '/events'
     | '/getting-started'
     | '/integrations'
+    | '/marketplace'
     | '/notifications'
     | '/onboarding'
     | '/rls-verification'
@@ -685,6 +726,7 @@ export interface FileRouteTypes {
     | '/error/$code'
     | '/blog/'
     | '/admin/email'
+    | '/admin/marketplace'
     | '/billing/statements'
     | '/checkout/status'
     | '/getting-started/complete'
@@ -700,6 +742,8 @@ export interface FileRouteTypes {
     | '/admin/email/preview'
     | '/admin/email/sandbox'
     | '/admin/email/webhooks'
+    | '/marketplace/flows/$id'
+    | '/marketplace/templates/$id'
     | '/api/public/hooks/recovery-cadence'
     | '/api/public/hooks/success-fee-monthly'
     | '/api/public/webhooks/lemonsqueezy'
@@ -740,6 +784,7 @@ export interface FileRouteTypes {
     | '/events'
     | '/getting-started'
     | '/integrations'
+    | '/marketplace'
     | '/notifications'
     | '/onboarding'
     | '/rls-verification'
@@ -752,6 +797,7 @@ export interface FileRouteTypes {
     | '/error/$code'
     | '/blog'
     | '/admin/email'
+    | '/admin/marketplace'
     | '/billing/statements'
     | '/checkout/status'
     | '/getting-started/complete'
@@ -767,6 +813,8 @@ export interface FileRouteTypes {
     | '/admin/email/preview'
     | '/admin/email/sandbox'
     | '/admin/email/webhooks'
+    | '/marketplace/flows/$id'
+    | '/marketplace/templates/$id'
     | '/api/public/hooks/recovery-cadence'
     | '/api/public/hooks/success-fee-monthly'
     | '/api/public/webhooks/lemonsqueezy'
@@ -809,6 +857,7 @@ export interface FileRouteTypes {
     | '/_authenticated/events'
     | '/_authenticated/getting-started'
     | '/_authenticated/integrations'
+    | '/_authenticated/marketplace'
     | '/_authenticated/notifications'
     | '/_authenticated/onboarding'
     | '/_authenticated/rls-verification'
@@ -821,6 +870,7 @@ export interface FileRouteTypes {
     | '/error/$code'
     | '/blog/'
     | '/_authenticated/admin/email'
+    | '/_authenticated/admin/marketplace'
     | '/_authenticated/billing/statements'
     | '/_authenticated/checkout/status'
     | '/_authenticated/getting-started/complete'
@@ -836,6 +886,8 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/email/preview'
     | '/_authenticated/admin/email/sandbox'
     | '/_authenticated/admin/email/webhooks'
+    | '/_authenticated/marketplace/flows/$id'
+    | '/_authenticated/marketplace/templates/$id'
     | '/api/public/hooks/recovery-cadence'
     | '/api/public/hooks/success-fee-monthly'
     | '/api/public/webhooks/lemonsqueezy'
@@ -1150,6 +1202,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedNotificationsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/marketplace': {
+      id: '/_authenticated/marketplace'
+      path: '/marketplace'
+      fullPath: '/marketplace'
+      preLoaderRoute: typeof AuthenticatedMarketplaceRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/integrations': {
       id: '/_authenticated/integrations'
       path: '/integrations'
@@ -1276,6 +1335,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedBillingStatementsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin/marketplace': {
+      id: '/_authenticated/admin/marketplace'
+      path: '/marketplace'
+      fullPath: '/admin/marketplace'
+      preLoaderRoute: typeof AuthenticatedAdminMarketplaceRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/email': {
       id: '/_authenticated/admin/email'
       path: '/email'
@@ -1317,6 +1383,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/public/hooks/recovery-cadence'
       preLoaderRoute: typeof ApiPublicHooksRecoveryCadenceRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/marketplace/templates/$id': {
+      id: '/_authenticated/marketplace/templates/$id'
+      path: '/templates/$id'
+      fullPath: '/marketplace/templates/$id'
+      preLoaderRoute: typeof AuthenticatedMarketplaceTemplatesIdRouteImport
+      parentRoute: typeof AuthenticatedMarketplaceRoute
+    }
+    '/_authenticated/marketplace/flows/$id': {
+      id: '/_authenticated/marketplace/flows/$id'
+      path: '/flows/$id'
+      fullPath: '/marketplace/flows/$id'
+      preLoaderRoute: typeof AuthenticatedMarketplaceFlowsIdRouteImport
+      parentRoute: typeof AuthenticatedMarketplaceRoute
     }
     '/_authenticated/admin/email/webhooks': {
       id: '/_authenticated/admin/email/webhooks'
@@ -1379,10 +1459,12 @@ const AuthenticatedAdminEmailRouteWithChildren =
 
 interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminEmailRoute: typeof AuthenticatedAdminEmailRouteWithChildren
+  AuthenticatedAdminMarketplaceRoute: typeof AuthenticatedAdminMarketplaceRoute
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminEmailRoute: AuthenticatedAdminEmailRouteWithChildren,
+  AuthenticatedAdminMarketplaceRoute: AuthenticatedAdminMarketplaceRoute,
 }
 
 const AuthenticatedAdminRouteWithChildren =
@@ -1431,6 +1513,23 @@ const AuthenticatedIntegrationsRouteWithChildren =
     AuthenticatedIntegrationsRouteChildren,
   )
 
+interface AuthenticatedMarketplaceRouteChildren {
+  AuthenticatedMarketplaceFlowsIdRoute: typeof AuthenticatedMarketplaceFlowsIdRoute
+  AuthenticatedMarketplaceTemplatesIdRoute: typeof AuthenticatedMarketplaceTemplatesIdRoute
+}
+
+const AuthenticatedMarketplaceRouteChildren: AuthenticatedMarketplaceRouteChildren =
+  {
+    AuthenticatedMarketplaceFlowsIdRoute: AuthenticatedMarketplaceFlowsIdRoute,
+    AuthenticatedMarketplaceTemplatesIdRoute:
+      AuthenticatedMarketplaceTemplatesIdRoute,
+  }
+
+const AuthenticatedMarketplaceRouteWithChildren =
+  AuthenticatedMarketplaceRoute._addFileChildren(
+    AuthenticatedMarketplaceRouteChildren,
+  )
+
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedAnalyticsRoute: typeof AuthenticatedAnalyticsRoute
@@ -1439,6 +1538,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedEventsRoute: typeof AuthenticatedEventsRoute
   AuthenticatedGettingStartedRoute: typeof AuthenticatedGettingStartedRouteWithChildren
   AuthenticatedIntegrationsRoute: typeof AuthenticatedIntegrationsRouteWithChildren
+  AuthenticatedMarketplaceRoute: typeof AuthenticatedMarketplaceRouteWithChildren
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedRlsVerificationRoute: typeof AuthenticatedRlsVerificationRoute
@@ -1461,6 +1561,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedGettingStartedRoute:
     AuthenticatedGettingStartedRouteWithChildren,
   AuthenticatedIntegrationsRoute: AuthenticatedIntegrationsRouteWithChildren,
+  AuthenticatedMarketplaceRoute: AuthenticatedMarketplaceRouteWithChildren,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedRlsVerificationRoute: AuthenticatedRlsVerificationRoute,
