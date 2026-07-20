@@ -1,18 +1,23 @@
-import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-router";
+import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 import { toast } from "sonner";
-import { Loader2, ShieldCheck } from "lucide-react";
+import { AlertCircle, Loader2, ShieldCheck } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BrandMark } from "@/components/brand-mark";
+import { PasswordInput } from "@/components/auth/password-input";
+import { PasswordStrength, useCapsLock } from "@/components/auth/password-strength";
+import { evaluatePassword, safeRedirectPath } from "@/lib/auth/password-policy";
 
 const searchSchema = z.object({
   redirect: z.string().optional(),
+  mode: z.enum(["signin", "signup"]).optional(),
 });
 
 export const Route = createFileRoute("/auth")({
@@ -27,41 +32,51 @@ export const Route = createFileRoute("/auth")({
   }),
 });
 
-function safeRedirectPath(input?: string): string {
-  if (!input) return "/app";
-  try {
-    // Allow only same-origin relative paths.
-    if (input.startsWith("/") && !input.startsWith("//")) return input;
-    const u = new URL(input, window.location.origin);
-    if (u.origin === window.location.origin) return u.pathname + u.search;
-  } catch {
-    // fall through
-  }
-  return "/app";
-}
+const REMEMBER_KEY = "rrlabs.auth.remember-email";
 
 function AuthPage() {
   const navigate = useNavigate();
   const search = useSearch({ from: "/auth" });
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [mode, setMode] = useState<"signin" | "signup">(search.mode ?? "signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
+  const [remember, setRemember] = useState(true);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const emailRef = useRef<HTMLInputElement>(null);
+  const capsOn = useCapsLock();
 
-  // If already signed in, bounce to intended destination.
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       if (data.session) {
         navigate({ to: safeRedirectPath(search.redirect), replace: true });
       }
     });
+    try {
+      const saved = localStorage.getItem(REMEMBER_KEY);
+      if (saved) setEmail(saved);
+    } catch {
+      /* ignore */
+    }
+    // Autofocus
+    setTimeout(() => emailRef.current?.focus(), 50);
   }, [navigate, search.redirect]);
 
   async function handleEmailSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (loading) return;
+    setFormError(null);
+
+    if (mode === "signup") {
+      const ev = evaluatePassword(password);
+      if (!ev.strong) {
+        setFormError("Please choose a password that meets all requirements.");
+        return;
+      }
+    }
+
     setLoading(true);
     try {
       if (mode === "signup") {
@@ -74,16 +89,30 @@ function AuthPage() {
           },
         });
         if (error) throw error;
-        toast.success("Account created. You're signed in.");
+        toast.success("Account created. Check your inbox to verify your email.");
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         toast.success("Welcome back.");
       }
+
+      try {
+        if (remember) localStorage.setItem(REMEMBER_KEY, email);
+        else localStorage.removeItem(REMEMBER_KEY);
+      } catch {
+        /* ignore */
+      }
+
       navigate({ to: safeRedirectPath(search.redirect), replace: true });
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Authentication failed";
-      toast.error(message);
+      // Generic message to avoid email enumeration
+      const raw = err instanceof Error ? err.message : "Authentication failed";
+      const safe =
+        mode === "signin" && /invalid|credentials|password/i.test(raw)
+          ? "Invalid email or password."
+          : raw;
+      setFormError(safe);
+      toast.error(safe);
     } finally {
       setLoading(false);
     }
@@ -92,6 +121,7 @@ function AuthPage() {
   async function handleGoogle() {
     if (googleLoading) return;
     setGoogleLoading(true);
+    setFormError(null);
     try {
       const redirectTo = `${window.location.origin}${safeRedirectPath(search.redirect)}`;
       const { error } = await supabase.auth.signInWithOAuth({
@@ -99,9 +129,9 @@ function AuthPage() {
         options: { redirectTo },
       });
       if (error) throw error;
-      // Browser is being redirected to Google; nothing more to do here.
     } catch (err) {
       const message = err instanceof Error ? err.message : "Google sign-in failed";
+      setFormError(message);
       toast.error(message);
     } finally {
       setGoogleLoading(false);
@@ -109,8 +139,7 @@ function AuthPage() {
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-4 py-12">
-      {/* Ambient background */}
+    <div className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-background px-4 py-12">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 opacity-60"
@@ -140,14 +169,53 @@ function AuthPage() {
               <TabsTrigger value="signup">Create account</TabsTrigger>
             </TabsList>
 
+            {formError && (
+              <div
+                role="alert"
+                aria-live="assertive"
+                className="mt-4 flex items-start gap-2 rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive"
+              >
+                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+                <span>{formError}</span>
+              </div>
+            )}
+
             <TabsContent value="signin" className="mt-6">
-              <form onSubmit={handleEmailSubmit} className="space-y-4">
-                <EmailPasswordFields
-                  email={email}
-                  password={password}
-                  setEmail={setEmail}
-                  setPassword={setPassword}
-                />
+              <form onSubmit={handleEmailSubmit} className="space-y-4" noValidate>
+                <EmailField email={email} setEmail={setEmail} inputRef={emailRef} />
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="password">Password</Label>
+                    <Link
+                      to="/forgot-password"
+                      className="text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+                    >
+                      Forgot password?
+                    </Link>
+                  </div>
+                  <PasswordInput
+                    id="password"
+                    autoComplete="current-password"
+                    required
+                    minLength={8}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                  />
+                  {capsOn && (
+                    <p className="text-xs text-amber-600 dark:text-amber-400" aria-live="polite">
+                      Caps Lock is on.
+                    </p>
+                  )}
+                </div>
+                <label className="flex cursor-pointer items-center gap-2 text-sm text-muted-foreground">
+                  <Checkbox
+                    checked={remember}
+                    onCheckedChange={(v) => setRemember(Boolean(v))}
+                    aria-label="Remember my email on this device"
+                  />
+                  Remember me on this device
+                </label>
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Sign in"}
                 </Button>
@@ -155,7 +223,7 @@ function AuthPage() {
             </TabsContent>
 
             <TabsContent value="signup" className="mt-6">
-              <form onSubmit={handleEmailSubmit} className="space-y-4">
+              <form onSubmit={handleEmailSubmit} className="space-y-4" noValidate>
                 <div className="space-y-2">
                   <Label htmlFor="name">Name</Label>
                   <Input
@@ -166,16 +234,42 @@ function AuthPage() {
                     placeholder="Jane Doe"
                   />
                 </div>
-                <EmailPasswordFields
-                  email={email}
-                  password={password}
-                  setEmail={setEmail}
-                  setPassword={setPassword}
-                  passwordAutoComplete="new-password"
-                />
+                <EmailField email={email} setEmail={setEmail} />
+                <div className="space-y-2">
+                  <Label htmlFor="new-password">Password</Label>
+                  <PasswordInput
+                    id="new-password"
+                    autoComplete="new-password"
+                    required
+                    minLength={8}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Create a strong password"
+                    aria-describedby="password-strength"
+                  />
+                  {capsOn && (
+                    <p className="text-xs text-amber-600 dark:text-amber-400" aria-live="polite">
+                      Caps Lock is on.
+                    </p>
+                  )}
+                  <div id="password-strength">
+                    <PasswordStrength password={password} />
+                  </div>
+                </div>
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Create account"}
                 </Button>
+                <p className="text-center text-xs text-muted-foreground">
+                  By creating an account you agree to our{" "}
+                  <Link to="/terms" className="underline underline-offset-4 hover:text-foreground">
+                    Terms
+                  </Link>{" "}
+                  and{" "}
+                  <Link to="/privacy" className="underline underline-offset-4 hover:text-foreground">
+                    Privacy Policy
+                  </Link>
+                  .
+                </p>
               </form>
             </TabsContent>
           </Tabs>
@@ -213,47 +307,32 @@ function AuthPage() {
   );
 }
 
-function EmailPasswordFields({
+function EmailField({
   email,
-  password,
   setEmail,
-  setPassword,
-  passwordAutoComplete = "current-password",
+  inputRef,
 }: {
   email: string;
-  password: string;
   setEmail: (v: string) => void;
-  setPassword: (v: string) => void;
-  passwordAutoComplete?: string;
+  inputRef?: React.RefObject<HTMLInputElement | null>;
 }) {
   return (
-    <>
-      <div className="space-y-2">
-        <Label htmlFor="email">Work email</Label>
-        <Input
-          id="email"
-          type="email"
-          autoComplete="email"
-          required
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="you@company.com"
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="password">Password</Label>
-        <Input
-          id="password"
-          type="password"
-          autoComplete={passwordAutoComplete}
-          required
-          minLength={8}
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="••••••••"
-        />
-      </div>
-    </>
+    <div className="space-y-2">
+      <Label htmlFor="email">Work email</Label>
+      <Input
+        id="email"
+        ref={inputRef}
+        type="email"
+        autoComplete="email"
+        required
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        placeholder="you@company.com"
+        inputMode="email"
+        spellCheck={false}
+        autoCapitalize="off"
+      />
+    </div>
   );
 }
 
