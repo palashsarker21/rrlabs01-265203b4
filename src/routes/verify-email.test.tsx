@@ -46,10 +46,7 @@ vi.mock("@/components/brand-mark", () => ({ BrandMark: () => <div data-testid="b
 vi.mock("@/components/auth/auth-footer", () => ({ AuthFooter: () => <div data-testid="footer" /> }));
 
 // Import AFTER mocks so the module picks them up.
-import { Route } from "./verify-email";
-
-const VerifyEmailPage = (Route as unknown as { options: { component: React.FC } }).options
-  .component;
+import { VerifyEmailPage } from "./verify-email";
 
 beforeEach(() => {
   resend.mockReset();
