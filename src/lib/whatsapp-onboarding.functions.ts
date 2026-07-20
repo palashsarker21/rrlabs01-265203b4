@@ -144,7 +144,7 @@ export const getWhatsAppOnboardingState = createServerFn({ method: "POST" })
       webhookVerifyToken: row.webhook_verify_token ?? "",
       webhookSecret: row.webhook_secret ?? "",
       hasCredentials: Boolean(row.credentials_ciphertext),
-      config: (row.config ?? {}) as Record<string, unknown>,
+      config: JSON.parse(JSON.stringify(row.config ?? {})) as Record<string, string | number | boolean | null>,
     };
   });
 
