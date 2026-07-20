@@ -314,7 +314,7 @@ function EmailField({
 }: {
   email: string;
   setEmail: (v: string) => void;
-  inputRef?: React.RefObject<HTMLInputElement>;
+  inputRef?: React.RefObject<HTMLInputElement | null>;
 }) {
   return (
     <div className="space-y-2">
