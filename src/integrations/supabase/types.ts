@@ -1579,31 +1579,70 @@ export type Database = {
       }
       profiles: {
         Row: {
+          accepted_data_processing_at: string | null
+          accepted_privacy_at: string | null
+          accepted_service_comms_at: string | null
+          accepted_terms_at: string | null
           avatar_url: string | null
+          consent_ip: unknown
+          consent_user_agent: string | null
+          consent_version: string | null
           created_at: string
           display_name: string | null
           email: string | null
+          full_name: string | null
           id: string
+          marketing_email_opt_in: boolean
+          product_updates_opt_in: boolean
+          service_notifications_opt_in: boolean
+          sms_notifications_opt_in: boolean
           timezone: string | null
           updated_at: string
+          whatsapp_notifications_opt_in: boolean
         }
         Insert: {
+          accepted_data_processing_at?: string | null
+          accepted_privacy_at?: string | null
+          accepted_service_comms_at?: string | null
+          accepted_terms_at?: string | null
           avatar_url?: string | null
+          consent_ip?: unknown
+          consent_user_agent?: string | null
+          consent_version?: string | null
           created_at?: string
           display_name?: string | null
           email?: string | null
+          full_name?: string | null
           id: string
+          marketing_email_opt_in?: boolean
+          product_updates_opt_in?: boolean
+          service_notifications_opt_in?: boolean
+          sms_notifications_opt_in?: boolean
           timezone?: string | null
           updated_at?: string
+          whatsapp_notifications_opt_in?: boolean
         }
         Update: {
+          accepted_data_processing_at?: string | null
+          accepted_privacy_at?: string | null
+          accepted_service_comms_at?: string | null
+          accepted_terms_at?: string | null
           avatar_url?: string | null
+          consent_ip?: unknown
+          consent_user_agent?: string | null
+          consent_version?: string | null
           created_at?: string
           display_name?: string | null
           email?: string | null
+          full_name?: string | null
           id?: string
+          marketing_email_opt_in?: boolean
+          product_updates_opt_in?: boolean
+          service_notifications_opt_in?: boolean
+          sms_notifications_opt_in?: boolean
           timezone?: string | null
           updated_at?: string
+          whatsapp_notifications_opt_in?: boolean
         }
         Relationships: []
       }
