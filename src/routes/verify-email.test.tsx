@@ -6,14 +6,17 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // ---- Router mocks ------------------------------------------------------------
 const navigate = vi.fn();
-vi.mock("@tanstack/react-router", () => ({
-  // Pass-through so `Route.component` resolves to the page component.
-  createFileRoute: () => (opts: unknown) => opts,
-  useNavigate: () => navigate,
-  Link: ({ children, ...rest }: React.PropsWithChildren<Record<string, unknown>>) => (
-    <a {...(rest as Record<string, unknown>)}>{children as React.ReactNode}</a>
-  ),
-}));
+vi.mock("@tanstack/react-router", async (importOriginal) => {
+  const actual = (await importOriginal()) as Record<string, unknown>;
+  return {
+    ...actual,
+    createFileRoute: () => (opts: unknown) => opts,
+    useNavigate: () => navigate,
+    Link: ({ children, ...rest }: React.PropsWithChildren<Record<string, unknown>>) => (
+      <a {...(rest as Record<string, unknown>)}>{children as React.ReactNode}</a>
+    ),
+  };
+});
 
 // ---- Supabase mock -----------------------------------------------------------
 type ResendArgs = { type: string; email: string; options?: { emailRedirectTo?: string } };
