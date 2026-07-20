@@ -1146,6 +1146,54 @@ export type Database = {
         }
         Relationships: []
       }
+      flow_installations: {
+        Row: {
+          id: string
+          installed_at: string
+          installed_by: string | null
+          marketplace_flow_id: string
+          overrides: Json
+          recovery_template_ids: string[]
+          version_installed: number
+          workspace_id: string
+        }
+        Insert: {
+          id?: string
+          installed_at?: string
+          installed_by?: string | null
+          marketplace_flow_id: string
+          overrides?: Json
+          recovery_template_ids?: string[]
+          version_installed: number
+          workspace_id: string
+        }
+        Update: {
+          id?: string
+          installed_at?: string
+          installed_by?: string | null
+          marketplace_flow_id?: string
+          overrides?: Json
+          recovery_template_ids?: string[]
+          version_installed?: number
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flow_installations_marketplace_flow_id_fkey"
+            columns: ["marketplace_flow_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_flows"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flow_installations_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       incident_updates: {
         Row: {
           author_id: string | null
@@ -1367,6 +1415,177 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      marketplace_flows: {
+        Row: {
+          country: string | null
+          created_at: string
+          created_by: string | null
+          customer_segment: string | null
+          description: string | null
+          failure_classification:
+            | Database["public"]["Enums"]["failure_classification"]
+            | null
+          id: string
+          industry: string | null
+          language: string
+          name: string
+          product_kind: string | null
+          published_at: string | null
+          region: string | null
+          slug: string
+          status: Database["public"]["Enums"]["marketplace_status"]
+          steps: Json
+          tags: string[]
+          tone: string | null
+          updated_at: string
+          usage_count: number
+          version: number
+        }
+        Insert: {
+          country?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_segment?: string | null
+          description?: string | null
+          failure_classification?:
+            | Database["public"]["Enums"]["failure_classification"]
+            | null
+          id?: string
+          industry?: string | null
+          language?: string
+          name: string
+          product_kind?: string | null
+          published_at?: string | null
+          region?: string | null
+          slug: string
+          status?: Database["public"]["Enums"]["marketplace_status"]
+          steps?: Json
+          tags?: string[]
+          tone?: string | null
+          updated_at?: string
+          usage_count?: number
+          version?: number
+        }
+        Update: {
+          country?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_segment?: string | null
+          description?: string | null
+          failure_classification?:
+            | Database["public"]["Enums"]["failure_classification"]
+            | null
+          id?: string
+          industry?: string | null
+          language?: string
+          name?: string
+          product_kind?: string | null
+          published_at?: string | null
+          region?: string | null
+          slug?: string
+          status?: Database["public"]["Enums"]["marketplace_status"]
+          steps?: Json
+          tags?: string[]
+          tone?: string | null
+          updated_at?: string
+          usage_count?: number
+          version?: number
+        }
+        Relationships: []
+      }
+      marketplace_templates: {
+        Row: {
+          body_html: string | null
+          body_text: string | null
+          channel: Database["public"]["Enums"]["recovery_channel"]
+          country: string | null
+          created_at: string
+          created_by: string | null
+          customer_segment: string | null
+          description: string | null
+          failure_classification:
+            | Database["public"]["Enums"]["failure_classification"]
+            | null
+          id: string
+          industry: string | null
+          language: string
+          name: string
+          product_kind: string | null
+          published_at: string | null
+          region: string | null
+          slug: string
+          status: Database["public"]["Enums"]["marketplace_status"]
+          step: number
+          subject: string | null
+          tags: string[]
+          tone: string | null
+          updated_at: string
+          usage_count: number
+          variables: Json
+          version: number
+        }
+        Insert: {
+          body_html?: string | null
+          body_text?: string | null
+          channel: Database["public"]["Enums"]["recovery_channel"]
+          country?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_segment?: string | null
+          description?: string | null
+          failure_classification?:
+            | Database["public"]["Enums"]["failure_classification"]
+            | null
+          id?: string
+          industry?: string | null
+          language?: string
+          name: string
+          product_kind?: string | null
+          published_at?: string | null
+          region?: string | null
+          slug: string
+          status?: Database["public"]["Enums"]["marketplace_status"]
+          step?: number
+          subject?: string | null
+          tags?: string[]
+          tone?: string | null
+          updated_at?: string
+          usage_count?: number
+          variables?: Json
+          version?: number
+        }
+        Update: {
+          body_html?: string | null
+          body_text?: string | null
+          channel?: Database["public"]["Enums"]["recovery_channel"]
+          country?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_segment?: string | null
+          description?: string | null
+          failure_classification?:
+            | Database["public"]["Enums"]["failure_classification"]
+            | null
+          id?: string
+          industry?: string | null
+          language?: string
+          name?: string
+          product_kind?: string | null
+          published_at?: string | null
+          region?: string | null
+          slug?: string
+          status?: Database["public"]["Enums"]["marketplace_status"]
+          step?: number
+          subject?: string | null
+          tags?: string[]
+          tone?: string | null
+          updated_at?: string
+          usage_count?: number
+          variables?: Json
+          version?: number
+        }
+        Relationships: []
       }
       newsletter_subscribers: {
         Row: {
@@ -2478,6 +2697,61 @@ export type Database = {
           },
         ]
       }
+      template_installations: {
+        Row: {
+          id: string
+          installed_at: string
+          installed_by: string | null
+          marketplace_template_id: string
+          overrides: Json
+          recovery_template_id: string | null
+          version_installed: number
+          workspace_id: string
+        }
+        Insert: {
+          id?: string
+          installed_at?: string
+          installed_by?: string | null
+          marketplace_template_id: string
+          overrides?: Json
+          recovery_template_id?: string | null
+          version_installed: number
+          workspace_id: string
+        }
+        Update: {
+          id?: string
+          installed_at?: string
+          installed_by?: string | null
+          marketplace_template_id?: string
+          overrides?: Json
+          recovery_template_id?: string | null
+          version_installed?: number
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "template_installations_marketplace_template_id_fkey"
+            columns: ["marketplace_template_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "template_installations_recovery_template_id_fkey"
+            columns: ["recovery_template_id"]
+            isOneToOne: false
+            referencedRelation: "recovery_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "template_installations_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -3017,6 +3291,7 @@ export type Database = {
         | "resolved"
       integration_kind: "store" | "payment_gateway" | "communication"
       integration_status: "pending" | "connected" | "error" | "disconnected"
+      marketplace_status: "draft" | "published" | "archived"
       recovery_attempt_status:
         | "pending"
         | "sending"
@@ -3222,6 +3497,7 @@ export const Constants = {
       ],
       integration_kind: ["store", "payment_gateway", "communication"],
       integration_status: ["pending", "connected", "error", "disconnected"],
+      marketplace_status: ["draft", "published", "archived"],
       recovery_attempt_status: [
         "pending",
         "sending",
