@@ -48,7 +48,8 @@ vi.mock("@/components/auth/auth-footer", () => ({ AuthFooter: () => <div data-te
 // Import AFTER mocks so the module picks them up.
 import { Route } from "./verify-email";
 
-const VerifyEmailPage = (Route as unknown as { component: React.FC }).component;
+const VerifyEmailPage = (Route as unknown as { options: { component: React.FC } }).options
+  .component;
 
 beforeEach(() => {
   resend.mockReset();
