@@ -14,6 +14,7 @@ import { Route as UnsubscribeRouteImport } from './routes/unsubscribe'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as StatusRouteImport } from './routes/status'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as SignedOutRouteImport } from './routes/signed-out'
 import { Route as SessionExpiredRouteImport } from './routes/session-expired'
 import { Route as SecurityRouteImport } from './routes/security'
 import { Route as RssDotxmlRouteImport } from './routes/rss[.]xml'
@@ -56,6 +57,7 @@ import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/
 import { Route as BlogTagTagRouteImport } from './routes/blog.tag.$tag'
 import { Route as BlogCategoryCategoryRouteImport } from './routes/blog.category.$category'
 import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
+import { Route as AuthenticatedSettingsSecurityRouteImport } from './routes/_authenticated/settings.security'
 import { Route as AuthenticatedSettingsEmailPreferencesRouteImport } from './routes/_authenticated/settings.email-preferences'
 import { Route as AuthenticatedInviteTokenRouteImport } from './routes/_authenticated/invite.$token'
 import { Route as AuthenticatedIntegrationsWhatsappRouteImport } from './routes/_authenticated/integrations.whatsapp'
@@ -97,6 +99,11 @@ const StatusRoute = StatusRouteImport.update({
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SignedOutRoute = SignedOutRouteImport.update({
+  id: '/signed-out',
+  path: '/signed-out',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SessionExpiredRoute = SessionExpiredRouteImport.update({
@@ -312,6 +319,12 @@ const ApiPublicHealthRoute = ApiPublicHealthRouteImport.update({
   path: '/api/public/health',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedSettingsSecurityRoute =
+  AuthenticatedSettingsSecurityRouteImport.update({
+    id: '/settings/security',
+    path: '/settings/security',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedSettingsEmailPreferencesRoute =
   AuthenticatedSettingsEmailPreferencesRouteImport.update({
     id: '/settings/email-preferences',
@@ -433,6 +446,7 @@ export interface FileRoutesByFullPath {
   '/rss.xml': typeof RssDotxmlRoute
   '/security': typeof SecurityRoute
   '/session-expired': typeof SessionExpiredRoute
+  '/signed-out': typeof SignedOutRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/status': typeof StatusRoute
   '/terms': typeof TermsRoute
@@ -463,6 +477,7 @@ export interface FileRoutesByFullPath {
   '/integrations/whatsapp': typeof AuthenticatedIntegrationsWhatsappRoute
   '/invite/$token': typeof AuthenticatedInviteTokenRoute
   '/settings/email-preferences': typeof AuthenticatedSettingsEmailPreferencesRoute
+  '/settings/security': typeof AuthenticatedSettingsSecurityRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/blog/category/$category': typeof BlogCategoryCategoryRoute
   '/blog/tag/$tag': typeof BlogTagTagRoute
@@ -497,6 +512,7 @@ export interface FileRoutesByTo {
   '/rss.xml': typeof RssDotxmlRoute
   '/security': typeof SecurityRoute
   '/session-expired': typeof SessionExpiredRoute
+  '/signed-out': typeof SignedOutRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/status': typeof StatusRoute
   '/terms': typeof TermsRoute
@@ -527,6 +543,7 @@ export interface FileRoutesByTo {
   '/integrations/whatsapp': typeof AuthenticatedIntegrationsWhatsappRoute
   '/invite/$token': typeof AuthenticatedInviteTokenRoute
   '/settings/email-preferences': typeof AuthenticatedSettingsEmailPreferencesRoute
+  '/settings/security': typeof AuthenticatedSettingsSecurityRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/blog/category/$category': typeof BlogCategoryCategoryRoute
   '/blog/tag/$tag': typeof BlogTagTagRoute
@@ -564,6 +581,7 @@ export interface FileRoutesById {
   '/rss.xml': typeof RssDotxmlRoute
   '/security': typeof SecurityRoute
   '/session-expired': typeof SessionExpiredRoute
+  '/signed-out': typeof SignedOutRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/status': typeof StatusRoute
   '/terms': typeof TermsRoute
@@ -594,6 +612,7 @@ export interface FileRoutesById {
   '/_authenticated/integrations/whatsapp': typeof AuthenticatedIntegrationsWhatsappRoute
   '/_authenticated/invite/$token': typeof AuthenticatedInviteTokenRoute
   '/_authenticated/settings/email-preferences': typeof AuthenticatedSettingsEmailPreferencesRoute
+  '/_authenticated/settings/security': typeof AuthenticatedSettingsSecurityRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/blog/category/$category': typeof BlogCategoryCategoryRoute
   '/blog/tag/$tag': typeof BlogTagTagRoute
@@ -631,6 +650,7 @@ export interface FileRouteTypes {
     | '/rss.xml'
     | '/security'
     | '/session-expired'
+    | '/signed-out'
     | '/sitemap.xml'
     | '/status'
     | '/terms'
@@ -661,6 +681,7 @@ export interface FileRouteTypes {
     | '/integrations/whatsapp'
     | '/invite/$token'
     | '/settings/email-preferences'
+    | '/settings/security'
     | '/api/public/health'
     | '/blog/category/$category'
     | '/blog/tag/$tag'
@@ -695,6 +716,7 @@ export interface FileRouteTypes {
     | '/rss.xml'
     | '/security'
     | '/session-expired'
+    | '/signed-out'
     | '/sitemap.xml'
     | '/status'
     | '/terms'
@@ -725,6 +747,7 @@ export interface FileRouteTypes {
     | '/integrations/whatsapp'
     | '/invite/$token'
     | '/settings/email-preferences'
+    | '/settings/security'
     | '/api/public/health'
     | '/blog/category/$category'
     | '/blog/tag/$tag'
@@ -761,6 +784,7 @@ export interface FileRouteTypes {
     | '/rss.xml'
     | '/security'
     | '/session-expired'
+    | '/signed-out'
     | '/sitemap.xml'
     | '/status'
     | '/terms'
@@ -791,6 +815,7 @@ export interface FileRouteTypes {
     | '/_authenticated/integrations/whatsapp'
     | '/_authenticated/invite/$token'
     | '/_authenticated/settings/email-preferences'
+    | '/_authenticated/settings/security'
     | '/api/public/health'
     | '/blog/category/$category'
     | '/blog/tag/$tag'
@@ -828,6 +853,7 @@ export interface RootRouteChildren {
   RssDotxmlRoute: typeof RssDotxmlRoute
   SecurityRoute: typeof SecurityRoute
   SessionExpiredRoute: typeof SessionExpiredRoute
+  SignedOutRoute: typeof SignedOutRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   StatusRoute: typeof StatusRoute
   TermsRoute: typeof TermsRoute
@@ -878,6 +904,13 @@ declare module '@tanstack/react-router' {
       path: '/sitemap.xml'
       fullPath: '/sitemap.xml'
       preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/signed-out': {
+      id: '/signed-out'
+      path: '/signed-out'
+      fullPath: '/signed-out'
+      preLoaderRoute: typeof SignedOutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/session-expired': {
@@ -1174,6 +1207,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHealthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/settings/security': {
+      id: '/_authenticated/settings/security'
+      path: '/settings/security'
+      fullPath: '/settings/security'
+      preLoaderRoute: typeof AuthenticatedSettingsSecurityRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/settings/email-preferences': {
       id: '/_authenticated/settings/email-preferences'
       path: '/settings/email-preferences'
@@ -1388,6 +1428,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedBillingStatementsRoute: typeof AuthenticatedBillingStatementsRoute
   AuthenticatedInviteTokenRoute: typeof AuthenticatedInviteTokenRoute
   AuthenticatedSettingsEmailPreferencesRoute: typeof AuthenticatedSettingsEmailPreferencesRoute
+  AuthenticatedSettingsSecurityRoute: typeof AuthenticatedSettingsSecurityRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -1409,6 +1450,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedInviteTokenRoute: AuthenticatedInviteTokenRoute,
   AuthenticatedSettingsEmailPreferencesRoute:
     AuthenticatedSettingsEmailPreferencesRoute,
+  AuthenticatedSettingsSecurityRoute: AuthenticatedSettingsSecurityRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
@@ -1464,6 +1506,7 @@ const rootRouteChildren: RootRouteChildren = {
   RssDotxmlRoute: RssDotxmlRoute,
   SecurityRoute: SecurityRoute,
   SessionExpiredRoute: SessionExpiredRoute,
+  SignedOutRoute: SignedOutRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   StatusRoute: StatusRoute,
   TermsRoute: TermsRoute,
@@ -1482,13 +1525,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
