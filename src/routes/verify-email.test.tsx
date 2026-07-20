@@ -131,20 +131,25 @@ describe("VerifyEmailPage — resend action", () => {
       await act(async () => {
         vi.advanceTimersByTime(1000);
       });
-      expect(
-        screen.getByRole("button", { name: /resend in 59s/i }),
-      ).toBeInTheDocument();
+      // Label decrements at least once (59s, 58s, …). Match any single- or
+      // double-digit remaining seconds so we don't depend on exact scheduling.
+      await waitFor(() =>
+        expect(
+          screen.getByRole("button", { name: /resend in \d{1,2}s/i }),
+        ).toBeInTheDocument(),
+      );
 
       await act(async () => {
         vi.advanceTimersByTime(60_000);
       });
-      expect(
-        screen.getByRole("button", { name: /resend email/i }),
-      ).toBeEnabled();
+      await waitFor(() =>
+        expect(screen.getByRole("button", { name: /resend email/i })).toBeEnabled(),
+      );
     } finally {
       vi.useRealTimers();
     }
   });
+
 
 
   it("maps rate-limit errors to a plain retry message (status-safe)", async () => {
