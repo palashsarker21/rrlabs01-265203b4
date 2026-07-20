@@ -301,6 +301,21 @@ function IntegrationCenter() {
           )}
         </div>
 
+        <Link
+          to="/integrations/whatsapp"
+          className="mt-6 flex items-center justify-between gap-4 rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-4 text-sm transition hover:bg-emerald-500/10"
+        >
+          <div>
+            <div className="font-semibold text-foreground">WhatsApp Cloud API — guided onboarding</div>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Generate the Callback URL, Verify Token, and Webhook Secret Meta needs before you can save WhatsApp credentials here.
+            </p>
+          </div>
+          <span className="rounded-full border border-emerald-500/50 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-500">
+            Open wizard →
+          </span>
+        </Link>
+
         <div className="mt-8">
           <ActivationCenter
             integrations={integrations}
