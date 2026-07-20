@@ -53,6 +53,7 @@ import { Route as BlogCategoryCategoryRouteImport } from './routes/blog.category
 import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
 import { Route as AuthenticatedSettingsEmailPreferencesRouteImport } from './routes/_authenticated/settings.email-preferences'
 import { Route as AuthenticatedInviteTokenRouteImport } from './routes/_authenticated/invite.$token'
+import { Route as AuthenticatedIntegrationsWhatsappRouteImport } from './routes/_authenticated/integrations.whatsapp'
 import { Route as AuthenticatedGettingStartedCompleteRouteImport } from './routes/_authenticated/getting-started.complete'
 import { Route as AuthenticatedCheckoutStatusRouteImport } from './routes/_authenticated/checkout.status'
 import { Route as AuthenticatedBillingStatementsRouteImport } from './routes/_authenticated/billing.statements'
@@ -293,6 +294,12 @@ const AuthenticatedInviteTokenRoute =
     path: '/invite/$token',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedIntegrationsWhatsappRoute =
+  AuthenticatedIntegrationsWhatsappRouteImport.update({
+    id: '/whatsapp',
+    path: '/whatsapp',
+    getParentRoute: () => AuthenticatedIntegrationsRoute,
+  } as any)
 const AuthenticatedGettingStartedCompleteRoute =
   AuthenticatedGettingStartedCompleteRouteImport.update({
     id: '/complete',
@@ -402,7 +409,7 @@ export interface FileRoutesByFullPath {
   '/checkout': typeof AuthenticatedCheckoutRouteWithChildren
   '/events': typeof AuthenticatedEventsRoute
   '/getting-started': typeof AuthenticatedGettingStartedRouteWithChildren
-  '/integrations': typeof AuthenticatedIntegrationsRoute
+  '/integrations': typeof AuthenticatedIntegrationsRouteWithChildren
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/rls-verification': typeof AuthenticatedRlsVerificationRoute
@@ -418,6 +425,7 @@ export interface FileRoutesByFullPath {
   '/billing/statements': typeof AuthenticatedBillingStatementsRoute
   '/checkout/status': typeof AuthenticatedCheckoutStatusRoute
   '/getting-started/complete': typeof AuthenticatedGettingStartedCompleteRoute
+  '/integrations/whatsapp': typeof AuthenticatedIntegrationsWhatsappRoute
   '/invite/$token': typeof AuthenticatedInviteTokenRoute
   '/settings/email-preferences': typeof AuthenticatedSettingsEmailPreferencesRoute
   '/api/public/health': typeof ApiPublicHealthRoute
@@ -460,7 +468,7 @@ export interface FileRoutesByTo {
   '/checkout': typeof AuthenticatedCheckoutRouteWithChildren
   '/events': typeof AuthenticatedEventsRoute
   '/getting-started': typeof AuthenticatedGettingStartedRouteWithChildren
-  '/integrations': typeof AuthenticatedIntegrationsRoute
+  '/integrations': typeof AuthenticatedIntegrationsRouteWithChildren
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/rls-verification': typeof AuthenticatedRlsVerificationRoute
@@ -476,6 +484,7 @@ export interface FileRoutesByTo {
   '/billing/statements': typeof AuthenticatedBillingStatementsRoute
   '/checkout/status': typeof AuthenticatedCheckoutStatusRoute
   '/getting-started/complete': typeof AuthenticatedGettingStartedCompleteRoute
+  '/integrations/whatsapp': typeof AuthenticatedIntegrationsWhatsappRoute
   '/invite/$token': typeof AuthenticatedInviteTokenRoute
   '/settings/email-preferences': typeof AuthenticatedSettingsEmailPreferencesRoute
   '/api/public/health': typeof ApiPublicHealthRoute
@@ -521,7 +530,7 @@ export interface FileRoutesById {
   '/_authenticated/checkout': typeof AuthenticatedCheckoutRouteWithChildren
   '/_authenticated/events': typeof AuthenticatedEventsRoute
   '/_authenticated/getting-started': typeof AuthenticatedGettingStartedRouteWithChildren
-  '/_authenticated/integrations': typeof AuthenticatedIntegrationsRoute
+  '/_authenticated/integrations': typeof AuthenticatedIntegrationsRouteWithChildren
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/rls-verification': typeof AuthenticatedRlsVerificationRoute
@@ -537,6 +546,7 @@ export interface FileRoutesById {
   '/_authenticated/billing/statements': typeof AuthenticatedBillingStatementsRoute
   '/_authenticated/checkout/status': typeof AuthenticatedCheckoutStatusRoute
   '/_authenticated/getting-started/complete': typeof AuthenticatedGettingStartedCompleteRoute
+  '/_authenticated/integrations/whatsapp': typeof AuthenticatedIntegrationsWhatsappRoute
   '/_authenticated/invite/$token': typeof AuthenticatedInviteTokenRoute
   '/_authenticated/settings/email-preferences': typeof AuthenticatedSettingsEmailPreferencesRoute
   '/api/public/health': typeof ApiPublicHealthRoute
@@ -598,6 +608,7 @@ export interface FileRouteTypes {
     | '/billing/statements'
     | '/checkout/status'
     | '/getting-started/complete'
+    | '/integrations/whatsapp'
     | '/invite/$token'
     | '/settings/email-preferences'
     | '/api/public/health'
@@ -656,6 +667,7 @@ export interface FileRouteTypes {
     | '/billing/statements'
     | '/checkout/status'
     | '/getting-started/complete'
+    | '/integrations/whatsapp'
     | '/invite/$token'
     | '/settings/email-preferences'
     | '/api/public/health'
@@ -716,6 +728,7 @@ export interface FileRouteTypes {
     | '/_authenticated/billing/statements'
     | '/_authenticated/checkout/status'
     | '/_authenticated/getting-started/complete'
+    | '/_authenticated/integrations/whatsapp'
     | '/_authenticated/invite/$token'
     | '/_authenticated/settings/email-preferences'
     | '/api/public/health'
@@ -1075,6 +1088,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedInviteTokenRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/integrations/whatsapp': {
+      id: '/_authenticated/integrations/whatsapp'
+      path: '/whatsapp'
+      fullPath: '/integrations/whatsapp'
+      preLoaderRoute: typeof AuthenticatedIntegrationsWhatsappRouteImport
+      parentRoute: typeof AuthenticatedIntegrationsRoute
+    }
     '/_authenticated/getting-started/complete': {
       id: '/_authenticated/getting-started/complete'
       path: '/complete'
@@ -1236,6 +1256,21 @@ const AuthenticatedGettingStartedRouteWithChildren =
     AuthenticatedGettingStartedRouteChildren,
   )
 
+interface AuthenticatedIntegrationsRouteChildren {
+  AuthenticatedIntegrationsWhatsappRoute: typeof AuthenticatedIntegrationsWhatsappRoute
+}
+
+const AuthenticatedIntegrationsRouteChildren: AuthenticatedIntegrationsRouteChildren =
+  {
+    AuthenticatedIntegrationsWhatsappRoute:
+      AuthenticatedIntegrationsWhatsappRoute,
+  }
+
+const AuthenticatedIntegrationsRouteWithChildren =
+  AuthenticatedIntegrationsRoute._addFileChildren(
+    AuthenticatedIntegrationsRouteChildren,
+  )
+
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedAnalyticsRoute: typeof AuthenticatedAnalyticsRoute
@@ -1243,7 +1278,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCheckoutRoute: typeof AuthenticatedCheckoutRouteWithChildren
   AuthenticatedEventsRoute: typeof AuthenticatedEventsRoute
   AuthenticatedGettingStartedRoute: typeof AuthenticatedGettingStartedRouteWithChildren
-  AuthenticatedIntegrationsRoute: typeof AuthenticatedIntegrationsRoute
+  AuthenticatedIntegrationsRoute: typeof AuthenticatedIntegrationsRouteWithChildren
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedRlsVerificationRoute: typeof AuthenticatedRlsVerificationRoute
@@ -1263,7 +1298,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedEventsRoute: AuthenticatedEventsRoute,
   AuthenticatedGettingStartedRoute:
     AuthenticatedGettingStartedRouteWithChildren,
-  AuthenticatedIntegrationsRoute: AuthenticatedIntegrationsRoute,
+  AuthenticatedIntegrationsRoute: AuthenticatedIntegrationsRouteWithChildren,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedRlsVerificationRoute: AuthenticatedRlsVerificationRoute,
