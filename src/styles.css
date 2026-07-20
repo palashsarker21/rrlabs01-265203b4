@@ -173,12 +173,12 @@
     border-color 150ms ease,
     box-shadow 200ms ease,
     transform 200ms ease;
-}
-@utility card-hover:hover {
-  border-color: hsl(var(--primary) / 0.35);
-  box-shadow:
-    0 2px 4px hsl(220 43% 11% / 0.05),
-    0 10px 24px hsl(220 43% 11% / 0.08);
+  &:hover {
+    border-color: hsl(var(--primary) / 0.35);
+    box-shadow:
+      0 2px 4px hsl(220 43% 11% / 0.05),
+      0 10px 24px hsl(220 43% 11% / 0.08);
+  }
 }
 
 @theme inline {
