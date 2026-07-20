@@ -4,46 +4,49 @@ import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-// ---- Router mocks ------------------------------------------------------------
-const navigate = vi.fn();
+// vi.mock is hoisted; put mock state inside vi.hoisted so factories can access it.
+const h = vi.hoisted(() => {
+  type ResendArgs = { type: string; email: string; options?: { emailRedirectTo?: string } };
+  type UserResp = { data: { user: { email?: string; email_confirmed_at?: string } | null } };
+  return {
+    navigate: vi.fn(),
+    resend: vi.fn<(args: ResendArgs) => Promise<{ error: Error | null }>>(),
+    getUser: vi.fn<() => Promise<UserResp>>(),
+    onAuthStateChange: vi.fn(() => ({ data: { subscription: { unsubscribe: vi.fn() } } })),
+    toastSuccess: vi.fn(),
+    toastError: vi.fn(),
+  };
+});
+
 vi.mock("@tanstack/react-router", async (importOriginal) => {
   const actual = (await importOriginal()) as Record<string, unknown>;
   return {
     ...actual,
-    useNavigate: () => navigate,
+    useNavigate: () => h.navigate,
     Link: ({ children, ...rest }: React.PropsWithChildren<Record<string, unknown>>) => (
       <a {...(rest as Record<string, unknown>)}>{children as React.ReactNode}</a>
     ),
   };
 });
 
-// ---- Supabase mock -----------------------------------------------------------
-type ResendArgs = { type: string; email: string; options?: { emailRedirectTo?: string } };
-const resend = vi.fn<(args: ResendArgs) => Promise<{ error: Error | null }>>();
-const getUser = vi.fn<() => Promise<{ data: { user: { email?: string; email_confirmed_at?: string } | null } }>>();
-const onAuthStateChange = vi.fn(() => ({
-  data: { subscription: { unsubscribe: vi.fn() } },
-}));
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: {
     auth: {
-      resend: (a: ResendArgs) => resend(a),
-      getUser: () => getUser(),
-      onAuthStateChange: (...a: unknown[]) => onAuthStateChange(...(a as [])),
+      resend: h.resend,
+      getUser: h.getUser,
+      onAuthStateChange: h.onAuthStateChange,
     },
   },
 }));
 
-// ---- Toast mock --------------------------------------------------------------
-const toastSuccess = vi.fn();
-const toastError = vi.fn();
 vi.mock("sonner", () => ({
-  toast: { success: toastSuccess, error: toastError },
+  toast: { success: h.toastSuccess, error: h.toastError },
 }));
 
-// Silence noisy child components with heavy assets.
 vi.mock("@/components/brand-mark", () => ({ BrandMark: () => <div data-testid="brandmark" /> }));
 vi.mock("@/components/auth/auth-footer", () => ({ AuthFooter: () => <div data-testid="footer" /> }));
+
+const { navigate, resend, getUser, onAuthStateChange, toastSuccess, toastError } = h;
 
 // Import AFTER mocks so the module picks them up.
 import { VerifyEmailPage } from "./verify-email";
