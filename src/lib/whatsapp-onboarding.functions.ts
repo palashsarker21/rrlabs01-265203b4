@@ -23,12 +23,8 @@ const idOriginInput = z.object({
 });
 
 async function assertManage(
-  supabase: {
-    rpc: (
-      name: string,
-      args: Record<string, unknown>,
-    ) => Promise<{ data: unknown; error: { message: string } | null }>;
-  },
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
   workspaceId: string,
   userId: string,
 ) {
