@@ -14,6 +14,13 @@ const badgeVariants = cva(
         destructive:
           "border-transparent bg-destructive text-destructive-foreground shadow hover:bg-destructive/80",
         outline: "text-foreground",
+        success:
+          "border-transparent bg-[hsl(var(--success)/0.12)] text-[hsl(var(--success))] ring-1 ring-inset ring-[hsl(var(--success)/0.25)]",
+        warning:
+          "border-transparent bg-[hsl(var(--warning)/0.14)] text-[hsl(25_100%_25%)] ring-1 ring-inset ring-[hsl(var(--warning)/0.35)]",
+        info: "border-transparent bg-[hsl(var(--chart-2)/0.12)] text-[hsl(var(--chart-2))] ring-1 ring-inset ring-[hsl(var(--chart-2)/0.25)]",
+        neutral:
+          "border-transparent bg-muted text-muted-foreground ring-1 ring-inset ring-border",
       },
     },
     defaultVariants: {
