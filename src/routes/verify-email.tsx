@@ -25,6 +25,10 @@ function VerifyEmailPage() {
   const navigate = useNavigate();
   const [status, setStatus] = useState<Status>("pending");
   const [message, setMessage] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
+  const [resendState, setResendState] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const [resendError, setResendError] = useState<string>("");
+  const [cooldown, setCooldown] = useState<number>(0);
 
   useEffect(() => {
     // Supabase confirms via the hash flow and calls onAuthStateChange.
@@ -37,6 +41,7 @@ function VerifyEmailPage() {
     }
 
     supabase.auth.getUser().then(({ data }) => {
+      if (data.user?.email) setEmail(data.user.email);
       if (data.user?.email_confirmed_at) {
         setStatus("verified");
         setTimeout(() => navigate({ to: "/app", replace: true }), 1500);
@@ -44,6 +49,7 @@ function VerifyEmailPage() {
     });
 
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user?.email) setEmail(session.user.email);
       if (event === "SIGNED_IN" && session?.user?.email_confirmed_at) {
         setStatus("verified");
         setTimeout(() => navigate({ to: "/app", replace: true }), 1500);
@@ -51,6 +57,45 @@ function VerifyEmailPage() {
     });
     return () => sub.subscription.unsubscribe();
   }, [navigate]);
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const t = setTimeout(() => setCooldown((c) => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [cooldown]);
+
+  async function handleResend() {
+    if (status === "verified" || resendState === "sending" || cooldown > 0) return;
+    const target = email.trim();
+    if (!target || !/^\S+@\S+\.\S+$/.test(target)) {
+      setResendState("error");
+      setResendError("Enter a valid email address.");
+      return;
+    }
+    setResendState("sending");
+    setResendError("");
+    try {
+      const { error } = await supabase.auth.resend({
+        type: "signup",
+        email: target,
+        options: { emailRedirectTo: `${window.location.origin}/verify-email` },
+      });
+      if (error) throw error;
+      setResendState("sent");
+      setCooldown(60);
+      toast.success("Verification email sent. Check your inbox.");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Could not send verification email.";
+      // Status-safe: don't leak whether the account exists / is already verified
+      const safe = /rate|too many|429/i.test(msg)
+        ? "Too many requests. Please wait a moment and try again."
+        : "If your account needs verification, a new link has been sent.";
+      setResendState("error");
+      setResendError(safe);
+      toast.error(safe);
+    }
+  }
+
 
   return (
     <div className="flex min-h-dvh items-center justify-center bg-background px-4 py-12">
