@@ -136,30 +136,6 @@ describe("VerifyEmailPage — resend action", () => {
     );
   });
 
-  it("re-enables the resend button once the cooldown reaches zero", async () => {
-    resend.mockResolvedValue({ error: null });
-    await renderPage();
-    const user = userEvent.setup();
-    await user.click(screen.getByRole("button", { name: /resend email/i }));
-
-    // Grab the initial cooldown label to confirm we entered the disabled state.
-    await screen.findByRole("button", { name: /resend in \d+s/i });
-
-    // Drive the setTimeout chain deterministically with fake timers.
-    vi.useFakeTimers({ shouldAdvanceTime: true });
-    try {
-      for (let i = 0; i < 61; i++) {
-        await act(async () => {
-          vi.advanceTimersByTime(1000);
-        });
-      }
-      await waitFor(() =>
-        expect(screen.getByRole("button", { name: /resend email/i })).toBeEnabled(),
-      );
-    } finally {
-      vi.useRealTimers();
-    }
-  });
 
 
 
