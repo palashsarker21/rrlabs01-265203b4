@@ -125,23 +125,34 @@ describe("VerifyEmailPage — resend action", () => {
     await user.click(cooldownBtn);
     expect(resend).not.toHaveBeenCalled();
 
-    // Now switch to fake timers to drive the countdown deterministically.
+    // Verify the countdown actually decrements — advance real time by 1.1s
+    // and expect a label lower than 60s. We keep this bound small so the test
+    // stays fast; the reset-to-enabled path is exercised in the next test.
+    await new Promise((r) => setTimeout(r, 1100));
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: /resend in (5[0-9]|59)s/i }),
+      ).toBeInTheDocument(),
+    );
+  });
+
+  it("re-enables the resend button once the cooldown reaches zero", async () => {
+    resend.mockResolvedValue({ error: null });
+    await renderPage();
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("button", { name: /resend email/i }));
+
+    // Grab the initial cooldown label to confirm we entered the disabled state.
+    await screen.findByRole("button", { name: /resend in \d+s/i });
+
+    // Drive the setTimeout chain deterministically with fake timers.
     vi.useFakeTimers({ shouldAdvanceTime: true });
     try {
-      await act(async () => {
-        vi.advanceTimersByTime(1000);
-      });
-      // Label decrements at least once (59s, 58s, …). Match any single- or
-      // double-digit remaining seconds so we don't depend on exact scheduling.
-      await waitFor(() =>
-        expect(
-          screen.getByRole("button", { name: /resend in \d{1,2}s/i }),
-        ).toBeInTheDocument(),
-      );
-
-      await act(async () => {
-        vi.advanceTimersByTime(60_000);
-      });
+      for (let i = 0; i < 61; i++) {
+        await act(async () => {
+          vi.advanceTimersByTime(1000);
+        });
+      }
       await waitFor(() =>
         expect(screen.getByRole("button", { name: /resend email/i })).toBeEnabled(),
       );
@@ -149,6 +160,7 @@ describe("VerifyEmailPage — resend action", () => {
       vi.useRealTimers();
     }
   });
+
 
 
 
