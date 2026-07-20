@@ -848,6 +848,9 @@ export type Database = {
       }
       customers: {
         Row: {
+          churn_score: number | null
+          clv_cents: number | null
+          country: string | null
           created_at: string
           currency: string | null
           email: string | null
@@ -857,11 +860,17 @@ export type Database = {
           metadata: Json
           name: string | null
           phone: string | null
+          preferred_language: string | null
+          preferred_timezone: string | null
           provider: string
+          segment: string | null
           updated_at: string
           workspace_id: string
         }
         Insert: {
+          churn_score?: number | null
+          clv_cents?: number | null
+          country?: string | null
           created_at?: string
           currency?: string | null
           email?: string | null
@@ -871,11 +880,17 @@ export type Database = {
           metadata?: Json
           name?: string | null
           phone?: string | null
+          preferred_language?: string | null
+          preferred_timezone?: string | null
           provider?: string
+          segment?: string | null
           updated_at?: string
           workspace_id: string
         }
         Update: {
+          churn_score?: number | null
+          clv_cents?: number | null
+          country?: string | null
           created_at?: string
           currency?: string | null
           email?: string | null
@@ -885,7 +900,10 @@ export type Database = {
           metadata?: Json
           name?: string | null
           phone?: string | null
+          preferred_language?: string | null
+          preferred_timezone?: string | null
           provider?: string
+          segment?: string | null
           updated_at?: string
           workspace_id?: string
         }
@@ -1776,18 +1794,27 @@ export type Database = {
           body_html: string | null
           body_text: string | null
           channel: Database["public"]["Enums"]["recovery_channel"]
+          click_status: string | null
+          clicked_at: string | null
           created_at: string
           delivered_at: string | null
+          delivery_status: string | null
           error: string | null
           event_id: string
           id: string
+          language: string | null
+          opened_at: string | null
+          provider_error_code: string | null
           provider_message_id: string | null
           provider_response: Json
+          read_at: string | null
+          read_status: string | null
           scheduled_for: string
           sent_at: string | null
           status: Database["public"]["Enums"]["recovery_attempt_status"]
           step: number
           subject: string | null
+          template_id: string | null
           to_address: string | null
           updated_at: string
           workspace_id: string
@@ -1799,18 +1826,27 @@ export type Database = {
           body_html?: string | null
           body_text?: string | null
           channel: Database["public"]["Enums"]["recovery_channel"]
+          click_status?: string | null
+          clicked_at?: string | null
           created_at?: string
           delivered_at?: string | null
+          delivery_status?: string | null
           error?: string | null
           event_id: string
           id?: string
+          language?: string | null
+          opened_at?: string | null
+          provider_error_code?: string | null
           provider_message_id?: string | null
           provider_response?: Json
+          read_at?: string | null
+          read_status?: string | null
           scheduled_for?: string
           sent_at?: string | null
           status?: Database["public"]["Enums"]["recovery_attempt_status"]
           step?: number
           subject?: string | null
+          template_id?: string | null
           to_address?: string | null
           updated_at?: string
           workspace_id: string
@@ -1822,18 +1858,27 @@ export type Database = {
           body_html?: string | null
           body_text?: string | null
           channel?: Database["public"]["Enums"]["recovery_channel"]
+          click_status?: string | null
+          clicked_at?: string | null
           created_at?: string
           delivered_at?: string | null
+          delivery_status?: string | null
           error?: string | null
           event_id?: string
           id?: string
+          language?: string | null
+          opened_at?: string | null
+          provider_error_code?: string | null
           provider_message_id?: string | null
           provider_response?: Json
+          read_at?: string | null
+          read_status?: string | null
           scheduled_for?: string
           sent_at?: string | null
           status?: Database["public"]["Enums"]["recovery_attempt_status"]
           step?: number
           subject?: string | null
+          template_id?: string | null
           to_address?: string | null
           updated_at?: string
           workspace_id?: string
@@ -1859,6 +1904,8 @@ export type Database = {
         Row: {
           abandoned_at: string | null
           ai_analysis: Json
+          ai_cost_micros: number | null
+          ai_processing_ms: number | null
           ai_summary: string | null
           amount_cents: number | null
           attempts_count: number
@@ -1866,25 +1913,40 @@ export type Database = {
           created_at: string
           currency: string | null
           customer_id: string | null
+          decision: Json
           external_event_id: string | null
           external_object_id: string | null
           failure_category: string | null
+          failure_classification:
+            | Database["public"]["Enums"]["failure_classification"]
+            | null
           failure_code: string | null
           failure_message: string | null
           id: string
+          last_ai_version: string | null
           next_action: string | null
           next_run_at: string | null
+          notification_channel: string | null
           object_type: string | null
+          preferred_language: string | null
+          preferred_timezone: string | null
+          prompt_version: string | null
           provider: string
           raw: Json
           recovered_at: string | null
+          recovery_score: number | null
+          risk_score: number | null
           status: Database["public"]["Enums"]["recovery_event_status"]
+          template_confidence: number | null
+          template_id: string | null
           updated_at: string
           workspace_id: string
         }
         Insert: {
           abandoned_at?: string | null
           ai_analysis?: Json
+          ai_cost_micros?: number | null
+          ai_processing_ms?: number | null
           ai_summary?: string | null
           amount_cents?: number | null
           attempts_count?: number
@@ -1892,25 +1954,40 @@ export type Database = {
           created_at?: string
           currency?: string | null
           customer_id?: string | null
+          decision?: Json
           external_event_id?: string | null
           external_object_id?: string | null
           failure_category?: string | null
+          failure_classification?:
+            | Database["public"]["Enums"]["failure_classification"]
+            | null
           failure_code?: string | null
           failure_message?: string | null
           id?: string
+          last_ai_version?: string | null
           next_action?: string | null
           next_run_at?: string | null
+          notification_channel?: string | null
           object_type?: string | null
+          preferred_language?: string | null
+          preferred_timezone?: string | null
+          prompt_version?: string | null
           provider?: string
           raw?: Json
           recovered_at?: string | null
+          recovery_score?: number | null
+          risk_score?: number | null
           status?: Database["public"]["Enums"]["recovery_event_status"]
+          template_confidence?: number | null
+          template_id?: string | null
           updated_at?: string
           workspace_id: string
         }
         Update: {
           abandoned_at?: string | null
           ai_analysis?: Json
+          ai_cost_micros?: number | null
+          ai_processing_ms?: number | null
           ai_summary?: string | null
           amount_cents?: number | null
           attempts_count?: number
@@ -1918,19 +1995,32 @@ export type Database = {
           created_at?: string
           currency?: string | null
           customer_id?: string | null
+          decision?: Json
           external_event_id?: string | null
           external_object_id?: string | null
           failure_category?: string | null
+          failure_classification?:
+            | Database["public"]["Enums"]["failure_classification"]
+            | null
           failure_code?: string | null
           failure_message?: string | null
           id?: string
+          last_ai_version?: string | null
           next_action?: string | null
           next_run_at?: string | null
+          notification_channel?: string | null
           object_type?: string | null
+          preferred_language?: string | null
+          preferred_timezone?: string | null
+          prompt_version?: string | null
           provider?: string
           raw?: Json
           recovered_at?: string | null
+          recovery_score?: number | null
+          risk_score?: number | null
           status?: Database["public"]["Enums"]["recovery_event_status"]
+          template_confidence?: number | null
+          template_id?: string | null
           updated_at?: string
           workspace_id?: string
         }
@@ -1951,41 +2041,153 @@ export type Database = {
           },
         ]
       }
-      recovery_templates: {
+      recovery_template_matches: {
         Row: {
-          body_html: string | null
-          body_text: string | null
           channel: Database["public"]["Enums"]["recovery_channel"]
+          confidence: number
           created_at: string
-          enabled: boolean
+          event_id: string
           id: string
+          match_keys: Json
+          matched: boolean
+          outcome: string | null
           step: number
-          subject: string | null
-          updated_at: string
+          template_id: string | null
           workspace_id: string
         }
         Insert: {
-          body_html?: string | null
-          body_text?: string | null
           channel: Database["public"]["Enums"]["recovery_channel"]
+          confidence?: number
           created_at?: string
-          enabled?: boolean
+          event_id: string
           id?: string
+          match_keys?: Json
+          matched: boolean
+          outcome?: string | null
           step: number
-          subject?: string | null
-          updated_at?: string
+          template_id?: string | null
           workspace_id: string
         }
         Update: {
+          channel?: Database["public"]["Enums"]["recovery_channel"]
+          confidence?: number
+          created_at?: string
+          event_id?: string
+          id?: string
+          match_keys?: Json
+          matched?: boolean
+          outcome?: string | null
+          step?: number
+          template_id?: string | null
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recovery_template_matches_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "recovery_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recovery_template_matches_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "recovery_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recovery_template_matches_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      recovery_templates: {
+        Row: {
+          ai_model: string | null
+          body_html: string | null
+          body_text: string | null
+          channel: Database["public"]["Enums"]["recovery_channel"]
+          confidence: number
+          country: string | null
+          created_at: string
+          customer_segment: string | null
+          enabled: boolean
+          failure_classification:
+            | Database["public"]["Enums"]["failure_classification"]
+            | null
+          gateway: string | null
+          id: string
+          language: string | null
+          last_used_at: string | null
+          product_kind: string | null
+          prompt_version: string | null
+          source: Database["public"]["Enums"]["template_source"]
+          step: number
+          subject: string | null
+          success_count: number
+          tone: string | null
+          updated_at: string
+          usage_count: number
+          workspace_id: string
+        }
+        Insert: {
+          ai_model?: string | null
+          body_html?: string | null
+          body_text?: string | null
+          channel: Database["public"]["Enums"]["recovery_channel"]
+          confidence?: number
+          country?: string | null
+          created_at?: string
+          customer_segment?: string | null
+          enabled?: boolean
+          failure_classification?:
+            | Database["public"]["Enums"]["failure_classification"]
+            | null
+          gateway?: string | null
+          id?: string
+          language?: string | null
+          last_used_at?: string | null
+          product_kind?: string | null
+          prompt_version?: string | null
+          source?: Database["public"]["Enums"]["template_source"]
+          step: number
+          subject?: string | null
+          success_count?: number
+          tone?: string | null
+          updated_at?: string
+          usage_count?: number
+          workspace_id: string
+        }
+        Update: {
+          ai_model?: string | null
           body_html?: string | null
           body_text?: string | null
           channel?: Database["public"]["Enums"]["recovery_channel"]
+          confidence?: number
+          country?: string | null
           created_at?: string
+          customer_segment?: string | null
           enabled?: boolean
+          failure_classification?:
+            | Database["public"]["Enums"]["failure_classification"]
+            | null
+          gateway?: string | null
           id?: string
+          language?: string | null
+          last_used_at?: string | null
+          product_kind?: string | null
+          prompt_version?: string | null
+          source?: Database["public"]["Enums"]["template_source"]
           step?: number
           subject?: string | null
+          success_count?: number
+          tone?: string | null
           updated_at?: string
+          usage_count?: number
           workspace_id?: string
         }
         Relationships: [
@@ -2308,6 +2510,59 @@ export type Database = {
             foreignKeyName: "webhook_logs_workspace_id_fkey"
             columns: ["workspace_id"]
             isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workspace_automation_settings: {
+        Row: {
+          ai_enabled: boolean
+          business_hours: Json
+          created_at: string
+          holiday_calendar: Json
+          max_retries: number
+          preferred_channels: string[]
+          quiet_hours: Json
+          retry_schedule_minutes: number[]
+          template_reuse_threshold: number
+          timezone: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          ai_enabled?: boolean
+          business_hours?: Json
+          created_at?: string
+          holiday_calendar?: Json
+          max_retries?: number
+          preferred_channels?: string[]
+          quiet_hours?: Json
+          retry_schedule_minutes?: number[]
+          template_reuse_threshold?: number
+          timezone?: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          ai_enabled?: boolean
+          business_hours?: Json
+          created_at?: string
+          holiday_calendar?: Json
+          max_retries?: number
+          preferred_channels?: string[]
+          quiet_hours?: Json
+          retry_schedule_minutes?: number[]
+          template_reuse_threshold?: number
+          timezone?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_automation_settings_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: true
             referencedRelation: "workspaces"
             referencedColumns: ["id"]
           },
@@ -2645,6 +2900,18 @@ export type Database = {
         | "recovery"
         | "product"
         | "marketing"
+      failure_classification:
+        | "soft_decline"
+        | "hard_decline"
+        | "expired_card"
+        | "insufficient_funds"
+        | "auth_required"
+        | "incorrect_cvc"
+        | "fraud_suspected"
+        | "temporary_bank"
+        | "gateway_timeout"
+        | "network_error"
+        | "unknown"
       incident_impact: "none" | "minor" | "major" | "critical"
       incident_status:
         | "investigating"
@@ -2679,6 +2946,7 @@ export type Database = {
         | "expired"
       success_fee_adjustment_kind: "credit" | "debit" | "refund" | "manual"
       success_fee_status: "draft" | "finalized" | "invoiced" | "paid" | "voided"
+      template_source: "curated" | "ai_generated" | "custom"
       workspace_role: "owner" | "admin" | "manager" | "member" | "viewer"
       workspace_status:
         | "setup"
@@ -2835,6 +3103,19 @@ export const Constants = {
         "product",
         "marketing",
       ],
+      failure_classification: [
+        "soft_decline",
+        "hard_decline",
+        "expired_card",
+        "insufficient_funds",
+        "auth_required",
+        "incorrect_cvc",
+        "fraud_suspected",
+        "temporary_bank",
+        "gateway_timeout",
+        "network_error",
+        "unknown",
+      ],
       incident_impact: ["none", "minor", "major", "critical"],
       incident_status: [
         "investigating",
@@ -2873,6 +3154,7 @@ export const Constants = {
       ],
       success_fee_adjustment_kind: ["credit", "debit", "refund", "manual"],
       success_fee_status: ["draft", "finalized", "invoiced", "paid", "voided"],
+      template_source: ["curated", "ai_generated", "custom"],
       workspace_role: ["owner", "admin", "manager", "member", "viewer"],
       workspace_status: [
         "setup",
