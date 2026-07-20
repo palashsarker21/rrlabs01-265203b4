@@ -68,7 +68,7 @@ export const provisionWhatsAppIntegration = createServerFn({ method: "POST" })
       if (!existing.webhook_verify_token) patch.webhook_verify_token = randomBytes(16).toString("hex");
       if (!existing.webhook_secret) patch.webhook_secret = randomBytes(24).toString("base64url");
       if (Object.keys(patch).length > 0) {
-        await supabaseAdmin.from("integrations").update(patch).eq("id", existing.id);
+        await supabaseAdmin.from("integrations").update(patch as never).eq("id", existing.id);
       }
       return {
         integrationId: existing.id,
