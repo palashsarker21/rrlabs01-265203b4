@@ -40,3 +40,17 @@ describe("safeRedirectPath", () => {
     expect(safeRedirectPath("https://evil.com/x")).toBe("/app");
   });
 });
+
+describe("generateStrongPassword", () => {
+  it("produces a password satisfying every rule", () => {
+    for (let i = 0; i < 20; i++) {
+      const pw = generateStrongPassword();
+      const ev = evaluatePassword(pw);
+      expect(ev.strong).toBe(true);
+      expect(pw.length).toBeGreaterThanOrEqual(12);
+    }
+  });
+  it("honors a longer requested length", () => {
+    expect(generateStrongPassword(24)).toHaveLength(24);
+  });
+});
