@@ -116,9 +116,20 @@ export const SOCIAL_PROFILES: readonly SocialProfile[] = [
   { platform: "youtube", label: "YouTube", href: SOCIAL.youtube, enabled: true },
   // Reserved — flip `enabled: true` and set `href` once the profile exists.
   { platform: "producthunt", label: "Product Hunt", href: "", enabled: false },
-  { platform: "crunchbase", label: "Crunchbase", href: "", enabled: false },
-  { platform: "g2", label: "G2", href: "", enabled: false },
+  {
+    platform: "crunchbase",
+    label: "Crunchbase",
+    href: "https://www.crunchbase.com/organization/revenue-recovery-labs",
+    enabled: true,
+  },
+  {
+    platform: "g2",
+    label: "G2",
+    href: "https://www.g2.com/products/revenue-recovery-labs",
+    enabled: true,
+  },
   { platform: "capterra", label: "Capterra", href: "", enabled: false },
+
   { platform: "devto", label: "Dev.to", href: "", enabled: false },
   { platform: "hashnode", label: "Hashnode", href: "", enabled: false },
   { platform: "medium", label: "Medium", href: "", enabled: false },
