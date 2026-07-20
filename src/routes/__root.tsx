@@ -12,7 +12,16 @@ import { Toaster } from "sonner";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { supabase } from "../integrations/supabase/client";
-import { BRAND, SITE_URL, LOGO, absoluteUrl, SOCIAL_SAME_AS } from "../lib/brand";
+import {
+  BRAND,
+  SITE_URL,
+  LOGO,
+  absoluteUrl,
+  SOCIAL_SAME_AS,
+  CONTACT,
+  CONTACT_PHONES,
+} from "../lib/brand";
+
 import { ErrorPage } from "../components/error-page";
 import { ErrorBoundary } from "../components/error-boundary";
 import { DebugErrorPanel } from "../components/debug-error-panel";
@@ -118,26 +127,28 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
               logo: absoluteUrl(LOGO.full),
               image: absoluteUrl(LOGO.ogImage),
               description: BRAND.description,
-              email: "support@rrlabs.online",
-              telephone: "+8801323405346",
+              email: CONTACT.supportEmail,
+              telephone: CONTACT_PHONES[0].number,
               serviceType: "Revenue Recovery SaaS",
               areaServed: "Worldwide",
-              contactPoint: [
-                {
-                  "@type": "ContactPoint",
-                  telephone: "+8801323405346",
-                  contactType: "customer service",
-                  availableLanguage: ["en", "bn"],
-                },
-                {
-                  "@type": "ContactPoint",
-                  telephone: "+8801934857886",
-                  contactType: "customer support",
-                  contactOption: "TollFree",
-                  availableLanguage: ["en", "bn"],
-                  description: "WhatsApp Business",
-                },
-              ],
+              contactPoint: CONTACT_PHONES.map((p) => ({
+                "@type": "ContactPoint",
+                telephone: p.number,
+                contactType:
+                  p.kind === "whatsapp"
+                    ? "customer support"
+                    : p.kind === "primary"
+                      ? "customer service"
+                      : "customer support",
+                availableLanguage: ["en", "bn"],
+                ...(p.kind === "whatsapp"
+                  ? {
+                      contactOption: "HearingImpairedSupported",
+                      description: "WhatsApp Business",
+                    }
+                  : {}),
+              })),
+
               address: {
                 "@type": "PostalAddress",
                 streetAddress: "60, Chowhaddi, Dotto Kendua-7901",

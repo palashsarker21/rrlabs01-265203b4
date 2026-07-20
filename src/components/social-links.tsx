@@ -23,6 +23,53 @@ function ThreadsIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
+/** Monogram glyph for G2 review platform. */
+function G2Icon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false" {...props}>
+      <circle cx="12" cy="12" r="11" stroke="currentColor" strokeWidth="1.6" />
+      <path
+        d="M8.2 9.2a3 3 0 1 1 4.6 3.5L8 17h5.4"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+      <text
+        x="14.6"
+        y="16.4"
+        fontFamily="ui-sans-serif, system-ui, sans-serif"
+        fontSize="8"
+        fontWeight="700"
+        fill="currentColor"
+      >
+        2
+      </text>
+    </svg>
+  );
+}
+
+/** Monogram glyph for Crunchbase. */
+function CrunchbaseIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false" {...props}>
+      <rect x="2" y="2" width="20" height="20" rx="4" stroke="currentColor" strokeWidth="1.6" />
+      <text
+        x="12"
+        y="16"
+        textAnchor="middle"
+        fontFamily="ui-sans-serif, system-ui, sans-serif"
+        fontSize="10"
+        fontWeight="800"
+        fill="currentColor"
+      >
+        cb
+      </text>
+    </svg>
+  );
+}
+
 type IconComponent = ComponentType<SVGProps<SVGSVGElement> & { className?: string }>;
 
 const PLATFORM_ICON: Record<SocialPlatform, IconComponent | null> = {
@@ -33,15 +80,16 @@ const PLATFORM_ICON: Record<SocialPlatform, IconComponent | null> = {
   instagram: Instagram,
   threads: ThreadsIcon,
   youtube: Youtube,
+  crunchbase: CrunchbaseIcon,
+  g2: G2Icon,
   // Reserved — no icon shipped yet.
   producthunt: null,
-  crunchbase: null,
-  g2: null,
   capterra: null,
   devto: null,
   hashnode: null,
   medium: null,
 };
+
 
 export interface SocialLinksProps {
   /** Visual variant. */
