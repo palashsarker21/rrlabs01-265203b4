@@ -10,7 +10,6 @@ vi.mock("@tanstack/react-router", async (importOriginal) => {
   const actual = (await importOriginal()) as Record<string, unknown>;
   return {
     ...actual,
-    createFileRoute: () => (opts: unknown) => opts,
     useNavigate: () => navigate,
     Link: ({ children, ...rest }: React.PropsWithChildren<Record<string, unknown>>) => (
       <a {...(rest as Record<string, unknown>)}>{children as React.ReactNode}</a>
