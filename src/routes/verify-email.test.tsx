@@ -109,41 +109,25 @@ describe("VerifyEmailPage — resend action", () => {
   });
 
   it("starts a 60-second cooldown after a successful send and prevents re-submit", async () => {
-    vi.useFakeTimers();
+    // Use fake timers only AFTER the initial async render, so React Testing
+    // Library's async utilities keep working during setup.
+    resend.mockResolvedValue({ error: null });
+    await renderPage();
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("button", { name: /resend email/i }));
+
+    // Cooldown label appears immediately after the send succeeds.
+    const cooldownBtn = await screen.findByRole("button", { name: /resend in 60s/i });
+    expect(cooldownBtn).toBeDisabled();
+
+    // Attempting to click during cooldown must NOT trigger another network call.
+    resend.mockClear();
+    await user.click(cooldownBtn);
+    expect(resend).not.toHaveBeenCalled();
+
+    // Now switch to fake timers to drive the countdown deterministically.
+    vi.useFakeTimers({ shouldAdvanceTime: true });
     try {
-      resend.mockResolvedValue({ error: null });
-
-      render(<VerifyEmailPage />);
-      // Advance microtasks for getUser().then(...)
-      await act(async () => {
-        await Promise.resolve();
-      });
-
-      const input = screen.getByLabelText(/didn't get the email/i) as HTMLInputElement;
-      await waitFor(() => expect(input.value).toBe("jane@example.com"));
-
-      const btn = screen.getByRole("button", { name: /resend email/i });
-
-      await act(async () => {
-        btn.click();
-      });
-      // Let the resolved promise flush.
-      await act(async () => {
-        await Promise.resolve();
-      });
-
-      // Cooldown label appears immediately.
-      const cooldownBtn = await screen.findByRole("button", { name: /resend in 60s/i });
-      expect(cooldownBtn).toBeDisabled();
-
-      // Attempting to click during cooldown must NOT trigger another network call.
-      resend.mockClear();
-      await act(async () => {
-        cooldownBtn.click();
-      });
-      expect(resend).not.toHaveBeenCalled();
-
-      // Tick 1 second → label decrements.
       await act(async () => {
         vi.advanceTimersByTime(1000);
       });
@@ -151,7 +135,6 @@ describe("VerifyEmailPage — resend action", () => {
         screen.getByRole("button", { name: /resend in 59s/i }),
       ).toBeInTheDocument();
 
-      // Fast-forward the remainder of the cooldown.
       await act(async () => {
         vi.advanceTimersByTime(60_000);
       });
@@ -162,6 +145,7 @@ describe("VerifyEmailPage — resend action", () => {
       vi.useRealTimers();
     }
   });
+
 
   it("maps rate-limit errors to a plain retry message (status-safe)", async () => {
     resend.mockResolvedValue({ error: new Error("Email rate limit exceeded (429)") });
