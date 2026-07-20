@@ -32,6 +32,7 @@ import { getRecoveryStats, listRecoveryEvents, retryRecoveryEvent } from "@/lib/
 import { getMyAdminStatus } from "@/lib/admin.functions";
 import { listAlerts } from "@/lib/notifications.functions";
 import { BillingPanel } from "@/components/billing/billing-panel";
+import { RecoveryWorkflowDiagram } from "@/components/recovery-workflow-diagram";
 
 export const Route = createFileRoute("/_authenticated/app")({
   component: AppShell,
@@ -251,6 +252,8 @@ function AppShell() {
             )}
           </div>
         </section>
+
+        <RecoveryWorkflowDiagram activeKey={engineOn ? "ai" : "failed"} />
 
         {/* KPIs */}
         <section
