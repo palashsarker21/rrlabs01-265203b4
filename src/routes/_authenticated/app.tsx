@@ -258,22 +258,25 @@ function AppShell() {
           className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4"
         >
           <StatCard
+            icon={<TrendingUp className="size-4" />}
             label="Recovered revenue"
             value={money(statsData?.recoveredAmountCents ?? 0, statsData?.currency)}
             loading={statsQuery.isLoading}
           />
           <StatCard
+            icon={<Activity className="size-4" />}
             label="Failed payments"
             value={statsData?.total ?? 0}
             loading={statsQuery.isLoading}
           />
           <StatCard
+            icon={<Sparkles className="size-4" />}
             label="Recovery rate"
             value={`${Math.round((statsData?.recoveryRate ?? 0) * 100)}%`}
-            accent
             loading={statsQuery.isLoading}
           />
           <StatCard
+            icon={<Mail className="size-4" />}
             label="Messages sent"
             value={statsData?.recovered ?? 0}
             loading={statsQuery.isLoading}
