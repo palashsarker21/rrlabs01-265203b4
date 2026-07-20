@@ -51,13 +51,16 @@ function ContactPage() {
     <div className="relative min-h-screen bg-background">
       <MarketingHeader />
       <main className="relative z-10 mx-auto max-w-3xl px-6 py-20">
-        <h1 className="text-balance text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
+        <p className="text-sm font-medium uppercase tracking-wider text-primary">Contact</p>
+        <h1 className="mt-3 text-balance text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
           Talk to us.
         </h1>
         <p className="mt-5 text-lg text-muted-foreground">
-          Whether you're evaluating the platform, integrating a new gateway, or exploring a
-          partnership — we'd love to hear from you.
+          Whether you&apos;re evaluating the platform, integrating a new gateway, reporting a
+          security issue, or exploring a partnership — we read every message and reply from a real
+          human on the team.
         </p>
+
 
         <div className="mt-12 grid gap-5 sm:grid-cols-2">
           <div className="rounded-xl border border-border/60 bg-card/50 p-6 backdrop-blur transition hover:border-primary/50">
