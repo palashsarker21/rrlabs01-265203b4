@@ -30,6 +30,12 @@ import {
 
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { StatCard } from "@/components/ui/stat-card";
+import { SectionCard } from "@/components/ui/section-card";
+import { EmptyState } from "@/components/ui/empty-state";
+import { ChartTooltipContent } from "@/components/ui/chart-tooltip";
+import { SkeletonKpi, SkeletonChart } from "@/components/ui/skeleton-block";
+import { BarChart3 } from "lucide-react";
 import { getRecoveryAnalytics } from "@/lib/recovery-analytics.functions";
 
 export const Route = createFileRoute("/_authenticated/analytics")({
