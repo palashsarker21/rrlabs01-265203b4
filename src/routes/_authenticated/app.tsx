@@ -173,6 +173,12 @@ function AppShell() {
                 <span className="hidden sm:inline">Settings</span>
               </Link>
             </Button>
+            <Button asChild size="sm" variant="ghost">
+              <Link to="/settings/security" aria-label="Security settings">
+                <Shield className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Security</span>
+              </Link>
+            </Button>
 
             <Button
               size="sm"
