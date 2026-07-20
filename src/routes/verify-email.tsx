@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { BrandMark } from "@/components/brand-mark";
+import { AuthFooter } from "@/components/auth/auth-footer";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/verify-email")({
@@ -182,6 +183,7 @@ function VerifyEmailPage() {
             </div>
           </div>
         )}
+        <AuthFooter />
       </div>
     </div>
   );

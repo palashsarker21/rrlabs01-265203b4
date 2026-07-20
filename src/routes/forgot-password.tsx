@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { BrandMark } from "@/components/brand-mark";
+import { AuthFooter } from "@/components/auth/auth-footer";
 
 export const Route = createFileRoute("/forgot-password")({
   component: ForgotPasswordPage,
@@ -110,6 +111,7 @@ function ForgotPasswordPage() {
             </Link>
           </div>
         </div>
+        <AuthFooter />
       </div>
     </div>
   );

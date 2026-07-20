@@ -3,6 +3,7 @@ import { z } from "zod";
 import { ShieldAlert, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BrandMark } from "@/components/brand-mark";
+import { AuthFooter } from "@/components/auth/auth-footer";
 
 const search = z.object({ reason: z.string().optional() });
 
@@ -43,6 +44,7 @@ function AccessDeniedPage() {
             <Link to="/contact">Contact support</Link>
           </Button>
         </div>
+        <AuthFooter />
       </div>
     </div>
   );

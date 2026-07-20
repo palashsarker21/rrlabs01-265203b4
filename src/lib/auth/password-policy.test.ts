@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { evaluatePassword, safeRedirectPath } from "./password-policy";
+import {
+  evaluatePassword,
+  generateStrongPassword,
+  safeRedirectPath,
+} from "./password-policy";
 
 describe("evaluatePassword", () => {
   it("rates empty as too weak", () => {
@@ -34,5 +38,19 @@ describe("safeRedirectPath", () => {
   });
   it("rejects absolute cross-origin", () => {
     expect(safeRedirectPath("https://evil.com/x")).toBe("/app");
+  });
+});
+
+describe("generateStrongPassword", () => {
+  it("produces a password satisfying every rule", () => {
+    for (let i = 0; i < 20; i++) {
+      const pw = generateStrongPassword();
+      const ev = evaluatePassword(pw);
+      expect(ev.strong).toBe(true);
+      expect(pw.length).toBeGreaterThanOrEqual(12);
+    }
+  });
+  it("honors a longer requested length", () => {
+    expect(generateStrongPassword(24)).toHaveLength(24);
   });
 });

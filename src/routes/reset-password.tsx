@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { BrandMark } from "@/components/brand-mark";
+import { AuthFooter } from "@/components/auth/auth-footer";
 import { PasswordInput } from "@/components/auth/password-input";
 import { PasswordStrength, useCapsLock } from "@/components/auth/password-strength";
 import { evaluatePassword } from "@/lib/auth/password-policy";
@@ -170,6 +171,7 @@ function ResetPasswordPage() {
             </form>
           )}
         </div>
+        <AuthFooter />
       </div>
     </div>
   );

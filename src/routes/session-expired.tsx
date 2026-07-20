@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Clock, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BrandMark } from "@/components/brand-mark";
+import { AuthFooter } from "@/components/auth/auth-footer";
 
 export const Route = createFileRoute("/session-expired")({
   component: SessionExpiredPage,
@@ -35,6 +36,7 @@ function SessionExpiredPage() {
             </Link>
           </Button>
         </div>
+        <AuthFooter />
       </div>
     </div>
   );
