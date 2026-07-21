@@ -110,7 +110,7 @@ function CustomerDetail() {
           ) : (
             <ul className="divide-y divide-border/60 text-sm">
               {data.integrations.map((i) => {
-                const active = i.status === "connected" || i.status === "active";
+                const active = i.status === "connected";
                 return (
                   <li key={i.id} className="flex justify-between py-2">
                     <span className="capitalize">{i.provider}</span>
