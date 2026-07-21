@@ -100,7 +100,7 @@ export function AppSidebar({ isSuperAdmin = false }: { isSuperAdmin?: boolean })
                 <button
                   type="button"
                   onClick={() =>
-                    setCollapsed((s) => ({ ...s, [group.id]: !(collapsed[group.id] ?? false) ? true : false }))
+                    setCollapsed((s) => ({ ...s, [group.id]: !isCollapsed }))
                   }
                   aria-expanded={open}
                   className="flex w-full items-center gap-1.5 px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground hover:text-foreground"
