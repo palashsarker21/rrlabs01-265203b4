@@ -54,18 +54,46 @@ interface AnalyzeInput {
   customer_email: string | null;
   business_name: string | null;
   update_payment_url?: string | null;
+  workspace_id?: string | null;
 }
 
-export async function analyzeFailure(input: AnalyzeInput): Promise<RecoveryAnalysis> {
-  const gateway = createLovableGateway();
-  const model = gateway(DEFAULT_CHAT_MODEL);
+export interface RecoveryAnalysisResult {
+  analysis: RecoveryAnalysis;
+  ai_model: string;
+}
 
+const FALLBACK_MODEL = "fallback";
+
+function buildFallbackAnalysis(input: AnalyzeInput): RecoveryAnalysis {
+  const name = input.customer_name?.split(" ")[0] ?? "there";
+  return {
+    category: "other",
+    severity: "medium",
+    summary: input.failure_message ?? "Payment could not be processed.",
+    next_action: "ask_update_card",
+    email_subject: `Quick heads up about your recent payment`,
+    email_body:
+      `Hi ${name},\n\nWe tried to process your recent payment but the bank returned an error.\n` +
+      `Could you take a moment to update your payment method${input.update_payment_url ? ` here: ${input.update_payment_url}` : ""}? It only takes a minute.\n\n` +
+      `Thanks so much,\n${input.business_name ?? "The team"}`,
+    whatsapp_text:
+      `Hi ${name}, quick note — your recent payment didn't go through. ` +
+      (input.update_payment_url
+        ? `You can update your card here: ${input.update_payment_url}`
+        : "Could you take a look when you get a moment?"),
+  };
+}
+
+export async function analyzeFailure(input: AnalyzeInput): Promise<RecoveryAnalysisResult> {
   const amount =
     input.amount_cents != null && input.currency
       ? `${(input.amount_cents / 100).toFixed(2)} ${input.currency.toUpperCase()}`
       : "the outstanding amount";
 
-  const prompt = `You are the recovery specialist for ${input.business_name ?? "an online business"}.
+  const system =
+    "You are a senior payment recovery specialist. Reply with ONLY a valid JSON object matching the requested schema. No prose, no code fences.";
+
+  const user = `You are the recovery specialist for ${input.business_name ?? "an online business"}.
 A payment just failed. Analyse the failure and draft warm, concise recovery messages the customer will actually respond to.
 
 Failure code: ${input.failure_code ?? "unknown"}
@@ -81,35 +109,47 @@ Rules:
 - Email body: plain text, 3 short paragraphs max, sign as "${input.business_name ?? "The team"}".
 - WhatsApp text: 1–2 sentences, casual but professional. If a link is available, include it.
 - Do NOT include the amount if it's unknown.
-- Never include placeholders like {name} — write finished copy.`;
+- Never include placeholders like {name} — write finished copy.
 
-  try {
-    const { output } = await generateText({
-      model,
-      output: Output.object({ schema: AnalysisSchema }),
-      prompt,
-    });
-    return output;
-  } catch (err) {
-    // Deterministic fallback so the engine never blocks on an AI outage.
-    const name = input.customer_name?.split(" ")[0] ?? "there";
-    return {
-      category: "other",
-      severity: "medium",
-      summary: input.failure_message ?? "Payment could not be processed.",
-      next_action: "ask_update_card",
-      email_subject: `Quick heads up about your recent payment`,
-      email_body:
-        `Hi ${name},\n\nWe tried to process your recent payment but the bank returned an error.\n` +
-        `Could you take a moment to update your payment method${input.update_payment_url ? ` here: ${input.update_payment_url}` : ""}? It only takes a minute.\n\n` +
-        `Thanks so much,\n${input.business_name ?? "The team"}`,
-      whatsapp_text:
-        `Hi ${name}, quick note — your recent payment didn't go through. ` +
-        (input.update_payment_url
-          ? `You can update your card here: ${input.update_payment_url}`
-          : "Could you take a look when you get a moment?"),
-    };
+Return JSON with exactly these fields:
+{
+  "category": one of ["insufficient_funds","expired_card","card_declined","authentication_required","fraud_suspected","processor_error","other"],
+  "severity": one of ["low","medium","high"],
+  "summary": string (max 280 chars),
+  "next_action": one of ["retry_later","ask_update_card","ask_authenticate","contact_support","abandon"],
+  "email_subject": string (max 120 chars),
+  "email_body": string (max 1800 chars),
+  "whatsapp_text": string (max 700 chars)
+}`;
+
+  const maxAttempts = 2;
+  let lastErr: unknown;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      const res = await runAI({
+        task: "failure_analysis",
+        workspaceId: input.workspace_id ?? null,
+        system,
+        user,
+        json: true,
+        metadata: { component: "recovery-engine", attempt },
+      });
+      if (!res.ok) {
+        lastErr = new Error(res.error ?? "AI gateway failure");
+        continue;
+      }
+      const parsed = AnalysisSchema.safeParse(res.json);
+      if (parsed.success) {
+        return { analysis: parsed.data, ai_model: res.model };
+      }
+      lastErr = parsed.error;
+    } catch (err) {
+      lastErr = err;
+    }
   }
+
+  console.error("[recovery-engine] analyzeFailure fell back to deterministic copy", lastErr);
+  return { analysis: buildFallbackAnalysis(input), ai_model: FALLBACK_MODEL };
 }
 
 // ---------------------------------------------------------------------------
