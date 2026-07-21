@@ -85,6 +85,7 @@ import { Route as AuthenticatedAdminEmailPreviewRouteImport } from './routes/_au
 import { Route as AuthenticatedAdminEmailDeliveriesRouteImport } from './routes/_authenticated/admin.email.deliveries'
 import { Route as ApiPublicWebhooksProviderIntegrationIdRouteImport } from './routes/api/public/webhooks/$provider.$integrationId'
 import { Route as AuthenticatedAdminV2CustomersIdRouteImport } from './routes/_authenticated/admin.v2.customers.$id'
+import { Route as AuthenticatedAdminV2AiAnalyticsRouteImport } from './routes/_authenticated/admin.v2.ai.analytics'
 
 const VerifyEmailRoute = VerifyEmailRouteImport.update({
   id: '/verify-email',
@@ -492,6 +493,12 @@ const AuthenticatedAdminV2CustomersIdRoute =
     path: '/$id',
     getParentRoute: () => AuthenticatedAdminV2CustomersRoute,
   } as any)
+const AuthenticatedAdminV2AiAnalyticsRoute =
+  AuthenticatedAdminV2AiAnalyticsRouteImport.update({
+    id: '/analytics',
+    path: '/analytics',
+    getParentRoute: () => AuthenticatedAdminV2AiRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -557,7 +564,7 @@ export interface FileRoutesByFullPath {
   '/admin/email/preview': typeof AuthenticatedAdminEmailPreviewRoute
   '/admin/email/sandbox': typeof AuthenticatedAdminEmailSandboxRoute
   '/admin/email/webhooks': typeof AuthenticatedAdminEmailWebhooksRoute
-  '/admin/v2/ai': typeof AuthenticatedAdminV2AiRoute
+  '/admin/v2/ai': typeof AuthenticatedAdminV2AiRouteWithChildren
   '/admin/v2/customers': typeof AuthenticatedAdminV2CustomersRouteWithChildren
   '/marketplace/flows/$id': typeof AuthenticatedMarketplaceFlowsIdRoute
   '/marketplace/templates/$id': typeof AuthenticatedMarketplaceTemplatesIdRoute
@@ -567,6 +574,7 @@ export interface FileRoutesByFullPath {
   '/api/public/webhooks/resend': typeof ApiPublicWebhooksResendRoute
   '/api/public/webhooks/stripe': typeof ApiPublicWebhooksStripeRoute
   '/admin/v2/': typeof AuthenticatedAdminV2IndexRoute
+  '/admin/v2/ai/analytics': typeof AuthenticatedAdminV2AiAnalyticsRoute
   '/admin/v2/customers/$id': typeof AuthenticatedAdminV2CustomersIdRoute
   '/api/public/webhooks/$provider/$integrationId': typeof ApiPublicWebhooksProviderIntegrationIdRoute
 }
@@ -632,7 +640,7 @@ export interface FileRoutesByTo {
   '/admin/email/preview': typeof AuthenticatedAdminEmailPreviewRoute
   '/admin/email/sandbox': typeof AuthenticatedAdminEmailSandboxRoute
   '/admin/email/webhooks': typeof AuthenticatedAdminEmailWebhooksRoute
-  '/admin/v2/ai': typeof AuthenticatedAdminV2AiRoute
+  '/admin/v2/ai': typeof AuthenticatedAdminV2AiRouteWithChildren
   '/admin/v2/customers': typeof AuthenticatedAdminV2CustomersRouteWithChildren
   '/marketplace/flows/$id': typeof AuthenticatedMarketplaceFlowsIdRoute
   '/marketplace/templates/$id': typeof AuthenticatedMarketplaceTemplatesIdRoute
@@ -642,6 +650,7 @@ export interface FileRoutesByTo {
   '/api/public/webhooks/resend': typeof ApiPublicWebhooksResendRoute
   '/api/public/webhooks/stripe': typeof ApiPublicWebhooksStripeRoute
   '/admin/v2': typeof AuthenticatedAdminV2IndexRoute
+  '/admin/v2/ai/analytics': typeof AuthenticatedAdminV2AiAnalyticsRoute
   '/admin/v2/customers/$id': typeof AuthenticatedAdminV2CustomersIdRoute
   '/api/public/webhooks/$provider/$integrationId': typeof ApiPublicWebhooksProviderIntegrationIdRoute
 }
@@ -711,7 +720,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/email/preview': typeof AuthenticatedAdminEmailPreviewRoute
   '/_authenticated/admin/email/sandbox': typeof AuthenticatedAdminEmailSandboxRoute
   '/_authenticated/admin/email/webhooks': typeof AuthenticatedAdminEmailWebhooksRoute
-  '/_authenticated/admin/v2/ai': typeof AuthenticatedAdminV2AiRoute
+  '/_authenticated/admin/v2/ai': typeof AuthenticatedAdminV2AiRouteWithChildren
   '/_authenticated/admin/v2/customers': typeof AuthenticatedAdminV2CustomersRouteWithChildren
   '/_authenticated/marketplace/flows/$id': typeof AuthenticatedMarketplaceFlowsIdRoute
   '/_authenticated/marketplace/templates/$id': typeof AuthenticatedMarketplaceTemplatesIdRoute
@@ -721,6 +730,7 @@ export interface FileRoutesById {
   '/api/public/webhooks/resend': typeof ApiPublicWebhooksResendRoute
   '/api/public/webhooks/stripe': typeof ApiPublicWebhooksStripeRoute
   '/_authenticated/admin/v2/': typeof AuthenticatedAdminV2IndexRoute
+  '/_authenticated/admin/v2/ai/analytics': typeof AuthenticatedAdminV2AiAnalyticsRoute
   '/_authenticated/admin/v2/customers/$id': typeof AuthenticatedAdminV2CustomersIdRoute
   '/api/public/webhooks/$provider/$integrationId': typeof ApiPublicWebhooksProviderIntegrationIdRoute
 }
@@ -800,6 +810,7 @@ export interface FileRouteTypes {
     | '/api/public/webhooks/resend'
     | '/api/public/webhooks/stripe'
     | '/admin/v2/'
+    | '/admin/v2/ai/analytics'
     | '/admin/v2/customers/$id'
     | '/api/public/webhooks/$provider/$integrationId'
   fileRoutesByTo: FileRoutesByTo
@@ -875,6 +886,7 @@ export interface FileRouteTypes {
     | '/api/public/webhooks/resend'
     | '/api/public/webhooks/stripe'
     | '/admin/v2'
+    | '/admin/v2/ai/analytics'
     | '/admin/v2/customers/$id'
     | '/api/public/webhooks/$provider/$integrationId'
   id:
@@ -953,6 +965,7 @@ export interface FileRouteTypes {
     | '/api/public/webhooks/resend'
     | '/api/public/webhooks/stripe'
     | '/_authenticated/admin/v2/'
+    | '/_authenticated/admin/v2/ai/analytics'
     | '/_authenticated/admin/v2/customers/$id'
     | '/api/public/webhooks/$provider/$integrationId'
   fileRoutesById: FileRoutesById
@@ -1529,6 +1542,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminV2CustomersIdRouteImport
       parentRoute: typeof AuthenticatedAdminV2CustomersRoute
     }
+    '/_authenticated/admin/v2/ai/analytics': {
+      id: '/_authenticated/admin/v2/ai/analytics'
+      path: '/analytics'
+      fullPath: '/admin/v2/ai/analytics'
+      preLoaderRoute: typeof AuthenticatedAdminV2AiAnalyticsRouteImport
+      parentRoute: typeof AuthenticatedAdminV2AiRoute
+    }
   }
 }
 
@@ -1553,6 +1573,20 @@ const AuthenticatedAdminEmailRouteWithChildren =
     AuthenticatedAdminEmailRouteChildren,
   )
 
+interface AuthenticatedAdminV2AiRouteChildren {
+  AuthenticatedAdminV2AiAnalyticsRoute: typeof AuthenticatedAdminV2AiAnalyticsRoute
+}
+
+const AuthenticatedAdminV2AiRouteChildren: AuthenticatedAdminV2AiRouteChildren =
+  {
+    AuthenticatedAdminV2AiAnalyticsRoute: AuthenticatedAdminV2AiAnalyticsRoute,
+  }
+
+const AuthenticatedAdminV2AiRouteWithChildren =
+  AuthenticatedAdminV2AiRoute._addFileChildren(
+    AuthenticatedAdminV2AiRouteChildren,
+  )
+
 interface AuthenticatedAdminV2CustomersRouteChildren {
   AuthenticatedAdminV2CustomersIdRoute: typeof AuthenticatedAdminV2CustomersIdRoute
 }
@@ -1568,13 +1602,13 @@ const AuthenticatedAdminV2CustomersRouteWithChildren =
   )
 
 interface AuthenticatedAdminV2RouteChildren {
-  AuthenticatedAdminV2AiRoute: typeof AuthenticatedAdminV2AiRoute
+  AuthenticatedAdminV2AiRoute: typeof AuthenticatedAdminV2AiRouteWithChildren
   AuthenticatedAdminV2CustomersRoute: typeof AuthenticatedAdminV2CustomersRouteWithChildren
   AuthenticatedAdminV2IndexRoute: typeof AuthenticatedAdminV2IndexRoute
 }
 
 const AuthenticatedAdminV2RouteChildren: AuthenticatedAdminV2RouteChildren = {
-  AuthenticatedAdminV2AiRoute: AuthenticatedAdminV2AiRoute,
+  AuthenticatedAdminV2AiRoute: AuthenticatedAdminV2AiRouteWithChildren,
   AuthenticatedAdminV2CustomersRoute:
     AuthenticatedAdminV2CustomersRouteWithChildren,
   AuthenticatedAdminV2IndexRoute: AuthenticatedAdminV2IndexRoute,
@@ -1777,13 +1811,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
