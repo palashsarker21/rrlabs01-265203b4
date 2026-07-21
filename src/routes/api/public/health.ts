@@ -15,9 +15,16 @@ export const Route = createFileRoute("/api/public/health")({
       GET: async () => {
         const started = Date.now();
         const [database] = await Promise.all([checkDatabase()]);
+        const { checkRequiredServerEnv } = await import("@/lib/server-env.server");
+        const envReport = checkRequiredServerEnv();
         const checks: Record<string, Check> = {
-          server: { status: "ok" },
+          server: {
+            status: envReport.ok ? "ok" : "down",
+            error: envReport.ok ? undefined : `missing:${envReport.missing.join(",")}`,
+          },
           database,
+          encryption_key: checkConfigured(process.env.RRLABS_ENCRYPTION_KEY),
+          openrouter: checkConfigured(process.env.OPEN_ROUTER_API_KEY),
           lemonsqueezy: checkConfigured(process.env.LEMONSQUEEZY_API_KEY),
           stripe: checkConfigured(process.env.STRIPE_SECRET_KEY),
           resend: checkConfigured(process.env.RESEND_API_KEY),
