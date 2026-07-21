@@ -158,9 +158,17 @@ function IntegrationCenter() {
   const [realtimeStatus, setRealtimeStatus] = useState<
     "connecting" | "connected" | "reconnecting" | "disconnected"
   >("connecting");
+  const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(null);
+  // Re-render every 15s so the "x ago" label stays fresh.
+  const [, setNowTick] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setNowTick((n) => n + 1), 15_000);
+    return () => clearInterval(id);
+  }, []);
   useEffect(() => {
     if (!workspace?.id) return;
     setRealtimeStatus("connecting");
+    const markSynced = () => setLastSyncedAt(new Date());
     const channel = supabase
       .channel(`ws-integrations-${workspace.id}`)
       .on(
@@ -171,7 +179,10 @@ function IntegrationCenter() {
           table: "integrations",
           filter: `workspace_id=eq.${workspace.id}`,
         },
-        () => qc.invalidateQueries({ queryKey: ["integrations", workspace.id] }),
+        () => {
+          markSynced();
+          qc.invalidateQueries({ queryKey: ["integrations", workspace.id] });
+        },
       )
       .on(
         "postgres_changes",
@@ -181,11 +192,16 @@ function IntegrationCenter() {
           table: "provider_status",
           filter: `workspace_id=eq.${workspace.id}`,
         },
-        () => qc.invalidateQueries({ queryKey: ["provider-statuses", workspace.id] }),
+        () => {
+          markSynced();
+          qc.invalidateQueries({ queryKey: ["provider-statuses", workspace.id] });
+        },
       )
       .subscribe((status) => {
-        if (status === "SUBSCRIBED") setRealtimeStatus("connected");
-        else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT")
+        if (status === "SUBSCRIBED") {
+          setRealtimeStatus("connected");
+          setLastSyncedAt((prev) => prev ?? new Date());
+        } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT")
           setRealtimeStatus("reconnecting");
         else if (status === "CLOSED") setRealtimeStatus("disconnected");
       });
@@ -339,7 +355,7 @@ function IntegrationCenter() {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <RealtimeStatusBadge status={realtimeStatus} />
+            <RealtimeStatusBadge status={realtimeStatus} lastSyncedAt={lastSyncedAt} />
             {workspace?.recovery_engine_enabled && (
               <span className="rounded-full border border-emerald-500/40 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-400">
                 Recovery Engine · Live
@@ -1481,8 +1497,10 @@ function UpgradeBadge({ reason, overLimit }: { reason: string; overLimit: boolea
 
 function RealtimeStatusBadge({
   status,
+  lastSyncedAt,
 }: {
   status: "connecting" | "connected" | "reconnecting" | "disconnected";
+  lastSyncedAt?: Date | null;
 }) {
   const config = {
     connected: {
@@ -1511,11 +1529,18 @@ function RealtimeStatusBadge({
     },
   }[status];
 
+  const syncedIso = lastSyncedAt ? lastSyncedAt.toISOString() : null;
+  const syncedAbs = lastSyncedAt ? lastSyncedAt.toLocaleString() : null;
+  const syncedRel = syncedIso ? timeAgo(syncedIso) : null;
+  const tooltip = syncedAbs
+    ? `${config.label} · Last sync ${syncedAbs}`
+    : config.label;
+
   return (
     <span
       role="status"
       aria-live="polite"
-      title={config.label}
+      title={tooltip}
       className={cn(
         "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium",
         config.cls,
@@ -1523,6 +1548,9 @@ function RealtimeStatusBadge({
     >
       <span className={cn("h-1.5 w-1.5 rounded-full", config.dot, config.pulse)} />
       {config.label}
+      {syncedRel && (
+        <span className="ml-1 opacity-70">· synced {syncedRel}</span>
+      )}
     </span>
   );
 }
