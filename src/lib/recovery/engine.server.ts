@@ -5,11 +5,10 @@
  * Server-only. Callers: Stripe webhook route + retry server function.
  */
 
-import { generateText, Output } from "ai";
 import { z } from "zod";
 
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { createLovableGateway, DEFAULT_CHAT_MODEL } from "@/lib/ai-gateway.server";
+import { runAI } from "@/lib/ai/gateway.server";
 import { decryptJSON } from "@/lib/crypto.server";
 import { sendEmailViaResend, sendWhatsAppText } from "./dispatch.server";
 import { classifyFailure } from "./classify.server";
