@@ -29,6 +29,7 @@ import { Route as DocsRouteImport } from './routes/docs'
 import { Route as CookiesRouteImport } from './routes/cookies'
 import { Route as ContactSalesRouteImport } from './routes/contact-sales'
 import { Route as ContactRouteImport } from './routes/contact'
+import { Route as CommunicationsPolicyRouteImport } from './routes/communications-policy'
 import { Route as CareersRouteImport } from './routes/careers'
 import { Route as BlogRouteImport } from './routes/blog'
 import { Route as AuthRouteImport } from './routes/auth'
@@ -187,6 +188,11 @@ const ContactSalesRoute = ContactSalesRouteImport.update({
 const ContactRoute = ContactRouteImport.update({
   id: '/contact',
   path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CommunicationsPolicyRoute = CommunicationsPolicyRouteImport.update({
+  id: '/communications-policy',
+  path: '/communications-policy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CareersRoute = CareersRouteImport.update({
@@ -520,6 +526,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/blog': typeof BlogRouteWithChildren
   '/careers': typeof CareersRoute
+  '/communications-policy': typeof CommunicationsPolicyRoute
   '/contact': typeof ContactRoute
   '/contact-sales': typeof ContactSalesRoute
   '/cookies': typeof CookiesRoute
@@ -599,6 +606,7 @@ export interface FileRoutesByTo {
   '/access-denied': typeof AccessDeniedRoute
   '/auth': typeof AuthRoute
   '/careers': typeof CareersRoute
+  '/communications-policy': typeof CommunicationsPolicyRoute
   '/contact': typeof ContactRoute
   '/contact-sales': typeof ContactSalesRoute
   '/cookies': typeof CookiesRoute
@@ -680,6 +688,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/blog': typeof BlogRouteWithChildren
   '/careers': typeof CareersRoute
+  '/communications-policy': typeof CommunicationsPolicyRoute
   '/contact': typeof ContactRoute
   '/contact-sales': typeof ContactSalesRoute
   '/cookies': typeof CookiesRoute
@@ -762,6 +771,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/blog'
     | '/careers'
+    | '/communications-policy'
     | '/contact'
     | '/contact-sales'
     | '/cookies'
@@ -841,6 +851,7 @@ export interface FileRouteTypes {
     | '/access-denied'
     | '/auth'
     | '/careers'
+    | '/communications-policy'
     | '/contact'
     | '/contact-sales'
     | '/cookies'
@@ -921,6 +932,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/blog'
     | '/careers'
+    | '/communications-policy'
     | '/contact'
     | '/contact-sales'
     | '/cookies'
@@ -1003,6 +1015,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   BlogRoute: typeof BlogRouteWithChildren
   CareersRoute: typeof CareersRoute
+  CommunicationsPolicyRoute: typeof CommunicationsPolicyRoute
   ContactRoute: typeof ContactRoute
   ContactSalesRoute: typeof ContactSalesRoute
   CookiesRoute: typeof CookiesRoute
@@ -1173,6 +1186,13 @@ declare module '@tanstack/react-router' {
       path: '/contact'
       fullPath: '/contact'
       preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/communications-policy': {
+      id: '/communications-policy'
+      path: '/communications-policy'
+      fullPath: '/communications-policy'
+      preLoaderRoute: typeof CommunicationsPolicyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/careers': {
@@ -1821,6 +1841,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   BlogRoute: BlogRouteWithChildren,
   CareersRoute: CareersRoute,
+  CommunicationsPolicyRoute: CommunicationsPolicyRoute,
   ContactRoute: ContactRoute,
   ContactSalesRoute: ContactSalesRoute,
   CookiesRoute: CookiesRoute,
@@ -1854,13 +1875,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
