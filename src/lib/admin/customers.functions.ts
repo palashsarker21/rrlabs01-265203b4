@@ -178,7 +178,7 @@ export const getCustomerDetail = createServerFn({ method: "POST" })
         .from("recovery_events")
         .select("id", { count: "exact", head: true })
         .eq("workspace_id", data.workspaceId)
-        .in("status", ["pending", "in_progress"])
+        .in("status", ["new", "analyzing", "recovering"])
         .gte("created_at", since30),
       supabase
         .from("recovery_events")
