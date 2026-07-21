@@ -355,7 +355,7 @@ function IntegrationCenter() {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <RealtimeStatusBadge status={realtimeStatus} />
+            <RealtimeStatusBadge status={realtimeStatus} lastSyncedAt={lastSyncedAt} />
             {workspace?.recovery_engine_enabled && (
               <span className="rounded-full border border-emerald-500/40 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-400">
                 Recovery Engine · Live
