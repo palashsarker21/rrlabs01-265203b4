@@ -83,12 +83,11 @@ export const APP_NAV: AppNavGroup[] = [
     icon: Zap,
     items: [
       { id: "recovery-engine", label: "Recovery Engine", to: "/getting-started", icon: Zap, keywords: ["engine", "activation"] },
-      { id: "recovery-campaigns", label: "Recovery Campaigns", to: "/marketplace", icon: Target, keywords: ["campaigns"] },
-      { id: "recovery-rules", label: "Recovery Rules", to: "/settings/ai", icon: ListChecks, keywords: ["rules", "automation"] },
+      { id: "recovery-strategy", label: "AI Recovery Strategy", to: "/recovery-strategy", icon: Sparkles, keywords: ["ai", "strategy", "brand voice", "automation"] },
+      { id: "recovery-rules", label: "Recovery Policy", to: "/recovery-strategy", icon: ListChecks, keywords: ["rules", "policy", "automation"] },
       { id: "recovery-timeline", label: "Recovery Timeline", to: "/events", icon: CalendarClock, keywords: ["timeline"] },
       { id: "recovery-queue", label: "Recovery Queue", to: "/admin", search: { tab: "queue" }, icon: ListChecks, keywords: ["queue", "jobs"], adminOnly: true },
       { id: "recovery-attempts", label: "Recovery Attempts", to: "/events", icon: RefreshCw, keywords: ["attempts", "retries"] },
-      { id: "recovery-templates", label: "Recovery Templates", to: "/marketplace", icon: FileText, keywords: ["templates"] },
       { id: "recovery-analytics", label: "Recovery Analytics", to: "/analytics", icon: BarChart3, keywords: ["analytics", "kpi"] },
     ],
   },
@@ -133,7 +132,7 @@ export const APP_NAV: AppNavGroup[] = [
       { id: "email", label: "Email", to: "/admin/email", icon: Mail, keywords: ["email", "resend"], adminOnly: true },
       { id: "whatsapp", label: "WhatsApp", to: "/integrations/whatsapp", icon: MessageSquare, keywords: ["whatsapp", "wa"] },
       { id: "sms", label: "SMS", to: "/integrations", icon: Smartphone, keywords: ["sms", "twilio"] },
-      { id: "templates", label: "Templates", to: "/marketplace", icon: FileText, keywords: ["templates"] },
+      
       { id: "delivery-logs", label: "Delivery Logs", to: "/admin/email/deliveries", icon: Send, keywords: ["delivery", "logs"], adminOnly: true },
     ],
   },
@@ -155,7 +154,7 @@ export const APP_NAV: AppNavGroup[] = [
     label: "Automation",
     icon: Workflow,
     items: [
-      { id: "workflows", label: "Workflows", to: "/marketplace", icon: Workflow, keywords: ["workflows", "flows"] },
+      { id: "workflows", label: "AI Recovery Strategy", to: "/recovery-strategy", icon: Sparkles, keywords: ["workflows", "strategy", "ai"] },
       { id: "triggers", label: "Triggers", to: "/settings/ai", icon: Zap, keywords: ["triggers"] },
       { id: "schedules", label: "Schedules", to: "/settings/ai", icon: CalendarClock, keywords: ["schedules", "cron"] },
       { id: "retry-engine", label: "Retry Engine", to: "/getting-started", icon: Repeat, keywords: ["retries"] },

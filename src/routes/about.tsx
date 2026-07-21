@@ -170,10 +170,10 @@ function AboutPage() {
             Where we&apos;re going
           </h2>
           <p className="mt-3 text-muted-foreground">
-            Expanded payment provider coverage, deeper analytics on cohort recovery, a template
-            marketplace for industry-specific cadences, and a customer self-service portal for
-            payment updates and pauses. Every roadmap item is chosen against a single test: does it
-            move recovered revenue for our customers?
+            Expanded payment provider coverage, deeper analytics on cohort recovery, an even more
+            autonomous AI recovery engine that adapts messaging in real time, and a customer
+            self-service portal for payment updates and pauses. Every roadmap item is chosen against
+            a single test: does it move recovered revenue for our customers?
           </p>
         </section>
 
