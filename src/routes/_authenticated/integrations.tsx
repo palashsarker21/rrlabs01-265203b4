@@ -158,9 +158,17 @@ function IntegrationCenter() {
   const [realtimeStatus, setRealtimeStatus] = useState<
     "connecting" | "connected" | "reconnecting" | "disconnected"
   >("connecting");
+  const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(null);
+  // Re-render every 15s so the "x ago" label stays fresh.
+  const [, setNowTick] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setNowTick((n) => n + 1), 15_000);
+    return () => clearInterval(id);
+  }, []);
   useEffect(() => {
     if (!workspace?.id) return;
     setRealtimeStatus("connecting");
+    const markSynced = () => setLastSyncedAt(new Date());
     const channel = supabase
       .channel(`ws-integrations-${workspace.id}`)
       .on(
@@ -171,7 +179,10 @@ function IntegrationCenter() {
           table: "integrations",
           filter: `workspace_id=eq.${workspace.id}`,
         },
-        () => qc.invalidateQueries({ queryKey: ["integrations", workspace.id] }),
+        () => {
+          markSynced();
+          qc.invalidateQueries({ queryKey: ["integrations", workspace.id] });
+        },
       )
       .on(
         "postgres_changes",
@@ -181,11 +192,16 @@ function IntegrationCenter() {
           table: "provider_status",
           filter: `workspace_id=eq.${workspace.id}`,
         },
-        () => qc.invalidateQueries({ queryKey: ["provider-statuses", workspace.id] }),
+        () => {
+          markSynced();
+          qc.invalidateQueries({ queryKey: ["provider-statuses", workspace.id] });
+        },
       )
       .subscribe((status) => {
-        if (status === "SUBSCRIBED") setRealtimeStatus("connected");
-        else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT")
+        if (status === "SUBSCRIBED") {
+          setRealtimeStatus("connected");
+          setLastSyncedAt((prev) => prev ?? new Date());
+        } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT")
           setRealtimeStatus("reconnecting");
         else if (status === "CLOSED") setRealtimeStatus("disconnected");
       });
