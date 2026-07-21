@@ -44,7 +44,7 @@ import {
   Phone,
   Plug,
   Power,
-  Puppet,
+  
   Receipt,
   RefreshCw,
   Repeat,
