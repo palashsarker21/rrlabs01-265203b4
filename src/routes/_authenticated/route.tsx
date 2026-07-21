@@ -1,5 +1,6 @@
-import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
+import { AuthenticatedShell } from "@/components/app-shell/app-shell";
 
 // Integration-managed protected layout gate.
 // ssr:false because Supabase stores the session in localStorage — the server cannot read it.
@@ -15,5 +16,5 @@ export const Route = createFileRoute("/_authenticated")({
     }
     return { user: data.user };
   },
-  component: () => <Outlet />,
+  component: AuthenticatedShell,
 });
