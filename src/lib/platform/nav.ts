@@ -118,7 +118,7 @@ export const PLATFORM_NAV: PlatformNavGroup[] = [
     label: "Organizations",
     icon: Building2,
     items: [
-      { id: "orgs-all", label: "All Organizations", to: "/admin/v2/customers", icon: Building2, keywords: ["workspaces", "tenants"] },
+      { id: "orgs-all", label: "All Organizations", to: "/platform/customers", icon: Building2, keywords: ["workspaces", "tenants"] },
       { id: "orgs-health", label: "Organization Health", icon: Activity, keywords: ["score"], ...t("org-health") },
       { id: "orgs-provisioning", label: "Workspace Provisioning", icon: Boxes, keywords: ["provision"], ...t("provisioning") },
       { id: "orgs-usage", label: "Usage", icon: BarChart3, keywords: ["usage"], ...t("usage") },
@@ -176,8 +176,8 @@ export const PLATFORM_NAV: PlatformNavGroup[] = [
       { id: "ai-models", label: "Models", icon: Bot, keywords: ["llm"], ...t("ai-models") },
       { id: "ai-routes", label: "Routes", icon: Split, keywords: ["routing"], ...t("ai-routes") },
       { id: "ai-prompts", label: "Prompt Library", icon: FileCode, keywords: ["prompt"], ...t("ai-prompts") },
-      { id: "ai-usage", label: "AI Usage", to: "/admin/v2/ai/analytics", icon: BarChart3, keywords: ["tokens"] },
-      { id: "ai-costs", label: "AI Costs", to: "/admin/v2/ai/analytics", icon: DollarSign, keywords: ["spend"] },
+      { id: "ai-usage", label: "AI Usage", to: "/platform/ai/analytics", icon: BarChart3, keywords: ["tokens"] },
+      { id: "ai-costs", label: "AI Costs", to: "/platform/ai/analytics", icon: DollarSign, keywords: ["spend"] },
       { id: "ai-failover", label: "AI Failover", icon: ShieldAlert, keywords: ["fallback"], ...t("ai-failover") },
     ],
   },
@@ -211,7 +211,7 @@ export const PLATFORM_NAV: PlatformNavGroup[] = [
     label: "Monitoring",
     icon: Activity,
     items: [
-      { id: "mon-health", label: "Platform Health", to: "/admin/v2/system-health", icon: Activity },
+      { id: "mon-health", label: "Platform Health", to: "/platform/system-health", icon: Activity },
       { id: "mon-queue", label: "Queue Status", icon: ListChecks, badgeKey: "failedJobs", ...t("queue") },
       { id: "mon-workers", label: "Workers", icon: ServerCog, keywords: ["workers"], ...t("workers") },
       { id: "mon-cron", label: "Cron Jobs", icon: Timer, keywords: ["schedule"], ...t("cron") },

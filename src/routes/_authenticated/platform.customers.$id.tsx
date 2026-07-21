@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { ArrowLeft, Building2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { ManageDropdown } from "@/components/admin/v2/manage-dropdown";
+import { ManageDropdown } from "@/components/platform/manage-dropdown";
 import { getCustomerDetail } from "@/lib/admin/customers.functions";
 
 export const Route = createFileRoute("/_authenticated/platform/customers/$id")({
@@ -46,7 +46,7 @@ function CustomerDetail() {
     <div className="mx-auto max-w-6xl space-y-6 px-4 py-8 md:px-8">
       <div>
         <Button asChild variant="ghost" size="sm" className="mb-3">
-          <Link to="/admin/v2/customers">
+          <Link to="/platform/customers">
             <ArrowLeft className="mr-2 h-4 w-4" /> Back to directory
           </Link>
         </Button>

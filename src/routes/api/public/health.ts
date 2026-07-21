@@ -6,7 +6,7 @@ import { createFileRoute } from "@tanstack/react-router";
  * Exposes coarse availability for customer-visible services and NOTHING
  * about internal infrastructure, secrets, providers, environment variables,
  * or configuration. Internal diagnostics live behind the super-admin
- * `getSystemHealth` server function used by /admin/v2/system-health.
+ * `getSystemHealth` server function used by /platform/system-health.
  */
 
 type PublicStatus = "operational" | "degraded" | "partial_outage" | "major_outage";

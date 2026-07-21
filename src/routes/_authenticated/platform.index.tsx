@@ -117,13 +117,13 @@ function PlatformDashboard() {
             icon={<Building2 className="h-4 w-4" />}
             label="Active Organizations"
             value={totals.active}
-            to="/admin/v2/customers"
+            to="/platform/customers"
           />
           <Kpi
             icon={<UserPlus className="h-4 w-4" />}
             label="Active Trials"
             value={totals.trial}
-            to="/admin/v2/customers"
+            to="/platform/customers"
           />
           <Kpi
             icon={<CreditCard className="h-4 w-4" />}
@@ -136,7 +136,7 @@ function PlatformDashboard() {
             icon={<Activity className="h-4 w-4" />}
             label="Total Workspaces"
             value={totals.workspaces}
-            to="/admin/v2/customers"
+            to="/platform/customers"
           />
         </div>
       </section>
@@ -198,13 +198,13 @@ function PlatformDashboard() {
             icon={<Bot className="h-4 w-4" />}
             label="AI Analytics"
             value="View"
-            to="/admin/v2/ai/analytics"
+            to="/platform/ai/analytics"
           />
           <Kpi
             icon={<Activity className="h-4 w-4" />}
             label="Platform Health"
             value="View"
-            to="/admin/v2/system-health"
+            to="/platform/system-health"
           />
         </div>
       </section>

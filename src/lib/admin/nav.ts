@@ -63,7 +63,7 @@ const legacy = (tab: string): { to: string; search: Record<string, string> } => 
  * Hierarchical navigation tree for the Platform Control Center (v2).
  * Leaves may deep-link into the legacy /admin tabs during the transition — no
  * existing functionality is removed. New pages will be introduced under
- * /admin/v2/* in later waves.
+ * /platform/* in later waves.
  */
 export const ADMIN_NAV: AdminNavNode[] = [
   {
@@ -71,7 +71,7 @@ export const ADMIN_NAV: AdminNavNode[] = [
     id: "overview",
     label: "Overview",
     description: "Executive metrics, health, and quick actions.",
-    to: "/admin/v2",
+    to: "/platform",
     icon: LayoutDashboard,
     keywords: ["home", "dashboard", "kpi", "executive"],
   },
@@ -88,7 +88,7 @@ export const ADMIN_NAV: AdminNavNode[] = [
         description: "Search, filter, and manage every workspace.",
         icon: Building2,
         keywords: ["tenants", "orgs", "customers", "directory"],
-        to: "/admin/v2/customers",
+        to: "/platform/customers",
       },
       {
         kind: "leaf",
@@ -268,7 +268,7 @@ export const ADMIN_NAV: AdminNavNode[] = [
         description: "Internal diagnostics — infrastructure, secrets, providers.",
         icon: Activity,
         keywords: ["uptime", "status", "diagnostics", "infrastructure"],
-        to: "/admin/v2/system-health",
+        to: "/platform/system-health",
       },
       {
         kind: "leaf",

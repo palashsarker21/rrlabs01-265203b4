@@ -45,7 +45,7 @@ function AiPlatformPage() {
           </p>
         </div>
         <Button asChild variant="outline" size="sm">
-          <a href="/admin/v2/ai/analytics">View analytics →</a>
+          <a href="/platform/ai/analytics">View analytics →</a>
         </Button>
       </div>
 
