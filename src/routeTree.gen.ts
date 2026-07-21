@@ -47,6 +47,7 @@ import { Route as AuthenticatedTeamRouteImport } from './routes/_authenticated/t
 import { Route as AuthenticatedSetupRouteImport } from './routes/_authenticated/setup'
 import { Route as AuthenticatedRlsVerificationRouteImport } from './routes/_authenticated/rls-verification'
 import { Route as AuthenticatedRecoveryStrategyRouteImport } from './routes/_authenticated/recovery-strategy'
+import { Route as AuthenticatedPlatformRouteImport } from './routes/_authenticated/platform'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
 import { Route as AuthenticatedIntegrationsRouteImport } from './routes/_authenticated/integrations'
@@ -278,6 +279,11 @@ const AuthenticatedRecoveryStrategyRoute =
     path: '/recovery-strategy',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedPlatformRoute = AuthenticatedPlatformRouteImport.update({
+  id: '/platform',
+  path: '/platform',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedOnboardingRoute = AuthenticatedOnboardingRouteImport.update({
   id: '/onboarding',
   path: '/onboarding',
@@ -535,6 +541,7 @@ export interface FileRoutesByFullPath {
   '/integrations': typeof AuthenticatedIntegrationsRouteWithChildren
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
+  '/platform': typeof AuthenticatedPlatformRoute
   '/recovery-strategy': typeof AuthenticatedRecoveryStrategyRoute
   '/rls-verification': typeof AuthenticatedRlsVerificationRoute
   '/setup': typeof AuthenticatedSetupRoute
@@ -612,6 +619,7 @@ export interface FileRoutesByTo {
   '/integrations': typeof AuthenticatedIntegrationsRouteWithChildren
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
+  '/platform': typeof AuthenticatedPlatformRoute
   '/recovery-strategy': typeof AuthenticatedRecoveryStrategyRoute
   '/rls-verification': typeof AuthenticatedRlsVerificationRoute
   '/setup': typeof AuthenticatedSetupRoute
@@ -691,6 +699,7 @@ export interface FileRoutesById {
   '/_authenticated/integrations': typeof AuthenticatedIntegrationsRouteWithChildren
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
+  '/_authenticated/platform': typeof AuthenticatedPlatformRoute
   '/_authenticated/recovery-strategy': typeof AuthenticatedRecoveryStrategyRoute
   '/_authenticated/rls-verification': typeof AuthenticatedRlsVerificationRoute
   '/_authenticated/setup': typeof AuthenticatedSetupRoute
@@ -771,6 +780,7 @@ export interface FileRouteTypes {
     | '/integrations'
     | '/notifications'
     | '/onboarding'
+    | '/platform'
     | '/recovery-strategy'
     | '/rls-verification'
     | '/setup'
@@ -848,6 +858,7 @@ export interface FileRouteTypes {
     | '/integrations'
     | '/notifications'
     | '/onboarding'
+    | '/platform'
     | '/recovery-strategy'
     | '/rls-verification'
     | '/setup'
@@ -926,6 +937,7 @@ export interface FileRouteTypes {
     | '/_authenticated/integrations'
     | '/_authenticated/notifications'
     | '/_authenticated/onboarding'
+    | '/_authenticated/platform'
     | '/_authenticated/recovery-strategy'
     | '/_authenticated/rls-verification'
     | '/_authenticated/setup'
@@ -1273,6 +1285,13 @@ declare module '@tanstack/react-router' {
       path: '/recovery-strategy'
       fullPath: '/recovery-strategy'
       preLoaderRoute: typeof AuthenticatedRecoveryStrategyRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/platform': {
+      id: '/_authenticated/platform'
+      path: '/platform'
+      fullPath: '/platform'
+      preLoaderRoute: typeof AuthenticatedPlatformRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/onboarding': {
@@ -1684,6 +1703,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedIntegrationsRoute: typeof AuthenticatedIntegrationsRouteWithChildren
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
+  AuthenticatedPlatformRoute: typeof AuthenticatedPlatformRoute
   AuthenticatedRecoveryStrategyRoute: typeof AuthenticatedRecoveryStrategyRoute
   AuthenticatedRlsVerificationRoute: typeof AuthenticatedRlsVerificationRoute
   AuthenticatedSetupRoute: typeof AuthenticatedSetupRoute
@@ -1708,6 +1728,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedIntegrationsRoute: AuthenticatedIntegrationsRouteWithChildren,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
+  AuthenticatedPlatformRoute: AuthenticatedPlatformRoute,
   AuthenticatedRecoveryStrategyRoute: AuthenticatedRecoveryStrategyRoute,
   AuthenticatedRlsVerificationRoute: AuthenticatedRlsVerificationRoute,
   AuthenticatedSetupRoute: AuthenticatedSetupRoute,
