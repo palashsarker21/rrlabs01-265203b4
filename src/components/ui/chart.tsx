@@ -103,7 +103,6 @@ const ChartTooltipContent = React.forwardRef<
       labelKey?: string;
     }
 >(
-
   (
     {
       active,
@@ -185,7 +184,6 @@ const ChartTooltipContent = React.forwardRef<
                   {formatter && item?.value !== undefined && item.name ? (
                     formatter(item.value as never, item.name as never, item, index, payload)
                   ) : (
-
                     <>
                       {itemConfig?.icon ? (
                         <itemConfig.icon />
@@ -251,7 +249,6 @@ const ChartLegendContent = React.forwardRef<
     hideIcon?: boolean;
     nameKey?: string;
   }
-
 >(({ className, hideIcon = false, payload, verticalAlign = "bottom", nameKey }, ref) => {
   const { config } = useChart();
 
