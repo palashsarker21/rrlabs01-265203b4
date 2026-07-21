@@ -81,6 +81,7 @@ import { Route as ApiPublicHooksSuccessFeeMonthlyRouteImport } from './routes/ap
 import { Route as ApiPublicHooksRecoveryCadenceRouteImport } from './routes/api/public/hooks/recovery-cadence'
 import { Route as AuthenticatedPlatformCustomersIdRouteImport } from './routes/_authenticated/platform.customers.$id'
 import { Route as AuthenticatedPlatformAiAnalyticsRouteImport } from './routes/_authenticated/platform.ai.analytics'
+import { Route as AuthenticatedAdminV2SplatRouteImport } from './routes/_authenticated/admin.v2.$'
 import { Route as AuthenticatedAdminEmailWebhooksRouteImport } from './routes/_authenticated/admin.email.webhooks'
 import { Route as AuthenticatedAdminEmailSandboxRouteImport } from './routes/_authenticated/admin.email.sandbox'
 import { Route as AuthenticatedAdminEmailPreviewRouteImport } from './routes/_authenticated/admin.email.preview'
@@ -467,6 +468,12 @@ const AuthenticatedPlatformAiAnalyticsRoute =
     path: '/analytics',
     getParentRoute: () => AuthenticatedPlatformAiRoute,
   } as any)
+const AuthenticatedAdminV2SplatRoute =
+  AuthenticatedAdminV2SplatRouteImport.update({
+    id: '/v2/$',
+    path: '/v2/$',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminEmailWebhooksRoute =
   AuthenticatedAdminEmailWebhooksRouteImport.update({
     id: '/webhooks',
@@ -567,6 +574,7 @@ export interface FileRoutesByFullPath {
   '/admin/email/preview': typeof AuthenticatedAdminEmailPreviewRoute
   '/admin/email/sandbox': typeof AuthenticatedAdminEmailSandboxRoute
   '/admin/email/webhooks': typeof AuthenticatedAdminEmailWebhooksRoute
+  '/admin/v2/$': typeof AuthenticatedAdminV2SplatRoute
   '/platform/ai/analytics': typeof AuthenticatedPlatformAiAnalyticsRoute
   '/platform/customers/$id': typeof AuthenticatedPlatformCustomersIdRoute
   '/api/public/hooks/recovery-cadence': typeof ApiPublicHooksRecoveryCadenceRoute
@@ -643,6 +651,7 @@ export interface FileRoutesByTo {
   '/admin/email/preview': typeof AuthenticatedAdminEmailPreviewRoute
   '/admin/email/sandbox': typeof AuthenticatedAdminEmailSandboxRoute
   '/admin/email/webhooks': typeof AuthenticatedAdminEmailWebhooksRoute
+  '/admin/v2/$': typeof AuthenticatedAdminV2SplatRoute
   '/platform/ai/analytics': typeof AuthenticatedPlatformAiAnalyticsRoute
   '/platform/customers/$id': typeof AuthenticatedPlatformCustomersIdRoute
   '/api/public/hooks/recovery-cadence': typeof ApiPublicHooksRecoveryCadenceRoute
@@ -723,6 +732,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/email/preview': typeof AuthenticatedAdminEmailPreviewRoute
   '/_authenticated/admin/email/sandbox': typeof AuthenticatedAdminEmailSandboxRoute
   '/_authenticated/admin/email/webhooks': typeof AuthenticatedAdminEmailWebhooksRoute
+  '/_authenticated/admin/v2/$': typeof AuthenticatedAdminV2SplatRoute
   '/_authenticated/platform/ai/analytics': typeof AuthenticatedPlatformAiAnalyticsRoute
   '/_authenticated/platform/customers/$id': typeof AuthenticatedPlatformCustomersIdRoute
   '/api/public/hooks/recovery-cadence': typeof ApiPublicHooksRecoveryCadenceRoute
@@ -803,6 +813,7 @@ export interface FileRouteTypes {
     | '/admin/email/preview'
     | '/admin/email/sandbox'
     | '/admin/email/webhooks'
+    | '/admin/v2/$'
     | '/platform/ai/analytics'
     | '/platform/customers/$id'
     | '/api/public/hooks/recovery-cadence'
@@ -879,6 +890,7 @@ export interface FileRouteTypes {
     | '/admin/email/preview'
     | '/admin/email/sandbox'
     | '/admin/email/webhooks'
+    | '/admin/v2/$'
     | '/platform/ai/analytics'
     | '/platform/customers/$id'
     | '/api/public/hooks/recovery-cadence'
@@ -958,6 +970,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/email/preview'
     | '/_authenticated/admin/email/sandbox'
     | '/_authenticated/admin/email/webhooks'
+    | '/_authenticated/admin/v2/$'
     | '/_authenticated/platform/ai/analytics'
     | '/_authenticated/platform/customers/$id'
     | '/api/public/hooks/recovery-cadence'
@@ -1513,6 +1526,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPlatformAiAnalyticsRouteImport
       parentRoute: typeof AuthenticatedPlatformAiRoute
     }
+    '/_authenticated/admin/v2/$': {
+      id: '/_authenticated/admin/v2/$'
+      path: '/v2/$'
+      fullPath: '/admin/v2/$'
+      preLoaderRoute: typeof AuthenticatedAdminV2SplatRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/email/webhooks': {
       id: '/_authenticated/admin/email/webhooks'
       path: '/webhooks'
@@ -1574,10 +1594,12 @@ const AuthenticatedAdminEmailRouteWithChildren =
 
 interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminEmailRoute: typeof AuthenticatedAdminEmailRouteWithChildren
+  AuthenticatedAdminV2SplatRoute: typeof AuthenticatedAdminV2SplatRoute
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminEmailRoute: AuthenticatedAdminEmailRouteWithChildren,
+  AuthenticatedAdminV2SplatRoute: AuthenticatedAdminV2SplatRoute,
 }
 
 const AuthenticatedAdminRouteWithChildren =
