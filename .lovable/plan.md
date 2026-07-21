@@ -1,86 +1,94 @@
-# Live Support & Messaging Center — Delivery Plan
+## Enterprise App Shell Redesign
 
-Audit-first, extend-only. No existing chat/notification code is replaced. Delivered in 5 waves so each is reviewable, backwards-compatible, and production-safe.
+Structural navigation/layout overhaul for the entire `_authenticated` area. No business logic, schema, or API changes — routes, server functions, and data flow all stay intact. Only the shell and dashboard composition change.
 
-## Audit findings (current state)
+### 1. New authenticated shell (`src/routes/_authenticated/route.tsx`)
 
-- **No existing support/chat tables** — `support_*` namespace is unused. Nothing to preserve or migrate.
-- **Notifications**: `notification_logs`, `notification_preferences`, `alerts` exist and drive the header bell. Support will emit into these; not replaced.
-- **Roles**: `app_role` enum + `user_roles` + `has_role()` already exist (`super_admin` present). Missing: `support_agent`, `moderator`. `workspace_role` (owner/admin/manager/member) handles customer-side gating.
-- **Realtime**: Supabase Realtime is wired and already used on the Integrations page. Same pattern reused.
-- **Auth/RLS**: `_authenticated/route.tsx` gate + `requireSupabaseAuth` middleware + bearer attacher in `src/start.ts` are in place.
-- **AI**: Lovable AI Gateway server helper exists — reused for auto-tagging + close-summary.
-- **Storage**: `blog-media` bucket exists (private). New `support-attachments` bucket added.
-- **UI primitives**: shadcn + AI Elements-style primitives, `PageHeader`, `StatCard`, header bell all reusable.
+Wrap every authenticated route in a persistent shell using the existing shadcn `Sidebar` primitives:
 
-## Waves
+```text
+┌─────────────────────────────────────────────────────────┐
+│ TopBar: [☰ mobile] [Workspace ▾] [Search] [+ Create] [🔔] [User ▾] │
+├────────────┬────────────────────────────────────────────┤
+│ Sidebar    │                                            │
+│  Logo      │                                            │
+│  Search    │            <Outlet />                      │
+│  Nav       │      (independent scroll area)             │
+│  groups    │                                            │
+│  (collap-  │                                            │
+│   sible)   │                                            │
+└────────────┴────────────────────────────────────────────┘
+```
 
-### Wave 1 — Schema, RLS, routing engine (server)
+- Desktop ≥`md`: permanent left sidebar (`collapsible="icon"`), sticky top header, main content scrolls independently.
+- Mobile: sidebar becomes an offcanvas drawer via `SidebarTrigger`; top header keeps workspace/search/notifications/user; no bottom nav.
+- Sidebar state (expanded groups + collapsed rail) persisted to `localStorage`.
+- Active route highlighting via `useRouterState` pathname matching.
 
-- Migration adds `support_agent` + `moderator` to `app_role` enum.
-- New tables (all with GRANTs + RLS + `service_role` full access + `authenticated` scoped policies):
-  `support_conversations`, `support_messages`, `support_participants`, `support_presence`, `support_assignments`, `support_tags`, `support_conversation_tags`, `support_internal_notes`, `support_attachments`, `support_feedback`, `support_activity_logs`.
-- Enums: `support_status` (open/pending/waiting/resolved/closed/archived), `support_priority` (low..critical), `support_category` (10 values from spec), `support_presence_status` (online/available/busy/away/offline), `support_message_kind` (text/system/note), `support_delivery_status` (sending/sent/delivered/seen/failed).
-- `support-attachments` private storage bucket + signed-URL server fn.
-- Helper fns: `is_support_staff(uid)`, `can_view_conversation(uid, conv_id)`, `next_support_assignee()` (agents → admins → moderators → super-admin, filtered by presence).
-- Server fns in `src/lib/support/*.functions.ts`: `startConversation`, `sendMessage`, `markSeen`, `setTyping`, `setPresence`, `assignConversation`, `transferConversation`, `closeConversation`, `reopenConversation`, `submitFeedback`, `addInternalNote`, `uploadAttachment` (signed URL), `listMyConversations`, `getConversation`, `searchMessages`, `staffInboxList`, `staffInboxMetrics`.
-- Auto-response system message when queue is empty; SLA fields stamped on each message/assignment.
-- Realtime publication `ADD TABLE` for all support tables.
+### 2. Navigation config (`src/lib/app-nav.ts`)
 
-### Wave 2 — Customer chat UI
+Single source of truth consumed by sidebar, command palette, and global search. Groups: Dashboard, Recovery, Customers, Orders, Payments, Communication, AI, Automation, Integrations, Analytics, Team, Security, Settings, Support — matching the structure in the request.
 
-- New route `src/routes/_authenticated/support.tsx` — conversation list + active thread.
-- Floating support widget component available on every authenticated page (opt-in via header).
-- Message composer with attachments, emoji picker, sending/sent/delivered/seen badges, typing indicator, auto-scroll, unread badge.
-- Presence + typing via Supabase Realtime broadcast/presence channels.
-- Feedback modal on close (5-star + comment + preset options).
-- WCAG 2.2 AA: focus rings, keyboard shortcuts (Enter send, Shift+Enter newline, Esc close), aria-live for new messages, screen-reader labels for status pills.
+- Each item: `{ id, label, to, icon, keywords, badge?, permission?, adminOnly? }`.
+- Items filtered by `usePermissions` / `getMyAdminStatus` so users only see what they can open.
+- Items that don't yet have a dedicated route point at the nearest existing route (e.g. "Recovery Attempts" → `/events`, "Invoices" → `/billing/statements`, "Prompt Library" → `/admin/v2/ai`). No new feature routes are created — this is a discoverability redesign; existing pages are simply surfaced.
 
-### Wave 3 — Staff inbox
+### 3. Top header (`src/components/app-shell/top-bar.tsx`)
 
-- New route group `src/routes/_authenticated/admin/support/`:
-  - `index.tsx` — inbox with filters (status, priority, category, assignee, unassigned, tags, search).
-  - `$conversationId.tsx` — full thread with internal-notes tab, transfer/assign controls, priority/category/tags, customer profile side panel.
-- Gate: `has_role(uid, 'support_agent') OR has_role(uid, 'moderator') OR has_role(uid, 'admin') OR is_super_admin(uid)`.
-- Metrics header: open, waiting, assigned to me, unassigned, avg first-response, avg resolution, CSAT.
-- Presence toggle for staff (online/available/busy/away).
+Minimal, no duplicate nav:
+- Mobile `SidebarTrigger` (hamburger).
+- `WorkspaceSwitcher` (reuses current workspace query).
+- Global `SearchTrigger` → opens `⌘K` command palette (extends the existing `AdminCommandPalette` pattern into `AppCommandPalette` fed by `app-nav.ts` + recent customers/events).
+- `QuickCreateMenu`: Connect Store, Connect Payment, Create Campaign, Invite Member, Send Test Email, Run AI Test — each links to the existing route/dialog that already implements it.
+- `NotificationsBell` (existing `listAlerts` + realtime).
+- `UserMenu` (profile, security, sign out — existing actions).
 
-### Wave 4 — AI + SLA
+### 4. Left sidebar (`src/components/app-shell/app-sidebar.tsx`)
 
-- Auto-tagging (Lovable AI, `google/gemini-3-flash-preview`) on first customer message → sets `category` + inserts tags. Structured output with Zod.
-- Close-summary AI job (problem / root cause / resolution / duration / category / agent) stored on the conversation row.
-- SLA computation server fn: first-response, avg response, resolution, waiting time. Rolled into `staffInboxMetrics`.
-- Alerts: new-conversation, SLA-breach, mention-in-internal-note.
+- `BrandLockup` at top.
+- Inline workspace switcher (compact).
+- Search input that opens the command palette.
+- `SidebarGroup` per category with collapsible header; default-open groups derived from active route; state stored per group in `localStorage`.
+- Icon-only rail when collapsed; tooltips on hover.
 
-### Wave 5 — Notifications, attachments, tests, hardening
+### 5. Dashboard rework (`src/routes/_authenticated/app.tsx`)
 
-- Emit into existing `notification_logs` + header bell (new-message, assigned, transferred, closed).
-- Browser Notification API + optional desktop toast (existing pattern).
-- Rate limiting on `sendMessage` (server-fn in-process leaky bucket keyed by `userId`) + attachment size cap (10MB) + MIME allowlist.
-- XSS: messages render as text; markdown passes through DOMPurify.
-- Audit rows into `support_activity_logs` on every state change.
-- Tests (`vitest` + jsdom):
-  - Routing engine unit tests (agent → admin → moderator → super-admin fallback + queued when nobody online).
-  - Message send + optimistic status transitions.
-  - Typing indicator debounce.
-  - Seen-receipt fan-out.
-  - Attachment MIME/size validation.
-  - Feedback insert respects RLS (customer can insert once, staff cannot spoof).
-  - Internal-note RLS (customer cannot read).
+Trim to a summary surface — every tile links into the module that owns the detail:
 
-## Technical notes
+- KPI row: MRR, Recovered Revenue, Recovery Rate, Failed Payments, Recovered Customers, Recovery Queue depth.
+- Secondary row: Today's Activity, Active Integrations, AI Status, System Health.
+- Recent Events feed (existing `listRecoveryEvents`) with realtime subscription on `recovery_events` — replaces manual refresh.
+- Quick Actions card mirroring the top-bar Quick Create.
+- Every card is a `Link` to its module; long-form panels (billing, workflow diagram, full event table) move out of the dashboard and stay reachable via their existing routes.
 
-- Realtime: postgres_changes for durable state (messages, conversation, assignments); presence channels for typing + online status (no DB writes per keystroke).
-- Storage: private bucket, download via signed URL from a `requireSupabaseAuth` server fn that checks `can_view_conversation`.
-- No new edge functions — all server logic via `createServerFn` per stack rules.
-- Backward compatible: no existing tables touched, no existing routes changed. Support widget rendered opt-in.
+### 6. Live recovery pipeline
 
-## Files (high-level)
+Upgrade `RecoveryWorkflowDiagram` to a live pipeline view fed by realtime `recovery_events` + `recovery_attempts` counts (data already exposed by `getRecoveryStats` / `listRecoveryEvents`). Each node shows status, last timestamp, and opens a detail drawer listing the most recent events for that stage. No engine/schema changes.
 
-- Migrations: 1 combined migration for Wave 1.
-- Server: `src/lib/support/{conversations,messages,presence,assignments,ai,attachments}.functions.ts`, `src/lib/support/routing.ts` (+ unit tests).
-- UI: `src/routes/_authenticated/support.tsx`, `src/routes/_authenticated/admin/support/index.tsx`, `src/routes/_authenticated/admin/support/$conversationId.tsx`, `src/components/support/*` (widget, thread, composer, message-bubble, presence-dot, typing-indicator, feedback-dialog, attachment-preview).
+### 7. Empty states, mobile, performance
 
-## Approval
+- Reuse `EmptyState` primitive everywhere a list can be empty (illustration + description + primary/secondary CTA).
+- Mobile: sidebar drawer, single-column dashboard grid, no horizontal scroll; verified with the mobile viewport tool.
+- Route-level code splitting stays as TanStack's default; heavy dashboard panels (`RecoveryWorkflowDiagram`, `BillingPanel`) become `React.lazy` behind Suspense so the dashboard shell stays light.
 
-Reply **"Approve Wave 1"** to run the migration + backend routing engine, or ask me to reorder / trim scope.
+### Files touched
+
+- `src/routes/_authenticated/route.tsx` — swap `<Outlet />` for the new `<AppShell>` wrapper.
+- `src/components/app-shell/` (new): `app-sidebar.tsx`, `top-bar.tsx`, `workspace-switcher.tsx`, `quick-create-menu.tsx`, `app-command-palette.tsx`, `nav-config.tsx`.
+- `src/lib/app-nav.ts` (new): grouped nav registry.
+- `src/routes/_authenticated/app.tsx` — dashboard rewrite (summary-only).
+- `src/components/recovery-workflow-diagram.tsx` — live pipeline upgrade.
+- Small tweaks to `admin.v2.tsx` so it nests cleanly inside the new shell (drop the duplicate header, keep its admin sub-nav).
+
+### Out of scope
+
+- No new server functions, migrations, RLS, or edge functions.
+- No changes to Recovery Engine timing/logic, AI gateway, billing math, or auth flows.
+- No new feature pages — every sidebar link resolves to an existing route.
+
+### Rollout
+
+Single PR. Verified by:
+1. `bunx tsgo --noEmit` clean.
+2. `bun run build` clean.
+3. Playwright screenshot of dashboard + `/events` + `/admin/v2` on desktop and 390px mobile viewport.
