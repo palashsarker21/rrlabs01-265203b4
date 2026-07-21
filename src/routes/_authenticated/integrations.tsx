@@ -1479,6 +1479,55 @@ function UpgradeBadge({ reason, overLimit }: { reason: string; overLimit: boolea
   );
 }
 
+function RealtimeStatusBadge({
+  status,
+}: {
+  status: "connecting" | "connected" | "reconnecting" | "disconnected";
+}) {
+  const config = {
+    connected: {
+      label: "Live updates connected",
+      dot: "bg-emerald-400",
+      pulse: "animate-pulse",
+      cls: "border-emerald-500/40 bg-emerald-500/10 text-emerald-400",
+    },
+    connecting: {
+      label: "Connecting…",
+      dot: "bg-amber-400",
+      pulse: "animate-pulse",
+      cls: "border-amber-500/40 bg-amber-500/10 text-amber-400",
+    },
+    reconnecting: {
+      label: "Reconnecting…",
+      dot: "bg-amber-400",
+      pulse: "animate-pulse",
+      cls: "border-amber-500/40 bg-amber-500/10 text-amber-400",
+    },
+    disconnected: {
+      label: "Disconnected",
+      dot: "bg-rose-400",
+      pulse: "",
+      cls: "border-rose-500/40 bg-rose-500/10 text-rose-400",
+    },
+  }[status];
+
+  return (
+    <span
+      role="status"
+      aria-live="polite"
+      title={config.label}
+      className={cn(
+        "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium",
+        config.cls,
+      )}
+    >
+      <span className={cn("h-1.5 w-1.5 rounded-full", config.dot, config.pulse)} />
+      {config.label}
+    </span>
+  );
+}
+
+
 
 
 
