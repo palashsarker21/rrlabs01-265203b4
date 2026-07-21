@@ -203,21 +203,19 @@ function RlsVerificationPage() {
           let events = 0;
           const channelName = `rls-probe-${fakeWorkspace}`;
           log(t.id, `Opening realtime channel ${channelName}`);
-          const channel = supabase
-            .channel(channelName)
-            .on(
-              "postgres_changes",
-              {
-                event: "*",
-                schema: "public",
-                table: "workspaces",
-                filter: `id=eq.${fakeWorkspace}`,
-              },
-              (payload) => {
-                events += 1;
-                log(t.id, `unexpected event: ${payload.eventType}`);
-              },
-            );
+          const channel = supabase.channel(channelName).on(
+            "postgres_changes",
+            {
+              event: "*",
+              schema: "public",
+              table: "workspaces",
+              filter: `id=eq.${fakeWorkspace}`,
+            },
+            (payload) => {
+              events += 1;
+              log(t.id, `unexpected event: ${payload.eventType}`);
+            },
+          );
 
           const subscribed = await new Promise<boolean>((resolve) => {
             const timer = setTimeout(() => resolve(false), 3000);

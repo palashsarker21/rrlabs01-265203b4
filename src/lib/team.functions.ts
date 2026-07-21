@@ -38,7 +38,7 @@ export const listWorkspaceMembers = createServerFn({ method: "GET" })
     if (error) throw new Error(error.message);
 
     const userIds = (members ?? []).map((m) => m.user_id);
-    let profiles: Record<
+    const profiles: Record<
       string,
       { email: string | null; display_name: string | null; avatar_url: string | null }
     > = {};
@@ -130,7 +130,7 @@ export const createInvitation = createServerFn({ method: "POST" })
       await sendEmail({
         template: "workspace-invite",
         to: email,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
         data: {
           workspaceName: ws?.name ?? "your workspace",
           inviterName: inviter?.display_name ?? inviter?.email ?? undefined,

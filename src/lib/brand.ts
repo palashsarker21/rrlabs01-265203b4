@@ -190,7 +190,6 @@ export const ENABLED_SOCIAL_PROFILES: readonly SocialProfile[] = (() => {
   // whole block is dead-code-eliminated in production.
   if (import.meta.env.DEV && (invalid.length > 0 || duplicates.length > 0)) {
     if (invalid.length > 0) {
-      // eslint-disable-next-line no-console
       console.warn(
         `[brand] SOCIAL_PROFILES contains ${invalid.length} invalid URL(s). ` +
           `These profiles are enabled but their href is not a safe absolute https:// URL and will be dropped:`,
@@ -198,7 +197,6 @@ export const ENABLED_SOCIAL_PROFILES: readonly SocialProfile[] = (() => {
       );
     }
     if (duplicates.length > 0) {
-      // eslint-disable-next-line no-console
       console.warn(
         `[brand] SOCIAL_PROFILES contains ${duplicates.length} duplicate URL(s). ` +
           `These profiles normalize to a URL already registered by another platform and will be dropped:`,
