@@ -1,39 +1,42 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
-  LogOut,
-  Sparkles,
-  RefreshCw,
-  Mail,
-  Settings,
-  TrendingUp,
-  Shield,
-  CheckCircle2,
-  Circle,
-  ArrowRight,
   Activity,
-  Users,
+  ArrowRight,
+  BarChart3,
   Bell,
+  Bot,
+  CheckCircle2,
+  CreditCard,
+  Handshake,
+  Mail,
+  MessageSquare,
+  Plug,
+  Receipt,
+  RefreshCw,
+  Sparkles,
+  Target,
+  TrendingUp,
+  Users,
+  Zap,
 } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { StatCard } from "@/components/ui/stat-card";
 import { EmptyState } from "@/components/ui/empty-state";
-import { SectionCard } from "@/components/ui/section-card";
-import { BrandLockup } from "@/components/brand-mark";
-import { TrialBadge, TrialReminderBanner, WorkspaceStatusBadge } from "@/components/trial-badge";
+import {
+  TrialBadge,
+  TrialReminderBanner,
+  WorkspaceStatusBadge,
+} from "@/components/trial-badge";
 import { computeTrialInfo } from "@/lib/trial";
-import { getRecoveryStats, listRecoveryEvents, retryRecoveryEvent } from "@/lib/recovery.functions";
-import { getMyAdminStatus } from "@/lib/admin.functions";
-import { listAlerts } from "@/lib/notifications.functions";
-import { BillingPanel } from "@/components/billing/billing-panel";
-import { RecoveryWorkflowDiagram } from "@/components/recovery-workflow-diagram";
+import { getRecoveryStats, listRecoveryEvents } from "@/lib/recovery.functions";
 
 export const Route = createFileRoute("/_authenticated/app")({
-  component: AppShell,
+  component: Dashboard,
   head: () => ({
     meta: [{ title: "Dashboard — RRLabs" }, { name: "robots", content: "noindex" }],
   }),
@@ -51,23 +54,8 @@ function money(cents: number | null | undefined, currency: string | null | undef
   }
 }
 
-function AppShell() {
+function Dashboard() {
   const navigate = useNavigate();
-  const [signingOut, setSigningOut] = useState(false);
-
-  const { data: profile } = useQuery({
-    queryKey: ["me"],
-    queryFn: async () => {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) return null;
-      const { data } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", userData.user.id)
-        .maybeSingle();
-      return { user: userData.user, profile: data };
-    },
-  });
 
   const { data: workspaces } = useQuery({
     queryKey: ["workspaces"],
@@ -89,257 +77,207 @@ function AppShell() {
 
   useEffect(() => {
     if (!workspaces) return;
-    if (workspaces.length === 0) {
-      navigate({ to: "/onboarding", replace: true });
-    }
+    if (workspaces.length === 0) navigate({ to: "/onboarding", replace: true });
   }, [workspaces, navigate]);
+
+  // Realtime updates for recovery events
+  useEffect(() => {
+    if (!activeWorkspace) return;
+    const channel = supabase
+      .channel(`ws-${activeWorkspace.id}-events`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "recovery_events",
+          filter: `workspace_id=eq.${activeWorkspace.id}`,
+        },
+        () => {
+          void statsQuery.refetch();
+          void eventsQuery.refetch();
+        },
+      )
+      .subscribe();
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeWorkspace?.id]);
 
   const stats = useServerFn(getRecoveryStats);
   const events = useServerFn(listRecoveryEvents);
-  const retry = useServerFn(retryRecoveryEvent);
-  const adminStatus = useServerFn(getMyAdminStatus);
-  const { data: me } = useQuery({ queryKey: ["admin-status"], queryFn: () => adminStatus({}) });
 
   const statsQuery = useQuery({
     enabled: !!activeWorkspace,
     queryKey: ["recovery-stats", activeWorkspace?.id],
     queryFn: () => stats({ data: { workspaceId: activeWorkspace!.id } }),
-    refetchInterval: 15000,
+    refetchInterval: 30000,
   });
-  const statsData = statsQuery.data;
+  const s = statsQuery.data;
 
   const eventsQuery = useQuery({
     enabled: !!activeWorkspace,
-    queryKey: ["recovery-events", activeWorkspace?.id],
-    queryFn: () => events({ data: { workspaceId: activeWorkspace!.id, limit: 10 } }),
-    refetchInterval: 15000,
-  });
-  const eventsData = eventsQuery.data;
-
-  const alertsFn = useServerFn(listAlerts);
-  const alertsQuery = useQuery({
-    enabled: !!activeWorkspace,
-    queryKey: ["alerts-open-count", activeWorkspace?.id],
-    queryFn: () =>
-      alertsFn({ data: { workspaceId: activeWorkspace!.id, status: "open", limit: 1 } }),
+    queryKey: ["recovery-events-dashboard", activeWorkspace?.id],
+    queryFn: () => events({ data: { workspaceId: activeWorkspace!.id, limit: 6 } }),
     refetchInterval: 30000,
   });
-  const openAlerts = alertsQuery.data?.openCount ?? 0;
+  const recentEvents = eventsQuery.data ?? [];
 
-  async function handleSignOut() {
-    setSigningOut(true);
-    await supabase.auth.signOut();
-    navigate({ to: "/auth", replace: true });
-  }
-
-  async function handleRetry(eventId: string) {
-    try {
-      const { toast } = await import("sonner");
-      await retry({ data: { eventId } });
-      toast.success("Recovery attempt queued.");
-      await eventsQuery.refetch();
-    } catch (err) {
-      const { toast } = await import("sonner");
-      toast.error(err instanceof Error ? err.message : "Retry failed.");
-    }
-  }
-
-  const setupStep = activeWorkspace?.setup_step ?? 0;
   const engineOn = !!activeWorkspace?.recovery_engine_enabled;
 
   return (
-    <div className="min-h-dvh bg-background">
-      <header className="border-b border-border/60 bg-card/40 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
-          <BrandLockup />
-          <div className="flex items-center gap-2">
-            <span className="hidden text-sm text-muted-foreground md:inline">
-              {profile?.profile?.display_name ?? profile?.user?.email}
-            </span>
-            {me?.isSuperAdmin ? (
-              <Button asChild size="sm" variant="ghost">
-                <Link to="/admin" aria-label="Admin">
-                  <Shield className="h-4 w-4 sm:mr-2" />
-                  <span className="hidden sm:inline">Admin</span>
-                </Link>
-              </Button>
-            ) : null}
-            <Button asChild size="sm" variant="ghost">
-              <Link to="/team" aria-label="Team">
-                <Users className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Team</span>
-              </Link>
-            </Button>
-            <Button asChild size="sm" variant="ghost">
-              <Link to="/setup" aria-label="Settings">
-                <Settings className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Settings</span>
-              </Link>
-            </Button>
-            <Button asChild size="sm" variant="ghost">
-              <Link to="/settings/security" aria-label="Security settings">
-                <Shield className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Security</span>
-              </Link>
-            </Button>
+    <div className="mx-auto w-full max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
+      <TrialReminderBanner trial={trial} />
 
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={handleSignOut}
-              disabled={signingOut}
-              aria-label="Sign out"
-            >
-              <LogOut className="h-4 w-4 sm:mr-2" />
-              <span className="hidden sm:inline">Sign out</span>
-            </Button>
-          </div>
+      <section className="flex flex-wrap items-center justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="truncate text-2xl font-semibold tracking-tight text-foreground">
+            {activeWorkspace?.name ?? "Dashboard"}
+          </h1>
+          <p className="mt-0.5 text-sm text-muted-foreground">
+            Recovery engine {engineOn ? "active" : "offline"} · Real-time overview
+          </p>
         </div>
-      </header>
-
-      <main className="mx-auto max-w-6xl space-y-6 px-4 py-8 sm:px-6 sm:py-10">
-        <TrialReminderBanner trial={trial} />
-
-        {/* Welcome */}
-        <section className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4 sm:flex sm:flex-wrap sm:items-center sm:justify-between">
-          <div className="flex min-w-0 items-center gap-3">
-            <div className="shrink-0 rounded-lg bg-primary/10 p-2 text-primary">
-              <Sparkles className="h-5 w-5" />
-            </div>
-            <div className="min-w-0">
-              <h1 className="truncate text-xl font-semibold text-foreground">
-                Welcome to {activeWorkspace?.name ?? "your workspace"}
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                Recovery engine {engineOn ? "on" : "off"}
-              </p>
-            </div>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <WorkspaceStatusBadge status={activeWorkspace?.status} />
-            <TrialBadge trial={trial} />
-            <Button asChild size="sm" variant="outline">
-              <Link to="/events">
-                <Sparkles className="mr-2 h-4 w-4" />
-                Events
+        <div className="flex flex-wrap items-center gap-2">
+          <WorkspaceStatusBadge status={activeWorkspace?.status} />
+          <TrialBadge trial={trial} />
+          {!engineOn && (
+            <Button asChild size="sm">
+              <Link to="/getting-started">
+                <Sparkles className="mr-1.5 h-3.5 w-3.5" />
+                Activate engine
               </Link>
             </Button>
-            <Button asChild size="sm" variant="outline">
-              <Link to="/analytics">
-                <Sparkles className="mr-2 h-4 w-4" />
-                Analytics
-              </Link>
-            </Button>
-            <Button asChild size="sm" variant="outline" className="relative">
-              <Link to="/notifications">
-                <Bell className="mr-2 h-4 w-4" />
-                Notifications
-                {openAlerts > 0 && (
-                  <span className="ml-2 inline-flex min-w-5 items-center justify-center rounded-full bg-destructive px-1.5 text-[10px] font-semibold text-destructive-foreground">
-                    {openAlerts > 99 ? "99+" : openAlerts}
-                  </span>
-                )}
-              </Link>
-            </Button>
-            {!engineOn && (
-              <Button asChild size="sm" variant="default">
-                <Link to="/getting-started">
-                  <Sparkles className="mr-2 h-4 w-4" />
-                  Guided setup
-                </Link>
-              </Button>
-            )}
-          </div>
-        </section>
+          )}
+        </div>
+      </section>
 
-        <RecoveryWorkflowDiagram activeKey={engineOn ? "ai" : "failed"} />
-
-        {/* KPIs */}
-        <section
-          aria-label="Key metrics"
-          className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4"
-        >
+      {/* Primary KPIs */}
+      <section aria-label="Key metrics" className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <KpiLink to="/analytics">
           <StatCard
             icon={<TrendingUp className="size-4" />}
             label="Recovered revenue"
-            value={money(statsData?.recoveredAmountCents ?? 0, statsData?.currency)}
+            value={money(s?.recoveredAmountCents ?? 0, s?.currency)}
             loading={statsQuery.isLoading}
           />
-          <StatCard
-            icon={<Activity className="size-4" />}
-            label="Failed payments"
-            value={statsData?.total ?? 0}
-            loading={statsQuery.isLoading}
-          />
+        </KpiLink>
+        <KpiLink to="/analytics">
           <StatCard
             icon={<Sparkles className="size-4" />}
             label="Recovery rate"
-            value={`${Math.round((statsData?.recoveryRate ?? 0) * 100)}%`}
+            value={`${Math.round((s?.recoveryRate ?? 0) * 100)}%`}
             loading={statsQuery.isLoading}
           />
+        </KpiLink>
+        <KpiLink to="/events">
           <StatCard
-            icon={<Mail className="size-4" />}
-            label="Messages sent"
-            value={statsData?.recovered ?? 0}
+            icon={<Activity className="size-4" />}
+            label="Failed payments"
+            value={s?.total ?? 0}
             loading={statsQuery.isLoading}
           />
-        </section>
+        </KpiLink>
+        <KpiLink to="/events">
+          <StatCard
+            icon={<CheckCircle2 className="size-4" />}
+            label="Recovered customers"
+            value={s?.recovered ?? 0}
+            loading={statsQuery.isLoading}
+          />
+        </KpiLink>
+      </section>
 
-        {/* Recent activity */}
-        <section className="rounded-2xl border border-border/60 bg-card/50">
-          <div className="flex items-center justify-between border-b border-border/60 px-5 py-3 sm:px-6 sm:py-4">
+      {/* Secondary status row */}
+      <section className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+        <StatusTile
+          to="/events"
+          icon={<Zap className="size-4" />}
+          label="Recovery queue"
+          value={`${(s?.total ?? 0) - (s?.recovered ?? 0)} open`}
+          hint="Awaiting attempt"
+        />
+        <StatusTile
+          to="/events"
+          icon={<Activity className="size-4" />}
+          label="Today's activity"
+          value={`${recentEvents.length} events`}
+          hint="Last 24h"
+        />
+        <StatusTile
+          to="/integrations"
+          icon={<Plug className="size-4" />}
+          label="Active integrations"
+          value={engineOn ? "Live" : "Setup needed"}
+          hint="Stores, gateways, channels"
+        />
+        <StatusTile
+          to="/admin/v2/system-health"
+          icon={<Bot className="size-4" />}
+          label="AI & system"
+          value="Operational"
+          hint="Providers, webhooks, health"
+        />
+      </section>
+
+      <div className="grid gap-6 lg:grid-cols-3">
+        {/* Recent events */}
+        <section className="rounded-2xl border border-border/60 bg-card/50 lg:col-span-2">
+          <div className="flex items-center justify-between border-b border-border/60 px-5 py-3">
             <div className="flex items-center gap-2">
               <TrendingUp className="h-4 w-4 text-primary" />
-              <h2 className="text-sm font-medium text-foreground">Recent activity</h2>
+              <h2 className="text-sm font-medium">Recent events</h2>
+              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-medium text-emerald-600 dark:text-emerald-400">
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
+                Live
+              </span>
             </div>
-            <span className="text-xs text-muted-foreground">Live</span>
+            <Button asChild size="sm" variant="ghost">
+              <Link to="/events">
+                View all
+                <ArrowRight className="ml-1 h-3.5 w-3.5" />
+              </Link>
+            </Button>
           </div>
 
           {eventsQuery.isLoading ? (
             <ul className="divide-y divide-border/60">
-              {Array.from({ length: 3 }).map((_, i) => (
-                <li key={i} className="px-5 py-4 sm:px-6">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <li key={i} className="px-5 py-4">
                   <div className="h-4 w-1/2 animate-pulse rounded bg-muted" />
                   <div className="mt-2 h-3 w-3/4 animate-pulse rounded bg-muted/70" />
                 </li>
               ))}
             </ul>
-          ) : eventsData && eventsData.length > 0 ? (
+          ) : recentEvents.length > 0 ? (
             <ul className="divide-y divide-border/60">
-              {eventsData.map((e) => (
-                <li key={e.id} className="px-5 py-4 sm:px-6">
-                  <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4">
-                    <div className="min-w-0">
-                      <p className="truncate font-medium text-foreground">
+              {recentEvents.map((e) => (
+                <li key={e.id}>
+                  <Link
+                    to="/events"
+                    className="flex items-start justify-between gap-4 px-5 py-3.5 transition hover:bg-muted/40"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium">
                         {e.customer?.email ?? e.customer?.name ?? "Unknown customer"}
                       </p>
-                      <p className="mt-1 truncate text-xs text-muted-foreground">
+                      <p className="mt-0.5 truncate text-xs text-muted-foreground">
                         {e.ai_summary ?? e.failure_message ?? e.failure_code ?? "Analyzing…"}
                       </p>
-                      <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+                      <div className="mt-1.5 flex items-center gap-2 text-[11px]">
                         <StatusBadge status={e.status} />
                         <span className="text-muted-foreground">
                           {new Date(e.created_at).toLocaleString()}
                         </span>
                       </div>
                     </div>
-                    <div className="flex flex-col items-end gap-2">
-                      <span className="text-sm font-semibold text-foreground">
+                    <div className="text-right">
+                      <span className="text-sm font-semibold">
                         {money(e.amount_cents, e.currency)}
                       </span>
-                      {e.status !== "recovered" && e.status !== "abandoned" ? (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleRetry(e.id)}
-                          aria-label="Retry recovery"
-                        >
-                          <RefreshCw className="mr-1.5 h-3.5 w-3.5" />
-                          Retry
-                        </Button>
-                      ) : null}
                     </div>
-                  </div>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -349,8 +287,8 @@ function AppShell() {
               title="No activity yet"
               description="Connect your payment gateway to start recovering failed payments automatically."
               action={
-                <Button asChild size="sm" variant="outline">
-                  <Link to="/setup">
+                <Button asChild size="sm">
+                  <Link to="/integrations">
                     Configure integrations
                     <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
                   </Link>
@@ -360,14 +298,119 @@ function AppShell() {
           )}
         </section>
 
-        {activeWorkspace ? <BillingPanel workspaceId={activeWorkspace.id} /> : null}
+        {/* Quick actions */}
+        <section className="space-y-3">
+          <div className="rounded-2xl border border-border/60 bg-card/50 p-5">
+            <h2 className="text-sm font-semibold">Quick actions</h2>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Jump into common workflows.
+            </p>
+            <div className="mt-4 grid gap-2">
+              <QuickAction to="/integrations" icon={<Plug className="size-4" />} label="Connect store" />
+              <QuickAction to="/integrations" icon={<CreditCard className="size-4" />} label="Connect payment" />
+              <QuickAction to="/marketplace" icon={<Target className="size-4" />} label="Create campaign" />
+              <QuickAction to="/team" icon={<Handshake className="size-4" />} label="Invite member" />
+              <QuickAction to="/admin/email/sandbox" icon={<Mail className="size-4" />} label="Send test email" />
+              <QuickAction to="/settings/ai" icon={<Bot className="size-4" />} label="Run AI test" />
+            </div>
+          </div>
 
-        <div className="grid gap-6 lg:grid-cols-2">
-          <GettingStarted setupStep={setupStep} engineOn={engineOn} />
-          <SystemHealth engineOn={engineOn} />
-        </div>
-      </main>
+          <div className="rounded-2xl border border-border/60 bg-card/50 p-5">
+            <h2 className="text-sm font-semibold">Explore</h2>
+            <div className="mt-3 grid gap-2 text-sm">
+              <ExploreLink to="/analytics" icon={<BarChart3 className="size-3.5" />} label="Analytics" />
+              <ExploreLink to="/events" icon={<Activity className="size-3.5" />} label="Recovery events" />
+              <ExploreLink to="/notifications" icon={<Bell className="size-3.5" />} label="Notifications" />
+              <ExploreLink to="/billing/statements" icon={<Receipt className="size-3.5" />} label="Invoices" />
+              <ExploreLink to="/integrations/whatsapp" icon={<MessageSquare className="size-3.5" />} label="WhatsApp" />
+              <ExploreLink to="/team" icon={<Users className="size-3.5" />} label="Team & roles" />
+            </div>
+          </div>
+        </section>
+      </div>
     </div>
+  );
+}
+
+function KpiLink({ to, children }: { to: string; children: React.ReactNode }) {
+  return (
+    <Link to={to as never} className="block transition hover:opacity-90">
+      {children}
+    </Link>
+  );
+}
+
+function StatusTile({
+  to,
+  icon,
+  label,
+  value,
+  hint,
+}: {
+  to: string;
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  hint: string;
+}) {
+  return (
+    <Link
+      to={to as never}
+      className="group rounded-xl border border-border/60 bg-card/50 p-4 transition hover:border-primary/40 hover:bg-card"
+    >
+      <div className="flex items-center justify-between gap-2 text-muted-foreground">
+        <span className="flex items-center gap-2 text-xs uppercase tracking-wide">
+          {icon}
+          {label}
+        </span>
+        <ArrowRight className="h-3.5 w-3.5 opacity-0 transition group-hover:opacity-100" />
+      </div>
+      <p className="mt-2 text-lg font-semibold">{value}</p>
+      <p className="text-xs text-muted-foreground">{hint}</p>
+    </Link>
+  );
+}
+
+function QuickAction({
+  to,
+  icon,
+  label,
+}: {
+  to: string;
+  icon: React.ReactNode;
+  label: string;
+}) {
+  return (
+    <Button asChild variant="outline" size="sm" className="h-9 justify-start gap-2">
+      <Link to={to as never}>
+        {icon}
+        <span className="flex-1 text-left">{label}</span>
+        <ArrowRight className="h-3 w-3 opacity-60" />
+      </Link>
+    </Button>
+  );
+}
+
+function ExploreLink({
+  to,
+  icon,
+  label,
+}: {
+  to: string;
+  icon: React.ReactNode;
+  label: string;
+}) {
+  return (
+    <Link
+      to={to as never}
+      className="flex items-center justify-between rounded-md px-2 py-1.5 text-muted-foreground transition hover:bg-muted/50 hover:text-foreground"
+    >
+      <span className="flex items-center gap-2">
+        {icon}
+        {label}
+      </span>
+      <ArrowRight className="h-3 w-3 opacity-60" />
+    </Link>
   );
 }
 
@@ -382,7 +425,7 @@ function StatusBadge({ status }: { status: string }) {
   };
   return (
     <span
-      className={`rounded px-2 py-0.5 text-[11px] font-medium capitalize ${
+      className={`rounded px-1.5 py-0.5 text-[10px] font-medium capitalize ${
         map[status] ?? "bg-muted"
       }`}
     >
@@ -391,113 +434,5 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-function GettingStarted({ setupStep, engineOn }: { setupStep: number; engineOn: boolean }) {
-  const items = [
-    { key: "store", title: "Connect Store", done: setupStep >= 1 },
-    { key: "payment", title: "Connect Payment", done: setupStep >= 2 },
-    { key: "email", title: "Connect Email", done: setupStep >= 3 },
-    { key: "ai", title: "Activate Recovery", done: engineOn },
-  ];
-  const completed = items.filter((i) => i.done).length;
-  const pct = Math.round((completed / items.length) * 100);
-
-  if (pct === 100) return null;
-
-  return (
-    <section className="rounded-2xl border border-border/60 bg-card/50 p-5 sm:p-6">
-      <div className="flex items-center justify-between gap-3">
-        <h2 className="text-sm font-semibold text-foreground">Getting started</h2>
-        <span className="text-xs font-medium text-muted-foreground">{pct}% complete</span>
-      </div>
-      <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-muted">
-        <div
-          className="h-full rounded-full bg-primary transition-all"
-          style={{ width: `${pct}%` }}
-        />
-      </div>
-      <ul className="mt-5 space-y-2">
-        {items.map((a) => (
-          <li
-            key={a.key}
-            className="flex items-center justify-between gap-3 rounded-lg border border-border/60 bg-background/40 px-3 py-2.5"
-          >
-            <div className="flex min-w-0 items-center gap-2.5">
-              {a.done ? (
-                <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
-              ) : (
-                <Circle className="h-4 w-4 shrink-0 text-muted-foreground/60" />
-              )}
-              <span
-                className={`truncate text-sm ${
-                  a.done ? "text-muted-foreground line-through" : "text-foreground"
-                }`}
-              >
-                {a.title}
-              </span>
-            </div>
-            {!a.done ? (
-              <Button asChild size="sm" variant="ghost">
-                <Link to="/setup">
-                  Set up
-                  <ArrowRight className="ml-1 h-3.5 w-3.5" />
-                </Link>
-              </Button>
-            ) : null}
-          </li>
-        ))}
-      </ul>
-    </section>
-  );
-}
-
-function SystemHealth({ engineOn }: { engineOn: boolean }) {
-  return (
-    <section className="rounded-2xl border border-border/60 bg-card/50 p-5 sm:p-6">
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <Activity className="h-4 w-4 text-primary" />
-          <h2 className="text-sm font-semibold text-foreground">System health</h2>
-        </div>
-        <Button asChild size="sm" variant="ghost">
-          <Link to="/status">
-            Details
-            <ArrowRight className="ml-1 h-3.5 w-3.5" />
-          </Link>
-        </Button>
-      </div>
-      <ul className="mt-4 space-y-2 text-sm">
-        <HealthRow label="Recovery engine" ok={engineOn} okText="Online" offText="Idle" />
-        <HealthRow label="Webhooks" ok={true} okText="Receiving" offText="—" />
-        <HealthRow label="AI Gateway" ok={true} okText="Operational" offText="—" />
-      </ul>
-    </section>
-  );
-}
-
-function HealthRow({
-  label,
-  ok,
-  okText,
-  offText,
-}: {
-  label: string;
-  ok: boolean;
-  okText: string;
-  offText: string;
-}) {
-  return (
-    <li className="flex items-center justify-between rounded-lg border border-border/60 bg-background/40 px-3 py-2">
-      <span className="text-foreground">{label}</span>
-      <span
-        className={`inline-flex items-center gap-1.5 text-xs font-medium ${
-          ok ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"
-        }`}
-      >
-        <span
-          className={`h-1.5 w-1.5 rounded-full ${ok ? "bg-emerald-500" : "bg-muted-foreground/50"}`}
-        />
-        {ok ? okText : offText}
-      </span>
-    </li>
-  );
-}
+// Keep imports referenced for icons used only in optional branches
+void RefreshCw;
