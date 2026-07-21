@@ -5,10 +5,10 @@ import { useServerFn } from "@tanstack/react-start";
 import { Building2 } from "lucide-react";
 
 import { AdminDataTable, type Column } from "@/components/admin/data-table";
-import { ManageDropdown } from "@/components/admin/v2/manage-dropdown";
+import { ManageDropdown } from "@/components/platform/manage-dropdown";
 import { listCustomers } from "@/lib/admin/customers.functions";
 
-export const Route = createFileRoute("/_authenticated/admin/v2/customers")({
+export const Route = createFileRoute("/_authenticated/platform/customers")({
   component: CustomersPage,
   head: () => ({
     meta: [
@@ -86,7 +86,7 @@ function CustomersPage() {
       value: (r) => r.workspace_name,
       cell: (r) => (
         <Link
-          to="/admin/v2/customers/$id"
+          to="/platform/customers/$id"
           params={{ id: r.workspace_id }}
           className="group flex flex-col leading-tight"
         >

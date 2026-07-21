@@ -5,7 +5,7 @@ import { Activity } from "lucide-react";
 
 import { getSystemHealth, type InternalCheck, type InternalCheckStatus, type SystemHealthReport } from "@/lib/system-health.functions";
 
-export const Route = createFileRoute("/_authenticated/admin/v2/system-health")({
+export const Route = createFileRoute("/_authenticated/platform/system-health")({
   component: SystemHealthPage,
   head: () => ({
     meta: [

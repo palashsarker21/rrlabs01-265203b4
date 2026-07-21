@@ -90,7 +90,7 @@ export function ManageDropdown({ row, compact = false }: { row: Row; compact?: b
         <DropdownMenuItem
           onClick={() =>
             navigate({
-              to: "/admin/v2/customers/$id",
+              to: "/platform/customers/$id",
               params: { id: row.workspace_id },
             })
           }

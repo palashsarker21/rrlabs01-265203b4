@@ -20,7 +20,7 @@ import {
   type AdminProviderRow,
 } from "@/lib/ai/admin.functions";
 
-export const Route = createFileRoute("/_authenticated/admin/v2/ai")({
+export const Route = createFileRoute("/_authenticated/platform/ai")({
   component: AiPlatformPage,
   head: () => ({
     meta: [{ title: "AI Platform — RRLabs" }, { name: "robots", content: "noindex" }],
@@ -45,7 +45,7 @@ function AiPlatformPage() {
           </p>
         </div>
         <Button asChild variant="outline" size="sm">
-          <a href="/admin/v2/ai/analytics">View analytics →</a>
+          <a href="/platform/ai/analytics">View analytics →</a>
         </Button>
       </div>
 

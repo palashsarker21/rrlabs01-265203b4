@@ -213,7 +213,7 @@ function Dashboard() {
           hint="Stores, gateways, channels"
         />
         <StatusTile
-          to="/admin/v2/system-health"
+          to="/platform/system-health"
           icon={<Bot className="size-4" />}
           label="AI & system"
           value="Operational"
