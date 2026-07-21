@@ -48,9 +48,12 @@ export function AppSidebar({ isSuperAdmin = false }: { isSuperAdmin?: boolean })
 
   const visibleGroups = useMemo<AppNavGroup[]>(() => {
     const q = query.trim().toLowerCase();
+    // Customer sidebar never mixes with platform admin — always hide adminOnly.
+    // Super admins access those surfaces via the dedicated /platform shell.
+    void isSuperAdmin;
     return APP_NAV.map((g) => {
       const items = g.items
-        .filter((i) => (isSuperAdmin ? true : !i.adminOnly))
+        .filter((i) => !i.adminOnly)
         .filter((i) => {
           if (!q) return true;
           const hay = `${i.label} ${i.keywords?.join(" ") ?? ""}`.toLowerCase();

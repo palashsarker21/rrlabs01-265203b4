@@ -14,7 +14,7 @@ import { getMyAdminStatus } from "@/lib/admin.functions";
  * Routes that render their own full-screen chrome and should bypass the
  * global authenticated shell (own header/sidebar or focused flows).
  */
-const BYPASS_PREFIXES = ["/admin", "/onboarding", "/invite", "/checkout"];
+const BYPASS_PREFIXES = ["/admin", "/platform", "/onboarding", "/invite", "/checkout"];
 
 export function AuthenticatedShell() {
   const pathname = useRouterState({ select: (r) => r.location.pathname });

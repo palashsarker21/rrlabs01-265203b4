@@ -131,7 +131,7 @@ export function TopBar({
               <>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                  <Link to="/admin/v2">
+                  <Link to="/platform">
                     <Shield className="mr-2 h-4 w-4" />
                     Platform Control Center
                   </Link>
