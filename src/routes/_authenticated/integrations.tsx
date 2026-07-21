@@ -51,6 +51,7 @@ import type { ProviderKind } from "@/lib/providers/kinds";
 import { PROVIDER_STEP_ORDER, integrationKindFor } from "@/lib/providers/kinds";
 import { webhookUrl, getBrowserOrigin } from "@/lib/providers/webhook-url";
 import type { SaveResult, SaveFailure } from "@/lib/integrations/errors";
+import { computeHealthScore, gradeFor, gradeTone } from "@/lib/integrations/health-score";
 
 export const Route = createFileRoute("/_authenticated/integrations")({
   head: () => ({
@@ -1148,6 +1149,23 @@ function ConnectedRow({
   const lastDelivery = status?.last_delivery_at ?? null;
   const lastSuccess = status?.last_success_at ?? null;
 
+  const healthScore = computeHealthScore({
+    status: integration.status,
+    verification_status: integration.verification_status,
+    last_test_ok: integration.last_test_ok,
+    last_test_at: integration.last_test_at,
+    last_error: integration.last_error,
+    webhook: status
+      ? {
+          last_delivery_at: status.last_delivery_at,
+          last_success_at: status.last_success_at,
+          retry_count: status.retry_count,
+          last_error: status.last_error,
+        }
+      : null,
+  });
+  const healthTone = gradeTone(gradeFor(healthScore));
+
   return (
     <div className="rounded-lg border border-border/60 bg-background/40 p-3">
       <div className="flex items-center justify-between gap-2">
@@ -1160,7 +1178,20 @@ function ConnectedRow({
             {timeAgo(integration.created_at)}
           </p>
         </div>
-        <StatusChip integration={integration} />
+        <div className="flex items-center gap-2">
+          <span
+            className={cn(
+              "inline-flex items-center gap-1 rounded-full border border-border/60 bg-card/60 px-2 py-0.5 text-[10px] font-medium",
+              healthTone.text,
+            )}
+            title={`Health score ${healthScore}/100`}
+            aria-label={`Health ${healthTone.label}, score ${healthScore} out of 100`}
+          >
+            <span className={cn("h-1.5 w-1.5 rounded-full", healthTone.dot)} />
+            {healthScore}
+          </span>
+          <StatusChip integration={integration} />
+        </div>
       </div>
 
       <div className="mt-3 space-y-2 text-[11px]">
