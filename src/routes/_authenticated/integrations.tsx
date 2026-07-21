@@ -155,8 +155,12 @@ function IntegrationCenter() {
   // Real-time: invalidate the integrations + provider_status queries whenever
   // the DB row changes for this workspace. Keeps the health score, verification
   // state, and webhook activity live without polling loops.
+  const [realtimeStatus, setRealtimeStatus] = useState<
+    "connecting" | "connected" | "reconnecting" | "disconnected"
+  >("connecting");
   useEffect(() => {
     if (!workspace?.id) return;
+    setRealtimeStatus("connecting");
     const channel = supabase
       .channel(`ws-integrations-${workspace.id}`)
       .on(
@@ -179,11 +183,17 @@ function IntegrationCenter() {
         },
         () => qc.invalidateQueries({ queryKey: ["provider-statuses", workspace.id] }),
       )
-      .subscribe();
+      .subscribe((status) => {
+        if (status === "SUBSCRIBED") setRealtimeStatus("connected");
+        else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT")
+          setRealtimeStatus("reconnecting");
+        else if (status === "CLOSED") setRealtimeStatus("disconnected");
+      });
     return () => {
       supabase.removeChannel(channel);
     };
   }, [workspace?.id, qc]);
+
 
   const { data: catalog = [] } = useQuery({
     queryKey: ["provider-catalog"],
