@@ -78,6 +78,7 @@ import { Route as ApiPublicHooksSuccessFeeMonthlyRouteImport } from './routes/ap
 import { Route as ApiPublicHooksRecoveryCadenceRouteImport } from './routes/api/public/hooks/recovery-cadence'
 import { Route as AuthenticatedMarketplaceTemplatesIdRouteImport } from './routes/_authenticated/marketplace.templates.$id'
 import { Route as AuthenticatedMarketplaceFlowsIdRouteImport } from './routes/_authenticated/marketplace.flows.$id'
+import { Route as AuthenticatedAdminV2SystemHealthRouteImport } from './routes/_authenticated/admin.v2.system-health'
 import { Route as AuthenticatedAdminV2CustomersRouteImport } from './routes/_authenticated/admin.v2.customers'
 import { Route as AuthenticatedAdminV2AiRouteImport } from './routes/_authenticated/admin.v2.ai'
 import { Route as AuthenticatedAdminEmailWebhooksRouteImport } from './routes/_authenticated/admin.email.webhooks'
@@ -452,6 +453,12 @@ const AuthenticatedMarketplaceFlowsIdRoute =
     path: '/flows/$id',
     getParentRoute: () => AuthenticatedMarketplaceRoute,
   } as any)
+const AuthenticatedAdminV2SystemHealthRoute =
+  AuthenticatedAdminV2SystemHealthRouteImport.update({
+    id: '/system-health',
+    path: '/system-health',
+    getParentRoute: () => AuthenticatedAdminV2Route,
+  } as any)
 const AuthenticatedAdminV2CustomersRoute =
   AuthenticatedAdminV2CustomersRouteImport.update({
     id: '/customers',
@@ -573,6 +580,7 @@ export interface FileRoutesByFullPath {
   '/admin/email/webhooks': typeof AuthenticatedAdminEmailWebhooksRoute
   '/admin/v2/ai': typeof AuthenticatedAdminV2AiRouteWithChildren
   '/admin/v2/customers': typeof AuthenticatedAdminV2CustomersRouteWithChildren
+  '/admin/v2/system-health': typeof AuthenticatedAdminV2SystemHealthRoute
   '/marketplace/flows/$id': typeof AuthenticatedMarketplaceFlowsIdRoute
   '/marketplace/templates/$id': typeof AuthenticatedMarketplaceTemplatesIdRoute
   '/api/public/hooks/recovery-cadence': typeof ApiPublicHooksRecoveryCadenceRoute
@@ -650,6 +658,7 @@ export interface FileRoutesByTo {
   '/admin/email/webhooks': typeof AuthenticatedAdminEmailWebhooksRoute
   '/admin/v2/ai': typeof AuthenticatedAdminV2AiRouteWithChildren
   '/admin/v2/customers': typeof AuthenticatedAdminV2CustomersRouteWithChildren
+  '/admin/v2/system-health': typeof AuthenticatedAdminV2SystemHealthRoute
   '/marketplace/flows/$id': typeof AuthenticatedMarketplaceFlowsIdRoute
   '/marketplace/templates/$id': typeof AuthenticatedMarketplaceTemplatesIdRoute
   '/api/public/hooks/recovery-cadence': typeof ApiPublicHooksRecoveryCadenceRoute
@@ -731,6 +740,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/email/webhooks': typeof AuthenticatedAdminEmailWebhooksRoute
   '/_authenticated/admin/v2/ai': typeof AuthenticatedAdminV2AiRouteWithChildren
   '/_authenticated/admin/v2/customers': typeof AuthenticatedAdminV2CustomersRouteWithChildren
+  '/_authenticated/admin/v2/system-health': typeof AuthenticatedAdminV2SystemHealthRoute
   '/_authenticated/marketplace/flows/$id': typeof AuthenticatedMarketplaceFlowsIdRoute
   '/_authenticated/marketplace/templates/$id': typeof AuthenticatedMarketplaceTemplatesIdRoute
   '/api/public/hooks/recovery-cadence': typeof ApiPublicHooksRecoveryCadenceRoute
@@ -812,6 +822,7 @@ export interface FileRouteTypes {
     | '/admin/email/webhooks'
     | '/admin/v2/ai'
     | '/admin/v2/customers'
+    | '/admin/v2/system-health'
     | '/marketplace/flows/$id'
     | '/marketplace/templates/$id'
     | '/api/public/hooks/recovery-cadence'
@@ -889,6 +900,7 @@ export interface FileRouteTypes {
     | '/admin/email/webhooks'
     | '/admin/v2/ai'
     | '/admin/v2/customers'
+    | '/admin/v2/system-health'
     | '/marketplace/flows/$id'
     | '/marketplace/templates/$id'
     | '/api/public/hooks/recovery-cadence'
@@ -969,6 +981,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/email/webhooks'
     | '/_authenticated/admin/v2/ai'
     | '/_authenticated/admin/v2/customers'
+    | '/_authenticated/admin/v2/system-health'
     | '/_authenticated/marketplace/flows/$id'
     | '/_authenticated/marketplace/templates/$id'
     | '/api/public/hooks/recovery-cadence'
@@ -1505,6 +1518,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMarketplaceFlowsIdRouteImport
       parentRoute: typeof AuthenticatedMarketplaceRoute
     }
+    '/_authenticated/admin/v2/system-health': {
+      id: '/_authenticated/admin/v2/system-health'
+      path: '/system-health'
+      fullPath: '/admin/v2/system-health'
+      preLoaderRoute: typeof AuthenticatedAdminV2SystemHealthRouteImport
+      parentRoute: typeof AuthenticatedAdminV2Route
+    }
     '/_authenticated/admin/v2/customers': {
       id: '/_authenticated/admin/v2/customers'
       path: '/customers'
@@ -1623,6 +1643,7 @@ const AuthenticatedAdminV2CustomersRouteWithChildren =
 interface AuthenticatedAdminV2RouteChildren {
   AuthenticatedAdminV2AiRoute: typeof AuthenticatedAdminV2AiRouteWithChildren
   AuthenticatedAdminV2CustomersRoute: typeof AuthenticatedAdminV2CustomersRouteWithChildren
+  AuthenticatedAdminV2SystemHealthRoute: typeof AuthenticatedAdminV2SystemHealthRoute
   AuthenticatedAdminV2IndexRoute: typeof AuthenticatedAdminV2IndexRoute
 }
 
@@ -1630,6 +1651,7 @@ const AuthenticatedAdminV2RouteChildren: AuthenticatedAdminV2RouteChildren = {
   AuthenticatedAdminV2AiRoute: AuthenticatedAdminV2AiRouteWithChildren,
   AuthenticatedAdminV2CustomersRoute:
     AuthenticatedAdminV2CustomersRouteWithChildren,
+  AuthenticatedAdminV2SystemHealthRoute: AuthenticatedAdminV2SystemHealthRoute,
   AuthenticatedAdminV2IndexRoute: AuthenticatedAdminV2IndexRoute,
 }
 

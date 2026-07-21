@@ -85,9 +85,7 @@ function StatusPage() {
 
   const activeIncidents = incidents.filter((i) => i.status !== "resolved");
   const pastIncidents = incidents.filter((i) => i.status === "resolved").slice(0, 10);
-  const maintenance = incidents.filter(
-    (i) => i.status === "scheduled" || i.status === "in_progress",
-  );
+  const maintenance = activeIncidents.filter((i) => i.impact === "none");
 
   const components = data?.components ?? BASELINE;
   const overall: PublicStatus =
