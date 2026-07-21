@@ -197,9 +197,17 @@ async function callModel(
     max_tokens?: number;
   },
 ): Promise<CallResult> {
-  const key = process.env[model.provider_secret_env];
+  let key = process.env[model.provider_secret_env];
+  if (!key && model.provider_encrypted_api_key) {
+    try {
+      const { decryptJSON } = await import("@/lib/crypto.server");
+      key = decryptJSON<string>(model.provider_encrypted_api_key);
+    } catch (e) {
+      throw new Error(`Failed to decrypt stored API key for ${model.provider_slug}: ${(e as Error).message}`);
+    }
+  }
   if (!key) {
-    throw new Error(`Missing secret ${model.provider_secret_env} for provider ${model.provider_slug}`);
+    throw new Error(`No API key configured for provider ${model.provider_slug} (env ${model.provider_secret_env} or admin-panel stored key).`);
   }
   const body: Record<string, unknown> = {
     model: model.model_id,
