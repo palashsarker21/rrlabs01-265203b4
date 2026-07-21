@@ -308,7 +308,7 @@ function Dashboard() {
             <div className="mt-4 grid gap-2">
               <QuickAction to="/integrations" icon={<Plug className="size-4" />} label="Connect store" />
               <QuickAction to="/integrations" icon={<CreditCard className="size-4" />} label="Connect payment" />
-              <QuickAction to="/marketplace" icon={<Target className="size-4" />} label="Create campaign" />
+              <QuickAction to="/recovery-strategy" icon={<Sparkles className="size-4" />} label="Configure AI strategy" />
               <QuickAction to="/team" icon={<Handshake className="size-4" />} label="Invite member" />
               <QuickAction to="/admin/email/sandbox" icon={<Mail className="size-4" />} label="Send test email" />
               <QuickAction to="/settings/ai" icon={<Bot className="size-4" />} label="Run AI test" />

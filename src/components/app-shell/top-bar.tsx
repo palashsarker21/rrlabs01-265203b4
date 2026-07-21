@@ -210,7 +210,7 @@ function QuickCreateMenu() {
           <Link to="/integrations">Connect payment</Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
-          <Link to="/marketplace">Create campaign</Link>
+          <Link to="/recovery-strategy">Configure AI strategy</Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
           <Link to="/team">Invite member</Link>
