@@ -11,10 +11,7 @@ import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-async function assertSuperAdmin(context: {
-  supabase: unknown;
-  userId: string;
-}): Promise<void> {
+async function assertSuperAdmin(context: { supabase: unknown; userId: string }): Promise<void> {
   const sb = context.supabase as {
     rpc: (
       fn: "has_role",
@@ -65,9 +62,7 @@ export const listSuccessFeeStatements = createServerFn({ method: "POST" })
     z
       .object({
         workspaceId: z.string().uuid().optional(),
-        status: z
-          .enum(["draft", "finalized", "invoiced", "paid", "voided"])
-          .optional(),
+        status: z.enum(["draft", "finalized", "invoiced", "paid", "voided"]).optional(),
       })
       .parse(raw ?? {}),
   )
@@ -175,9 +170,7 @@ export const getWorkspaceSuccessFeeSummary = createServerFn({ method: "POST" })
     const { supabase } = context;
 
     const now = new Date();
-    const monthStart = new Date(
-      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1),
-    ).toISOString();
+    const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)).toISOString();
 
     const [recAgg, subRes, latestRes, invRes] = await Promise.all([
       supabase
@@ -212,10 +205,7 @@ export const getWorkspaceSuccessFeeSummary = createServerFn({ method: "POST" })
         .maybeSingle(),
     ]);
 
-    const recovered = (recAgg.data ?? []).reduce(
-      (sum, r) => sum + Number(r.amount_cents ?? 0),
-      0,
-    );
+    const recovered = (recAgg.data ?? []).reduce((sum, r) => sum + Number(r.amount_cents ?? 0), 0);
     const feeBps = Number(
       ((subRes.data?.plans ?? null) as { success_fee_bps?: number | null } | null)
         ?.success_fee_bps ?? 0,
@@ -347,9 +337,8 @@ export const runMonthlySuccessFeeBuild = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await assertSuperAdmin(context);
-    const { previousMonthBounds, buildStatementsForPeriod } = await import(
-      "@/lib/success-fee/engine.server"
-    );
+    const { previousMonthBounds, buildStatementsForPeriod } =
+      await import("@/lib/success-fee/engine.server");
     const anchor = data.anchor ? new Date(data.anchor) : new Date();
     const period = previousMonthBounds(anchor);
     return buildStatementsForPeriod(period);

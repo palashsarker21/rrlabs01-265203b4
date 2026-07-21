@@ -5,7 +5,10 @@ import { useEffect, useMemo, useState } from "react";
 
 import { listEmailTemplates } from "@/lib/email.functions";
 import { getSandboxStatusFn, sendSandboxTestFn } from "@/lib/email-sandbox.functions";
-import { checkRecipientDeliverability, type RecipientCheckReport } from "@/lib/recipient-dns.functions";
+import {
+  checkRecipientDeliverability,
+  type RecipientCheckReport,
+} from "@/lib/recipient-dns.functions";
 import { TEMPLATE_SAMPLES } from "@/lib/email/template-samples";
 
 export const Route = createFileRoute("/_authenticated/admin/email/sandbox")({
@@ -140,7 +143,6 @@ function exportDiagnostics(entries: HistoryEntry[], format: "json" | "csv") {
   triggerDownload(`sandbox-diagnostics-${ts}.csv`, "text/csv", csv);
 }
 
-
 function summarizeOutcome(outcome: SendOutcome): {
   status: HistoryEntry["status"];
   durationMs?: number;
@@ -158,23 +160,16 @@ function summarizeOutcome(outcome: SendOutcome): {
   const r = outcome.result;
   const d = outcome.diagnostics;
   const skipped = r.ok && (r as { skipped?: boolean }).skipped;
-  const status: HistoryEntry["status"] = !r.ok
-    ? "failed"
-    : skipped
-      ? "skipped"
-      : "sent";
+  const status: HistoryEntry["status"] = !r.ok ? "failed" : skipped ? "skipped" : "sent";
   return {
     status,
     durationMs: outcome.durationMs,
     messageId: d.messageId ?? undefined,
     logId: d.logId ?? (r.ok ? r.id : undefined),
     subject: d.subject ?? undefined,
-    errorMessage: !r.ok
-      ? `${r.code}: ${r.error}`
-      : d.lastError ?? undefined,
+    errorMessage: !r.ok ? `${r.code}: ${r.error}` : (d.lastError ?? undefined),
   };
 }
-
 
 function EmailSandboxPage() {
   const listTpl = useServerFn(listEmailTemplates);
@@ -363,14 +358,13 @@ function EmailSandboxPage() {
     });
   }, [history, historySearch]);
 
-
   return (
     <div className="mx-auto max-w-6xl space-y-6 p-6">
       <header className="space-y-1">
         <h1 className="text-2xl font-semibold tracking-tight">Email test sandbox</h1>
         <p className="text-sm text-muted-foreground">
-          Send any registered template to yourself with safe rate limits and full delivery diagnostics.
-          Real recipients are locked to your signed-in email.
+          Send any registered template to yourself with safe rate limits and full delivery
+          diagnostics. Real recipients are locked to your signed-in email.
         </p>
       </header>
 
@@ -381,7 +375,9 @@ function EmailSandboxPage() {
           <div className="mt-1 font-mono text-sm">{status?.recipient ?? "…"}</div>
         </div>
         <div className="rounded-lg border p-3 text-sm">
-          <div className="text-xs uppercase tracking-wide text-muted-foreground">Provider config</div>
+          <div className="text-xs uppercase tracking-wide text-muted-foreground">
+            Provider config
+          </div>
           {status?.config?.ok ? (
             <div className="mt-1">
               <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
@@ -423,9 +419,9 @@ function EmailSandboxPage() {
                 <UsageMeter label="per day" used={usage.day} cap={limits.perDay} />
               </div>
               <p className="mt-2 text-[11px] leading-snug text-muted-foreground">
-                Sends are counted per admin (that's you). When any window hits its cap, further
-                test sends are throttled server-side until that window rolls over — the composer
-                blocks and shows which limit was hit before any email is queued.
+                Sends are counted per admin (that's you). When any window hits its cap, further test
+                sends are throttled server-side until that window rolls over — the composer blocks
+                and shows which limit was hit before any email is queued.
               </p>
             </>
           ) : (
@@ -448,13 +444,13 @@ function EmailSandboxPage() {
                     ? "text-amber-700"
                     : "text-rose-700";
               return (
-              <li key={d.record} className="rounded border p-2 text-xs">
-                <div className="flex items-center justify-between">
-                  <span className="font-mono">{d.record}</span>
-                  <span className={tone}>{state}</span>
-                </div>
-                {d.note ? <p className="mt-1 text-muted-foreground">{d.note}</p> : null}
-              </li>
+                <li key={d.record} className="rounded border p-2 text-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono">{d.record}</span>
+                    <span className={tone}>{state}</span>
+                  </div>
+                  {d.note ? <p className="mt-1 text-muted-foreground">{d.note}</p> : null}
+                </li>
               );
             })}
           </ul>
@@ -465,7 +461,9 @@ function EmailSandboxPage() {
       <section className="rounded-lg border p-4 space-y-3" aria-labelledby="recip-check-h">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <h2 id="recip-check-h" className="font-semibold">Recipient deliverability</h2>
+            <h2 id="recip-check-h" className="font-semibold">
+              Recipient deliverability
+            </h2>
             <p className="text-xs text-muted-foreground">
               MX, A/AAAA, SPF and DMARC lookup for{" "}
               <span className="font-mono">{recipient ?? "your locked recipient"}</span>. Runs
@@ -511,8 +509,7 @@ function EmailSandboxPage() {
               ) : null}
               {recipientCheck.suggestion ? (
                 <span className="text-xs text-amber-700">
-                  Did you mean{" "}
-                  <span className="font-mono">{recipientCheck.suggestion}</span>?
+                  Did you mean <span className="font-mono">{recipientCheck.suggestion}</span>?
                 </span>
               ) : null}
             </div>
@@ -547,9 +544,7 @@ function EmailSandboxPage() {
                   checked={ackWarnings}
                   onChange={(e) => setAckWarnings(e.target.checked)}
                 />
-                <span>
-                  I understand the deliverability warnings above and want to send anyway.
-                </span>
+                <span>I understand the deliverability warnings above and want to send anyway.</span>
               </label>
             ) : null}
           </>
@@ -560,13 +555,15 @@ function EmailSandboxPage() {
         )}
       </section>
 
-
       {/* Composer */}
       <section className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <div className="rounded-lg border p-4 space-y-3">
           <div className="flex items-center justify-between gap-3">
             <h2 className="font-semibold">Compose</h2>
-            <a href="/admin/email/preview" className="text-xs font-medium text-primary hover:underline">
+            <a
+              href="/admin/email/preview"
+              className="text-xs font-medium text-primary hover:underline"
+            >
               Open template preview →
             </a>
           </div>
@@ -584,7 +581,9 @@ function EmailSandboxPage() {
             ))}
           </select>
 
-          <label className="block text-xs font-medium text-muted-foreground">Template data (JSON)</label>
+          <label className="block text-xs font-medium text-muted-foreground">
+            Template data (JSON)
+          </label>
           <textarea
             className="h-64 w-full rounded-md border px-3 py-2 font-mono text-xs"
             spellCheck={false}
@@ -595,7 +594,8 @@ function EmailSandboxPage() {
             <p className="text-xs text-rose-700">JSON error: {parsed.error}</p>
           ) : (
             <p className="text-xs text-muted-foreground">
-              Sends to <span className="font-mono">{status?.recipient ?? "your account email"}</span>.
+              Sends to{" "}
+              <span className="font-mono">{status?.recipient ?? "your account email"}</span>.
             </p>
           )}
           {(() => {
@@ -613,8 +613,8 @@ function EmailSandboxPage() {
             const tone = blocked
               ? "border-rose-200 bg-rose-50 text-rose-800"
               : near
-              ? "border-amber-200 bg-amber-50 text-amber-800"
-              : "border-emerald-200 bg-emerald-50 text-emerald-800";
+                ? "border-amber-200 bg-amber-50 text-amber-800"
+                : "border-emerald-200 bg-emerald-50 text-emerald-800";
             return (
               <div className={`rounded-md border px-3 py-2 text-xs ${tone}`}>
                 {blocked ? (
@@ -626,9 +626,11 @@ function EmailSandboxPage() {
                 ) : (
                   <>
                     <strong>Before you send:</strong> this will consume 1 of your remaining{" "}
-                    {tightest.left} sends {tightest.label} (also {Math.max(0, limits.perMinute - usage.minute)}/min,{" "}
+                    {tightest.left} sends {tightest.label} (also{" "}
+                    {Math.max(0, limits.perMinute - usage.minute)}/min,{" "}
                     {Math.max(0, limits.perHour - usage.hour)}/hr,{" "}
-                    {Math.max(0, limits.perDay - usage.day)}/day). Hitting any cap throttles further test sends.
+                    {Math.max(0, limits.perDay - usage.day)}/day). Hitting any cap throttles further
+                    test sends.
                   </>
                 )}
               </div>
@@ -645,7 +647,8 @@ function EmailSandboxPage() {
               recipientChecking ||
               recipientCheck?.overall === "critical" ||
               (recipientCheck?.overall === "warning" && !ackWarnings) ||
-              (!!usage && !!limits &&
+              (!!usage &&
+                !!limits &&
                 (usage.minute >= limits.perMinute ||
                   usage.hour >= limits.perHour ||
                   usage.day >= limits.perDay))
@@ -758,11 +761,7 @@ function EmailSandboxPage() {
           <ul className="divide-y rounded-md border">
             {filteredHistory.map((entry) => {
               const tone: "emerald" | "amber" | "rose" =
-                entry.status === "sent"
-                  ? "emerald"
-                  : entry.status === "skipped"
-                    ? "amber"
-                    : "rose";
+                entry.status === "sent" ? "emerald" : entry.status === "skipped" ? "amber" : "rose";
               const isOpen = expandedHistoryId === entry.id;
               return (
                 <li key={entry.id} className="p-3">
@@ -803,9 +802,7 @@ function EmailSandboxPage() {
                       <button
                         type="button"
                         className="rounded-md border px-2.5 py-1 text-xs font-medium hover:bg-muted disabled:opacity-50"
-                        onClick={() =>
-                          setExpandedHistoryId(isOpen ? null : entry.id)
-                        }
+                        onClick={() => setExpandedHistoryId(isOpen ? null : entry.id)}
                         aria-expanded={isOpen}
                       >
                         {isOpen ? "Hide" : "Details"}
@@ -814,11 +811,7 @@ function EmailSandboxPage() {
                         type="button"
                         className="rounded-md bg-teal-600 px-2.5 py-1 text-xs font-medium text-white disabled:opacity-50"
                         onClick={() => rerunEntry(entry)}
-                        disabled={
-                          sendMut.isPending ||
-                          !status?.config?.ok ||
-                          !status?.recipient
-                        }
+                        disabled={sendMut.isPending || !status?.config?.ok || !status?.recipient}
                         title={
                           !status?.config?.ok
                             ? "Provider not configured"
@@ -850,9 +843,7 @@ function EmailSandboxPage() {
                             </p>
                           ) : null}
                           {"message" in entry.outcome && entry.outcome.message ? (
-                            <p className="text-xs text-muted-foreground">
-                              {entry.outcome.message}
-                            </p>
+                            <p className="text-xs text-muted-foreground">{entry.outcome.message}</p>
                           ) : null}
                         </div>
                       ) : (
@@ -878,7 +869,6 @@ function EmailSandboxPage() {
   );
 }
 
-
 function UsageMeter({ label, used, cap }: { label: string; used: number; cap: number }) {
   const pct = Math.min(100, Math.round((used / Math.max(cap, 1)) * 100));
   const tone = pct >= 100 ? "bg-rose-500" : pct >= 66 ? "bg-amber-500" : "bg-emerald-500";
@@ -886,7 +876,9 @@ function UsageMeter({ label, used, cap }: { label: string; used: number; cap: nu
     <div>
       <div className="flex items-center justify-between">
         <span className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</span>
-        <span className="tabular-nums">{used}/{cap}</span>
+        <span className="tabular-nums">
+          {used}/{cap}
+        </span>
       </div>
       <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-muted">
         <div className={`h-full ${tone}`} style={{ width: `${pct}%` }} />
@@ -895,7 +887,13 @@ function UsageMeter({ label, used, cap }: { label: string; used: number; cap: nu
   );
 }
 
-function Badge({ tone, children }: { tone: "emerald" | "amber" | "rose"; children: React.ReactNode }) {
+function Badge({
+  tone,
+  children,
+}: {
+  tone: "emerald" | "amber" | "rose";
+  children: React.ReactNode;
+}) {
   const cls =
     tone === "emerald"
       ? "bg-emerald-50 text-emerald-700"
@@ -903,7 +901,9 @@ function Badge({ tone, children }: { tone: "emerald" | "amber" | "rose"; childre
         ? "bg-amber-50 text-amber-700"
         : "bg-rose-50 text-rose-700";
   return (
-    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${cls}`}>
+    <span
+      className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${cls}`}
+    >
       {children}
     </span>
   );

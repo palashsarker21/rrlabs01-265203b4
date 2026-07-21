@@ -27,7 +27,13 @@ const STEPS: Step[] = [
   { key: "email", title: "Email", eta: "+1h", icon: Mail, tone: "neutral" },
   { key: "whatsapp", title: "WhatsApp", eta: "+6h", icon: MessageCircle, tone: "neutral" },
   { key: "retry", title: "Retry Schedule", eta: "+24h", icon: RotateCw, tone: "neutral" },
-  { key: "recovered", title: "Recovered Revenue", eta: "≤ 7d", icon: CircleDollarSign, tone: "success" },
+  {
+    key: "recovered",
+    title: "Recovered Revenue",
+    eta: "≤ 7d",
+    icon: CircleDollarSign,
+    tone: "success",
+  },
 ];
 
 const toneStyles: Record<Step["tone"], string> = {
@@ -80,19 +86,14 @@ export function RecoveryWorkflowDiagram({
                   >
                     <Icon className="size-4" />
                   </div>
-                  <div className="mt-3 text-sm font-medium text-foreground">
-                    {step.title}
-                  </div>
+                  <div className="mt-3 text-sm font-medium text-foreground">{step.title}</div>
                   <div className="mt-0.5 text-xs text-muted-foreground tabular-nums">
                     {step.eta}
                   </div>
                 </div>
               </li>
               {idx < STEPS.length - 1 && (
-                <li
-                  aria-hidden="true"
-                  className="flex items-center text-muted-foreground/60"
-                >
+                <li aria-hidden="true" className="flex items-center text-muted-foreground/60">
                   <ChevronRight className="size-4" />
                 </li>
               )}
@@ -111,9 +112,7 @@ export function RecoveryWorkflowDiagram({
               key={step.key}
               className={cn(
                 "flex items-center gap-3 rounded-lg border p-3",
-                isActive
-                  ? "border-primary/50 bg-primary/5"
-                  : "border-border/60 bg-card",
+                isActive ? "border-primary/50 bg-primary/5" : "border-border/60 bg-card",
               )}
             >
               <div
@@ -126,12 +125,8 @@ export function RecoveryWorkflowDiagram({
                 <Icon className="size-4" />
               </div>
               <div className="min-w-0 flex-1">
-                <div className="text-sm font-medium text-foreground">
-                  {step.title}
-                </div>
-                <div className="text-xs text-muted-foreground tabular-nums">
-                  {step.eta}
-                </div>
+                <div className="text-sm font-medium text-foreground">{step.title}</div>
+                <div className="text-xs text-muted-foreground tabular-nums">{step.eta}</div>
               </div>
             </li>
           );

@@ -51,8 +51,7 @@ export const TEMPLATES: Record<string, TemplateEntry<any>> = {
     displayName: "Invite Member",
   },
   "workspace-invite": {
-    subject: (d: { workspaceName: string }) =>
-      `Join ${d.workspaceName} on RRLabs`,
+    subject: (d: { workspaceName: string }) => `Join ${d.workspaceName} on RRLabs`,
     component: WorkspaceInvite,
     displayName: "Workspace Invite",
   },
@@ -68,8 +67,7 @@ export const TEMPLATES: Record<string, TemplateEntry<any>> = {
     displayName: "Trial Ending",
   },
   "subscription-activated": {
-    subject: (d: { planName: string }) =>
-      `Your RRLabs ${d.planName} plan is active`,
+    subject: (d: { planName: string }) => `Your RRLabs ${d.planName} plan is active`,
     component: SubscriptionActivated,
     displayName: "Subscription Activated",
   },
@@ -84,8 +82,7 @@ export const TEMPLATES: Record<string, TemplateEntry<any>> = {
     displayName: "Payment Successful",
   },
   "success-fee-invoice": {
-    subject: (d: { period: string }) =>
-      `RRLabs success fee statement — ${d.period}`,
+    subject: (d: { period: string }) => `RRLabs success fee statement — ${d.period}`,
     component: SuccessFeeInvoice,
     displayName: "Monthly Success Fee Invoice",
   },
@@ -105,8 +102,7 @@ export const TEMPLATES: Record<string, TemplateEntry<any>> = {
     displayName: "System Alert",
   },
   "contact-message": {
-    subject: (d: { fromName: string }) =>
-      `New contact form message from ${d.fromName}`,
+    subject: (d: { fromName: string }) => `New contact form message from ${d.fromName}`,
     component: ContactMessage,
     displayName: "Contact Form Message",
   },

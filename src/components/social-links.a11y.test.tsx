@@ -17,7 +17,9 @@ afterEach(() => cleanup());
 describe.each(VARIANTS)("SocialLinks a11y (axe + names + keyboard) — %s", (variant) => {
   it("has no axe-detectable accessibility violations", async () => {
     const { container } = render(<SocialLinks variant={variant} ariaLabel="Follow RRLabs" />);
-    (expect(await axe(container)) as any).toHaveNoViolations();
+    (
+      expect(await axe(container)) as unknown as { toHaveNoViolations: () => void }
+    ).toHaveNoViolations();
   });
 
   it("every link has a unique, non-empty accessible name derived from SOCIAL_PROFILES labels", () => {
@@ -38,7 +40,9 @@ describe.each(VARIANTS)("SocialLinks a11y (axe + names + keyboard) — %s", (var
     const labels = new Set(SOCIAL_PROFILES.map((p) => p.label));
     for (const name of names) {
       const matched = [...labels].some((l) => name.startsWith(l));
-      expect(matched, `accessible name "${name}" must start with a SOCIAL_PROFILES label`).toBe(true);
+      expect(matched, `accessible name "${name}" must start with a SOCIAL_PROFILES label`).toBe(
+        true,
+      );
     }
     // And each enabled profile is represented exactly once.
     for (const p of ENABLED_SOCIAL_PROFILES) {
@@ -121,9 +125,7 @@ describe.each(VARIANTS)("SocialLinks a11y (axe + names + keyboard) — %s", (var
     const group = screen.getByLabelText("Follow RRLabs");
     // The labelled element IS the list (semantic grouping for AT).
     expect(group.tagName).toBe("UL");
-    expect(within(group).getAllByRole("link").length).toBe(
-      ENABLED_SOCIAL_PROFILES.length,
-    );
+    expect(within(group).getAllByRole("link").length).toBe(ENABLED_SOCIAL_PROFILES.length);
   });
 
   it("keeps decorative icons out of the accessibility tree", () => {

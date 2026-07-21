@@ -34,8 +34,8 @@ function CookiesPage() {
           This Cookie Policy explains how {BRAND.company} ("{BRAND.name}", "we") uses cookies and
           similar technologies on our public websites and application. It should be read alongside
           our <a href="/privacy">Privacy Policy</a>. If you are in the EU, UK, or another
-          jurisdiction that requires prior consent for non-essential cookies (including PECR and
-          the EU e-Privacy Directive), we will ask for your consent before setting them.
+          jurisdiction that requires prior consent for non-essential cookies (including PECR and the
+          EU e-Privacy Directive), we will ask for your consent before setting them.
         </p>
 
         <h2>1. What are cookies?</h2>
@@ -62,9 +62,10 @@ function CookiesPage() {
             never sold.
           </li>
           <li>
-            <strong>Billing</strong> — cookies set by our Merchant of Record, <strong>Lemon Squeezy</strong>,
-            during checkout and subscription management. These are necessary for the payment
-            transaction to complete and are governed by Lemon Squeezy's own cookie notice.
+            <strong>Billing</strong> — cookies set by our Merchant of Record,{" "}
+            <strong>Lemon Squeezy</strong>, during checkout and subscription management. These are
+            necessary for the payment transaction to complete and are governed by Lemon Squeezy's
+            own cookie notice.
           </li>
         </ul>
 

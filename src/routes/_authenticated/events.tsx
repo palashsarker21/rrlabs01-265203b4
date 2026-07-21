@@ -16,12 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -41,19 +36,14 @@ import { listRecoveryAttempts } from "@/lib/recovery.functions";
 export const Route = createFileRoute("/_authenticated/events")({
   component: EventsViewer,
   head: () => ({
-    meta: [
-      { title: "Recovery events — RRLabs" },
-      { name: "robots", content: "noindex" },
-    ],
+    meta: [{ title: "Recovery events — RRLabs" }, { name: "robots", content: "noindex" }],
   }),
   errorComponent: ({ error }) => (
     <div className="p-8 text-sm text-rose-500" role="alert">
       Failed to load events: {error.message}
     </div>
   ),
-  notFoundComponent: () => (
-    <div className="p-8 text-sm text-muted-foreground">Not found.</div>
-  ),
+  notFoundComponent: () => <div className="p-8 text-sm text-muted-foreground">Not found.</div>,
 });
 
 const STATUS_OPTIONS = [
@@ -172,7 +162,17 @@ function EventsViewer() {
       minAmountCents: minAmount ? Math.round(Number(minAmount) * 100) : undefined,
       maxAmountCents: maxAmount ? Math.round(Number(maxAmount) * 100) : undefined,
     }),
-    [activeWorkspace?.id, fromDate, toDate, statuses, channels, providers, search, minAmount, maxAmount],
+    [
+      activeWorkspace?.id,
+      fromDate,
+      toDate,
+      statuses,
+      channels,
+      providers,
+      search,
+      minAmount,
+      maxAmount,
+    ],
   );
 
   const query = useQuery({
@@ -351,9 +351,7 @@ function EventsViewer() {
 
       autoTable(doc, {
         startY: 105,
-        head: [
-          ["Date", "Status", "Provider", "Amount", "Failure", "Attempts", "Customer"],
-        ],
+        head: [["Date", "Status", "Provider", "Amount", "Failure", "Attempts", "Customer"]],
         body: events.map((e) => [
           new Date(e.created_at).toLocaleDateString(),
           e.status,
@@ -361,7 +359,7 @@ function EventsViewer() {
           money(e.amount_cents, e.currency),
           e.failure_category
             ? `${e.failure_category}${e.failure_code ? ` (${e.failure_code})` : ""}`
-            : e.failure_code ?? "",
+            : (e.failure_code ?? ""),
           String(e.attempts_count ?? 0),
           e.customer?.email ?? e.customer?.name ?? "",
         ]),
@@ -386,22 +384,24 @@ function EventsViewer() {
         autoTable(doc, {
           startY: 55,
           head: [["Event", "Step", "Channel", "Status", "To", "Sent", "Delivered", "Error"]],
-          body: flatAttempts.slice(0, 400).map((a) => [
-            a.eventId.slice(0, 8),
-            String(a.step),
-            a.channel,
-            a.status,
-            a.to_address ?? "",
-            a.sent_at ? new Date(a.sent_at).toLocaleString() : "",
-            a.delivered_at ? new Date(a.delivered_at).toLocaleString() : "",
-            a.error ?? "",
-          ]),
+          body: flatAttempts
+            .slice(0, 400)
+            .map((a) => [
+              a.eventId.slice(0, 8),
+              String(a.step),
+              a.channel,
+              a.status,
+              a.to_address ?? "",
+              a.sent_at ? new Date(a.sent_at).toLocaleString() : "",
+              a.delivered_at ? new Date(a.delivered_at).toLocaleString() : "",
+              a.error ?? "",
+            ]),
           styles: { fontSize: 7, cellPadding: 3 },
           headStyles: { fillColor: [16, 185, 129] },
         });
         if (flatAttempts.length > 400) {
-          const finalY = (doc as unknown as { lastAutoTable?: { finalY: number } })
-            .lastAutoTable?.finalY ?? 60;
+          const finalY =
+            (doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? 60;
           doc.setFontSize(9);
           doc.setTextColor(120);
           doc.text(
@@ -621,12 +621,8 @@ function EventsViewer() {
                   “{search}”
                 </Chip>
               )}
-              {minAmount && (
-                <Chip onRemove={() => setMinAmount("")}>≥ {minAmount}</Chip>
-              )}
-              {maxAmount && (
-                <Chip onRemove={() => setMaxAmount("")}>≤ {maxAmount}</Chip>
-              )}
+              {minAmount && <Chip onRemove={() => setMinAmount("")}>≥ {minAmount}</Chip>}
+              {maxAmount && <Chip onRemove={() => setMaxAmount("")}>≤ {maxAmount}</Chip>}
             </div>
           )}
         </section>
@@ -692,9 +688,7 @@ function EventsViewer() {
                       </div>
                     </td>
                     <td className="max-w-[220px] px-3 py-2 text-xs">
-                      <div className="truncate">
-                        {e.customer?.email ?? e.customer?.name ?? "—"}
-                      </div>
+                      <div className="truncate">{e.customer?.email ?? e.customer?.name ?? "—"}</div>
                     </td>
                     <td className="px-3 py-2 text-right tabular-nums">{e.attempts_count}</td>
                   </tr>
@@ -765,7 +759,9 @@ function EventsViewer() {
               {openEvent.failure_message && (
                 <div>
                   <div className="text-xs font-medium text-muted-foreground">Failure message</div>
-                  <p className="mt-1 rounded bg-muted/50 p-2 text-sm">{openEvent.failure_message}</p>
+                  <p className="mt-1 rounded bg-muted/50 p-2 text-sm">
+                    {openEvent.failure_message}
+                  </p>
                 </div>
               )}
               {openEvent.ai_summary && (
@@ -845,13 +841,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-function Chip({
-  children,
-  onRemove,
-}: {
-  children: React.ReactNode;
-  onRemove: () => void;
-}) {
+function Chip({ children, onRemove }: { children: React.ReactNode; onRemove: () => void }) {
   return (
     <span className="inline-flex items-center gap-1 rounded-full border bg-background px-2 py-0.5 text-[11px]">
       {children}
@@ -885,9 +875,7 @@ function FilterMenu({
         <DropdownMenuTrigger asChild>
           <Button variant="outline" size="sm" className="h-9 justify-between gap-2 min-w-[120px]">
             <span>
-              {selected.length === 0
-                ? `All ${label.toLowerCase()}`
-                : `${selected.length} selected`}
+              {selected.length === 0 ? `All ${label.toLowerCase()}` : `${selected.length} selected`}
             </span>
             <FilterIcon className="size-3.5 text-muted-foreground" />
           </Button>

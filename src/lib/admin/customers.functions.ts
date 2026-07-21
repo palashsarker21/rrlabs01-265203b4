@@ -212,7 +212,8 @@ export const getCustomerDetail = createServerFn({ method: "POST" })
     const recoveredAmountByCurrency: Record<string, number> = {};
     for (const r of recoveredRows) {
       const cur = (r.currency ?? "USD").toUpperCase();
-      recoveredAmountByCurrency[cur] = (recoveredAmountByCurrency[cur] ?? 0) + (r.amount_cents ?? 0);
+      recoveredAmountByCurrency[cur] =
+        (recoveredAmountByCurrency[cur] ?? 0) + (r.amount_cents ?? 0);
     }
 
     const subs = (subsR.data ?? []) as Array<{
@@ -228,18 +229,24 @@ export const getCustomerDetail = createServerFn({ method: "POST" })
       card_last_four: string | null;
       ls_subscription_id: string | null;
       customer_portal_url: string | null;
-      plans:
-        | { code: string; name: string; price_cents: number; currency: string; interval: string }
-        | null;
+      plans: {
+        code: string;
+        name: string;
+        price_cents: number;
+        currency: string;
+        interval: string;
+      } | null;
     }>;
     const activeSub =
-      subs.find((s) => s.status === "active" || s.status === "on_trial" || s.status === "past_due") ??
+      subs.find(
+        (s) => s.status === "active" || s.status === "on_trial" || s.status === "past_due",
+      ) ??
       subs[0] ??
       null;
     const mrrCents =
-      activeSub?.plans?.interval === "month" ? activeSub?.plans?.price_cents ?? null : null;
+      activeSub?.plans?.interval === "month" ? (activeSub?.plans?.price_cents ?? null) : null;
     const arrCents =
-      activeSub?.plans?.interval === "year" ? activeSub?.plans?.price_cents ?? null : null;
+      activeSub?.plans?.interval === "year" ? (activeSub?.plans?.price_cents ?? null) : null;
 
     return {
       workspace: wsR.data,
@@ -264,7 +271,6 @@ export const getCustomerDetail = createServerFn({ method: "POST" })
       audit: auditR.data ?? [],
     };
   });
-
 
 /** Change workspace status (activate / pause / suspend / archive / cancel). */
 export const setCustomerStatus = createServerFn({ method: "POST" })

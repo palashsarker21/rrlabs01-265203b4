@@ -25,7 +25,6 @@ const inputSchema = z.object({
   activationTimeline: z.array(activationTimelineEntrySchema).optional(),
 });
 
-
 const KIND_LABEL: Record<ProviderKind, { label: string; required: boolean }> = {
   store: { label: "Store", required: true },
   gateway: { label: "Payment gateway", required: true },
@@ -87,9 +86,7 @@ export const generateOnboardingReport = createServerFn({ method: "POST" })
       return { kind: step.kind, title: step.title, items, connected };
     });
 
-    const requiredMissing = groups.filter(
-      (g) => KIND_LABEL[g.kind].required && !g.connected,
-    );
+    const requiredMissing = groups.filter((g) => KIND_LABEL[g.kind].required && !g.connected);
     const allReady = requiredMissing.length === 0;
     const engineActive = !!workspace.recovery_engine_enabled;
 
@@ -163,7 +160,13 @@ export const generateOnboardingReport = createServerFn({ method: "POST" })
     let innerY = y - 8;
     page.drawText("Workspace", { x: innerX, y: innerY, size: 9, font: bold, color: muted });
     innerY -= 14;
-    page.drawText(workspace.name ?? "—", { x: innerX, y: innerY, size: 14, font: bold, color: text });
+    page.drawText(workspace.name ?? "—", {
+      x: innerX,
+      y: innerY,
+      size: 14,
+      font: bold,
+      color: text,
+    });
     innerY -= 20;
 
     const activationLabel = engineActive
@@ -209,8 +212,10 @@ export const generateOnboardingReport = createServerFn({ method: "POST" })
       page.drawText("Setup completed", { x: rightX, y: rightY, size: 9, font: bold, color: muted });
       rightY -= 14;
       page.drawText(
-        new Date(workspace.setup_completed_at as string).toISOString().replace("T", " ").slice(0, 19) +
-          " UTC",
+        new Date(workspace.setup_completed_at as string)
+          .toISOString()
+          .replace("T", " ")
+          .slice(0, 19) + " UTC",
         { x: rightX, y: rightY, size: 9, font, color: text },
       );
     }
@@ -286,11 +291,7 @@ export const generateOnboardingReport = createServerFn({ method: "POST" })
             : it.status === "connected"
               ? "Needs verification"
               : it.status;
-          const statusColor = it.verified
-            ? green
-            : it.status === "connected"
-              ? amber
-              : red;
+          const statusColor = it.verified ? green : it.status === "connected" ? amber : red;
           drawText(`  • ${it.provider}`, { size: 10 });
           page.drawText(statusLabel, {
             x: width - marginX - font.widthOfTextAtSize(statusLabel, 9) - 4,
@@ -370,13 +371,11 @@ export const generateOnboardingReport = createServerFn({ method: "POST" })
     }
 
     // Activation timeline — chronological order of step start/finish
-    const timeline = (data.activationTimeline ?? [])
-      .slice()
-      .sort((a, b) => {
-        const at = a.startedAt ?? a.finishedAt ?? "";
-        const bt = b.startedAt ?? b.finishedAt ?? "";
-        return at.localeCompare(bt);
-      });
+    const timeline = (data.activationTimeline ?? []).slice().sort((a, b) => {
+      const at = a.startedAt ?? a.finishedAt ?? "";
+      const bt = b.startedAt ?? b.finishedAt ?? "";
+      return at.localeCompare(bt);
+    });
     if (timeline.length > 0) {
       y -= 6;
       ensureSpace(40);
@@ -389,10 +388,10 @@ export const generateOnboardingReport = createServerFn({ method: "POST" })
         color: border,
       });
       y -= 16;
-      drawText(
-        "Chronological record of each activation step (times in UTC).",
-        { size: 10, color: muted },
-      );
+      drawText("Chronological record of each activation step (times in UTC).", {
+        size: 10,
+        color: muted,
+      });
       y -= 16;
 
       // Column headers
@@ -418,8 +417,7 @@ export const generateOnboardingReport = createServerFn({ method: "POST" })
 
       const fmt = (iso?: string) =>
         iso ? new Date(iso).toISOString().replace("T", " ").slice(11, 19) : "—";
-      const fmtDate = (iso?: string) =>
-        iso ? new Date(iso).toISOString().slice(0, 10) : "";
+      const fmtDate = (iso?: string) => (iso ? new Date(iso).toISOString().slice(0, 10) : "");
       const duration = (a?: string, b?: string) => {
         if (!a || !b) return "—";
         const ms = new Date(b).getTime() - new Date(a).getTime();
@@ -491,9 +489,6 @@ export const generateOnboardingReport = createServerFn({ method: "POST" })
       }
     }
 
-
-
-
     // Footer note on last page
     ensureSpace(40);
     y -= 8;
@@ -523,7 +518,6 @@ export const generateOnboardingReport = createServerFn({ method: "POST" })
 function truncate(s: string, max: number): string {
   return s.length <= max ? s : `${s.slice(0, Math.max(0, max - 1))}…`;
 }
-
 
 function wrap(s: string, maxChars: number): string[] {
   const words = s.split(/\s+/);

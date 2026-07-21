@@ -116,8 +116,17 @@ async function loadModel(id: string | null): Promise<ModelRow | null> {
     .eq("id", id)
     .maybeSingle();
   if (!data) return null;
-  const p = (data as unknown as { ai_providers: { slug: string; base_url: string; secret_env_var: string; encrypted_api_key: string | null; enabled: boolean } })
-    .ai_providers;
+  const p = (
+    data as unknown as {
+      ai_providers: {
+        slug: string;
+        base_url: string;
+        secret_env_var: string;
+        encrypted_api_key: string | null;
+        enabled: boolean;
+      };
+    }
+  ).ai_providers;
   return {
     id: data.id,
     model_id: data.model_id,
@@ -171,8 +180,7 @@ function estimateTokens(text: string): number {
 
 function computeCost(m: ModelRow, inTok: number, outTok: number): number {
   return (
-    (inTok / 1_000_000) * m.input_price_per_mtok +
-    (outTok / 1_000_000) * m.output_price_per_mtok
+    (inTok / 1_000_000) * m.input_price_per_mtok + (outTok / 1_000_000) * m.output_price_per_mtok
   );
 }
 
@@ -203,11 +211,15 @@ async function callModel(
       const { decryptJSON } = await import("@/lib/crypto.server");
       key = decryptJSON<string>(model.provider_encrypted_api_key);
     } catch (e) {
-      throw new Error(`Failed to decrypt stored API key for ${model.provider_slug}: ${(e as Error).message}`);
+      throw new Error(
+        `Failed to decrypt stored API key for ${model.provider_slug}: ${(e as Error).message}`,
+      );
     }
   }
   if (!key) {
-    throw new Error(`No API key configured for provider ${model.provider_slug} (env ${model.provider_secret_env} or admin-panel stored key).`);
+    throw new Error(
+      `No API key configured for provider ${model.provider_slug} (env ${model.provider_secret_env} or admin-panel stored key).`,
+    );
   }
   const body: Record<string, unknown> = {
     model: model.model_id,
@@ -358,7 +370,12 @@ export async function runAI(input: RunAIInput): Promise<RunAIResult> {
   const requestedTier: AiTier = input.tier ?? "primary";
   const chain: (string | null)[] = [];
   if (requestedTier === "premium" && settings?.premium_enabled !== false) {
-    chain.push(route.premium_model_id, route.primary_model_id, route.secondary_model_id, route.fallback_model_id);
+    chain.push(
+      route.premium_model_id,
+      route.primary_model_id,
+      route.secondary_model_id,
+      route.fallback_model_id,
+    );
   } else if (requestedTier === "secondary") {
     chain.push(route.secondary_model_id, route.primary_model_id, route.fallback_model_id);
   } else if (requestedTier === "fallback") {
@@ -375,7 +392,12 @@ export async function runAI(input: RunAIInput): Promise<RunAIResult> {
   const cacheOn =
     route.cache_enabled && (settings?.cache_enabled ?? true) && route.cache_ttl_seconds > 0;
   const key = cacheOn
-    ? cacheKey({ task: input.task, model: firstModel.model_id, system: input.system, user: input.user })
+    ? cacheKey({
+        task: input.task,
+        model: firstModel.model_id,
+        system: input.system,
+        user: input.user,
+      })
     : null;
   if (key) {
     const cached = await readCache(key);

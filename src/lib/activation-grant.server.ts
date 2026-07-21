@@ -10,12 +10,7 @@ import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
  * Wire format: "<payloadB64>.<sigB64>"
  */
 
-export type ActivationStepId =
-  | "permission"
-  | "required"
-  | "verified"
-  | "webhooks"
-  | "activate";
+export type ActivationStepId = "permission" | "required" | "verified" | "webhooks" | "activate";
 
 export const ACTIVATION_STEP_IDS: readonly ActivationStepId[] = [
   "permission",
@@ -81,10 +76,7 @@ export function verifyRetryGrant(token: string, workspaceId: string): GrantVerif
 
   const expectedSig = createHmac("sha256", getKey()).update(payloadB64).digest();
   const providedSig = b64urlDecode(sigB64);
-  if (
-    providedSig.length !== expectedSig.length ||
-    !timingSafeEqual(providedSig, expectedSig)
-  ) {
+  if (providedSig.length !== expectedSig.length || !timingSafeEqual(providedSig, expectedSig)) {
     return { ok: false, reason: "Invalid retry grant signature." };
   }
 

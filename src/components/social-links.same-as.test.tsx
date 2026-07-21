@@ -31,9 +31,7 @@ function extractOrganizationSameAs(): string[] {
 
 function renderedHrefs(variant: "icons" | "list"): string[] {
   const { container } = render(<SocialLinks variant={variant} />);
-  return Array.from(container.querySelectorAll("a")).map(
-    (a) => a.getAttribute("href") ?? "",
-  );
+  return Array.from(container.querySelectorAll("a")).map((a) => a.getAttribute("href") ?? "");
 }
 
 describe("JSON-LD sameAs is generated from ENABLED_SOCIAL_PROFILES (both variants)", () => {
@@ -42,9 +40,7 @@ describe("JSON-LD sameAs is generated from ENABLED_SOCIAL_PROFILES (both variant
   });
 
   it("sameAs equals ENABLED_SOCIAL_PROFILES hrefs in order", () => {
-    expect(extractOrganizationSameAs()).toEqual(
-      ENABLED_SOCIAL_PROFILES.map((p) => p.href),
-    );
+    expect(extractOrganizationSameAs()).toEqual(ENABLED_SOCIAL_PROFILES.map((p) => p.href));
   });
 
   for (const variant of ["icons", "list"] as const) {

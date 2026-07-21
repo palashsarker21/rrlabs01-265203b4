@@ -35,7 +35,9 @@ const STATUS_STYLES: Record<string, string> = {
 function StatusBadge({ value }: { value: string }) {
   const cls = STATUS_STYLES[value] ?? "bg-muted text-muted-foreground border-border/60";
   return (
-    <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs capitalize ${cls}`}>
+    <span
+      className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs capitalize ${cls}`}
+    >
       {value}
     </span>
   );
@@ -191,10 +193,7 @@ function CustomersPage() {
         </div>
       </header>
 
-      <section
-        aria-label="Directory totals"
-        className="grid grid-cols-2 gap-3 md:grid-cols-5"
-      >
+      <section aria-label="Directory totals" className="grid grid-cols-2 gap-3 md:grid-cols-5">
         <Stat label="Total" value={totals.count} />
         <Stat label="Active" value={totals.active} />
         <Stat label="Trial" value={totals.trial} />
@@ -258,9 +257,7 @@ function Stat({
   return (
     <div className="rounded-xl border border-border/60 bg-card/40 p-4">
       <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
-      <p
-        className={`mt-1 text-xl font-semibold ${accent ? "text-primary" : "text-foreground"}`}
-      >
+      <p className={`mt-1 text-xl font-semibold ${accent ? "text-primary" : "text-foreground"}`}>
         {value}
       </p>
     </div>

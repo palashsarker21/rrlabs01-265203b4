@@ -16,9 +16,7 @@ import {
   Activity,
   Users,
   Bell,
-
 } from "lucide-react";
-
 
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -122,7 +120,8 @@ function AppShell() {
   const alertsQuery = useQuery({
     enabled: !!activeWorkspace,
     queryKey: ["alerts-open-count", activeWorkspace?.id],
-    queryFn: () => alertsFn({ data: { workspaceId: activeWorkspace!.id, status: "open", limit: 1 } }),
+    queryFn: () =>
+      alertsFn({ data: { workspaceId: activeWorkspace!.id, status: "open", limit: 1 } }),
     refetchInterval: 30000,
   });
   const openAlerts = alertsQuery.data?.openCount ?? 0;
@@ -372,7 +371,6 @@ function AppShell() {
   );
 }
 
-
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, string> = {
     new: "bg-blue-500/15 text-blue-600 dark:text-blue-400",
@@ -392,7 +390,6 @@ function StatusBadge({ status }: { status: string }) {
     </span>
   );
 }
-
 
 function GettingStarted({ setupStep, engineOn }: { setupStep: number; engineOn: boolean }) {
   const items = [

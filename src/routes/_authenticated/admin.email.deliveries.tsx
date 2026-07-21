@@ -13,8 +13,6 @@ import {
 
 type StatusFilter = "all" | "queued" | "sent" | "failed" | "skipped" | "retried";
 
-
-
 export const Route = createFileRoute("/_authenticated/admin/email/deliveries")({
   head: () => ({
     meta: [{ title: "Email deliveries — Admin — RRLabs" }],
@@ -41,7 +39,9 @@ function statusBadge(s: string, attempts: number) {
   };
   const label = s === "sent" && attempts >= 2 ? `sent · retried ${attempts - 1}×` : s;
   return (
-    <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${cls[s] ?? "bg-slate-100 text-slate-700"}`}>
+    <span
+      className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${cls[s] ?? "bg-slate-100 text-slate-700"}`}
+    >
       {label}
     </span>
   );
@@ -59,7 +59,6 @@ function EmailDeliveriesPage() {
   const replayFn = useServerFn(replayDeliveryFn);
   const resolveBulkFn = useServerFn(resolveBulkReplayFn);
   const tplFn = useServerFn(listTemplateOptionsFn);
-
 
   const [status, setStatus] = useState<StatusFilter>("all");
   const [template, setTemplate] = useState("");
@@ -212,9 +211,7 @@ function EmailDeliveriesPage() {
         s
           ? {
               ...s,
-              items: s.items.map((it, idx) =>
-                idx === i ? { ...it, status: "running" } : it,
-              ),
+              items: s.items.map((it, idx) => (idx === i ? { ...it, status: "running" } : it)),
             }
           : s,
       );
@@ -263,8 +260,6 @@ function EmailDeliveriesPage() {
     qc.invalidateQueries({ queryKey: ["admin", "email", "deliveries"] });
   }
 
-
-
   const rows = listQ.data?.rows ?? [];
   const counts = listQ.data?.counts;
 
@@ -284,8 +279,7 @@ function EmailDeliveriesPage() {
     [selectedIds, pastedLogIds],
   );
   const bulkTotal = bulkIds.length + pastedMessageIds.length;
-  const allVisibleSelected =
-    rows.length > 0 && rows.every((r) => selectedIds.has(r.id));
+  const allVisibleSelected = rows.length > 0 && rows.every((r) => selectedIds.has(r.id));
 
   function csvEscape(v: unknown): string {
     if (v === null || v === undefined) return "";
@@ -355,15 +349,14 @@ function EmailDeliveriesPage() {
     });
   }
 
-
   return (
     <div className="mx-auto max-w-7xl p-6 space-y-6">
       <header className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold">Email deliveries</h1>
           <p className="text-sm text-muted-foreground">
-            Queued, retried, and failed delivery attempts across all workspaces.
-            Replay a send by log ID or provider message ID.
+            Queued, retried, and failed delivery attempts across all workspaces. Replay a send by
+            log ID or provider message ID.
           </p>
         </div>
         <a href="/admin/email" className="text-sm underline text-muted-foreground">
@@ -381,11 +374,15 @@ function EmailDeliveriesPage() {
               setPage(0);
             }}
             className={`rounded-lg border p-3 text-left transition ${
-              (k === "total" ? status === "all" : status === k) ? "border-primary bg-primary/5" : "hover:bg-muted/50"
+              (k === "total" ? status === "all" : status === k)
+                ? "border-primary bg-primary/5"
+                : "hover:bg-muted/50"
             }`}
           >
             <div className="text-xs uppercase tracking-wide text-muted-foreground">{k}</div>
-            <div className="text-xl font-semibold">{counts ? counts[k as keyof typeof counts] : "—"}</div>
+            <div className="text-xl font-semibold">
+              {counts ? counts[k as keyof typeof counts] : "—"}
+            </div>
           </button>
         ))}
       </section>
@@ -523,8 +520,8 @@ function EmailDeliveriesPage() {
           <div>
             <h2 className="font-semibold">Bulk replay</h2>
             <p className="text-xs text-muted-foreground">
-              Reissue delivery attempts for many messages at once. Tick rows below or paste log
-              IDs / provider message IDs (whitespace, comma, or newline separated). Capped at 50 per
+              Reissue delivery attempts for many messages at once. Tick rows below or paste log IDs
+              / provider message IDs (whitespace, comma, or newline separated). Capped at 50 per
               request.
             </p>
           </div>
@@ -553,7 +550,6 @@ function EmailDeliveriesPage() {
             >
               {bulkRun?.running ? "Replaying…" : `Replay ${bulkTotal || ""} selected`}
             </button>
-
           </div>
         </div>
         <textarea
@@ -570,163 +566,153 @@ function EmailDeliveriesPage() {
         ) : null}
       </section>
 
-      {bulkRun ? (
-        (() => {
-          const items = bulkRun.items;
-          const total = items.length;
-          const done = items.filter((i) => i.status === "ok" || i.status === "error").length;
-          const ok = items.filter((i) => i.status === "ok").length;
-          const failed = items.filter((i) => i.status === "error").length;
-          const running = items.find((i) => i.status === "running");
-          const pct = total === 0 ? 100 : Math.round((done / total) * 100);
-          // Per-recipient summary (only meaningful once done).
-          const perRecipient = new Map<
-            string,
-            { ok: number; failed: number; last?: string }
-          >();
-          for (const it of items) {
-            const key = it.recipient ?? "(unresolved)";
-            const cur = perRecipient.get(key) ?? { ok: 0, failed: 0 };
-            if (it.status === "ok") cur.ok++;
-            else if (it.status === "error") {
-              cur.failed++;
-              if (it.error) cur.last = it.error;
+      {bulkRun
+        ? (() => {
+            const items = bulkRun.items;
+            const total = items.length;
+            const done = items.filter((i) => i.status === "ok" || i.status === "error").length;
+            const ok = items.filter((i) => i.status === "ok").length;
+            const failed = items.filter((i) => i.status === "error").length;
+            const running = items.find((i) => i.status === "running");
+            const pct = total === 0 ? 100 : Math.round((done / total) * 100);
+            // Per-recipient summary (only meaningful once done).
+            const perRecipient = new Map<string, { ok: number; failed: number; last?: string }>();
+            for (const it of items) {
+              const key = it.recipient ?? "(unresolved)";
+              const cur = perRecipient.get(key) ?? { ok: 0, failed: 0 };
+              if (it.status === "ok") cur.ok++;
+              else if (it.status === "error") {
+                cur.failed++;
+                if (it.error) cur.last = it.error;
+              }
+              perRecipient.set(key, cur);
             }
-            perRecipient.set(key, cur);
-          }
-          const elapsed =
-            (bulkRun.finishedAt ?? Date.now()) - (bulkRun.startedAt ?? Date.now());
-          return (
-            <div className="rounded-md border border-sky-200 bg-sky-50 px-3 py-3 text-sm text-sky-900">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <div className="font-medium">
-                    {bulkRun.running
-                      ? bulkRun.cancelRequested
-                        ? "Stopping bulk replay…"
-                        : `Bulk replay in progress · ${done}/${total}`
-                      : `Bulk replay complete · ${ok} ok · ${failed} failed`}
+            const elapsed = (bulkRun.finishedAt ?? Date.now()) - (bulkRun.startedAt ?? Date.now());
+            return (
+              <div className="rounded-md border border-sky-200 bg-sky-50 px-3 py-3 text-sm text-sky-900">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <div className="font-medium">
+                      {bulkRun.running
+                        ? bulkRun.cancelRequested
+                          ? "Stopping bulk replay…"
+                          : `Bulk replay in progress · ${done}/${total}`
+                        : `Bulk replay complete · ${ok} ok · ${failed} failed`}
+                    </div>
+                    <div className="text-xs text-sky-800/80">
+                      {bulkRun.running && running
+                        ? `Now sending → ${running.recipient ?? running.input} (${running.template ?? "—"})`
+                        : `Elapsed ${(elapsed / 1000).toFixed(1)}s`}
+                    </div>
                   </div>
-                  <div className="text-xs text-sky-800/80">
-                    {bulkRun.running && running
-                      ? `Now sending → ${running.recipient ?? running.input} (${running.template ?? "—"})`
-                      : `Elapsed ${(elapsed / 1000).toFixed(1)}s`}
+                  <div className="flex items-center gap-2">
+                    {bulkRun.running ? (
+                      <button
+                        className="rounded-md border border-sky-300 bg-white px-2 py-1 text-xs font-medium hover:bg-sky-100 disabled:opacity-50"
+                        disabled={bulkRun.cancelRequested}
+                        onClick={() => setBulkRun((s) => (s ? { ...s, cancelRequested: true } : s))}
+                      >
+                        Stop after current
+                      </button>
+                    ) : (
+                      <button className="underline" onClick={() => setBulkRun(null)}>
+                        dismiss
+                      </button>
+                    )}
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  {bulkRun.running ? (
-                    <button
-                      className="rounded-md border border-sky-300 bg-white px-2 py-1 text-xs font-medium hover:bg-sky-100 disabled:opacity-50"
-                      disabled={bulkRun.cancelRequested}
-                      onClick={() =>
-                        setBulkRun((s) => (s ? { ...s, cancelRequested: true } : s))
-                      }
-                    >
-                      Stop after current
-                    </button>
-                  ) : (
-                    <button className="underline" onClick={() => setBulkRun(null)}>
-                      dismiss
-                    </button>
-                  )}
+
+                {/* Progress bar */}
+                <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-sky-100">
+                  <div
+                    className="h-full rounded-full bg-sky-600 transition-[width] duration-300"
+                    style={{ width: `${pct}%` }}
+                    role="progressbar"
+                    aria-valuenow={pct}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                  />
                 </div>
-              </div>
 
-              {/* Progress bar */}
-              <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-sky-100">
-                <div
-                  className="h-full rounded-full bg-sky-600 transition-[width] duration-300"
-                  style={{ width: `${pct}%` }}
-                  role="progressbar"
-                  aria-valuenow={pct}
-                  aria-valuemin={0}
-                  aria-valuemax={100}
-                />
-              </div>
-
-              {/* Live per-item stream */}
-              <ul className="mt-3 max-h-52 overflow-auto rounded border border-sky-100 bg-white/60 text-xs">
-                {items.map((it, idx) => {
-                  const icon =
-                    it.status === "ok"
-                      ? "✓"
-                      : it.status === "error"
-                        ? "✗"
-                        : it.status === "running"
-                          ? "…"
-                          : "•";
-                  const color =
-                    it.status === "ok"
-                      ? "text-emerald-700"
-                      : it.status === "error"
-                        ? "text-red-700"
-                        : it.status === "running"
-                          ? "text-sky-700"
-                          : "text-slate-500";
-                  return (
-                    <li
-                      key={`${it.input}-${idx}`}
-                      className="flex items-start justify-between gap-3 border-b border-sky-100/70 px-2 py-1 last:border-0"
-                    >
-                      <span className={`font-mono ${color}`}>
-                        {icon} {it.recipient ?? it.input}
-                        {it.template ? (
-                          <span className="ml-2 text-slate-500">· {it.template}</span>
-                        ) : null}
-                      </span>
-                      <span className="text-slate-500">
-                        {it.status === "ok" && it.durationMs
-                          ? `${it.durationMs}ms`
-                          : it.status === "error"
-                            ? (it.error ?? "error").slice(0, 60)
-                            : it.status === "running"
-                              ? "running"
-                              : "queued"}
-                      </span>
-                    </li>
-                  );
-                })}
-              </ul>
-
-              {/* Final per-recipient summary */}
-              {!bulkRun.running ? (
-                <div className="mt-3">
-                  <div className="text-xs font-semibold uppercase tracking-wide text-sky-800">
-                    Per-recipient summary
-                  </div>
-                  <ul className="mt-1 max-h-40 overflow-auto rounded border border-sky-100 bg-white/60 text-xs">
-                    {[...perRecipient.entries()].map(([recipient, s]) => (
+                {/* Live per-item stream */}
+                <ul className="mt-3 max-h-52 overflow-auto rounded border border-sky-100 bg-white/60 text-xs">
+                  {items.map((it, idx) => {
+                    const icon =
+                      it.status === "ok"
+                        ? "✓"
+                        : it.status === "error"
+                          ? "✗"
+                          : it.status === "running"
+                            ? "…"
+                            : "•";
+                    const color =
+                      it.status === "ok"
+                        ? "text-emerald-700"
+                        : it.status === "error"
+                          ? "text-red-700"
+                          : it.status === "running"
+                            ? "text-sky-700"
+                            : "text-slate-500";
+                    return (
                       <li
-                        key={recipient}
+                        key={`${it.input}-${idx}`}
                         className="flex items-start justify-between gap-3 border-b border-sky-100/70 px-2 py-1 last:border-0"
                       >
-                        <span className="font-mono">{recipient}</span>
-                        <span className="text-slate-600">
-                          <span className="text-emerald-700">{s.ok} ok</span>
-                          {" · "}
-                          <span className={s.failed > 0 ? "text-red-700" : ""}>
-                            {s.failed} failed
-                          </span>
-                          {s.last ? (
-                            <span
-                              className="ml-2 text-slate-500"
-                              title={s.last}
-                            >
-                              — {s.last.slice(0, 40)}
-                              {s.last.length > 40 ? "…" : ""}
-                            </span>
+                        <span className={`font-mono ${color}`}>
+                          {icon} {it.recipient ?? it.input}
+                          {it.template ? (
+                            <span className="ml-2 text-slate-500">· {it.template}</span>
                           ) : null}
                         </span>
+                        <span className="text-slate-500">
+                          {it.status === "ok" && it.durationMs
+                            ? `${it.durationMs}ms`
+                            : it.status === "error"
+                              ? (it.error ?? "error").slice(0, 60)
+                              : it.status === "running"
+                                ? "running"
+                                : "queued"}
+                        </span>
                       </li>
-                    ))}
-                  </ul>
-                </div>
-              ) : null}
-            </div>
-          );
-        })()
-      ) : null}
+                    );
+                  })}
+                </ul>
 
+                {/* Final per-recipient summary */}
+                {!bulkRun.running ? (
+                  <div className="mt-3">
+                    <div className="text-xs font-semibold uppercase tracking-wide text-sky-800">
+                      Per-recipient summary
+                    </div>
+                    <ul className="mt-1 max-h-40 overflow-auto rounded border border-sky-100 bg-white/60 text-xs">
+                      {[...perRecipient.entries()].map(([recipient, s]) => (
+                        <li
+                          key={recipient}
+                          className="flex items-start justify-between gap-3 border-b border-sky-100/70 px-2 py-1 last:border-0"
+                        >
+                          <span className="font-mono">{recipient}</span>
+                          <span className="text-slate-600">
+                            <span className="text-emerald-700">{s.ok} ok</span>
+                            {" · "}
+                            <span className={s.failed > 0 ? "text-red-700" : ""}>
+                              {s.failed} failed
+                            </span>
+                            {s.last ? (
+                              <span className="ml-2 text-slate-500" title={s.last}>
+                                — {s.last.slice(0, 40)}
+                                {s.last.length > 40 ? "…" : ""}
+                              </span>
+                            ) : null}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+              </div>
+            );
+          })()
+        : null}
 
       {/* Table */}
       <section className="rounded-lg border">
@@ -835,10 +821,7 @@ function EmailDeliveriesPage() {
 
       {/* Detail drawer */}
       {selectedId ? (
-        <div
-          className="fixed inset-0 z-50 bg-black/40"
-          onClick={() => setSelectedId(null)}
-        >
+        <div className="fixed inset-0 z-50 bg-black/40" onClick={() => setSelectedId(null)}>
           <aside
             className="absolute right-0 top-0 h-full w-full max-w-2xl overflow-y-auto bg-background p-6 shadow-xl"
             onClick={(e) => e.stopPropagation()}
@@ -933,7 +916,10 @@ function EmailDeliveriesPage() {
                       <li className="text-xs text-muted-foreground">No replays yet.</li>
                     ) : null}
                     {detailQ.data.replays.map((r) => (
-                      <li key={r.id} className="flex items-center justify-between rounded border p-2 text-xs">
+                      <li
+                        key={r.id}
+                        className="flex items-center justify-between rounded border p-2 text-xs"
+                      >
                         <div>
                           <div>{statusBadge(String(r.status), r.attempts ?? 0)}</div>
                           <div className="text-muted-foreground">{fmt(r.created_at)}</div>
@@ -967,8 +953,8 @@ function EmailDeliveriesPage() {
           <div className="w-full max-w-md rounded-lg bg-background p-5 shadow-xl">
             <h3 className="text-base font-semibold">Replay this delivery?</h3>
             <p className="mt-2 text-sm text-muted-foreground">
-              A new send will be dispatched to the original recipient using the same template.
-              If stored template data isn't available, sample data is used. A new log row will be
+              A new send will be dispatched to the original recipient using the same template. If
+              stored template data isn't available, sample data is used. A new log row will be
               created and linked back to this delivery.
             </p>
             <p className="mt-2 font-mono text-xs break-all">{confirmId}</p>
@@ -1003,8 +989,8 @@ function EmailDeliveriesPage() {
             <h3 className="text-base font-semibold">Replay {bulkTotal} deliveries?</h3>
             <p className="mt-2 text-sm text-muted-foreground">
               Each selected message will be resent to its original recipient using the same
-              template. New log rows will be created and linked back to the originals. This can
-              take a while and may consume rate-limit quota.
+              template. New log rows will be created and linked back to the originals. This can take
+              a while and may consume rate-limit quota.
             </p>
             <div className="mt-3 space-y-1 text-xs text-muted-foreground">
               <div>
@@ -1028,14 +1014,11 @@ function EmailDeliveriesPage() {
               <button
                 className="rounded-md bg-primary px-3 py-1.5 text-sm text-primary-foreground disabled:opacity-50"
                 disabled={bulkRun?.running || bulkTotal === 0}
-                onClick={() =>
-                  void runBulkReplay({ ids: bulkIds, messageIds: pastedMessageIds })
-                }
+                onClick={() => void runBulkReplay({ ids: bulkIds, messageIds: pastedMessageIds })}
               >
                 {bulkRun?.running ? "Replaying…" : `Replay ${bulkTotal}`}
               </button>
             </div>
-
           </div>
         </div>
       ) : null}

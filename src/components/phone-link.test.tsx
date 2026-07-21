@@ -79,9 +79,7 @@ describe("PhoneLink", () => {
     });
 
     render(<PhoneLink entry={primary} />);
-    await userEvent.click(
-      screen.getByRole("button", { name: `Copy ${primary.number}` }),
-    );
+    await userEvent.click(screen.getByRole("button", { name: `Copy ${primary.number}` }));
 
     await waitFor(() => expect(writeText).toHaveBeenCalledWith(primary.number));
     expect(toastSuccess).toHaveBeenCalledWith("Phone number copied.");
@@ -100,9 +98,7 @@ describe("PhoneLink", () => {
     });
 
     render(<PhoneLink entry={whatsapp} />);
-    await userEvent.click(
-      screen.getByRole("button", { name: `Copy ${whatsapp.number}` }),
-    );
+    await userEvent.click(screen.getByRole("button", { name: `Copy ${whatsapp.number}` }));
 
     await waitFor(() => expect(execCommand).toHaveBeenCalledWith("copy"));
     expect(toastSuccess).toHaveBeenCalledWith("Phone number copied.");
@@ -117,13 +113,9 @@ describe("PhoneLink", () => {
     });
 
     render(<PhoneLink entry={primary} />);
-    await userEvent.click(
-      screen.getByRole("button", { name: `Copy ${primary.number}` }),
-    );
+    await userEvent.click(screen.getByRole("button", { name: `Copy ${primary.number}` }));
 
-    await waitFor(() =>
-      expect(toastError).toHaveBeenCalledWith("Could not copy phone number."),
-    );
+    await waitFor(() => expect(toastError).toHaveBeenCalledWith("Could not copy phone number."));
     expect(toastSuccess).not.toHaveBeenCalled();
   });
 
@@ -160,9 +152,7 @@ describe("PhoneList", () => {
     for (const p of CONTACT_PHONES) {
       const link = screen.getByRole("link", { name: p.ariaLabel });
       expect(link).toHaveAttribute("href", `tel:${p.number}`);
-      expect(
-        screen.getByRole("button", { name: `Copy ${p.number}` }),
-      ).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: `Copy ${p.number}` })).toBeInTheDocument();
     }
   });
 

@@ -63,9 +63,7 @@ export const sendTestEmail = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertSuperAdmin(context);
     const { sendEmail } = await import("./email/service.server");
-    const template = (data.template ?? "welcome") as
-      | "welcome"
-      | "system-alert";
+    const template = (data.template ?? "welcome") as "welcome" | "system-alert";
     if (template === "system-alert") {
       const result = await sendEmail({
         template: "system-alert",
@@ -105,7 +103,9 @@ export const listEmailLogs = createServerFn({ method: "GET" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     let q = supabaseAdmin
       .from("email_logs")
-      .select("id,workspace_id,template,recipient,subject,status,provider_message_id,attempts,last_error,created_at,sent_at,delivered_at,failed_at")
+      .select(
+        "id,workspace_id,template,recipient,subject,status,provider_message_id,attempts,last_error,created_at,sent_at,delivered_at,failed_at",
+      )
       .order("created_at", { ascending: false })
       .limit(data.limit ?? 50);
     if (data.status) q = q.eq("status", data.status);

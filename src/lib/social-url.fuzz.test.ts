@@ -23,10 +23,7 @@ const validHttpsUrl = fc
   .tuple(
     fc.constantFrom("https"),
     fc.domain(),
-    fc.array(
-      fc.stringMatching(/^[a-zA-Z0-9._~-]{1,20}$/),
-      { minLength: 0, maxLength: 4 },
-    ),
+    fc.array(fc.stringMatching(/^[a-zA-Z0-9._~-]{1,20}$/), { minLength: 0, maxLength: 4 }),
     fc.boolean(), // trailing slash
   )
   .map(([proto, host, segments, trailing]) => {
@@ -99,9 +96,7 @@ describe("normalizeSocialUrl (fuzz)", () => {
           fc.array(fc.anything()),
         ),
         (bogus) => {
-          expect(
-            normalizeSocialUrl(bogus as unknown as string | null | undefined),
-          ).toBeNull();
+          expect(normalizeSocialUrl(bogus as unknown as string | null | undefined)).toBeNull();
         },
       ),
       { numRuns: NUM_RUNS },
@@ -110,12 +105,9 @@ describe("normalizeSocialUrl (fuzz)", () => {
 
   it("rejects non-https schemes", () => {
     fc.assert(
-      fc.property(
-        fc.webUrl({ validSchemes: ["http", "ftp"] }),
-        (nonHttps) => {
-          expect(normalizeSocialUrl(nonHttps)).toBeNull();
-        },
-      ),
+      fc.property(fc.webUrl({ validSchemes: ["http", "ftp"] }), (nonHttps) => {
+        expect(normalizeSocialUrl(nonHttps)).toBeNull();
+      }),
       { numRuns: NUM_RUNS },
     );
   });
@@ -155,9 +147,7 @@ describe("normalizeSocialUrl (fuzz)", () => {
         fc.stringMatching(/^[ \t\n\r]*$/),
         fc.stringMatching(/^[ \t\n\r]*$/),
         (url, lead, trail) => {
-          expect(normalizeSocialUrl(lead + url + trail)).toBe(
-            normalizeSocialUrl(url),
-          );
+          expect(normalizeSocialUrl(lead + url + trail)).toBe(normalizeSocialUrl(url));
         },
       ),
       { numRuns: NUM_RUNS },
@@ -183,43 +173,33 @@ describe("normalizeSocialUrl (fuzz)", () => {
 
   it("dedupes equivalent inputs via a Set of normalized strings", () => {
     fc.assert(
-      fc.property(
-        fc.array(validHttpsUrl, { minLength: 1, maxLength: 25 }),
-        (urls) => {
-          // Build noisy duplicates: whitespace + trailing slash + host casing.
-          const noisy = urls.flatMap((u) => {
-            const parsed = new URL(u);
-            const upperHost = u.replace(
-              parsed.hostname,
-              parsed.hostname.toUpperCase(),
-            );
-            return [
-              u,
-              `  ${u}  `,
-              u.endsWith("/") ? u.slice(0, -1) : u + "/",
-              upperHost,
-              `${u}#fragment`,
-            ];
-          });
+      fc.property(fc.array(validHttpsUrl, { minLength: 1, maxLength: 25 }), (urls) => {
+        // Build noisy duplicates: whitespace + trailing slash + host casing.
+        const noisy = urls.flatMap((u) => {
+          const parsed = new URL(u);
+          const upperHost = u.replace(parsed.hostname, parsed.hostname.toUpperCase());
+          return [
+            u,
+            `  ${u}  `,
+            u.endsWith("/") ? u.slice(0, -1) : u + "/",
+            upperHost,
+            `${u}#fragment`,
+          ];
+        });
 
-          const canonical = urls
-            .map(normalizeSocialUrl)
-            .filter((x): x is string => x !== null);
-          const canonicalSet = new Set(canonical);
+        const canonical = urls.map(normalizeSocialUrl).filter((x): x is string => x !== null);
+        const canonicalSet = new Set(canonical);
 
-          const dedupedFromNoise = new Set(
-            noisy
-              .map(normalizeSocialUrl)
-              .filter((x): x is string => x !== null),
-          );
+        const dedupedFromNoise = new Set(
+          noisy.map(normalizeSocialUrl).filter((x): x is string => x !== null),
+        );
 
-          expect(dedupedFromNoise).toEqual(canonicalSet);
-          // Size is bounded by the number of *distinct* canonical URLs, not
-          // by how many noisy variants we fed in.
-          expect(dedupedFromNoise.size).toBeLessThanOrEqual(urls.length);
-          expect(dedupedFromNoise.size).toBe(canonicalSet.size);
-        },
-      ),
+        expect(dedupedFromNoise).toEqual(canonicalSet);
+        // Size is bounded by the number of *distinct* canonical URLs, not
+        // by how many noisy variants we fed in.
+        expect(dedupedFromNoise.size).toBeLessThanOrEqual(urls.length);
+        expect(dedupedFromNoise.size).toBe(canonicalSet.size);
+      }),
       { numRuns: 200 },
     );
   });

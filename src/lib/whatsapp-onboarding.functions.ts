@@ -65,10 +65,14 @@ export const provisionWhatsAppIntegration = createServerFn({ method: "POST" })
     if (existing) {
       // Backfill missing tokens without disturbing existing state.
       const patch: Record<string, string> = {};
-      if (!existing.webhook_verify_token) patch.webhook_verify_token = randomBytes(16).toString("hex");
+      if (!existing.webhook_verify_token)
+        patch.webhook_verify_token = randomBytes(16).toString("hex");
       if (!existing.webhook_secret) patch.webhook_secret = randomBytes(24).toString("base64url");
       if (Object.keys(patch).length > 0) {
-        await supabaseAdmin.from("integrations").update(patch as never).eq("id", existing.id);
+        await supabaseAdmin
+          .from("integrations")
+          .update(patch as never)
+          .eq("id", existing.id);
       }
       return {
         integrationId: existing.id,
@@ -144,7 +148,10 @@ export const getWhatsAppOnboardingState = createServerFn({ method: "POST" })
       webhookVerifyToken: row.webhook_verify_token ?? "",
       webhookSecret: row.webhook_secret ?? "",
       hasCredentials: Boolean(row.credentials_ciphertext),
-      config: JSON.parse(JSON.stringify(row.config ?? {})) as Record<string, string | number | boolean | null>,
+      config: JSON.parse(JSON.stringify(row.config ?? {})) as Record<
+        string,
+        string | number | boolean | null
+      >,
     };
   });
 
@@ -201,7 +208,12 @@ export const verifyWhatsAppWebhookLive = createServerFn({ method: "POST" })
           last_error: null,
         })
         .eq("id", row.id);
-      return { ok: true, message: "Webhook verified — Meta will accept this callback URL.", status, url };
+      return {
+        ok: true,
+        message: "Webhook verified — Meta will accept this callback URL.",
+        status,
+        url,
+      };
     }
 
     return {
@@ -313,7 +325,10 @@ export const runWhatsAppConnectionTest = createServerFn({ method: "POST" })
             { headers: { Authorization: `Bearer ${token}` } },
           );
           if (res.ok) {
-            const j = (await res.json()) as { display_phone_number?: string; verified_name?: string };
+            const j = (await res.json()) as {
+              display_phone_number?: string;
+              verified_name?: string;
+            };
             checks.push({
               name: "Meta Graph API",
               ok: true,

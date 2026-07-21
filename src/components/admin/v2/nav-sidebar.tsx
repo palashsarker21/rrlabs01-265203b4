@@ -46,10 +46,8 @@ export function AdminNavSidebar() {
         </div>
         <p className="mt-2 text-[11px] text-muted-foreground">
           Press{" "}
-          <kbd className="rounded border border-border bg-muted px-1 py-0.5 text-[10px]">
-            ⌘K
-          </kbd>{" "}
-          to open command palette
+          <kbd className="rounded border border-border bg-muted px-1 py-0.5 text-[10px]">⌘K</kbd> to
+          open command palette
         </p>
       </div>
 
@@ -81,19 +79,14 @@ export function AdminNavSidebar() {
               <li key={node.id}>
                 <button
                   type="button"
-                  onClick={() =>
-                    setCollapsed((s) => ({ ...s, [node.id]: !collapsed[node.id] }))
-                  }
+                  onClick={() => setCollapsed((s) => ({ ...s, [node.id]: !collapsed[node.id] }))}
                   aria-expanded={open}
                   className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground hover:bg-muted"
                 >
                   <GroupIcon className="h-3.5 w-3.5" aria-hidden />
                   <span className="flex-1 text-left">{node.label}</span>
                   <ChevronDown
-                    className={cn(
-                      "h-3.5 w-3.5 transition-transform",
-                      !open && "-rotate-90",
-                    )}
+                    className={cn("h-3.5 w-3.5 transition-transform", !open && "-rotate-90")}
                     aria-hidden
                   />
                 </button>
@@ -135,6 +128,7 @@ export function AdminNavSidebar() {
 }
 
 function matchLeaf(leaf: AdminNavLeaf, q: string) {
-  const hay = `${leaf.label} ${leaf.keywords?.join(" ") ?? ""} ${leaf.description ?? ""}`.toLowerCase();
+  const hay =
+    `${leaf.label} ${leaf.keywords?.join(" ") ?? ""} ${leaf.description ?? ""}`.toLowerCase();
   return hay.includes(q);
 }

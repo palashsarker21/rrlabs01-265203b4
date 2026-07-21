@@ -41,9 +41,7 @@ export function EmptyState({
       ) : null}
       <h3 className="text-h3 text-foreground">{title}</h3>
       {description ? (
-        <p className="mt-1.5 max-w-md text-sm text-muted-foreground">
-          {description}
-        </p>
+        <p className="mt-1.5 max-w-md text-sm text-muted-foreground">{description}</p>
       ) : null}
       {(action || secondaryAction) && (
         <div className="mt-5 flex flex-wrap items-center justify-center gap-2">

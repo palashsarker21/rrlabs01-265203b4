@@ -169,10 +169,8 @@ export function BillingPanel({ workspaceId }: { workspaceId: string }) {
               rel="noreferrer noopener"
               className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-primary underline"
             >
-              Pay outstanding invoice ({money(
-                fee.outstandingInvoice.net_amount_cents,
-                fee.outstandingInvoice.currency,
-              )})
+              Pay outstanding invoice (
+              {money(fee.outstandingInvoice.net_amount_cents, fee.outstandingInvoice.currency)})
               <ExternalLink className="h-3 w-3" />
             </a>
           ) : null}

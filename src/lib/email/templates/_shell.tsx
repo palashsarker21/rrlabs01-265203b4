@@ -60,13 +60,7 @@ const button = {
 const hr = { borderColor: "#e2e8f0", margin: "28px 0" };
 const footer = { fontSize: "12px", color: "#94a3b8", lineHeight: "1.5" };
 
-export function EmailShell({
-  preview,
-  children,
-}: {
-  preview: string;
-  children: React.ReactNode;
-}) {
+export function EmailShell({ preview, children }: { preview: string; children: React.ReactNode }) {
   return (
     <Html lang="en" dir="ltr">
       <Head />

@@ -61,7 +61,6 @@ function ContactPage() {
           human on the team.
         </p>
 
-
         <div className="mt-12 grid gap-5 sm:grid-cols-2">
           <div className="rounded-xl border border-border/60 bg-card/50 p-6 backdrop-blur transition hover:border-primary/50">
             <Mail className="h-5 w-5 text-primary" />
@@ -177,7 +176,11 @@ function ContactPage() {
                 >
                   {CONTACT.supportEmail}
                 </a>
-                . See our <a href="/security" className="underline underline-offset-4">Security page</a> for scope.
+                . See our{" "}
+                <a href="/security" className="underline underline-offset-4">
+                  Security page
+                </a>{" "}
+                for scope.
               </dd>
             </div>
             <div className="rounded-xl border border-border/60 bg-card/40 p-5">
@@ -195,18 +198,30 @@ function ContactPage() {
           </dl>
         </section>
 
-        <section aria-labelledby="response" className="mt-14 rounded-2xl border border-border/60 bg-card/40 p-6">
+        <section
+          aria-labelledby="response"
+          className="mt-14 rounded-2xl border border-border/60 bg-card/40 p-6"
+        >
           <h2 id="response" className="text-xl font-semibold text-foreground">
             Response expectations
           </h2>
           <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
             <li>Sales and product support: within one business day, Monday–Friday.</li>
-            <li>Technical support with a workspace and request ID: same business day where possible.</li>
-            <li>Security disclosures: acknowledged within 24 hours, triaged within 3 business days.</li>
-            <li>Live platform status is published on our <a href="/status" className="underline underline-offset-4">Status page</a>.</li>
+            <li>
+              Technical support with a workspace and request ID: same business day where possible.
+            </li>
+            <li>
+              Security disclosures: acknowledged within 24 hours, triaged within 3 business days.
+            </li>
+            <li>
+              Live platform status is published on our{" "}
+              <a href="/status" className="underline underline-offset-4">
+                Status page
+              </a>
+              .
+            </li>
           </ul>
         </section>
-
 
         <section aria-labelledby="official-socials" className="mt-16">
           <h2

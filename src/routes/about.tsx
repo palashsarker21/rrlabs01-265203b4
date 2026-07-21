@@ -61,7 +61,9 @@ function AboutPage() {
     <div className="relative min-h-screen bg-background">
       <MarketingHeader />
       <main className="relative z-10 mx-auto max-w-3xl px-6 py-20">
-        <p className="text-sm font-medium uppercase tracking-wider text-primary">About {BRAND.company}</p>
+        <p className="text-sm font-medium uppercase tracking-wider text-primary">
+          About {BRAND.company}
+        </p>
         <h1 className="mt-4 text-balance text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
           Subscription revenue shouldn&apos;t leak.
         </h1>
@@ -74,11 +76,11 @@ function AboutPage() {
             and a customer relationship that&apos;s harder to rebuild than it was to keep.
           </p>
           <p>
-            {BRAND.company} builds the platform we wished we&apos;d had. The Recovery Engine
-            listens to your payment provider in real time, classifies why each charge failed,
-            drafts warm, on-brand copy per customer, and follows up across email and WhatsApp until
-            the customer actually pays. It runs quietly in the background, respects consent and
-            quiet hours, and reports every recovered dollar in a live dashboard.
+            {BRAND.company} builds the platform we wished we&apos;d had. The Recovery Engine listens
+            to your payment provider in real time, classifies why each charge failed, drafts warm,
+            on-brand copy per customer, and follows up across email and WhatsApp until the customer
+            actually pays. It runs quietly in the background, respects consent and quiet hours, and
+            reports every recovered dollar in a live dashboard.
           </p>
         </div>
 
@@ -151,10 +153,15 @@ function AboutPage() {
           <p className="mt-3 text-muted-foreground">
             We treat customer data like the sensitive asset it is. Provider credentials are
             AES-256-GCM encrypted server-side, every table is scoped to a workspace, and
-            authentication supports SSO and role-based access control. Read the full detail on our
-            {" "}<Link to="/security" className="text-foreground underline underline-offset-4">Security</Link>{" "}
+            authentication supports SSO and role-based access control. Read the full detail on our{" "}
+            <Link to="/security" className="text-foreground underline underline-offset-4">
+              Security
+            </Link>{" "}
             page and our{" "}
-            <Link to="/privacy" className="text-foreground underline underline-offset-4">Privacy Policy</Link>.
+            <Link to="/privacy" className="text-foreground underline underline-offset-4">
+              Privacy Policy
+            </Link>
+            .
           </p>
         </section>
 

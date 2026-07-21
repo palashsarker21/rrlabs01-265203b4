@@ -11,10 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAccess } from "@/hooks/use-access";
 import { PERMISSIONS } from "@/lib/rbac";
 import { usePermissions } from "@/lib/rbac/use-permissions";
-import {
-  getMarketplaceFlow,
-  installFlow,
-} from "@/lib/marketplace/marketplace.functions";
+import { getMarketplaceFlow, installFlow } from "@/lib/marketplace/marketplace.functions";
 
 export const Route = createFileRoute("/_authenticated/marketplace/flows/$id")({
   component: FlowDetailPage,
@@ -91,17 +88,12 @@ function FlowDetailPage() {
           {f.industry && <Badge variant="secondary">{f.industry}</Badge>}
           {f.region && <Badge variant="secondary">{f.region}</Badge>}
           <Badge variant="secondary">{f.language}</Badge>
-          {f.failure_classification && (
-            <Badge variant="outline">{f.failure_classification}</Badge>
-          )}
+          {f.failure_classification && <Badge variant="outline">{f.failure_classification}</Badge>}
           <Badge variant="outline">{steps.length} steps</Badge>
         </div>
       </header>
 
-      <Button
-        onClick={handleInstall}
-        disabled={!canInstall || installing || !workspaceId}
-      >
+      <Button onClick={handleInstall} disabled={!canInstall || installing || !workspaceId}>
         {installing ? (
           "Installing…"
         ) : (

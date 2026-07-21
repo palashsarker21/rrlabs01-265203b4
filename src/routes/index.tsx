@@ -36,7 +36,10 @@ export const Route = createFileRoute("/")({
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://www.rrlabs.online/" },
-      { property: "og:title", content: "RRLabs — AI Revenue Recovery Platform for Subscription Businesses" },
+      {
+        property: "og:title",
+        content: "RRLabs — AI Revenue Recovery Platform for Subscription Businesses",
+      },
       {
         property: "og:description",
         content:
@@ -188,9 +191,9 @@ function Landing() {
             </h1>
             <p className="mt-6 text-lg leading-relaxed text-muted-foreground">
               RRLabs is the AI revenue recovery platform for subscription businesses. Detect failed
-              charges the moment they happen, generate personalized recovery messaging in your
-              brand voice, and deliver it across email and WhatsApp on optimized retry cadences —
-              without adding engineering work.
+              charges the moment they happen, generate personalized recovery messaging in your brand
+              voice, and deliver it across email and WhatsApp on optimized retry cadences — without
+              adding engineering work.
             </p>
             <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
               <Link to="/auth" search={{ redirect: "/checkout" }}>

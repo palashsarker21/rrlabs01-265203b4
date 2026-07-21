@@ -13,10 +13,7 @@ import { AdminCommandPalette } from "@/components/admin/v2/command-palette";
 export const Route = createFileRoute("/_authenticated/admin/v2")({
   component: AdminV2Layout,
   head: () => ({
-    meta: [
-      { title: "Platform Control Center — RRLabs" },
-      { name: "robots", content: "noindex" },
-    ],
+    meta: [{ title: "Platform Control Center — RRLabs" }, { name: "robots", content: "noindex" }],
   }),
 });
 

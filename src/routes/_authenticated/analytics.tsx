@@ -2,14 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
-import {
-  ArrowLeft,
-  TrendingUp,
-  Activity,
-  Zap,
-  DollarSign,
-  MailCheck,
-} from "lucide-react";
+import { ArrowLeft, TrendingUp, Activity, Zap, DollarSign, MailCheck } from "lucide-react";
 import {
   Area,
   AreaChart,
@@ -41,10 +34,7 @@ import { getRecoveryAnalytics } from "@/lib/recovery-analytics.functions";
 export const Route = createFileRoute("/_authenticated/analytics")({
   component: AnalyticsPage,
   head: () => ({
-    meta: [
-      { title: "Recovery analytics — RRLabs" },
-      { name: "robots", content: "noindex" },
-    ],
+    meta: [{ title: "Recovery analytics — RRLabs" }, { name: "robots", content: "noindex" }],
   }),
   errorComponent: ({ error }) => (
     <div className="p-8 text-sm text-rose-500" role="alert">
@@ -117,15 +107,16 @@ function AnalyticsPage() {
   const data = query.data;
 
   const combinedSeries = useMemo(() => {
-    if (!data) return [] as Array<{
-      date: string;
-      events: number;
-      recovered: number;
-      recoveredCents: number;
-      sent: number;
-      delivered: number;
-      failed: number;
-    }>;
+    if (!data)
+      return [] as Array<{
+        date: string;
+        events: number;
+        recovered: number;
+        recoveredCents: number;
+        sent: number;
+        delivered: number;
+        failed: number;
+      }>;
     return data.timeSeries.map((e, i) => ({
       date: e.date,
       events: e.events,
@@ -274,8 +265,8 @@ function AnalyticsPage() {
                     border: "1px solid hsl(var(--border))",
                     fontSize: 12,
                   }}
-                  labelFormatter={shortDate}
-                  formatter={(v: number) => money(v, data?.currency)}
+                  labelFormatter={(v) => shortDate(String(v))}
+                  formatter={(v) => money(Number(v), data?.currency)}
                 />
                 <Area
                   type="monotone"
@@ -311,7 +302,7 @@ function AnalyticsPage() {
                       border: "1px solid hsl(var(--border))",
                       fontSize: 12,
                     }}
-                    labelFormatter={shortDate}
+                    labelFormatter={(v) => shortDate(String(v))}
                   />
                   <Legend wrapperStyle={{ fontSize: 11 }} />
                   <Bar dataKey="events" name="Events" fill="hsl(var(--muted-foreground))" />
@@ -341,7 +332,7 @@ function AnalyticsPage() {
                       border: "1px solid hsl(var(--border))",
                       fontSize: 12,
                     }}
-                    labelFormatter={shortDate}
+                    labelFormatter={(v) => shortDate(String(v))}
                   />
                   <Legend wrapperStyle={{ fontSize: 11 }} />
                   <Line
@@ -389,10 +380,7 @@ function AnalyticsPage() {
                       paddingAngle={2}
                     >
                       {data.channels.map((_, i) => (
-                        <Cell
-                          key={i}
-                          fill={CHANNEL_COLORS[i % CHANNEL_COLORS.length]}
-                        />
+                        <Cell key={i} fill={CHANNEL_COLORS[i % CHANNEL_COLORS.length]} />
                       ))}
                     </Pie>
                     <Tooltip
@@ -428,10 +416,7 @@ function AnalyticsPage() {
                         </span>
                       </div>
                       <div className="h-2 rounded-full bg-muted">
-                        <div
-                          className="h-2 rounded-full bg-primary"
-                          style={{ width: `${pct}%` }}
-                        />
+                        <div className="h-2 rounded-full bg-primary" style={{ width: `${pct}%` }} />
                       </div>
                     </div>
                   );
@@ -456,16 +441,12 @@ function AnalyticsPage() {
                 : "—"
             }
           />
-          <MiniStat
-            label="Abandoned"
-            value={String(data?.totalAbandoned ?? 0)}
-          />
+          <MiniStat label="Abandoned" value={String(data?.totalAbandoned ?? 0)} />
         </section>
       </main>
     </div>
   );
 }
-
 
 function MiniStat({ label, value }: { label: string; value: string }) {
   return (
@@ -487,4 +468,3 @@ function EmptyChart() {
     />
   );
 }
-

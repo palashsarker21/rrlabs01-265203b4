@@ -11,10 +11,7 @@ import { acceptInvitation, previewInvitation } from "@/lib/team.functions";
 
 export const Route = createFileRoute("/_authenticated/invite/$token")({
   head: () => ({
-    meta: [
-      { title: "Accept your invitation — RRLabs" },
-      { name: "robots", content: "noindex" },
-    ],
+    meta: [{ title: "Accept your invitation — RRLabs" }, { name: "robots", content: "noindex" }],
   }),
   component: AcceptInvitePage,
 });
@@ -67,9 +64,7 @@ function AcceptInvitePage() {
           ) : data.status !== "pending" ? (
             <>
               <h1 className="text-2xl font-bold">Invitation {data.status}</h1>
-              <p className="mt-2 text-sm text-muted-foreground">
-                This invite is no longer valid.
-              </p>
+              <p className="mt-2 text-sm text-muted-foreground">This invite is no longer valid.</p>
               <Link to="/app">
                 <Button className="mt-6">Go to dashboard</Button>
               </Link>
@@ -87,12 +82,7 @@ function AcceptInvitePage() {
                 <Shield className="h-3 w-3" />
                 Invited email: {data.email}
               </p>
-              <Button
-                className="mt-6"
-                size="lg"
-                onClick={accept}
-                disabled={accepting}
-              >
+              <Button className="mt-6" size="lg" onClick={accept} disabled={accepting}>
                 {accepting ? "Joining…" : "Accept invitation"}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>

@@ -230,9 +230,6 @@ async function onOrderRefunded(payload: LSWebhookPayload): Promise<void> {
   void orderId;
 }
 
-
-
-
 async function onSubscriptionCreated(payload: LSWebhookPayload): Promise<void> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 

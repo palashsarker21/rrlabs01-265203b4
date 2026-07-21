@@ -85,13 +85,39 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:description", content: BRAND.description },
       { name: "twitter:image", content: absoluteUrl(LOGO.ogImage) },
       { title: "RRLabs — AI Revenue Recovery Platform for Subscription Businesses" },
-      { property: "og:title", content: "RRLabs — AI Revenue Recovery Platform for Subscription Businesses" },
-      { name: "twitter:title", content: "RRLabs — AI Revenue Recovery Platform for Subscription Businesses" },
-      { name: "description", content: "RRLabs is an AI revenue recovery platform that automatically recovers failed subscription payments, reduces involuntary churn, and protects recurring revenue. Native Stripe, LemonSqueezy, and Paddle support." },
-      { property: "og:description", content: "RRLabs is an AI revenue recovery platform that automatically recovers failed subscription payments, reduces involuntary churn, and protects recurring revenue. Native Stripe, LemonSqueezy, and Paddle support." },
-      { name: "twitter:description", content: "RRLabs is an AI revenue recovery platform that automatically recovers failed subscription payments, reduces involuntary churn, and protects recurring revenue. Native Stripe, LemonSqueezy, and Paddle support." },
-      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/1Otdz8zaoeMOGuUNQdlbXbWzEbo2/social-images/social-1784299834952-RRLabs_logo_png.webp" },
-      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/1Otdz8zaoeMOGuUNQdlbXbWzEbo2/social-images/social-1784299834952-RRLabs_logo_png.webp" },
+      {
+        property: "og:title",
+        content: "RRLabs — AI Revenue Recovery Platform for Subscription Businesses",
+      },
+      {
+        name: "twitter:title",
+        content: "RRLabs — AI Revenue Recovery Platform for Subscription Businesses",
+      },
+      {
+        name: "description",
+        content:
+          "RRLabs is an AI revenue recovery platform that automatically recovers failed subscription payments, reduces involuntary churn, and protects recurring revenue. Native Stripe, LemonSqueezy, and Paddle support.",
+      },
+      {
+        property: "og:description",
+        content:
+          "RRLabs is an AI revenue recovery platform that automatically recovers failed subscription payments, reduces involuntary churn, and protects recurring revenue. Native Stripe, LemonSqueezy, and Paddle support.",
+      },
+      {
+        name: "twitter:description",
+        content:
+          "RRLabs is an AI revenue recovery platform that automatically recovers failed subscription payments, reduces involuntary churn, and protects recurring revenue. Native Stripe, LemonSqueezy, and Paddle support.",
+      },
+      {
+        property: "og:image",
+        content:
+          "https://storage.googleapis.com/gpt-engineer-file-uploads/1Otdz8zaoeMOGuUNQdlbXbWzEbo2/social-images/social-1784299834952-RRLabs_logo_png.webp",
+      },
+      {
+        name: "twitter:image",
+        content:
+          "https://storage.googleapis.com/gpt-engineer-file-uploads/1Otdz8zaoeMOGuUNQdlbXbWzEbo2/social-images/social-1784299834952-RRLabs_logo_png.webp",
+      },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
@@ -222,7 +248,6 @@ function RootComponent() {
   useEffect(() => {
     void registerPwa();
   }, []);
-
 
   return (
     <QueryClientProvider client={queryClient}>

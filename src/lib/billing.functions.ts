@@ -295,4 +295,3 @@ export const getCheckoutSessionStatus = createServerFn({ method: "GET" })
       organizationName: row.organization_name,
     };
   });
-

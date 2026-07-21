@@ -15,9 +15,7 @@ import { normalizeSocialUrl } from "@/lib/brand";
  * shape of this helper or the shape of the real builder changes, both must
  * change together.
  */
-function buildSameAs(
-  profiles: ReadonlyArray<{ href: unknown; enabled?: boolean }>,
-): string[] {
+function buildSameAs(profiles: ReadonlyArray<{ href: unknown; enabled?: boolean }>): string[] {
   const seen = new Map<string, string>();
   const out: string[] = [];
   for (const p of profiles) {
@@ -42,13 +40,7 @@ const validHttpsUrl = fc
     subdomain: fc.constantFrom("www.", "", "m.", "app."),
     domain: fc.stringMatching(/^[a-z][a-z0-9-]{1,20}$/),
     tld: fc.constantFrom("com", "io", "co", "net", "dev", "app"),
-    path: fc.constantFrom(
-      "",
-      "/rrlabs",
-      "/@rrlabs",
-      "/company/rrlabs",
-      "/RRLabsOnline",
-    ),
+    path: fc.constantFrom("", "/rrlabs", "/@rrlabs", "/company/rrlabs", "/RRLabsOnline"),
     // Random surface variations — normalizer must collapse them.
     trailingSlash: fc.boolean(),
     hostCase: fc.boolean(),
@@ -138,19 +130,14 @@ describe("SOCIAL_SAME_AS builder — property-based fuzz", () => {
 
   it("malformed inputs mixed with valid ones only keep the valid ones", () => {
     fc.assert(
-      fc.property(
-        fc.array(fc.oneof(validHttpsUrl, malformedInput), { maxLength: 40 }),
-        (mixed) => {
-          const out = buildSameAs(
-            mixed.map((href) => ({ href, enabled: true })),
-          );
-          for (const url of out) {
-            expect(url).toMatch(HTTPS_ABSOLUTE);
-            // Every survivor is equal to its own normalization (idempotent).
-            expect(url).toBe(normalizeSocialUrl(url));
-          }
-        },
-      ),
+      fc.property(fc.array(fc.oneof(validHttpsUrl, malformedInput), { maxLength: 40 }), (mixed) => {
+        const out = buildSameAs(mixed.map((href) => ({ href, enabled: true })));
+        for (const url of out) {
+          expect(url).toMatch(HTTPS_ABSOLUTE);
+          // Every survivor is equal to its own normalization (idempotent).
+          expect(url).toBe(normalizeSocialUrl(url));
+        }
+      }),
       { numRuns: 200 },
     );
   });
@@ -158,10 +145,7 @@ describe("SOCIAL_SAME_AS builder — property-based fuzz", () => {
   it("entries with enabled === false never appear in the output", () => {
     fc.assert(
       fc.property(
-        fc.array(
-          fc.record({ href: validHttpsUrl, enabled: fc.boolean() }),
-          { maxLength: 30 },
-        ),
+        fc.array(fc.record({ href: validHttpsUrl, enabled: fc.boolean() }), { maxLength: 30 }),
         (entries) => {
           const disabledNormalized = new Set(
             entries
@@ -196,18 +180,11 @@ describe("SOCIAL_SAME_AS builder — property-based fuzz", () => {
 
   it("is idempotent: rebuilding from the output yields the same output", () => {
     fc.assert(
-      fc.property(
-        fc.array(fc.oneof(validHttpsUrl, malformedInput), { maxLength: 30 }),
-        (mixed) => {
-          const first = buildSameAs(
-            mixed.map((href) => ({ href, enabled: true })),
-          );
-          const second = buildSameAs(
-            first.map((href) => ({ href, enabled: true })),
-          );
-          expect(second).toEqual(first);
-        },
-      ),
+      fc.property(fc.array(fc.oneof(validHttpsUrl, malformedInput), { maxLength: 30 }), (mixed) => {
+        const first = buildSameAs(mixed.map((href) => ({ href, enabled: true })));
+        const second = buildSameAs(first.map((href) => ({ href, enabled: true })));
+        expect(second).toEqual(first);
+      }),
       { numRuns: 150 },
     );
   });
@@ -218,18 +195,12 @@ describe("SOCIAL_SAME_AS builder — property-based fuzz", () => {
         fc.array(validHttpsUrl, { minLength: 1, maxLength: 15 }),
         validHttpsUrl,
         (hrefs, extra) => {
-          const base = buildSameAs(
-            hrefs.map((href) => ({ href, enabled: true })),
-          );
-          const withExtra = buildSameAs(
-            [...hrefs, extra].map((href) => ({ href, enabled: true })),
-          );
+          const base = buildSameAs(hrefs.map((href) => ({ href, enabled: true })));
+          const withExtra = buildSameAs([...hrefs, extra].map((href) => ({ href, enabled: true })));
           // Existing entries must appear in the same order at the front.
           expect(withExtra.slice(0, base.length)).toEqual(base);
           // The output is still deduped.
-          expect(new Set(withExtra.map((u) => u.toLowerCase())).size).toBe(
-            withExtra.length,
-          );
+          expect(new Set(withExtra.map((u) => u.toLowerCase())).size).toBe(withExtra.length);
         },
       ),
       { numRuns: 150 },

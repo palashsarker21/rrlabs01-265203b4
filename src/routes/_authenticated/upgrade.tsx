@@ -163,7 +163,6 @@ function UpgradePage() {
                       </Link>
                     </Button>
                   )}
-
                 </div>
               </div>
             );

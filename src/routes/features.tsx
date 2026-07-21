@@ -138,7 +138,10 @@ function FeaturesPage() {
           </p>
         </div>
 
-        <section aria-labelledby="problem" className="mt-14 grid gap-6 rounded-2xl border border-border/60 bg-card/40 p-8 md:grid-cols-2">
+        <section
+          aria-labelledby="problem"
+          className="mt-14 grid gap-6 rounded-2xl border border-border/60 bg-card/40 p-8 md:grid-cols-2"
+        >
           <div>
             <h2 id="problem" className="text-xl font-semibold text-foreground">
               The problem
@@ -205,7 +208,10 @@ function FeaturesPage() {
           </div>
         </section>
 
-        <section aria-labelledby="mor" className="mt-16 rounded-2xl border border-border/60 bg-card/40 p-8">
+        <section
+          aria-labelledby="mor"
+          className="mt-16 rounded-2xl border border-border/60 bg-card/40 p-8"
+        >
           <h2 id="mor" className="text-xl font-semibold text-foreground">
             Billing you can trust
           </h2>
@@ -213,9 +219,15 @@ function FeaturesPage() {
             Our Merchant of Record is <strong>Lemon Squeezy</strong>. Payments are securely
             processed, taxes are calculated and collected where required, and invoices are issued
             through Lemon Squeezy — so you get enterprise-grade compliance without operating a
-            payment stack. See our <Link to="/pricing" className="underline underline-offset-4">Pricing</Link>{" "}
-            and <Link to="/refund" className="underline underline-offset-4">Refund Policy</Link> for
-            full detail.
+            payment stack. See our{" "}
+            <Link to="/pricing" className="underline underline-offset-4">
+              Pricing
+            </Link>{" "}
+            and{" "}
+            <Link to="/refund" className="underline underline-offset-4">
+              Refund Policy
+            </Link>{" "}
+            for full detail.
           </p>
         </section>
 

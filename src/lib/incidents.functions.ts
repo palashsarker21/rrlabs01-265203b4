@@ -250,12 +250,7 @@ export const addIncidentUpdate = createServerFn({ method: "POST" })
       .update(patch)
       .eq("id", data.incidentId);
     if (upErr) throw new Error(upErr.message);
-    await audit(
-      context,
-      "admin.incident.update_posted",
-      { status: data.status },
-      data.incidentId,
-    );
+    await audit(context, "admin.incident.update_posted", { status: data.status }, data.incidentId);
     return { id: row.id as string };
   });
 

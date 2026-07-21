@@ -13,7 +13,8 @@ const MAX_PER_WINDOW = 20;
 function rateLimit(userId: string) {
   const now = Date.now();
   const list = (bucket.get(userId) ?? []).filter((t) => now - t < WINDOW_MS);
-  if (list.length >= MAX_PER_WINDOW) throw new Error("You're sending messages too quickly. Please slow down.");
+  if (list.length >= MAX_PER_WINDOW)
+    throw new Error("You're sending messages too quickly. Please slow down.");
   list.push(now);
   bucket.set(userId, list);
 }
@@ -151,7 +152,12 @@ export const deleteMessage = createServerFn({ method: "POST" })
 export const searchMessages = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((raw) =>
-    z.object({ q: z.string().trim().min(1).max(200), limit: z.number().int().min(1).max(100).default(50) }).parse(raw),
+    z
+      .object({
+        q: z.string().trim().min(1).max(200),
+        limit: z.number().int().min(1).max(100).default(50),
+      })
+      .parse(raw),
   )
   .handler(async ({ data, context }) => {
     const { supabase } = context;

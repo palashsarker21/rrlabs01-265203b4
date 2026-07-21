@@ -19,7 +19,14 @@ interface GuardProps {
  * Client-side gate. Never rely on this alone — server + DB enforce access.
  * Use it to hide/disable UI affordances the user can't act on.
  */
-export function Guard({ workspaceId, anyOf, allOf, loading = null, fallback = null, children }: GuardProps) {
+export function Guard({
+  workspaceId,
+  anyOf,
+  allOf,
+  loading = null,
+  fallback = null,
+  children,
+}: GuardProps) {
   const { isLoading, has, hasAny, hasAll } = usePermissions(workspaceId);
   if (isLoading) return <>{loading}</>;
 

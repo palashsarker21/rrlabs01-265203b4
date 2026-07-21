@@ -60,8 +60,7 @@ function AdminEmailPage() {
   const [message, setMessage] = useState<string | null>(null);
 
   const send = useMutation({
-    mutationFn: (input: { to: string; template: string }) =>
-      testFn({ data: input }),
+    mutationFn: (input: { to: string; template: string }) => testFn({ data: input }),
     onSuccess: (res) => {
       setMessage(res.ok ? `Sent (id ${res.id}).` : `Failed: ${res.error}`);
       qc.invalidateQueries({ queryKey: ["email", "logs"] });
@@ -76,8 +75,8 @@ function AdminEmailPage() {
       <header>
         <h1 className="text-2xl font-bold">Email settings</h1>
         <p className="text-sm text-muted-foreground">
-          Transactional email is powered by Resend. Configure DNS at your domain
-          registrar and add the API key as an environment secret.
+          Transactional email is powered by Resend. Configure DNS at your domain registrar and add
+          the API key as an environment secret.
         </p>
       </header>
 
@@ -101,8 +100,8 @@ function AdminEmailPage() {
           </dl>
         ) : (
           <p className="text-sm text-amber-800">
-            Email service unavailable. Add the required environment secrets to
-            enable sending. Details are in server logs.
+            Email service unavailable. Add the required environment secrets to enable sending.
+            Details are in server logs.
           </p>
         )}
       </section>
@@ -115,7 +114,10 @@ function AdminEmailPage() {
               <div key={d.record} className="rounded border p-3">
                 <div className="flex items-center justify-between">
                   <span className="font-medium">{d.record}</span>
-                  <Badge ok={d.valid} label={d.valid ? "Valid" : d.found ? "Found, invalid" : "Missing"} />
+                  <Badge
+                    ok={d.valid}
+                    label={d.valid ? "Valid" : d.found ? "Found, invalid" : "Missing"}
+                  />
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">{d.host}</p>
                 {d.value ? (
@@ -134,13 +136,22 @@ function AdminEmailPage() {
         <div className="flex items-center justify-between gap-3">
           <h2 className="font-semibold">Send test email</h2>
           <div className="flex flex-wrap items-center gap-3">
-            <a href="/admin/email/deliveries" className="text-xs font-medium text-primary hover:underline">
+            <a
+              href="/admin/email/deliveries"
+              className="text-xs font-medium text-primary hover:underline"
+            >
               Deliveries & replays →
             </a>
-            <a href="/admin/email/webhooks" className="text-xs font-medium text-primary hover:underline">
+            <a
+              href="/admin/email/webhooks"
+              className="text-xs font-medium text-primary hover:underline"
+            >
               Webhook deliveries →
             </a>
-            <a href="/admin/email/sandbox" className="text-xs font-medium text-primary hover:underline">
+            <a
+              href="/admin/email/sandbox"
+              className="text-xs font-medium text-primary hover:underline"
+            >
               Open test sandbox →
             </a>
             <a
@@ -203,10 +214,7 @@ function AdminEmailPage() {
                     <td className="py-2 pr-3">{r.template}</td>
                     <td className="py-2 pr-3">{r.recipient}</td>
                     <td className="py-2 pr-3">
-                      <Badge
-                        ok={["sent", "delivered"].includes(r.status)}
-                        label={r.status}
-                      />
+                      <Badge ok={["sent", "delivered"].includes(r.status)} label={r.status} />
                     </td>
                     <td className="py-2 pr-3">{r.attempts}</td>
                   </tr>

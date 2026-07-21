@@ -29,10 +29,7 @@ import {
 
 export const Route = createFileRoute("/_authenticated/integrations/whatsapp")({
   head: () => ({
-    meta: [
-      { title: "WhatsApp Onboarding — RRLabs" },
-      { name: "robots", content: "noindex" },
-    ],
+    meta: [{ title: "WhatsApp Onboarding — RRLabs" }, { name: "robots", content: "noindex" }],
   }),
   component: WhatsAppOnboarding,
 });
@@ -62,15 +59,30 @@ function CopyRow({ label, value, monospace }: CopyRowProps) {
           className={cn("flex-1", monospace && "font-mono text-xs")}
           onFocus={(e) => e.currentTarget.select()}
         />
-        <Button type="button" variant="outline" size="icon" onClick={doCopy} aria-label={`Copy ${label}`}>
-          {copied ? <CheckCircle2 className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          onClick={doCopy}
+          aria-label={`Copy ${label}`}
+        >
+          {copied ? (
+            <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+          ) : (
+            <Copy className="h-4 w-4" />
+          )}
         </Button>
       </div>
     </div>
   );
 }
 
-function StatusBadge({ label, ok, pendingLabel = "Pending", okLabel = "Connected" }: {
+function StatusBadge({
+  label,
+  ok,
+  pendingLabel = "Pending",
+  okLabel = "Connected",
+}: {
   label: string;
   ok: boolean;
   pendingLabel?: string;
@@ -84,7 +96,12 @@ function StatusBadge({ label, ok, pendingLabel = "Pending", okLabel = "Connected
       )}
     >
       <span className="text-muted-foreground">{label}</span>
-      <span className={cn("font-medium", ok ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground")}>
+      <span
+        className={cn(
+          "font-medium",
+          ok ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground",
+        )}
+      >
         {ok ? okLabel : pendingLabel}
       </span>
     </div>
@@ -101,10 +118,10 @@ function WhatsAppOnboarding() {
   const [verifyToken, setVerifyToken] = useState("");
   const [webhookSecret, setWebhookSecret] = useState("");
   const [verifyResult, setVerifyResult] = useState<{ ok: boolean; message: string } | null>(null);
-  const [testResult, setTestResult] = useState<
-    | { ok: boolean; checks: { name: string; ok: boolean; detail: string }[] }
-    | null
-  >(null);
+  const [testResult, setTestResult] = useState<{
+    ok: boolean;
+    checks: { name: string; ok: boolean; detail: string }[];
+  } | null>(null);
   const [checklist, setChecklist] = useState<Record<string, boolean>>({});
 
   const { data: workspace, isLoading: wsLoading } = useQuery({
@@ -147,7 +164,8 @@ function WhatsAppOnboarding() {
     refetchInterval: 15_000,
   });
 
-  const origin = typeof window !== "undefined" ? window.location.origin : "https://www.rrlabs.online";
+  const origin =
+    typeof window !== "undefined" ? window.location.origin : "https://www.rrlabs.online";
   const productionOrigin = "https://www.rrlabs.online";
   const callbackUrl = useMemo(
     () =>
@@ -265,9 +283,10 @@ function WhatsAppOnboarding() {
           <h2 className="text-lg font-semibold">Meta Developer Dashboard values</h2>
         </div>
         <p className="mb-5 text-sm text-muted-foreground">
-          Copy these into <em>Meta for Developers → your App → WhatsApp → Configuration → Webhook</em>.
-          Callback URL and Verify Token are required for the initial subscribe handshake; the App
-          Secret (Webhook Secret) is what Meta uses to sign every incoming event.
+          Copy these into{" "}
+          <em>Meta for Developers → your App → WhatsApp → Configuration → Webhook</em>. Callback URL
+          and Verify Token are required for the initial subscribe handshake; the App Secret (Webhook
+          Secret) is what Meta uses to sign every incoming event.
         </p>
 
         {integrationId ? (
@@ -357,14 +376,36 @@ function WhatsAppOnboarding() {
       <section className="rounded-lg border bg-card p-6 shadow-sm">
         <h2 className="mb-3 text-lg font-semibold">Where each value goes in Meta</h2>
         <ol className="list-decimal space-y-2 pl-5 text-sm text-muted-foreground">
-          <li>Open <strong>developers.facebook.com</strong> → your App → <strong>WhatsApp → Configuration</strong>.</li>
-          <li>In the <strong>Webhook</strong> section, click <strong>Edit</strong>.</li>
-          <li>Paste the <strong>Callback URL</strong> above into the Callback URL field.</li>
-          <li>Paste the <strong>Verify Token</strong> above into the Verify Token field.</li>
-          <li>Click <strong>Verify and save</strong> — Meta will GET the Callback URL. Come back and click <strong>Verify Webhook</strong> above to confirm from our side.</li>
-          <li>Subscribe to at least the <code>messages</code> field so payment-recovery replies flow in.</li>
-          <li>In <strong>App Settings → Basic</strong>, copy the <strong>App Secret</strong> into a safe place. If you want Meta to sign requests with our secret instead, use the Webhook Secret above as the App Secret in the platform that sends events.</li>
-          <li>Finish by saving the WhatsApp access token, phone number ID, and WABA ID back on the Integrations page — those unlock actual message sending.</li>
+          <li>
+            Open <strong>developers.facebook.com</strong> → your App →{" "}
+            <strong>WhatsApp → Configuration</strong>.
+          </li>
+          <li>
+            In the <strong>Webhook</strong> section, click <strong>Edit</strong>.
+          </li>
+          <li>
+            Paste the <strong>Callback URL</strong> above into the Callback URL field.
+          </li>
+          <li>
+            Paste the <strong>Verify Token</strong> above into the Verify Token field.
+          </li>
+          <li>
+            Click <strong>Verify and save</strong> — Meta will GET the Callback URL. Come back and
+            click <strong>Verify Webhook</strong> above to confirm from our side.
+          </li>
+          <li>
+            Subscribe to at least the <code>messages</code> field so payment-recovery replies flow
+            in.
+          </li>
+          <li>
+            In <strong>App Settings → Basic</strong>, copy the <strong>App Secret</strong> into a
+            safe place. If you want Meta to sign requests with our secret instead, use the Webhook
+            Secret above as the App Secret in the platform that sends events.
+          </li>
+          <li>
+            Finish by saving the WhatsApp access token, phone number ID, and WABA ID back on the
+            Integrations page — those unlock actual message sending.
+          </li>
         </ol>
       </section>
 
@@ -389,8 +430,8 @@ function WhatsAppOnboarding() {
       </section>
 
       <p className="text-center text-xs text-muted-foreground">
-        Encrypted credentials are never shown here. Only the Callback URL, Verify Token, and
-        Webhook Secret are exposed — everything else lives inside the encrypted credentials vault.
+        Encrypted credentials are never shown here. Only the Callback URL, Verify Token, and Webhook
+        Secret are exposed — everything else lives inside the encrypted credentials vault.
       </p>
     </div>
   );

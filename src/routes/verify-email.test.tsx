@@ -44,7 +44,9 @@ vi.mock("sonner", () => ({
 }));
 
 vi.mock("@/components/brand-mark", () => ({ BrandMark: () => <div data-testid="brandmark" /> }));
-vi.mock("@/components/auth/auth-footer", () => ({ AuthFooter: () => <div data-testid="footer" /> }));
+vi.mock("@/components/auth/auth-footer", () => ({
+  AuthFooter: () => <div data-testid="footer" />,
+}));
 
 const { navigate, resend, getUser, onAuthStateChange, toastSuccess, toastError } = h;
 
@@ -102,9 +104,7 @@ describe("VerifyEmailPage — resend action", () => {
     });
 
     await waitFor(() =>
-      expect(toastSuccess).toHaveBeenCalledWith(
-        "Verification email sent. Check your inbox.",
-      ),
+      expect(toastSuccess).toHaveBeenCalledWith("Verification email sent. Check your inbox."),
     );
   });
 
@@ -130,15 +130,9 @@ describe("VerifyEmailPage — resend action", () => {
     // stays fast; the reset-to-enabled path is exercised in the next test.
     await new Promise((r) => setTimeout(r, 1100));
     await waitFor(() =>
-      expect(
-        screen.getByRole("button", { name: /resend in (5[0-9]|59)s/i }),
-      ).toBeInTheDocument(),
+      expect(screen.getByRole("button", { name: /resend in (5[0-9]|59)s/i })).toBeInTheDocument(),
     );
   });
-
-
-
-
 
   it("maps rate-limit errors to a plain retry message (status-safe)", async () => {
     resend.mockResolvedValue({ error: new Error("Email rate limit exceeded (429)") });
@@ -187,9 +181,7 @@ describe("VerifyEmailPage — resend action", () => {
     await user.click(screen.getByRole("button", { name: /resend email/i }));
 
     expect(resend).not.toHaveBeenCalled();
-    expect(
-      await screen.findByText(/enter a valid email address\./i),
-    ).toBeInTheDocument();
+    expect(await screen.findByText(/enter a valid email address\./i)).toBeInTheDocument();
   });
 
   it("posts to Supabase with signup type and same-origin redirect", async () => {
@@ -203,8 +195,6 @@ describe("VerifyEmailPage — resend action", () => {
     const args = resend.mock.calls[0][0];
     expect(args.type).toBe("signup");
     expect(args.email).toBe("jane@example.com");
-    expect(args.options?.emailRedirectTo).toBe(
-      `${window.location.origin}/verify-email`,
-    );
+    expect(args.options?.emailRedirectTo).toBe(`${window.location.origin}/verify-email`);
   });
 });

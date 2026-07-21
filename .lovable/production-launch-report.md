@@ -16,14 +16,14 @@ covered by RLS + super-admin gating in the database.
 
 ## 1. Lemon Squeezy webhook audit — findings & fixes
 
-| # | Finding | Severity | Status |
-|---|---------|----------|--------|
-| 1 | `subscriptions.cancelled_at` was overwritten on every subscription update, even when the sub was still active, producing false cancellation history and breaking retention analytics. | HIGH | **Fixed** — now only set on the transition INTO `cancelled`/`expired`, and the first timestamp is preserved. |
-| 2 | Upgrade / downgrade never remapped `plan_id`. When a customer switched Growth → Scale, LS reported the new `variant_id`, but our `subscriptions.plan_id` and `plans.success_fee_bps` stayed on the old plan, undercharging every recovery. | HIGH | **Fixed** — webhook now looks up `plans.ls_variant_id` on variant change and updates `plan_id` in the same UPDATE. Persists `ls_variant_id` for auditability. |
-| 3 | `order_created` was a no-op, so success-fee invoices had no way to auto-settle from LS. | HIGH | **Fixed** — new `onOrderCreated` handler links `custom_data.statement_id` to `success_fee_statements` and marks them `paid`. |
-| 4 | `order_refunded` was unhandled. | MEDIUM | **Fixed** — new `onOrderRefunded` handler voids the corresponding success-fee statement and inserts a `refund` adjustment for audit. |
-| 5 | LS variant discovery already handled ENV → DB → LS-store fallback (see `src/lib/lemon-squeezy.ts`). No changes needed. | — | Verified. |
-| 6 | `checkout_sessions` records `provider_error` and `provider_status_code` on failure. | — | Verified via `admin.checkoutSessionsPanel`. |
+| #   | Finding                                                                                                                                                                                                                                    | Severity | Status                                                                                                                                                        |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | `subscriptions.cancelled_at` was overwritten on every subscription update, even when the sub was still active, producing false cancellation history and breaking retention analytics.                                                      | HIGH     | **Fixed** — now only set on the transition INTO `cancelled`/`expired`, and the first timestamp is preserved.                                                  |
+| 2   | Upgrade / downgrade never remapped `plan_id`. When a customer switched Growth → Scale, LS reported the new `variant_id`, but our `subscriptions.plan_id` and `plans.success_fee_bps` stayed on the old plan, undercharging every recovery. | HIGH     | **Fixed** — webhook now looks up `plans.ls_variant_id` on variant change and updates `plan_id` in the same UPDATE. Persists `ls_variant_id` for auditability. |
+| 3   | `order_created` was a no-op, so success-fee invoices had no way to auto-settle from LS.                                                                                                                                                    | HIGH     | **Fixed** — new `onOrderCreated` handler links `custom_data.statement_id` to `success_fee_statements` and marks them `paid`.                                  |
+| 4   | `order_refunded` was unhandled.                                                                                                                                                                                                            | MEDIUM   | **Fixed** — new `onOrderRefunded` handler voids the corresponding success-fee statement and inserts a `refund` adjustment for audit.                          |
+| 5   | LS variant discovery already handled ENV → DB → LS-store fallback (see `src/lib/lemon-squeezy.ts`). No changes needed.                                                                                                                     | —        | Verified.                                                                                                                                                     |
+| 6   | `checkout_sessions` records `provider_error` and `provider_status_code` on failure.                                                                                                                                                        | —        | Verified via `admin.checkoutSessionsPanel`.                                                                                                                   |
 
 **Idempotency**: LS webhook already dedupes on `billing_events.ls_event_id`
 UNIQUE index; both new handlers are safe to receive the same event twice.
@@ -33,6 +33,7 @@ UNIQUE index; both new handlers are safe to receive the same event twice.
 ## 2. Success Fee Engine — new capability
 
 ### Data model
+
 Migration `20260717183657_11894be0-5bca-4446-a89d-f946e1507028.sql`:
 
 - `public.success_fee_statements` — one row per workspace × UTC calendar
@@ -47,17 +48,19 @@ Migration `20260717183657_11894be0-5bca-4446-a89d-f946e1507028.sql`:
   UI writes through `supabaseAdmin`.
 
 ### Server logic (`src/lib/success-fee/engine.server.ts`)
+
 - `previousMonthBounds(now)` computes UTC month bounds deterministically.
 - `buildStatementsForPeriod(period)` aggregates every `recovered` event in
   the window per workspace, uses each workspace's live plan `success_fee_bps`,
   and UPSERTs a draft statement — never touches locked (`finalized+`) rows.
 - `issueInvoiceForStatement(id)` calls Lemon Squeezy `/v1/checkouts` with a
   `custom_price` equal to `net_amount_cents`, `custom_data.kind =
-  "success_fee"` and `custom_data.statement_id`. Records `ls_checkout_id`,
+"success_fee"` and `custom_data.statement_id`. Records `ls_checkout_id`,
   `ls_checkout_url`, and flips status to `invoiced`. On LS 4xx/5xx it
   persists the raw error to `provider_error` and rethrows.
 
 ### RPC entrypoint (`src/lib/success-fee.functions.ts`)
+
 All admin mutations verify `is_super_admin(auth.uid())` before touching
 `supabaseAdmin`. Customer reads (`listSuccessFeeStatements`,
 `getWorkspaceSuccessFeeSummary`, `exportSuccessFeeCsv`) run through
@@ -65,6 +68,7 @@ All admin mutations verify `is_super_admin(auth.uid())` before touching
 own rows.
 
 ### UI surfaces
+
 - **Customer**: `BillingPanel` gained a Success Fee block (current-month
   accrual, "pay outstanding invoice" CTA) and a dedicated page at
   `/billing/statements` (period, recovered, fee, adjustments, net, status,
@@ -74,6 +78,7 @@ own rows.
   / Void, "Build previous month" button, CSV export.
 
 ### Cron settlement
+
 `src/routes/api/public/hooks/success-fee-monthly.ts` — POST endpoint,
 guarded by an `apikey` header check against `SUPABASE_PUBLISHABLE_KEY` (the
 project-standard pattern used by `recovery-cadence.ts`). Builds the previous
@@ -97,6 +102,7 @@ select cron.schedule(
 ```
 
 ### Environment
+
 Add `LEMONSQUEEZY_VARIANT_SUCCESS_FEE` to Vercel (Production + Preview) —
 the LS variant configured with `custom_price=true` in the LS dashboard.
 Falls back gracefully with a clear error if unset.

@@ -97,7 +97,6 @@ export function VerifyEmailPage() {
     }
   }
 
-
   return (
     <div className="flex min-h-dvh items-center justify-center bg-background px-4 py-12">
       <div className="w-full max-w-md rounded-2xl border border-border/70 bg-card/60 p-8 text-center shadow-2xl shadow-black/40 backdrop-blur-xl">
@@ -137,7 +136,10 @@ export function VerifyEmailPage() {
 
         {status !== "verified" && (
           <div className="mt-6 border-t border-border/60 pt-6 text-left">
-            <Label htmlFor="resend-email" className="text-xs uppercase tracking-wider text-muted-foreground">
+            <Label
+              htmlFor="resend-email"
+              className="text-xs uppercase tracking-wider text-muted-foreground"
+            >
               Didn&apos;t get the email?
             </Label>
             <div className="mt-2 flex flex-col gap-2 sm:flex-row">
@@ -177,9 +179,7 @@ export function VerifyEmailPage() {
                   If your account needs verification, a new link is on its way.
                 </span>
               )}
-              {resendState === "error" && (
-                <span className="text-destructive">{resendError}</span>
-              )}
+              {resendState === "error" && <span className="text-destructive">{resendError}</span>}
             </div>
           </div>
         )}

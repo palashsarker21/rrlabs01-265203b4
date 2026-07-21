@@ -31,8 +31,8 @@ function TermsPage() {
       <MarketingHeader />
       <LegalPage title="Terms of Service" updated="July 2026">
         <p>
-          These Terms of Service ("Terms") govern your access to and use of the {BRAND.company}{" "}
-          ("{BRAND.name}") platform, websites, and APIs (together, the "Services"). By creating an
+          These Terms of Service ("Terms") govern your access to and use of the {BRAND.company} ("
+          {BRAND.name}") platform, websites, and APIs (together, the "Services"). By creating an
           account, subscribing to a plan, or otherwise using the Services, you agree to be bound by
           these Terms. If you are entering into these Terms on behalf of an organization, you
           represent that you have authority to bind that organization.
@@ -40,11 +40,11 @@ function TermsPage() {
 
         <h2>1. The Services</h2>
         <p>
-          {BRAND.name} provides an automated revenue recovery platform that connects to your
-          payment provider, classifies failed transactions, generates personalized recovery
-          communications, and dispatches them across email, WhatsApp, and other supported channels.
-          We are a software provider. We are not a payment processor, a bank, or a money
-          transmitter, and we do not hold customer funds.
+          {BRAND.name} provides an automated revenue recovery platform that connects to your payment
+          provider, classifies failed transactions, generates personalized recovery communications,
+          and dispatches them across email, WhatsApp, and other supported channels. We are a
+          software provider. We are not a payment processor, a bank, or a money transmitter, and we
+          do not hold customer funds.
         </p>
 
         <h2>2. Accounts and eligibility</h2>
@@ -64,10 +64,18 @@ function TermsPage() {
         </p>
         <ul>
           <li>Payments are securely processed by Lemon Squeezy.</li>
-          <li>Applicable sales taxes, VAT, and GST are calculated and collected by Lemon Squeezy where required.</li>
+          <li>
+            Applicable sales taxes, VAT, and GST are calculated and collected by Lemon Squeezy where
+            required.
+          </li>
           <li>Invoices and receipts are issued through Lemon Squeezy.</li>
-          <li>Subscription management (renewals, cancellations, payment method changes) follows Lemon Squeezy's billing infrastructure.</li>
-          <li>Refunds are handled in accordance with our <a href="/refund">Refund Policy</a>.</li>
+          <li>
+            Subscription management (renewals, cancellations, payment method changes) follows Lemon
+            Squeezy's billing infrastructure.
+          </li>
+          <li>
+            Refunds are handled in accordance with our <a href="/refund">Refund Policy</a>.
+          </li>
           <li>{BRAND.name} does not directly store your payment card information.</li>
         </ul>
         <p>
@@ -79,11 +87,21 @@ function TermsPage() {
         <h2>4. Acceptable use</h2>
         <p>You agree not to use the Services to:</p>
         <ul>
-          <li>Send unsolicited bulk messages or content that violates applicable anti-spam or telecommunications law (including CAN-SPAM, PECR, and the EU e-Privacy Directive);</li>
-          <li>Violate WhatsApp Business Policy, carrier policies, or any provider terms of service;</li>
+          <li>
+            Send unsolicited bulk messages or content that violates applicable anti-spam or
+            telecommunications law (including CAN-SPAM, PECR, and the EU e-Privacy Directive);
+          </li>
+          <li>
+            Violate WhatsApp Business Policy, carrier policies, or any provider terms of service;
+          </li>
           <li>Infringe intellectual property, privacy, or other rights of third parties;</li>
-          <li>Attempt to reverse engineer, disrupt, or gain unauthorized access to the Services;</li>
-          <li>Process special categories of personal data outside the intended purpose of recovery messaging without a lawful basis and appropriate safeguards.</li>
+          <li>
+            Attempt to reverse engineer, disrupt, or gain unauthorized access to the Services;
+          </li>
+          <li>
+            Process special categories of personal data outside the intended purpose of recovery
+            messaging without a lawful basis and appropriate safeguards.
+          </li>
         </ul>
         <p>
           Compliance with applicable law for messages you send through the Services is your
@@ -92,9 +110,9 @@ function TermsPage() {
 
         <h2>5. Customer data and privacy</h2>
         <p>
-          You retain all rights in the data you provide to the Services ("Customer Data"). You
-          grant {BRAND.name} a limited, non-exclusive license to process Customer Data solely to
-          provide, secure, and improve the Services. Our processing is governed by the{" "}
+          You retain all rights in the data you provide to the Services ("Customer Data"). You grant{" "}
+          {BRAND.name} a limited, non-exclusive license to process Customer Data solely to provide,
+          secure, and improve the Services. Our processing is governed by the{" "}
           <a href="/privacy">Privacy Policy</a> and, where applicable, our Data Processing
           Agreement.
         </p>
@@ -141,9 +159,9 @@ function TermsPage() {
 
         <h2>11. Changes</h2>
         <p>
-          We may modify these Terms from time to time. Material changes will be communicated
-          through the Services or by email at least 30 days in advance. Continued use after the
-          effective date constitutes acceptance.
+          We may modify these Terms from time to time. Material changes will be communicated through
+          the Services or by email at least 30 days in advance. Continued use after the effective
+          date constitutes acceptance.
         </p>
 
         <h2>12. Contact</h2>

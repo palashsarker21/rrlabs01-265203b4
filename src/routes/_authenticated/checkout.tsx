@@ -129,7 +129,6 @@ function CheckoutPage() {
                     </button>
                   );
                 })}
-
               </div>
             )}
           </div>

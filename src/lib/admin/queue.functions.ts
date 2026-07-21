@@ -11,14 +11,7 @@ import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-const STATUSES = [
-  "pending",
-  "processing",
-  "completed",
-  "failed",
-  "dlq",
-  "cancelled",
-] as const;
+const STATUSES = ["pending", "processing", "completed", "failed", "dlq", "cancelled"] as const;
 export type JobStatus = (typeof STATUSES)[number];
 type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
 
@@ -106,9 +99,7 @@ export const getQueueStats = createServerFn({ method: "POST" })
   .handler(async ({ context }): Promise<QueueStat[]> => {
     await assertSuperAdmin(context);
     const sb = context.supabase as unknown as {
-      rpc: (
-        fn: "admin_job_queue_stats",
-      ) => Promise<{ data: unknown; error: unknown }>;
+      rpc: (fn: "admin_job_queue_stats") => Promise<{ data: unknown; error: unknown }>;
     };
     const { data, error } = await sb.rpc("admin_job_queue_stats");
     if (error) throw new Error((error as Error).message ?? "Stats failed.");
@@ -197,9 +188,7 @@ export const deleteJob = createServerFn({ method: "POST" })
 /** Bulk retry every failed job (optionally scoped to a queue). */
 export const bulkRetryFailed = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((raw) =>
-    z.object({ queue: z.string().max(64).optional() }).parse(raw ?? {}),
-  )
+  .inputValidator((raw) => z.object({ queue: z.string().max(64).optional() }).parse(raw ?? {}))
   .handler(async ({ data, context }) => {
     await assertSuperAdmin(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -226,9 +215,7 @@ export const bulkRetryFailed = createServerFn({ method: "POST" })
 /** Purge all jobs in the DLQ (optionally scoped to a queue). Irreversible. */
 export const purgeDlq = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((raw) =>
-    z.object({ queue: z.string().max(64).optional() }).parse(raw ?? {}),
-  )
+  .inputValidator((raw) => z.object({ queue: z.string().max(64).optional() }).parse(raw ?? {}))
   .handler(async ({ data, context }) => {
     await assertSuperAdmin(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");

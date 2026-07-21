@@ -8,7 +8,12 @@ export type SubscriptionActivatedProps = {
   manageUrl: string;
 };
 
-export function SubscriptionActivated({ planName, amountFormatted, nextBillingDate, manageUrl }: SubscriptionActivatedProps) {
+export function SubscriptionActivated({
+  planName,
+  amountFormatted,
+  nextBillingDate,
+  manageUrl,
+}: SubscriptionActivatedProps) {
   return (
     <EmailShell preview={`Your ${planName} plan is active.`}>
       <Text style={styles.h1}>Welcome to {planName} 🎉</Text>
@@ -16,7 +21,9 @@ export function SubscriptionActivated({ planName, amountFormatted, nextBillingDa
         Your subscription is active at <strong>{amountFormatted}</strong>
         {nextBillingDate ? `. Next billing date: ${nextBillingDate}.` : "."}
       </Text>
-      <Button href={manageUrl} style={styles.button}>Manage subscription</Button>
+      <Button href={manageUrl} style={styles.button}>
+        Manage subscription
+      </Button>
     </EmailShell>
   );
 }

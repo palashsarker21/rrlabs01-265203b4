@@ -130,19 +130,17 @@ export const upsertNotificationPreference = createServerFn({ method: "POST" })
       .parse(raw),
   )
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase
-      .from("notification_preferences")
-      .upsert(
-        {
-          workspace_id: data.workspaceId,
-          user_id: context.userId,
-          category: data.category,
-          in_app: data.in_app,
-          email: data.email,
-          min_severity: data.min_severity,
-        },
-        { onConflict: "workspace_id,user_id,category" },
-      );
+    const { error } = await context.supabase.from("notification_preferences").upsert(
+      {
+        workspace_id: data.workspaceId,
+        user_id: context.userId,
+        category: data.category,
+        in_app: data.in_app,
+        email: data.email,
+        min_severity: data.min_severity,
+      },
+      { onConflict: "workspace_id,user_id,category" },
+    );
     if (error) throw new Error(error.message);
     return { ok: true };
   });

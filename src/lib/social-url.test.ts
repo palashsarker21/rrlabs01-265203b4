@@ -14,9 +14,7 @@ describe("normalizeSocialUrl", () => {
   });
 
   it("trims surrounding whitespace", () => {
-    expect(normalizeSocialUrl("  https://x.com/rrlabsonline  ")).toBe(
-      "https://x.com/rrlabsonline",
-    );
+    expect(normalizeSocialUrl("  https://x.com/rrlabsonline  ")).toBe("https://x.com/rrlabsonline");
   });
 
   it("lowercases the host but preserves path casing", () => {
@@ -31,9 +29,7 @@ describe("normalizeSocialUrl", () => {
   });
 
   it("drops the URL fragment", () => {
-    expect(normalizeSocialUrl("https://example.com/foo#bar")).toBe(
-      "https://example.com/foo",
-    );
+    expect(normalizeSocialUrl("https://example.com/foo#bar")).toBe("https://example.com/foo");
   });
 
   it.each([
@@ -87,8 +83,18 @@ describe("ENABLED_SOCIAL_PROFILES sanitization", () => {
     // Simulate the sanitization pipeline against a hostile input set to prove
     // the filter behavior (independent of the real registry contents).
     const hostile = [
-      { platform: "github", label: "GitHub", href: "https://github.com/RRLabsOnline", enabled: true },
-      { platform: "github", label: "GitHub dup", href: "https://GITHUB.com/RRLabsOnline/", enabled: true },
+      {
+        platform: "github",
+        label: "GitHub",
+        href: "https://github.com/RRLabsOnline",
+        enabled: true,
+      },
+      {
+        platform: "github",
+        label: "GitHub dup",
+        href: "https://GITHUB.com/RRLabsOnline/",
+        enabled: true,
+      },
       { platform: "x", label: "X insecure", href: "http://x.com/rrlabsonline", enabled: true },
       { platform: "x", label: "X bad", href: "javascript:alert(1)", enabled: true },
       { platform: "x", label: "X blank", href: "", enabled: true },

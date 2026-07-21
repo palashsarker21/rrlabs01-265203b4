@@ -38,15 +38,13 @@ describe("normalizeSocialUrl — additional edge cases", () => {
     });
 
     it("preserves an empty value parameter", () => {
-      expect(normalizeSocialUrl("https://x.com/rrlabs?ref=")).toBe(
-        "https://x.com/rrlabs?ref=",
-      );
+      expect(normalizeSocialUrl("https://x.com/rrlabs?ref=")).toBe("https://x.com/rrlabs?ref=");
     });
 
     it("preserves percent-encoded values", () => {
-      expect(
-        normalizeSocialUrl("https://x.com/rrlabs?q=hello%20world"),
-      ).toBe("https://x.com/rrlabs?q=hello%20world");
+      expect(normalizeSocialUrl("https://x.com/rrlabs?q=hello%20world")).toBe(
+        "https://x.com/rrlabs?q=hello%20world",
+      );
     });
 
     it("preserves a single '?' with no key/value", () => {
@@ -58,9 +56,9 @@ describe("normalizeSocialUrl — additional edge cases", () => {
     });
 
     it("keeps query when hash is present, and strips only the hash", () => {
-      expect(
-        normalizeSocialUrl("https://x.com/rrlabs?ref=nav#section"),
-      ).toBe("https://x.com/rrlabs?ref=nav");
+      expect(normalizeSocialUrl("https://x.com/rrlabs?ref=nav#section")).toBe(
+        "https://x.com/rrlabs?ref=nav",
+      );
     });
   });
 
@@ -72,9 +70,7 @@ describe("normalizeSocialUrl — additional edge cases", () => {
     });
 
     it("strips a lone trailing slash even when the input also has a hash", () => {
-      expect(normalizeSocialUrl("https://x.com/rrlabs/#top")).toBe(
-        "https://x.com/rrlabs",
-      );
+      expect(normalizeSocialUrl("https://x.com/rrlabs/#top")).toBe("https://x.com/rrlabs");
     });
 
     it("strips a trailing slash on origin-only URLs", () => {
@@ -91,27 +87,21 @@ describe("normalizeSocialUrl — additional edge cases", () => {
 
   describe("fragments", () => {
     it("removes a simple hash", () => {
-      expect(normalizeSocialUrl("https://x.com/rrlabs#top")).toBe(
-        "https://x.com/rrlabs",
-      );
+      expect(normalizeSocialUrl("https://x.com/rrlabs#top")).toBe("https://x.com/rrlabs");
     });
 
     it("removes an empty hash ('#' with no target)", () => {
-      expect(normalizeSocialUrl("https://x.com/rrlabs#")).toBe(
+      expect(normalizeSocialUrl("https://x.com/rrlabs#")).toBe("https://x.com/rrlabs");
+    });
+
+    it("removes multi-segment hashes (treated as a single fragment)", () => {
+      expect(normalizeSocialUrl("https://x.com/rrlabs#section/sub#more")).toBe(
         "https://x.com/rrlabs",
       );
     });
 
-    it("removes multi-segment hashes (treated as a single fragment)", () => {
-      expect(
-        normalizeSocialUrl("https://x.com/rrlabs#section/sub#more"),
-      ).toBe("https://x.com/rrlabs");
-    });
-
     it("removes hash even when it contains query-like characters", () => {
-      expect(
-        normalizeSocialUrl("https://x.com/rrlabs#a?b=1&c=2"),
-      ).toBe("https://x.com/rrlabs");
+      expect(normalizeSocialUrl("https://x.com/rrlabs#a?b=1&c=2")).toBe("https://x.com/rrlabs");
     });
   });
 

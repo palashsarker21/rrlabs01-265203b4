@@ -9,8 +9,9 @@ interface JsonLdNode {
 }
 
 function extractOrganizationSameAs(): string[] {
-  const head = (RootRoute.options as { head?: () => { scripts?: Array<{ type?: string; children?: string }> } })
-    .head?.();
+  const head = (
+    RootRoute.options as { head?: () => { scripts?: Array<{ type?: string; children?: string }> } }
+  ).head?.();
   const scripts = head?.scripts ?? [];
   const ld = scripts.find((s) => s.type === "application/ld+json");
   expect(ld, "Root route must include an application/ld+json script").toBeDefined();

@@ -9,18 +9,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/auth/password-input";
 import { PasswordStrength, useCapsLock } from "@/components/auth/password-strength";
-import {
-  evaluatePassword,
-  generateStrongPassword,
-} from "@/lib/auth/password-policy";
+import { evaluatePassword, generateStrongPassword } from "@/lib/auth/password-policy";
 
 export const Route = createFileRoute("/_authenticated/settings/change-password")({
   component: ChangePasswordPage,
   head: () => ({
-    meta: [
-      { title: "Change password — RRLabs" },
-      { name: "robots", content: "noindex" },
-    ],
+    meta: [{ title: "Change password — RRLabs" }, { name: "robots", content: "noindex" }],
   }),
 });
 
@@ -58,7 +52,8 @@ function ChangePasswordPage() {
     if (!current) e.current = "Enter your current password.";
     if (!next) e.next = "Enter a new password.";
     else if (!evalNext.strong) e.next = "Password does not meet all requirements.";
-    else if (next === current) e.next = "New password must be different from your current password.";
+    else if (next === current)
+      e.next = "New password must be different from your current password.";
     if (!confirm) e.confirm = "Confirm your new password.";
     else if (confirm !== next) e.confirm = "Passwords do not match.";
     return e;
@@ -148,7 +143,8 @@ function ChangePasswordPage() {
 
       <h1 className="text-2xl font-semibold text-foreground">Change password</h1>
       <p className="mt-1 text-sm text-muted-foreground">
-        Update the password for {email ?? "your account"}. You'll need your current password to confirm.
+        Update the password for {email ?? "your account"}. You'll need your current password to
+        confirm.
       </p>
 
       <Card className="mt-8">
@@ -157,9 +153,7 @@ function ChangePasswordPage() {
             <KeyRound className="h-5 w-5 text-primary" aria-hidden />
             <CardTitle className="text-base">New password</CardTitle>
           </div>
-          <CardDescription>
-            Choose a strong password you don't use elsewhere.
-          </CardDescription>
+          <CardDescription>Choose a strong password you don't use elsewhere.</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} noValidate className="space-y-5">
@@ -189,7 +183,11 @@ function ChangePasswordPage() {
                 aria-describedby={errors.current ? "current-error" : undefined}
               />
               {errors.current ? (
-                <p id="current-error" role="alert" className="flex items-center gap-1 text-xs text-destructive">
+                <p
+                  id="current-error"
+                  role="alert"
+                  className="flex items-center gap-1 text-xs text-destructive"
+                >
                   <AlertCircle className="h-3.5 w-3.5" aria-hidden />
                   {errors.current}
                 </p>
@@ -227,7 +225,10 @@ function ChangePasswordPage() {
                 <PasswordStrength password={next} className="mt-2" />
               </div>
               {caps ? (
-                <p role="status" className="flex items-center gap-1 text-xs text-orange-600 dark:text-orange-400">
+                <p
+                  role="status"
+                  className="flex items-center gap-1 text-xs text-orange-600 dark:text-orange-400"
+                >
                   <AlertCircle className="h-3.5 w-3.5" aria-hidden />
                   Caps Lock is on.
                 </p>
@@ -259,12 +260,14 @@ function ChangePasswordPage() {
                   if (errors.confirm) setErrors((p) => ({ ...p, confirm: undefined }));
                 }}
                 aria-invalid={!!errors.confirm || confirmMismatch}
-                aria-describedby={
-                  errors.confirm || confirmMismatch ? "confirm-error" : undefined
-                }
+                aria-describedby={errors.confirm || confirmMismatch ? "confirm-error" : undefined}
               />
-              {(errors.confirm || confirmMismatch) ? (
-                <p id="confirm-error" role="alert" className="flex items-center gap-1 text-xs text-destructive">
+              {errors.confirm || confirmMismatch ? (
+                <p
+                  id="confirm-error"
+                  role="alert"
+                  className="flex items-center gap-1 text-xs text-destructive"
+                >
                   <AlertCircle className="h-3.5 w-3.5" aria-hidden />
                   {errors.confirm ?? "Passwords do not match."}
                 </p>

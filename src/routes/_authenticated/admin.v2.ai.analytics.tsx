@@ -38,7 +38,14 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { getAiAnalytics } from "@/lib/ai/analytics.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/v2/ai/analytics")({
@@ -104,11 +111,16 @@ function AiAnalyticsPage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">AI Analytics</h1>
           <p className="text-sm text-muted-foreground">
-            Requests, success, retries, latency, tokens, cost, and cache performance across providers and models.
+            Requests, success, retries, latency, tokens, cost, and cache performance across
+            providers and models.
           </p>
         </div>
         <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching}>
-          {isFetching ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
+          {isFetching ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <RefreshCw className="mr-2 h-4 w-4" />
+          )}
           Refresh
         </Button>
       </div>
@@ -123,10 +135,14 @@ function AiAnalyticsPage() {
             <div>
               <Label className="text-xs">Range</Label>
               <Select value={rangeKey} onValueChange={(v) => setRangeKey(v as typeof rangeKey)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   {RANGES.map((r) => (
-                    <SelectItem key={r.key} value={r.key}>{r.label}</SelectItem>
+                    <SelectItem key={r.key} value={r.key}>
+                      {r.label}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -134,11 +150,15 @@ function AiAnalyticsPage() {
             <div>
               <Label className="text-xs">Provider</Label>
               <Select value={provider} onValueChange={setProvider}>
-                <SelectTrigger><SelectValue placeholder="All providers" /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue placeholder="All providers" />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value={ANY}>All providers</SelectItem>
                   {(data?.facets.providers ?? []).map((p) => (
-                    <SelectItem key={p} value={p}>{p}</SelectItem>
+                    <SelectItem key={p} value={p}>
+                      {p}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -146,11 +166,15 @@ function AiAnalyticsPage() {
             <div>
               <Label className="text-xs">Model</Label>
               <Select value={model} onValueChange={setModel}>
-                <SelectTrigger><SelectValue placeholder="All models" /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue placeholder="All models" />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value={ANY}>All models</SelectItem>
                   {(data?.facets.models ?? []).map((m) => (
-                    <SelectItem key={m} value={m}>{m}</SelectItem>
+                    <SelectItem key={m} value={m}>
+                      {m}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -158,11 +182,15 @@ function AiAnalyticsPage() {
             <div>
               <Label className="text-xs">Task</Label>
               <Select value={task} onValueChange={setTask}>
-                <SelectTrigger><SelectValue placeholder="All tasks" /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue placeholder="All tasks" />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value={ANY}>All tasks</SelectItem>
                   {(data?.facets.tasks ?? []).map((t) => (
-                    <SelectItem key={t} value={t}>{t}</SelectItem>
+                    <SelectItem key={t} value={t}>
+                      {t}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -196,7 +224,11 @@ function AiAnalyticsPage() {
         <>
           {/* KPI cards */}
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4 xl:grid-cols-6">
-            <Kpi icon={<Activity className="h-4 w-4" />} label="Requests" value={fmtNum(totals.requests)} />
+            <Kpi
+              icon={<Activity className="h-4 w-4" />}
+              label="Requests"
+              value={fmtNum(totals.requests)}
+            />
             <Kpi
               icon={<CheckCircle2 className="h-4 w-4" />}
               label="Success rate"
@@ -239,18 +271,44 @@ function AiAnalyticsPage() {
                   <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
                   <XAxis
                     dataKey="bucket"
-                    tickFormatter={(v: string) => new Date(v).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+                    tickFormatter={(v: string) =>
+                      new Date(v).toLocaleDateString(undefined, { month: "short", day: "numeric" })
+                    }
                     fontSize={11}
                   />
                   <YAxis fontSize={11} />
                   <Tooltip
-                    labelFormatter={(v: string) => new Date(v).toLocaleString()}
-                    contentStyle={{ background: "hsl(var(--background))", border: "1px solid hsl(var(--border))" }}
+                    labelFormatter={(v) => new Date(String(v)).toLocaleString()}
+                    contentStyle={{
+                      background: "hsl(var(--background))",
+                      border: "1px solid hsl(var(--border))",
+                    }}
                   />
                   <Legend />
-                  <Area type="monotone" dataKey="success" stackId="1" stroke="hsl(var(--primary))" fill="hsl(var(--primary))" fillOpacity={0.4} />
-                  <Area type="monotone" dataKey="failure" stackId="1" stroke="hsl(var(--destructive))" fill="hsl(var(--destructive))" fillOpacity={0.4} />
-                  <Area type="monotone" dataKey="cached" stackId="1" stroke="hsl(var(--muted-foreground))" fill="hsl(var(--muted-foreground))" fillOpacity={0.3} />
+                  <Area
+                    type="monotone"
+                    dataKey="success"
+                    stackId="1"
+                    stroke="hsl(var(--primary))"
+                    fill="hsl(var(--primary))"
+                    fillOpacity={0.4}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="failure"
+                    stackId="1"
+                    stroke="hsl(var(--destructive))"
+                    fill="hsl(var(--destructive))"
+                    fillOpacity={0.4}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="cached"
+                    stackId="1"
+                    stroke="hsl(var(--muted-foreground))"
+                    fill="hsl(var(--muted-foreground))"
+                    fillOpacity={0.3}
+                  />
                 </AreaChart>
               </ResponsiveContainer>
             </CardContent>
@@ -259,28 +317,66 @@ function AiAnalyticsPage() {
           {/* Latency + Cost dual */}
           <div className="grid gap-4 lg:grid-cols-2">
             <Card>
-              <CardHeader><CardTitle className="text-base">Avg latency</CardTitle></CardHeader>
+              <CardHeader>
+                <CardTitle className="text-base">Avg latency</CardTitle>
+              </CardHeader>
               <CardContent className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={data.timeseries}>
                     <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
-                    <XAxis dataKey="bucket" tickFormatter={(v: string) => new Date(v).toLocaleDateString(undefined, { month: "short", day: "numeric" })} fontSize={11} />
+                    <XAxis
+                      dataKey="bucket"
+                      tickFormatter={(v: string) =>
+                        new Date(v).toLocaleDateString(undefined, {
+                          month: "short",
+                          day: "numeric",
+                        })
+                      }
+                      fontSize={11}
+                    />
                     <YAxis fontSize={11} />
-                    <Tooltip contentStyle={{ background: "hsl(var(--background))", border: "1px solid hsl(var(--border))" }} />
-                    <Area type="monotone" dataKey="avg_latency_ms" stroke="hsl(var(--primary))" fill="hsl(var(--primary))" fillOpacity={0.3} />
+                    <Tooltip
+                      contentStyle={{
+                        background: "hsl(var(--background))",
+                        border: "1px solid hsl(var(--border))",
+                      }}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="avg_latency_ms"
+                      stroke="hsl(var(--primary))"
+                      fill="hsl(var(--primary))"
+                      fillOpacity={0.3}
+                    />
                   </AreaChart>
                 </ResponsiveContainer>
               </CardContent>
             </Card>
             <Card>
-              <CardHeader><CardTitle className="text-base">Cost (USD)</CardTitle></CardHeader>
+              <CardHeader>
+                <CardTitle className="text-base">Cost (USD)</CardTitle>
+              </CardHeader>
               <CardContent className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={data.timeseries}>
                     <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
-                    <XAxis dataKey="bucket" tickFormatter={(v: string) => new Date(v).toLocaleDateString(undefined, { month: "short", day: "numeric" })} fontSize={11} />
+                    <XAxis
+                      dataKey="bucket"
+                      tickFormatter={(v: string) =>
+                        new Date(v).toLocaleDateString(undefined, {
+                          month: "short",
+                          day: "numeric",
+                        })
+                      }
+                      fontSize={11}
+                    />
                     <YAxis fontSize={11} />
-                    <Tooltip contentStyle={{ background: "hsl(var(--background))", border: "1px solid hsl(var(--border))" }} />
+                    <Tooltip
+                      contentStyle={{
+                        background: "hsl(var(--background))",
+                        border: "1px solid hsl(var(--border))",
+                      }}
+                    />
                     <Bar dataKey="cost_usd" fill="hsl(var(--primary))" />
                   </BarChart>
                 </ResponsiveContainer>
@@ -292,7 +388,9 @@ function AiAnalyticsPage() {
           <Card>
             <CardHeader>
               <CardTitle className="text-base">By provider</CardTitle>
-              <CardDescription>Volume, success rate, latency, and spend per provider.</CardDescription>
+              <CardDescription>
+                Volume, success rate, latency, and spend per provider.
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <Table>
@@ -308,14 +406,24 @@ function AiAnalyticsPage() {
                 </TableHeader>
                 <TableBody>
                   {data.byProvider.length === 0 ? (
-                    <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground">No data</TableCell></TableRow>
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center text-muted-foreground">
+                        No data
+                      </TableCell>
+                    </TableRow>
                   ) : (
                     data.byProvider.map((p) => (
                       <TableRow key={p.provider}>
-                        <TableCell><Badge variant="outline">{p.provider}</Badge></TableCell>
+                        <TableCell>
+                          <Badge variant="outline">{p.provider}</Badge>
+                        </TableCell>
                         <TableCell className="text-right">{fmtNum(p.requests)}</TableCell>
-                        <TableCell className="text-right text-emerald-600 dark:text-emerald-400">{fmtNum(p.success)}</TableCell>
-                        <TableCell className="text-right text-destructive">{fmtNum(p.failure)}</TableCell>
+                        <TableCell className="text-right text-emerald-600 dark:text-emerald-400">
+                          {fmtNum(p.success)}
+                        </TableCell>
+                        <TableCell className="text-right text-destructive">
+                          {fmtNum(p.failure)}
+                        </TableCell>
                         <TableCell className="text-right">{fmtNum(p.avg_latency_ms)} ms</TableCell>
                         <TableCell className="text-right">{fmtUSD(p.cost_usd)}</TableCell>
                       </TableRow>
@@ -348,15 +456,23 @@ function AiAnalyticsPage() {
                 </TableHeader>
                 <TableBody>
                   {data.byModel.length === 0 ? (
-                    <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground">No data</TableCell></TableRow>
+                    <TableRow>
+                      <TableCell colSpan={8} className="text-center text-muted-foreground">
+                        No data
+                      </TableCell>
+                    </TableRow>
                   ) : (
                     data.byModel.map((m) => (
                       <TableRow key={m.model}>
                         <TableCell className="font-mono text-xs">{m.model}</TableCell>
-                        <TableCell><Badge variant="outline">{m.provider}</Badge></TableCell>
+                        <TableCell>
+                          <Badge variant="outline">{m.provider}</Badge>
+                        </TableCell>
                         <TableCell className="text-right">{fmtNum(m.requests)}</TableCell>
                         <TableCell className="text-right">
-                          <span className="text-emerald-600 dark:text-emerald-400">{fmtNum(m.success)}</span>
+                          <span className="text-emerald-600 dark:text-emerald-400">
+                            {fmtNum(m.success)}
+                          </span>
                           {" / "}
                           <span className="text-destructive">{fmtNum(m.failure)}</span>
                         </TableCell>
@@ -391,11 +507,17 @@ function AiAnalyticsPage() {
                 </TableHeader>
                 <TableBody>
                   {data.byTask.length === 0 ? (
-                    <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground">No data</TableCell></TableRow>
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-center text-muted-foreground">
+                        No data
+                      </TableCell>
+                    </TableRow>
                   ) : (
                     data.byTask.map((t) => (
                       <TableRow key={t.task}>
-                        <TableCell><Badge variant="secondary">{t.task}</Badge></TableCell>
+                        <TableCell>
+                          <Badge variant="secondary">{t.task}</Badge>
+                        </TableCell>
                         <TableCell className="text-right">{fmtNum(t.requests)}</TableCell>
                         <TableCell className="text-right">{fmtPct(t.cache_hit_rate)}</TableCell>
                         <TableCell className="text-right">{fmtUSD(t.cost_usd)}</TableCell>
@@ -412,7 +534,17 @@ function AiAnalyticsPage() {
   );
 }
 
-function Kpi({ icon, label, value, sub }: { icon: React.ReactNode; label: string; value: string; sub?: string }) {
+function Kpi({
+  icon,
+  label,
+  value,
+  sub,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  sub?: string;
+}) {
   return (
     <Card>
       <CardContent className="p-4">

@@ -51,12 +51,9 @@ export function SuccessFeePanel() {
   const buildFn = useServerFn(runMonthlySuccessFeeBuild);
   const qc = useQueryClient();
 
-  const [statusFilter, setStatusFilter] = useState<
-    "all" | SuccessFeeStatementRow["status"]
-  >("all");
+  const [statusFilter, setStatusFilter] = useState<"all" | SuccessFeeStatementRow["status"]>("all");
   const [busy, setBusy] = useState(false);
   const [adjustOpen, setAdjustOpen] = useState<SuccessFeeStatementRow | null>(null);
-
 
   const { data = [], isLoading } = useQuery<SuccessFeeStatementRow[]>({
     queryKey: ["admin-success-fee-statements"],
@@ -153,9 +150,7 @@ export function SuccessFeePanel() {
       label: "Recovered",
       sortable: true,
       value: (r) => r.recovered_amount_cents,
-      cell: (r) => (
-        <span className="text-xs">{money(r.recovered_amount_cents, r.currency)}</span>
-      ),
+      cell: (r) => <span className="text-xs">{money(r.recovered_amount_cents, r.currency)}</span>,
     },
     {
       key: "fee_amount_cents",
@@ -170,9 +165,7 @@ export function SuccessFeePanel() {
       value: (r) => r.adjustments_total_cents,
       cell: (r) => (
         <span className="text-xs">
-          {r.adjustments_total_cents === 0
-            ? "—"
-            : money(r.adjustments_total_cents, r.currency)}
+          {r.adjustments_total_cents === 0 ? "—" : money(r.adjustments_total_cents, r.currency)}
         </span>
       ),
     },
@@ -182,9 +175,7 @@ export function SuccessFeePanel() {
       sortable: true,
       value: (r) => r.net_amount_cents,
       cell: (r) => (
-        <span className="text-xs font-semibold">
-          {money(r.net_amount_cents, r.currency)}
-        </span>
+        <span className="text-xs font-semibold">{money(r.net_amount_cents, r.currency)}</span>
       ),
     },
     {
@@ -222,11 +213,7 @@ export function SuccessFeePanel() {
             </Button>
           ) : null}
           {r.status === "finalized" ? (
-            <Button
-              size="sm"
-              className="h-7 px-2 text-xs"
-              onClick={() => onInvoice(r)}
-            >
+            <Button size="sm" className="h-7 px-2 text-xs" onClick={() => onInvoice(r)}>
               <Receipt className="mr-1 h-3 w-3" />
               Issue invoice
             </Button>
@@ -329,15 +316,7 @@ export function SuccessFeePanel() {
   );
 }
 
-function StatCard({
-  label,
-  value,
-  accent,
-}: {
-  label: string;
-  value: string;
-  accent?: boolean;
-}) {
+function StatCard({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (
     <div
       className={`rounded-xl border p-4 ${

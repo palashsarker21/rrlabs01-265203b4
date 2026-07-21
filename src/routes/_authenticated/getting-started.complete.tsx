@@ -132,9 +132,7 @@ function OnboardingCompletePage() {
             next.startedAt = now;
           }
           if (
-            (patch.state === "success" ||
-              patch.state === "failed" ||
-              patch.state === "skipped") &&
+            (patch.state === "success" || patch.state === "failed" || patch.state === "skipped") &&
             !patch.finishedAt
           ) {
             next.finishedAt = now;
@@ -145,10 +143,7 @@ function OnboardingCompletePage() {
     );
   }
 
-  async function runActivation(
-    fromStep: ActivationStepId = "permission",
-    retryGrant?: string,
-  ) {
+  async function runActivation(fromStep: ActivationStepId = "permission", retryGrant?: string) {
     if (!workspace?.id) {
       toast.error("No workspace found.");
       return;
@@ -301,9 +296,7 @@ function OnboardingCompletePage() {
       patchStep("webhooks", { state: "running" });
       announceRunning("webhooks");
       try {
-        const connectedIds = integrations
-          .filter((i) => i.status === "connected")
-          .map((i) => i.id);
+        const connectedIds = integrations.filter((i) => i.status === "connected").map((i) => i.id);
         if (connectedIds.length === 0) {
           patchStep("webhooks", { state: "skipped" });
           completed += 1;
@@ -373,7 +366,6 @@ function OnboardingCompletePage() {
       }
     }
   }
-
 
   async function downloadReport() {
     if (!workspace?.id) {
@@ -472,8 +464,6 @@ function OnboardingCompletePage() {
       toast.error(e instanceof Error ? e.message : "Failed to copy report.");
     }
   }
-
-
 
   const isRunning = phase === "running";
   const isComplete = phase === "success";
@@ -621,9 +611,7 @@ function OnboardingCompletePage() {
                 });
                 runActivation("permission", res.grant);
               } catch (e) {
-                toast.error(
-                  e instanceof Error ? e.message : "Could not authorize retry.",
-                );
+                toast.error(e instanceof Error ? e.message : "Could not authorize retry.");
               }
             }}
             onRetryStep={async (id) => {
@@ -649,9 +637,7 @@ function OnboardingCompletePage() {
                 });
                 runActivation(id, res.grant);
               } catch (e) {
-                toast.error(
-                  e instanceof Error ? e.message : "Could not authorize retry.",
-                );
+                toast.error(e instanceof Error ? e.message : "Could not authorize retry.");
               }
             }}
             onRetryFailed={async (ids) => {
@@ -663,14 +649,10 @@ function OnboardingCompletePage() {
                 "webhooks",
                 "activate",
               ];
-              const earliest = ids
-                .slice()
-                .sort((a, b) => order.indexOf(a) - order.indexOf(b))[0];
+              const earliest = ids.slice().sort((a, b) => order.indexOf(a) - order.indexOf(b))[0];
               if (!earliest) return;
               const previousErrors = Object.fromEntries(
-                steps
-                  .filter((s) => ids.includes(s.id) && s.error)
-                  .map((s) => [s.id, s.error!]),
+                steps.filter((s) => ids.includes(s.id) && s.error).map((s) => [s.id, s.error!]),
               );
               try {
                 const res = await logRetryFn({
@@ -684,9 +666,7 @@ function OnboardingCompletePage() {
                 });
                 runActivation(earliest, res.grant);
               } catch (e) {
-                toast.error(
-                  e instanceof Error ? e.message : "Could not authorize retry.",
-                );
+                toast.error(e instanceof Error ? e.message : "Could not authorize retry.");
               }
             }}
             onGoToDashboard={() => navigate({ to: "/app" })}
@@ -701,7 +681,6 @@ function OnboardingCompletePage() {
             </Button>
           </div>
         )}
-
 
         {/* Connected summary */}
         <section className="mt-8">

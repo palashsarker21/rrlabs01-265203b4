@@ -34,7 +34,9 @@ export const listAiProviders = createServerFn({ method: "GET" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data, error } = await supabaseAdmin
       .from("ai_providers")
-      .select("id, slug, name, base_url, secret_env_var, enabled, priority, encrypted_api_key, api_key_updated_at")
+      .select(
+        "id, slug, name, base_url, secret_env_var, enabled, priority, encrypted_api_key, api_key_updated_at",
+      )
       .order("priority", { ascending: true });
     if (error) throw new Error(error.message);
     const rows: AdminProviderRow[] = (data ?? []).map((r) => ({

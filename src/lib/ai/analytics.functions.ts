@@ -111,9 +111,7 @@ export const getAiAnalytics = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     const to = data.to ? new Date(data.to) : new Date();
-    const from = data.from
-      ? new Date(data.from)
-      : new Date(to.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const from = data.from ? new Date(data.from) : new Date(to.getTime() - 7 * 24 * 60 * 60 * 1000);
 
     let q = supabaseAdmin
       .from("ai_requests")
@@ -144,7 +142,11 @@ export const getAiAnalytics = createServerFn({ method: "POST" })
     const providers = new Set<string>();
     const models = new Set<string>();
     const tasks = new Set<string>();
-    for (const r of (facetRows ?? []) as Array<{ provider_slug: string; model_id: string; task: string }>) {
+    for (const r of (facetRows ?? []) as Array<{
+      provider_slug: string;
+      model_id: string;
+      task: string;
+    }>) {
       if (r.provider_slug) providers.add(r.provider_slug);
       if (r.model_id) models.add(r.model_id);
       if (r.task) tasks.add(r.task);
@@ -168,12 +170,40 @@ export const getAiAnalytics = createServerFn({ method: "POST" })
     const bucketMs = spanMs > 3 * 24 * 60 * 60 * 1000 ? 24 * 60 * 60 * 1000 : 60 * 60 * 1000;
     const buckets = new Map<
       string,
-      { requests: number; success: number; failure: number; cached: number; cost_usd: number; latSum: number; latN: number }
+      {
+        requests: number;
+        success: number;
+        failure: number;
+        cached: number;
+        cost_usd: number;
+        latSum: number;
+        latN: number;
+      }
     >();
-    const byProv = new Map<string, { requests: number; success: number; failure: number; cost_usd: number; latSum: number; latN: number }>();
+    const byProv = new Map<
+      string,
+      {
+        requests: number;
+        success: number;
+        failure: number;
+        cost_usd: number;
+        latSum: number;
+        latN: number;
+      }
+    >();
     const byMod = new Map<
       string,
-      { provider: string; requests: number; success: number; failure: number; inTok: number; outTok: number; cost_usd: number; latSum: number; latN: number }
+      {
+        provider: string;
+        requests: number;
+        success: number;
+        failure: number;
+        inTok: number;
+        outTok: number;
+        cost_usd: number;
+        latSum: number;
+        latN: number;
+      }
     >();
     const byTsk = new Map<string, { requests: number; cost_usd: number; cached: number }>();
 
@@ -199,7 +229,15 @@ export const getAiAnalytics = createServerFn({ method: "POST" })
       // bucket
       const ts = new Date(r.created_at).getTime();
       const bkt = new Date(Math.floor(ts / bucketMs) * bucketMs).toISOString();
-      const b = buckets.get(bkt) ?? { requests: 0, success: 0, failure: 0, cached: 0, cost_usd: 0, latSum: 0, latN: 0 };
+      const b = buckets.get(bkt) ?? {
+        requests: 0,
+        success: 0,
+        failure: 0,
+        cached: 0,
+        cost_usd: 0,
+        latSum: 0,
+        latN: 0,
+      };
       b.requests++;
       if (isSuccess) b.success++;
       else b.failure++;
@@ -211,7 +249,14 @@ export const getAiAnalytics = createServerFn({ method: "POST" })
       }
       buckets.set(bkt, b);
 
-      const p = byProv.get(r.provider_slug) ?? { requests: 0, success: 0, failure: 0, cost_usd: 0, latSum: 0, latN: 0 };
+      const p = byProv.get(r.provider_slug) ?? {
+        requests: 0,
+        success: 0,
+        failure: 0,
+        cost_usd: 0,
+        latSum: 0,
+        latN: 0,
+      };
       p.requests++;
       if (isSuccess) p.success++;
       else p.failure++;

@@ -10,7 +10,16 @@
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Trash2, ShieldCheck, ShieldOff, RefreshCw, Save, Play, XCircle, AlertOctagon } from "lucide-react";
+import {
+  Trash2,
+  ShieldCheck,
+  ShieldOff,
+  RefreshCw,
+  Save,
+  Play,
+  XCircle,
+  AlertOctagon,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -2430,7 +2439,10 @@ function IncidentEditor({
         <div className="space-y-3">
           <div>
             <label className="mb-1 block text-xs text-muted-foreground">Title</label>
-            <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
+            <Input
+              value={form.title}
+              onChange={(e) => setForm({ ...form, title: e.target.value })}
+            />
           </div>
           <div>
             <label className="mb-1 block text-xs text-muted-foreground">Summary</label>
@@ -2591,12 +2603,14 @@ function IncidentUpdateDialog({
               Timeline
             </div>
             <div className="space-y-2 text-sm">
-              {(updates as Array<{
-                id: string;
-                status: string;
-                message: string;
-                created_at: string;
-              }>).map((u) => (
+              {(
+                updates as Array<{
+                  id: string;
+                  status: string;
+                  message: string;
+                  created_at: string;
+                }>
+              ).map((u) => (
                 <div key={u.id} className="rounded border border-border/60 p-2">
                   <div className="flex items-center justify-between text-xs text-muted-foreground">
                     <span className="font-mono uppercase">{u.status}</span>
@@ -2644,7 +2658,8 @@ export function IncidentsPanel() {
   }
 
   const filtered = data.filter(
-    (r) => (!statusFilter || r.status === statusFilter) && (!impactFilter || r.impact === impactFilter),
+    (r) =>
+      (!statusFilter || r.status === statusFilter) && (!impactFilter || r.impact === impactFilter),
   );
 
   const columns: Column<IncidentRow>[] = [
@@ -2785,7 +2800,6 @@ export function IncidentsPanel() {
     />
   );
 }
-
 
 // ============================================================
 // QUEUE MANAGER — job queue visibility, retries, DLQ
@@ -3115,12 +3129,7 @@ export function QueueManagerPanel() {
         rowActions={(r) => (
           <div className="flex items-center gap-1">
             {(r.status === "failed" || r.status === "dlq" || r.status === "cancelled") && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="gap-1"
-                onClick={() => doRetry(r.id)}
-              >
+              <Button variant="ghost" size="sm" className="gap-1" onClick={() => doRetry(r.id)}>
                 <Play className="size-3.5" /> Retry
               </Button>
             )}
@@ -3303,9 +3312,7 @@ export function CheckoutSessionsPanel() {
       if (failed.length === 0) {
         toast.success("Checkout integration test passed for every self-serve plan.");
       } else {
-        toast.error(
-          `Checkout test failed for: ${failed.map((f) => f.planCode).join(", ")}`,
-        );
+        toast.error(`Checkout test failed for: ${failed.map((f) => f.planCode).join(", ")}`);
       }
       qc.invalidateQueries({ queryKey: ["admin-checkout-sessions"] });
     } catch (err) {
@@ -3345,9 +3352,8 @@ export function CheckoutSessionsPanel() {
         <div className="space-y-2 rounded-lg border bg-card p-4">
           <div className="text-sm font-semibold">Integration test results</div>
           <p className="text-xs text-muted-foreground">
-            Verifies that every self-serve plan (Starter, Growth, Business, Scale) creates a
-            real Lemon Squeezy checkout without hitting the &ldquo;temporarily unavailable&rdquo;
-            path.
+            Verifies that every self-serve plan (Starter, Growth, Business, Scale) creates a real
+            Lemon Squeezy checkout without hitting the &ldquo;temporarily unavailable&rdquo; path.
           </p>
           <div className="grid gap-2 md:grid-cols-2">
             {testResults.map((r) => (
@@ -3361,16 +3367,14 @@ export function CheckoutSessionsPanel() {
               >
                 <div className="flex items-center justify-between text-sm font-medium">
                   <span>
-                    {r.planName}{" "}
-                    <span className="text-muted-foreground">({r.planCode})</span>
+                    {r.planName} <span className="text-muted-foreground">({r.planCode})</span>
                   </span>
                   <span className={r.ok ? "text-emerald-500" : "text-rose-500"}>
                     {r.ok ? "PASS" : "FAIL"}
                   </span>
                 </div>
                 <div className="mt-1 text-xs text-muted-foreground">
-                  variant {r.variantId ?? "—"} · source {r.variantSource ?? "—"} ·{" "}
-                  {r.durationMs}ms
+                  variant {r.variantId ?? "—"} · source {r.variantSource ?? "—"} · {r.durationMs}ms
                 </div>
                 {r.error ? (
                   <div className="mt-2 break-all text-xs text-rose-500">

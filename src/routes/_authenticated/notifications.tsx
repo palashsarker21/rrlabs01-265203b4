@@ -2,15 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import {
-  ArrowLeft,
-  Bell,
-  CheckCheck,
-  CircleAlert,
-  Info,
-  ShieldAlert,
-  Trash2,
-} from "lucide-react";
+import { ArrowLeft, Bell, CheckCheck, CircleAlert, Info, ShieldAlert, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -25,13 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   ALERT_CATEGORIES,
@@ -75,8 +61,7 @@ function severityIcon(sev: AlertSeverity) {
 }
 
 function severityBadge(sev: AlertSeverity) {
-  const variant =
-    sev === "critical" ? "destructive" : sev === "warning" ? "secondary" : "outline";
+  const variant = sev === "critical" ? "destructive" : sev === "warning" ? "secondary" : "outline";
   return (
     <Badge variant={variant as "destructive" | "secondary" | "outline"} className="capitalize">
       {sev}
@@ -165,7 +150,10 @@ function NotificationsPage() {
   const openCount = alertsQ.data?.openCount ?? 0;
 
   const prefsByCat = useMemo(() => {
-    const m = new Map<AlertCategory, { in_app: boolean; email: boolean; min_severity: AlertSeverity }>();
+    const m = new Map<
+      AlertCategory,
+      { in_app: boolean; email: boolean; min_severity: AlertSeverity }
+    >();
     (prefsQ.data ?? []).forEach((p) =>
       m.set(p.category as AlertCategory, {
         in_app: p.in_app,
@@ -208,7 +196,10 @@ function NotificationsPage() {
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-2">
                 <Label className="text-sm">Show</Label>
-                <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as typeof statusFilter)}>
+                <Select
+                  value={statusFilter}
+                  onValueChange={(v) => setStatusFilter(v as typeof statusFilter)}
+                >
                   <SelectTrigger className="w-40">
                     <SelectValue />
                   </SelectTrigger>

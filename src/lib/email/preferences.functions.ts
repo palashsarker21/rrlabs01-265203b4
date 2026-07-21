@@ -15,9 +15,8 @@ const PrefUpdate = z.record(CATEGORIES, z.boolean());
 export const getPreferencesByTokenFn = createServerFn({ method: "POST" })
   .inputValidator((v) => z.object({ token: z.string().min(8).max(2048) }).parse(v))
   .handler(async ({ data }) => {
-    const { verifyUnsubscribeToken, loadPreferencesFor } = await import(
-      "@/lib/email/preferences.server"
-    );
+    const { verifyUnsubscribeToken, loadPreferencesFor } =
+      await import("@/lib/email/preferences.server");
     const verified = verifyUnsubscribeToken(data.token);
     if (!verified) return { ok: false as const, error: "invalid_or_expired_token" };
     const prefs = await loadPreferencesFor(verified.email);
@@ -38,9 +37,8 @@ export const updatePreferencesByTokenFn = createServerFn({ method: "POST" })
       .parse(v),
   )
   .handler(async ({ data }) => {
-    const { verifyUnsubscribeToken, setPreferences } = await import(
-      "@/lib/email/preferences.server"
-    );
+    const { verifyUnsubscribeToken, setPreferences } =
+      await import("@/lib/email/preferences.server");
     const verified = verifyUnsubscribeToken(data.token);
     if (!verified) return { ok: false as const, error: "invalid_or_expired_token" };
     const prefs = await setPreferences(verified.email, data.preferences, "unsubscribe_link");
@@ -50,9 +48,8 @@ export const updatePreferencesByTokenFn = createServerFn({ method: "POST" })
 export const unsubscribeAllByTokenFn = createServerFn({ method: "POST" })
   .inputValidator((v) => z.object({ token: z.string().min(8).max(2048) }).parse(v))
   .handler(async ({ data }) => {
-    const { verifyUnsubscribeToken, unsubscribeAll } = await import(
-      "@/lib/email/preferences.server"
-    );
+    const { verifyUnsubscribeToken, unsubscribeAll } =
+      await import("@/lib/email/preferences.server");
     const verified = verifyUnsubscribeToken(data.token);
     if (!verified) return { ok: false as const, error: "invalid_or_expired_token" };
     const prefs = await unsubscribeAll(verified.email, "unsubscribe_link");

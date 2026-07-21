@@ -26,12 +26,16 @@ const t = (over: Partial<TemplateRow>): TemplateRow => ({
 
 describe("matchTemplate", () => {
   it("returns no match on empty pool", () => {
-    const r = matchTemplate([], {
-      step: 1,
-      channel: "email",
-      classification: "expired_card",
-      language: "en",
-    }, 0.7);
+    const r = matchTemplate(
+      [],
+      {
+        step: 1,
+        channel: "email",
+        classification: "expired_card",
+        language: "en",
+      },
+      0.7,
+    );
     expect(r.matched).toBe(false);
     expect(r.template).toBeNull();
   });
@@ -39,24 +43,32 @@ describe("matchTemplate", () => {
   it("prefers exact classification + language match", () => {
     const generic = t({ failure_classification: null, language: null });
     const specific = t({ failure_classification: "expired_card", language: "en" });
-    const r = matchTemplate([generic, specific], {
-      step: 1,
-      channel: "email",
-      classification: "expired_card",
-      language: "en",
-    }, 0.7);
+    const r = matchTemplate(
+      [generic, specific],
+      {
+        step: 1,
+        channel: "email",
+        classification: "expired_card",
+        language: "en",
+      },
+      0.7,
+    );
     expect(r.template?.id).toBe(specific.id);
     expect(r.matched).toBe(true);
   });
 
   it("skips wrong channel/step", () => {
     const wrong = t({ channel: "whatsapp", failure_classification: "expired_card" });
-    const r = matchTemplate([wrong], {
-      step: 1,
-      channel: "email",
-      classification: "expired_card",
-      language: "en",
-    }, 0.5);
+    const r = matchTemplate(
+      [wrong],
+      {
+        step: 1,
+        channel: "email",
+        classification: "expired_card",
+        language: "en",
+      },
+      0.5,
+    );
     expect(r.template).toBeNull();
   });
 
@@ -68,12 +80,16 @@ describe("matchTemplate", () => {
       usage_count: 50,
       success_count: 40,
     });
-    const r = matchTemplate([cold, hot], {
-      step: 1,
-      channel: "email",
-      classification: "expired_card",
-      language: "en",
-    }, 0.7);
+    const r = matchTemplate(
+      [cold, hot],
+      {
+        step: 1,
+        channel: "email",
+        classification: "expired_card",
+        language: "en",
+      },
+      0.7,
+    );
     expect(r.template?.id).toBe(hot.id);
   });
 });

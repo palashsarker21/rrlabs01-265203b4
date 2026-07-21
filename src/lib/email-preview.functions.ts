@@ -40,9 +40,7 @@ export const previewEmailTemplateFn = createServerFn({ method: "POST" })
     const React = (await import("react")).default;
     const { render } = await import("@react-email/render");
     const { loadEmailConfig } = await import("./email/config.server");
-    const { categoryForTemplate, buildUnsubscribeUrl } = await import(
-      "./email/preferences.server"
-    );
+    const { categoryForTemplate, buildUnsubscribeUrl } = await import("./email/preferences.server");
     const entry = TEMPLATES[data.template];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const Component = entry.component as React.ComponentType<any>;
@@ -67,9 +65,7 @@ export const previewEmailTemplateFn = createServerFn({ method: "POST" })
       const category = categoryForTemplate(data.template);
       const publicBase =
         process.env.PUBLIC_APP_URL ?? process.env.APP_URL ?? "https://rrlabs.online";
-      const unsubscribeUrl = category
-        ? buildUnsubscribeUrl(sampleRecipient, publicBase)
-        : null;
+      const unsubscribeUrl = category ? buildUnsubscribeUrl(sampleRecipient, publicBase) : null;
       const headers: Record<string, string> = {};
       if (unsubscribeUrl) {
         headers["List-Unsubscribe"] = `<${unsubscribeUrl}>`;
@@ -107,15 +103,14 @@ export const previewEmailTemplateFn = createServerFn({ method: "POST" })
 
 export const sendTemplateTestFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator(
-    (input: { template: string; to: string; data?: Record<string, unknown> }) =>
-      z
-        .object({
-          template: z.string().min(1).max(64),
-          to: z.string().trim().email().max(255),
-          data: dataSchema.optional(),
-        })
-        .parse(input),
+  .inputValidator((input: { template: string; to: string; data?: Record<string, unknown> }) =>
+    z
+      .object({
+        template: z.string().min(1).max(64),
+        to: z.string().trim().email().max(255),
+        data: dataSchema.optional(),
+      })
+      .parse(input),
   )
   .handler(async ({ data, context }) => {
     await assertSuperAdmin(context);

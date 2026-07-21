@@ -8,7 +8,12 @@ export type SuccessFeeInvoiceProps = {
   invoiceUrl?: string;
 };
 
-export function SuccessFeeInvoice({ period, recoveredFormatted, feeFormatted, invoiceUrl }: SuccessFeeInvoiceProps) {
+export function SuccessFeeInvoice({
+  period,
+  recoveredFormatted,
+  feeFormatted,
+  invoiceUrl,
+}: SuccessFeeInvoiceProps) {
   return (
     <EmailShell preview={`Success fee statement for ${period}.`}>
       <Text style={styles.h1}>Success fee statement — {period}</Text>
@@ -18,11 +23,11 @@ export function SuccessFeeInvoice({ period, recoveredFormatted, feeFormatted, in
         Success fee due: <strong>{feeFormatted}</strong>
       </Text>
       {invoiceUrl ? (
-        <Button href={invoiceUrl} style={styles.button}>View statement</Button>
+        <Button href={invoiceUrl} style={styles.button}>
+          View statement
+        </Button>
       ) : null}
-      <Text style={styles.p}>
-        You're only billed on revenue we actually recover for you.
-      </Text>
+      <Text style={styles.p}>You're only billed on revenue we actually recover for you.</Text>
     </EmailShell>
   );
 }
