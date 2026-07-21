@@ -12,7 +12,7 @@ describe("decideRecovery", () => {
   it("stops after max_retries", () => {
     const d = decideRecovery({
       ...base,
-      step: 3,
+      step: 4,
       channels_available: ["email"],
     });
     expect(d.should_send).toBe(false);
