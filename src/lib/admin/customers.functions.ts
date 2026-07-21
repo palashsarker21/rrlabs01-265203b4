@@ -125,13 +125,15 @@ export const getCustomerDetail = createServerFn({ method: "POST" })
         .eq("workspace_id", data.workspaceId),
       supabase
         .from("subscriptions")
-        .select("id, plan_id, status, current_period_start, current_period_end, cancel_at, provider")
+        .select(
+          "id, plan_id, status, current_period_start, current_period_end, cancelled_at, ls_subscription_id",
+        )
         .eq("workspace_id", data.workspaceId)
         .order("created_at", { ascending: false })
         .limit(10),
       supabase
         .from("integrations")
-        .select("id, provider, status, is_active, created_at")
+        .select("id, provider, status, health, created_at")
         .eq("workspace_id", data.workspaceId),
       supabase
         .from("recovery_events")

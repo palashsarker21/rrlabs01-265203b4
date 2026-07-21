@@ -109,18 +109,20 @@ function CustomerDetail() {
             <Empty label="No integrations" />
           ) : (
             <ul className="divide-y divide-border/60 text-sm">
-              {data.integrations.map((i) => (
-                <li key={i.id} className="flex justify-between py-2">
-                  <span className="capitalize">{i.provider}</span>
-                  <span
-                    className={`text-xs ${
-                      i.is_active ? "text-emerald-600" : "text-muted-foreground"
-                    }`}
-                  >
-                    {i.status}
-                  </span>
-                </li>
-              ))}
+              {data.integrations.map((i) => {
+                const active = i.status === "connected" || i.status === "active";
+                return (
+                  <li key={i.id} className="flex justify-between py-2">
+                    <span className="capitalize">{i.provider}</span>
+                    <span
+                      className={`text-xs ${active ? "text-emerald-600" : "text-muted-foreground"}`}
+                    >
+                      {i.status}
+                      {i.health ? ` · ${i.health}` : ""}
+                    </span>
+                  </li>
+                );
+              })}
             </ul>
           )}
         </Panel>
@@ -141,8 +143,11 @@ function CustomerDetail() {
                 {data.subscriptions.map((s) => (
                   <tr key={s.id} className="border-t border-border/60">
                     <td className="py-1.5">{s.plan_id ?? "—"}</td>
-                    <td className="py-1.5">{s.status ?? "—"}</td>
-                    <td className="py-1.5">{s.provider ?? "—"}</td>
+                    <td className="py-1.5">
+                      {s.status ?? "—"}
+                      {s.cancelled_at ? " (cancelled)" : ""}
+                    </td>
+                    <td className="py-1.5">{s.ls_subscription_id ? "Lemon Squeezy" : "—"}</td>
                     <td className="py-1.5 text-muted-foreground">
                       {s.current_period_start
                         ? `${new Date(s.current_period_start).toLocaleDateString()} — ${

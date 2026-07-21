@@ -83,11 +83,20 @@ export const ADMIN_NAV: AdminNavNode[] = [
     items: [
       {
         kind: "leaf",
-        id: "workspaces",
-        label: "Workspaces",
-        description: "All tenants with recovery engine controls.",
+        id: "customers-directory",
+        label: "Customer directory",
+        description: "Search, filter, and manage every workspace.",
         icon: Building2,
-        keywords: ["tenants", "orgs", "customers"],
+        keywords: ["tenants", "orgs", "customers", "directory"],
+        to: "/admin/v2/customers",
+      },
+      {
+        kind: "leaf",
+        id: "workspaces",
+        label: "Workspaces (legacy)",
+        description: "Legacy workspace table view.",
+        icon: Building2,
+        keywords: ["tenants", "orgs", "legacy"],
         ...legacy("workspaces"),
       },
       {
