@@ -2,10 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import {
-  listWebhookDeliveries,
-  getWebhookDelivery,
-} from "@/lib/email-webhook-logs.functions";
+import { listWebhookDeliveries, getWebhookDelivery } from "@/lib/email-webhook-logs.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/email/webhooks")({
   head: () => ({
@@ -93,8 +90,8 @@ function WebhookLogsPage() {
         <div>
           <h1 className="text-2xl font-bold">Email webhook deliveries</h1>
           <p className="text-sm text-muted-foreground">
-            Inbound Resend (Svix) webhook attempts, signature verification, and processing
-            outcomes. Auto-refreshes every 15 seconds.
+            Inbound Resend (Svix) webhook attempts, signature verification, and processing outcomes.
+            Auto-refreshes every 15 seconds.
           </p>
         </div>
         <a href="/admin/email" className="text-xs font-medium text-primary hover:underline">
@@ -103,25 +100,25 @@ function WebhookLogsPage() {
       </header>
 
       <section className="flex flex-wrap gap-2">
-        {(["all", "accepted", "invalid_signature", "unconfigured", "bad_json", "error"] as Outcome[]).map(
-          (o) => (
-            <button
-              key={o}
-              onClick={() => {
-                setOutcome(o);
-                setPage(0);
-              }}
-              className={`rounded-full border px-3 py-1 text-xs font-medium ${
-                outcome === o
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : "border-border bg-background text-foreground hover:bg-muted"
-              }`}
-            >
-              {o === "all" ? "All" : OUTCOME_LABEL[o as Exclude<Outcome, "all">]}{" "}
-              <span className="opacity-70">({counts[o] ?? 0})</span>
-            </button>
-          ),
-        )}
+        {(
+          ["all", "accepted", "invalid_signature", "unconfigured", "bad_json", "error"] as Outcome[]
+        ).map((o) => (
+          <button
+            key={o}
+            onClick={() => {
+              setOutcome(o);
+              setPage(0);
+            }}
+            className={`rounded-full border px-3 py-1 text-xs font-medium ${
+              outcome === o
+                ? "border-primary bg-primary text-primary-foreground"
+                : "border-border bg-background text-foreground hover:bg-muted"
+            }`}
+          >
+            {o === "all" ? "All" : OUTCOME_LABEL[o as Exclude<Outcome, "all">]}{" "}
+            <span className="opacity-70">({counts[o] ?? 0})</span>
+          </button>
+        ))}
       </section>
 
       <section className="grid grid-cols-1 gap-2 rounded-lg border p-3 sm:grid-cols-4">
@@ -210,13 +207,13 @@ function WebhookLogsPage() {
                     </span>
                   </td>
                   <td className="py-2 px-3">{r.event_type ?? "—"}</td>
-                  <td className="py-2 px-3 font-mono text-xs">
-                    {r.provider_message_id ?? "—"}
-                  </td>
+                  <td className="py-2 px-3 font-mono text-xs">{r.provider_message_id ?? "—"}</td>
                   <td className="py-2 px-3 font-mono text-xs">
                     {r.matched_log_id ? r.matched_log_id.slice(0, 8) : "—"}
                   </td>
-                  <td className="py-2 px-3">{r.processing_ms != null ? `${r.processing_ms} ms` : "—"}</td>
+                  <td className="py-2 px-3">
+                    {r.processing_ms != null ? `${r.processing_ms} ms` : "—"}
+                  </td>
                   <td className="py-2 px-3 text-right">
                     <button
                       className="rounded-md border px-2 py-1 text-xs hover:bg-muted"
@@ -340,7 +337,7 @@ function WebhookLogsPage() {
                   <pre className="mt-1 max-h-96 overflow-auto whitespace-pre-wrap break-all rounded bg-muted p-2 text-xs">
                     {detail.data.payload
                       ? JSON.stringify(detail.data.payload, null, 2)
-                      : detail.data.body_snippet ?? "—"}
+                      : (detail.data.body_snippet ?? "—")}
                   </pre>
                 </div>
               </div>

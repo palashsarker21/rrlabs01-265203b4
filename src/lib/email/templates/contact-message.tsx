@@ -14,7 +14,12 @@ export function ContactMessage({ fromName, fromEmail, message, companyName }: Co
       <Text style={styles.h1}>New contact form message</Text>
       <Text style={styles.p}>
         <strong>From:</strong> {fromName} &lt;{fromEmail}&gt;
-        {companyName ? <><br /><strong>Company:</strong> {companyName}</> : null}
+        {companyName ? (
+          <>
+            <br />
+            <strong>Company:</strong> {companyName}
+          </>
+        ) : null}
       </Text>
       <Text style={{ ...styles.p, whiteSpace: "pre-wrap" as const }}>{message}</Text>
     </EmailShell>

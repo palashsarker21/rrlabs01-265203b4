@@ -91,11 +91,7 @@ function CheckoutStatusPage() {
               </>
             }
           >
-            <Button
-              className="mt-6"
-              size="lg"
-              onClick={() => navigate({ to: "/app" })}
-            >
+            <Button className="mt-6" size="lg" onClick={() => navigate({ to: "/app" })}>
               Continue to your workspace
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>

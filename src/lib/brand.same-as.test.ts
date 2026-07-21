@@ -8,9 +8,7 @@ import { SOCIAL_PROFILES, SOCIAL_SAME_AS } from "@/lib/brand";
  * renders — so the two surfaces never drift.
  */
 describe("Organization JSON-LD sameAs", () => {
-  const enabledHrefs = SOCIAL_PROFILES.filter((p) => p.enabled && p.href).map(
-    (p) => p.href,
-  );
+  const enabledHrefs = SOCIAL_PROFILES.filter((p) => p.enabled && p.href).map((p) => p.href);
 
   it("exactly matches the enabled official URLs (order preserved)", () => {
     expect([...SOCIAL_SAME_AS]).toEqual(enabledHrefs);

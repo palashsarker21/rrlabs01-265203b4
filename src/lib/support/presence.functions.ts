@@ -7,24 +7,20 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 export const setPresence = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((raw) =>
-    z
-      .object({ status: z.enum(["online", "available", "busy", "away", "offline"]) })
-      .parse(raw),
+    z.object({ status: z.enum(["online", "available", "busy", "away", "offline"]) }).parse(raw),
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     const { data: isStaff } = await supabase.rpc("is_support_staff", { _user_id: userId });
-    const { error } = await supabase
-      .from("support_presence")
-      .upsert(
-        {
-          user_id: userId,
-          status: data.status,
-          last_seen_at: new Date().toISOString(),
-          is_staff: Boolean(isStaff),
-        },
-        { onConflict: "user_id" },
-      );
+    const { error } = await supabase.from("support_presence").upsert(
+      {
+        user_id: userId,
+        status: data.status,
+        last_seen_at: new Date().toISOString(),
+        is_staff: Boolean(isStaff),
+      },
+      { onConflict: "user_id" },
+    );
     if (error) throw new Error(error.message);
     return { ok: true };
   });

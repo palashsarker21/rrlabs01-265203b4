@@ -55,18 +55,13 @@ function AdminV2Overview() {
           <Command className="h-3.5 w-3.5" aria-hidden />
           <span>
             Press{" "}
-            <kbd className="rounded border border-border bg-muted px-1 py-0.5 text-[10px]">
-              ⌘K
-            </kbd>{" "}
+            <kbd className="rounded border border-border bg-muted px-1 py-0.5 text-[10px]">⌘K</kbd>{" "}
             to jump anywhere
           </span>
         </div>
       </header>
 
-      <section
-        aria-label="Platform KPIs"
-        className="grid grid-cols-2 gap-3 md:grid-cols-4"
-      >
+      <section aria-label="Platform KPIs" className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <Kpi label="Workspaces" value={totals.count} />
         <Kpi label="Active" value={totals.active} />
         <Kpi label="Recovery events" value={totals.events} />
@@ -77,14 +72,8 @@ function AdminV2Overview() {
           hint="Current recurring revenue"
         />
         <Kpi label="Active subs" value={Number(billing?.activeCount ?? 0)} />
-        <Kpi
-          label="Recovered (all time)"
-          value={money(Number(billing?.recoveredCents ?? 0))}
-        />
-        <Kpi
-          label="Failed webhooks (24h)"
-          value={Number(billing?.webhooks?.failed24h ?? 0)}
-        />
+        <Kpi label="Recovered (all time)" value={money(Number(billing?.recoveredCents ?? 0))} />
+        <Kpi label="Failed webhooks (24h)" value={Number(billing?.webhooks?.failed24h ?? 0)} />
       </section>
 
       <section aria-label="Sections" className="space-y-4">
@@ -96,10 +85,7 @@ function AdminV2Overview() {
             if (group.kind !== "group") return null;
             const Icon = group.icon;
             return (
-              <div
-                key={group.id}
-                className="rounded-xl border border-border/60 bg-card/40 p-4"
-              >
+              <div key={group.id} className="rounded-xl border border-border/60 bg-card/40 p-4">
                 <div className="flex items-center gap-2">
                   <div className="rounded-md bg-primary/10 p-1.5 text-primary">
                     <Icon className="h-4 w-4" aria-hidden />
@@ -142,12 +128,8 @@ function Kpi({
 }) {
   return (
     <div className="rounded-xl border border-border/60 bg-card/40 p-4">
-      <p className="text-xs uppercase tracking-wide text-muted-foreground">
-        {label}
-      </p>
-      <p
-        className={`mt-1 text-xl font-semibold ${accent ? "text-primary" : "text-foreground"}`}
-      >
+      <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
+      <p className={`mt-1 text-xl font-semibold ${accent ? "text-primary" : "text-foreground"}`}>
         {value}
       </p>
       {hint ? <p className="mt-1 text-xs text-muted-foreground">{hint}</p> : null}

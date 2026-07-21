@@ -4,10 +4,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 
 import { listEmailTemplates } from "@/lib/email.functions";
-import {
-  previewEmailTemplateFn,
-  sendTemplateTestFn,
-} from "@/lib/email-preview.functions";
+import { previewEmailTemplateFn, sendTemplateTestFn } from "@/lib/email-preview.functions";
 import { TEMPLATE_SAMPLES } from "@/lib/email/template-samples";
 
 export const Route = createFileRoute("/_authenticated/admin/email/preview")({
@@ -200,14 +197,11 @@ function EmailPreviewPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selected, dataText, validation.canRender]);
 
-
   const previewData = preview.data;
-  const previewHtml =
-    previewData && "ok" in previewData && previewData.ok ? previewData.html : "";
+  const previewHtml = previewData && "ok" in previewData && previewData.ok ? previewData.html : "";
   const previewSubject =
     previewData && "ok" in previewData && previewData.ok ? previewData.subject : "";
-  const previewText =
-    previewData && "ok" in previewData && previewData.ok ? previewData.text : "";
+  const previewText = previewData && "ok" in previewData && previewData.ok ? previewData.text : "";
   const previewMeta =
     previewData && "ok" in previewData && previewData.ok && "preview" in previewData
       ? previewData.preview
@@ -215,7 +209,7 @@ function EmailPreviewPage() {
   const previewError =
     previewData && "ok" in previewData && !previewData.ok
       ? "message" in previewData
-        ? (previewData as { message?: string }).message ?? previewData.error
+        ? ((previewData as { message?: string }).message ?? previewData.error)
         : previewData.error
       : null;
 
@@ -225,7 +219,8 @@ function EmailPreviewPage() {
         <div>
           <h1 className="text-2xl font-bold">Email templates</h1>
           <p className="text-sm text-muted-foreground">
-            Preview every reusable React Email template with sample data, then send a test to yourself before rolling it out.
+            Preview every reusable React Email template with sample data, then send a test to
+            yourself before rolling it out.
           </p>
         </div>
       </header>
@@ -258,9 +253,7 @@ function EmailPreviewPage() {
                 type="button"
                 className="text-xs text-primary hover:underline"
                 onClick={() =>
-                  setDataText(
-                    JSON.stringify(TEMPLATE_SAMPLES[selected]?.data ?? {}, null, 2),
-                  )
+                  setDataText(JSON.stringify(TEMPLATE_SAMPLES[selected]?.data ?? {}, null, 2))
                 }
               >
                 Reset to sample
@@ -284,9 +277,7 @@ function EmailPreviewPage() {
             aria-label="Template variable validation"
           >
             <div className="flex items-center justify-between">
-              <div className="text-xs font-medium text-muted-foreground">
-                Variable validator
-              </div>
+              <div className="text-xs font-medium text-muted-foreground">Variable validator</div>
               <span
                 className={
                   "rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider " +
@@ -409,11 +400,8 @@ function EmailPreviewPage() {
                   ? "Sending…"
                   : "Send test email"}
             </button>
-            {sendResult && (
-              <div className="mt-2 text-xs text-muted-foreground">{sendResult}</div>
-            )}
+            {sendResult && <div className="mt-2 text-xs text-muted-foreground">{sendResult}</div>}
           </div>
-
         </div>
 
         {/* Right column — preview */}
@@ -434,9 +422,7 @@ function EmailPreviewPage() {
                     : "—"}
               </dd>
               <dt className="text-muted-foreground">Reply-To</dt>
-              <dd className="font-mono break-all">
-                {previewMeta?.envelope.replyTo ?? "—"}
-              </dd>
+              <dd className="font-mono break-all">{previewMeta?.envelope.replyTo ?? "—"}</dd>
               <dt className="text-muted-foreground">To (sample)</dt>
               <dd className="font-mono break-all">{previewMeta?.sampleTo ?? "—"}</dd>
               <dt className="text-muted-foreground">Category</dt>
@@ -461,8 +447,8 @@ function EmailPreviewPage() {
               </dd>
             </dl>
             <p className="mt-2 text-[11px] text-muted-foreground">
-              These are the exact envelope + headers a real send would apply. Preview only —
-              nothing is dispatched.
+              These are the exact envelope + headers a real send would apply. Preview only — nothing
+              is dispatched.
             </p>
           </div>
 
@@ -474,11 +460,10 @@ function EmailPreviewPage() {
 
           {!validation.canRender && (
             <div className="rounded-md border border-amber-500/40 bg-amber-500/5 p-3 text-sm text-amber-700 dark:text-amber-400">
-              Preview paused — resolve the variable validator errors on the left to
-              render this template.
+              Preview paused — resolve the variable validator errors on the left to render this
+              template.
             </div>
           )}
-
 
           <div className="overflow-hidden rounded-md border bg-white">
             <div className="flex items-center justify-between border-b bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
@@ -489,7 +474,10 @@ function EmailPreviewPage() {
               title="Email preview"
               className="h-[720px] w-full bg-white"
               sandbox=""
-              srcDoc={previewHtml || "<html><body style='font-family:system-ui;padding:24px;color:#64748b'>Preview will render here…</body></html>"}
+              srcDoc={
+                previewHtml ||
+                "<html><body style='font-family:system-ui;padding:24px;color:#64748b'>Preview will render here…</body></html>"
+              }
             />
           </div>
 

@@ -127,7 +127,11 @@ export const getDeliveryFn = createServerFn({ method: "POST" })
 async function replayLogById(
   logId: string,
   actorUserId: string,
-): Promise<{ result: Awaited<ReturnType<typeof import("./email/service.server").sendEmail>>; durationMs: number; replayOf: string }> {
+): Promise<{
+  result: Awaited<ReturnType<typeof import("./email/service.server").sendEmail>>;
+  durationMs: number;
+  replayOf: string;
+}> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
   const { data: log, error } = await supabaseAdmin
@@ -221,7 +225,12 @@ export const bulkReplayDeliveriesFn = createServerFn({ method: "POST" })
 
     for (const [input, logId] of resolved.entries()) {
       if (logId === "__notfound__") {
-        items.push({ input, logId: null, ok: false, error: "No delivery found for that message ID." });
+        items.push({
+          input,
+          logId: null,
+          ok: false,
+          error: "No delivery found for that message ID.",
+        });
         continue;
       }
       try {
@@ -289,7 +298,13 @@ export const resolveBulkReplayFn = createServerFn({ method: "POST" })
         if (r) {
           items.push({ input: id, logId: r.id, recipient: r.recipient, template: r.template });
         } else {
-          items.push({ input: id, logId: null, recipient: null, template: null, error: "Log not found." });
+          items.push({
+            input: id,
+            logId: null,
+            recipient: null,
+            template: null,
+            error: "Log not found.",
+          });
         }
         seen.add(id);
       }
@@ -302,9 +317,7 @@ export const resolveBulkReplayFn = createServerFn({ method: "POST" })
         .select("id,recipient,template,provider_message_id")
         .in("provider_message_id", mids);
       if (error) throw new Error(error.message);
-      const byMid = new Map(
-        (rows ?? []).map((r) => [String(r.provider_message_id), r]),
-      );
+      const byMid = new Map((rows ?? []).map((r) => [String(r.provider_message_id), r]));
       for (const mid of mids) {
         const r = byMid.get(mid);
         if (r && !seen.has(r.id)) {
@@ -327,9 +340,6 @@ export const resolveBulkReplayFn = createServerFn({ method: "POST" })
     }
     return { items };
   });
-
-
-
 
 export const listTemplateOptionsFn = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])

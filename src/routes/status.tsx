@@ -89,12 +89,11 @@ function StatusPage() {
   const activeIncidents = incidents.filter((i) => i.status !== "resolved");
   const pastIncidents = incidents.filter((i) => i.status === "resolved").slice(0, 10);
 
-  const overall =
-    activeIncidents.some((i) => i.impact === "critical" || i.impact === "major")
-      ? "down"
-      : activeIncidents.length > 0
-        ? "degraded"
-        : (data?.status ?? (isError ? "down" : "ok"));
+  const overall = activeIncidents.some((i) => i.impact === "critical" || i.impact === "major")
+    ? "down"
+    : activeIncidents.length > 0
+      ? "degraded"
+      : (data?.status ?? (isError ? "down" : "ok"));
   const overallTone = TONE[overall];
   const headline =
     overall === "ok"
@@ -196,9 +195,7 @@ function IncidentCard({ incident }: { incident: PublicIncident }) {
           {incident.impact} · {incident.status}
         </span>
       </header>
-      {incident.summary && (
-        <p className="mt-3 text-sm text-muted-foreground">{incident.summary}</p>
-      )}
+      {incident.summary && <p className="mt-3 text-sm text-muted-foreground">{incident.summary}</p>}
       {incident.affected_components.length > 0 && (
         <p className="mt-2 text-xs text-muted-foreground">
           Affected: {incident.affected_components.join(", ")}

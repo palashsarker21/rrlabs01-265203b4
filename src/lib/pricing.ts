@@ -18,7 +18,6 @@ export type PlanCta =
   | { kind: "trial"; label: "Start Free 14-Day Trial" }
   | { kind: "contact_sales"; label: "Talk to Sales" };
 
-
 export type PricingPlan = {
   code: PlanCode;
   name: string;
@@ -138,7 +137,6 @@ export const PLANS: PricingPlan[] = [
     cta: { kind: "contact_sales", label: "Talk to Sales" },
     enterprise: true,
   },
-
 ];
 
 export function getPlanByCode(code: string): PricingPlan | undefined {

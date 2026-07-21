@@ -70,14 +70,10 @@ describe("SocialLinks", () => {
   });
 
   it("silently drops reserved platforms passed via filter", () => {
-    const { container } = render(
-      <SocialLinks platforms={["github", "producthunt", "medium"]} />,
-    );
+    const { container } = render(<SocialLinks platforms={["github", "producthunt", "medium"]} />);
     const links = container.querySelectorAll("a");
     expect(links.length).toBe(1);
-    expect(links[0].getAttribute("href")).toBe(
-      ENABLED.find((p) => p.platform === "github")!.href,
-    );
+    expect(links[0].getAttribute("href")).toBe(ENABLED.find((p) => p.platform === "github")!.href);
   });
 
   it("returns null when no profiles resolve", () => {

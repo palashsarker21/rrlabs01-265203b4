@@ -28,14 +28,10 @@ export function PageHeader({
         {eyebrow ? <div className="text-eyebrow">{eyebrow}</div> : null}
         <h1 className="text-h1 text-foreground truncate">{title}</h1>
         {description ? (
-          <p className="text-sm sm:text-base text-muted-foreground max-w-2xl">
-            {description}
-          </p>
+          <p className="text-sm sm:text-base text-muted-foreground max-w-2xl">{description}</p>
         ) : null}
       </div>
-      {actions ? (
-        <div className="flex shrink-0 items-center gap-2">{actions}</div>
-      ) : null}
+      {actions ? <div className="flex shrink-0 items-center gap-2">{actions}</div> : null}
     </div>
   );
 }

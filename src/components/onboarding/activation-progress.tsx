@@ -26,12 +26,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 
-export type ActivationStepId =
-  | "permission"
-  | "required"
-  | "verified"
-  | "webhooks"
-  | "activate";
+export type ActivationStepId = "permission" | "required" | "verified" | "webhooks" | "activate";
 
 export type StepState = "idle" | "running" | "success" | "failed" | "skipped";
 
@@ -48,7 +43,6 @@ export type ActivationStep = {
   /** Where the user should go to resolve this failure. */
   fix?: { label: string; to: string; hash?: string };
 };
-
 
 const DEFAULT_STEPS: Omit<ActivationStep, "state">[] = [
   {
@@ -198,12 +192,7 @@ export function ActivationProgress({
       {/* Steps */}
       <ol className="mt-5 space-y-3">
         {steps.map((s) => (
-          <StepRow
-            key={s.id}
-            step={s}
-            isRunning={isRunning}
-            onRetryStep={onRetryStep}
-          />
+          <StepRow key={s.id} step={s} isRunning={isRunning} onRetryStep={onRetryStep} />
         ))}
       </ol>
 
@@ -241,10 +230,11 @@ export function ActivationProgress({
               Retry {failedSteps.length} failed step{failedSteps.length === 1 ? "" : "s"}?
             </AlertDialogTitle>
             <AlertDialogDescription>
-              Only the failed steps below will be re-run. Successful steps will be
-              preserved and skipped.
+              Only the failed steps below will be re-run. Successful steps will be preserved and
+              skipped.
               <span className="sr-only">
-                {" "}The following {failedSteps.length} step
+                {" "}
+                The following {failedSteps.length} step
                 {failedSteps.length === 1 ? "" : "s"} will be retried:{" "}
                 {failedSteps.map((s) => s.label).join("; ")}.
                 {steps.some((s) => s.state === "success")
@@ -298,9 +288,7 @@ export function ActivationProgress({
             )}
           </div>
           <AlertDialogFooter>
-            <AlertDialogCancel aria-label="Cancel retry and close dialog">
-              Cancel
-            </AlertDialogCancel>
+            <AlertDialogCancel aria-label="Cancel retry and close dialog">Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => onRetryFailed?.(failedSteps.map((s) => s.id))}
               aria-label={`Retry ${failedSteps.length} failed step${
@@ -318,10 +306,11 @@ export function ActivationProgress({
           <AlertDialogHeader>
             <AlertDialogTitle>Retry the full activation?</AlertDialogTitle>
             <AlertDialogDescription>
-              All {steps.length} steps will be re-run from the beginning, including
-              steps that previously succeeded.
+              All {steps.length} steps will be re-run from the beginning, including steps that
+              previously succeeded.
               <span className="sr-only">
-                {" "}Steps to run in order:{" "}
+                {" "}
+                Steps to run in order:{" "}
                 {steps
                   .map(
                     (s, i) =>
@@ -333,7 +322,8 @@ export function ActivationProgress({
                             : ""
                       }`,
                   )
-                  .join("; ")}.
+                  .join("; ")}
+                .
               </span>
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -383,9 +373,7 @@ export function ActivationProgress({
             </ol>
           </div>
           <AlertDialogFooter>
-            <AlertDialogCancel aria-label="Cancel retry and close dialog">
-              Cancel
-            </AlertDialogCancel>
+            <AlertDialogCancel aria-label="Cancel retry and close dialog">Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={onRetry}
               aria-label={`Retry full activation: re-run all ${steps.length} steps from the beginning`}
@@ -395,7 +383,6 @@ export function ActivationProgress({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
 
       {failed?.fix && (
         <div className="mt-3 text-[11px] text-muted-foreground">
@@ -467,8 +454,7 @@ function StepRow({
               s.state === "success" && "bg-emerald-500/10 text-emerald-500",
               s.state === "failed" && "bg-destructive/10 text-destructive",
               s.state === "running" && "bg-primary/10 text-primary",
-              (s.state === "idle" || s.state === "skipped") &&
-                "bg-muted text-muted-foreground",
+              (s.state === "idle" || s.state === "skipped") && "bg-muted text-muted-foreground",
             )}
           >
             {s.state}
@@ -507,9 +493,7 @@ function StepRow({
                   onClick={() => onRetryStep(s.id)}
                   disabled={isRunning}
                 >
-                  <RefreshCw
-                    className={cn("mr-1.5 h-3 w-3", isRunning && "animate-spin")}
-                  />
+                  <RefreshCw className={cn("mr-1.5 h-3 w-3", isRunning && "animate-spin")} />
                   Retry this step
                 </Button>
               )}

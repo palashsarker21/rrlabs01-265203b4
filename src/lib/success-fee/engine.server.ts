@@ -77,10 +77,7 @@ export async function buildStatementsForPeriod(period: PeriodBounds): Promise<Bu
     .lt("recovered_at", period.periodEnd);
   if (error) throw new Error(`Aggregation failed: ${error.message}`);
 
-  const byWorkspace = new Map<
-    string,
-    { amount: number; count: number; currency: string | null }
-  >();
+  const byWorkspace = new Map<string, { amount: number; count: number; currency: string | null }>();
   for (const r of rows ?? []) {
     const wsId = String(r.workspace_id);
     const bucket = byWorkspace.get(wsId) ?? { amount: 0, count: 0, currency: null };
@@ -194,9 +191,7 @@ export type IssueInvoiceResult = {
  * Create a Lemon Squeezy hosted checkout for a finalized statement, using
  * `custom_price` so a single "Success fee" variant can bill any amount.
  */
-export async function issueInvoiceForStatement(
-  statementId: string,
-): Promise<IssueInvoiceResult> {
+export async function issueInvoiceForStatement(statementId: string): Promise<IssueInvoiceResult> {
   const apiKey = process.env.LEMONSQUEEZY_API_KEY;
   const storeId = process.env.LEMONSQUEEZY_STORE_ID;
   const variantId = cleanVariantId(process.env[SUCCESS_FEE_VARIANT_ENV]);

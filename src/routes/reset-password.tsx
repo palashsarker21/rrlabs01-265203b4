@@ -95,7 +95,10 @@ function ResetPasswordPage() {
         <div className="rounded-2xl border border-border/70 bg-card/60 p-6 shadow-2xl shadow-black/40 backdrop-blur-xl">
           {!ready ? (
             <div className="flex justify-center py-8">
-              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" aria-label="Loading" />
+              <Loader2
+                className="h-5 w-5 animate-spin text-muted-foreground"
+                aria-label="Loading"
+              />
             </div>
           ) : !recovery ? (
             <div

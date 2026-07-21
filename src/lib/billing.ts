@@ -76,4 +76,3 @@ export function resolveCta({
     href: planIdForCheckout ? `/checkout?plan=${planIdForCheckout}` : "/checkout",
   };
 }
-

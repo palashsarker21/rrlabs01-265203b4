@@ -70,7 +70,11 @@ function scoreTemplate(t: TemplateRow, k: MatchKeys): number {
   } else if (!t.failure_classification) {
     score += WEIGHTS.classification * 0.5; // generic fallback template
   }
-  if (t.language && k.language && t.language.toLowerCase().slice(0, 2) === k.language.toLowerCase().slice(0, 2)) {
+  if (
+    t.language &&
+    k.language &&
+    t.language.toLowerCase().slice(0, 2) === k.language.toLowerCase().slice(0, 2)
+  ) {
     score += WEIGHTS.language;
   } else if (!t.language) {
     score += WEIGHTS.language * 0.4;
@@ -82,11 +86,7 @@ function scoreTemplate(t: TemplateRow, k: MatchKeys): number {
   if (t.product_kind && k.product_kind && t.product_kind === k.product_kind) {
     score += WEIGHTS.product_kind;
   }
-  if (
-    t.customer_segment &&
-    k.customer_segment &&
-    t.customer_segment === k.customer_segment
-  ) {
+  if (t.customer_segment && k.customer_segment && t.customer_segment === k.customer_segment) {
     score += WEIGHTS.customer_segment;
   }
 

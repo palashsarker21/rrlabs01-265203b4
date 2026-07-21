@@ -119,11 +119,7 @@ export const getRecoveryAnalytics = createServerFn({ method: "POST" })
         if (r.status === "recovered") {
           bucket.recovered += 1;
           bucket.recoveredCents += r.amount_cents ?? 0;
-        } else if (
-          r.status === "new" ||
-          r.status === "analyzing" ||
-          r.status === "recovering"
-        ) {
+        } else if (r.status === "new" || r.status === "analyzing" || r.status === "recovering") {
           bucket.atRiskCents += r.amount_cents ?? 0;
         }
       }
@@ -133,11 +129,7 @@ export const getRecoveryAnalytics = createServerFn({ method: "POST" })
         sumAttemptsForRecovered += r.attempts_count ?? 0;
       } else if (r.status === "abandoned") {
         totalAbandoned += 1;
-      } else if (
-        r.status === "new" ||
-        r.status === "analyzing" ||
-        r.status === "recovering"
-      ) {
+      } else if (r.status === "new" || r.status === "analyzing" || r.status === "recovering") {
         totalInFlight += 1;
         atRiskCents += r.amount_cents ?? 0;
       }
@@ -189,8 +181,7 @@ export const getRecoveryAnalytics = createServerFn({ method: "POST" })
       attemptsSent,
       attemptsDelivered,
       attemptsFailed,
-      avgAttemptsPerRecovery:
-        totalRecovered > 0 ? sumAttemptsForRecovered / totalRecovered : 0,
+      avgAttemptsPerRecovery: totalRecovered > 0 ? sumAttemptsForRecovered / totalRecovered : 0,
       timeSeries: dayKeys.map((k) => eventsByDay.get(k)!),
       attempts: dayKeys.map((k) => attemptsByDay.get(k)!),
       channels: Array.from(channels.values()).sort((a, b) => b.sent - a.sent),

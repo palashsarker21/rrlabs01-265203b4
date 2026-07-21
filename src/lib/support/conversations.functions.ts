@@ -111,7 +111,11 @@ export const startConversation = createServerFn({ method: "POST" })
       conversation_id: conv.id,
       actor_id: userId,
       action: "conversation.created",
-      payload: { category: data.category, priority: data.priority, auto_assigned: Boolean(assigneeId) },
+      payload: {
+        category: data.category,
+        priority: data.priority,
+        auto_assigned: Boolean(assigneeId),
+      },
     });
 
     return { id: conv.id, assignedTo: assigneeId ?? null };
@@ -226,7 +230,11 @@ export const getConversation = createServerFn({ method: "POST" })
   .inputValidator((raw) => z.object({ id: z.string().uuid() }).parse(raw))
   .handler(async ({ data, context }) => {
     const { supabase } = context;
-    const conv = await supabase.from("support_conversations").select("*").eq("id", data.id).single();
+    const conv = await supabase
+      .from("support_conversations")
+      .select("*")
+      .eq("id", data.id)
+      .single();
     if (conv.error) throw new Error(conv.error.message);
     const msgs = await supabase
       .from("support_messages")
@@ -277,7 +285,12 @@ export const assignConversation = createServerFn({ method: "POST" })
 export const closeConversation = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((raw) =>
-    z.object({ conversationId: z.string().uuid(), resolutionNote: z.string().max(2000).optional() }).parse(raw),
+    z
+      .object({
+        conversationId: z.string().uuid(),
+        resolutionNote: z.string().max(2000).optional(),
+      })
+      .parse(raw),
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;

@@ -40,14 +40,14 @@ function AiPlatformPage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">AI Platform</h1>
           <p className="text-sm text-muted-foreground">
-            Manage AI providers, keys, and health. Keys are encrypted at rest (AES-256-GCM) and only super admins can view or update them.
+            Manage AI providers, keys, and health. Keys are encrypted at rest (AES-256-GCM) and only
+            super admins can view or update them.
           </p>
         </div>
         <Button asChild variant="outline" size="sm">
           <a href="/admin/v2/ai/analytics">View analytics →</a>
         </Button>
       </div>
-
 
       {isLoading ? (
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -114,12 +114,18 @@ function ProviderCard({ provider }: { provider: AdminProviderRow }) {
           <div>
             <CardTitle className="flex items-center gap-2">
               {provider.name}
-              <Badge variant="outline" className="font-mono text-xs">{provider.slug}</Badge>
+              <Badge variant="outline" className="font-mono text-xs">
+                {provider.slug}
+              </Badge>
             </CardTitle>
-            <CardDescription className="mt-1 font-mono text-xs">{provider.base_url}</CardDescription>
+            <CardDescription className="mt-1 font-mono text-xs">
+              {provider.base_url}
+            </CardDescription>
           </div>
           <div className="flex items-center gap-2">
-            <Label htmlFor={`enabled-${provider.id}`} className="text-xs">Enabled</Label>
+            <Label htmlFor={`enabled-${provider.id}`} className="text-xs">
+              Enabled
+            </Label>
             <Switch
               id={`enabled-${provider.id}`}
               checked={provider.enabled}

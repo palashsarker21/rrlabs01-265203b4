@@ -67,14 +67,10 @@ export const saveIntegration = createServerFn({ method: "POST" })
 
     if (catRow) {
       if (!catRow.enabled) {
-        return fail(
-          "provider_disabled",
-          `${catRow.name} is not enabled on your workspace yet.`,
-          {
-            hint: "Contact support or upgrade your plan to enable this provider.",
-            docsUrl: (catRow as { docs_url?: string | null }).docs_url ?? undefined,
-          },
-        );
+        return fail("provider_disabled", `${catRow.name} is not enabled on your workspace yet.`, {
+          hint: "Contact support or upgrade your plan to enable this provider.",
+          docsUrl: (catRow as { docs_url?: string | null }).docs_url ?? undefined,
+        });
       }
       providerName = catRow.name;
       providerCode = catRow.code;
@@ -132,12 +128,7 @@ export const saveIntegration = createServerFn({ method: "POST" })
 
     // Validate required fields — return the exact field key so the UI can
     // highlight the offending input inline.
-    const missing = validateRequiredFields(
-      providerName,
-      requiredFields,
-      data.credentials,
-      docsUrl,
-    );
+    const missing = validateRequiredFields(providerName, requiredFields, data.credentials, docsUrl);
     if (missing) return missing;
 
     // Test against upstream provider.
@@ -513,13 +504,7 @@ export const setSetupStep = createServerFn({ method: "POST" })
  * targeted. Non-blocking: the retry itself proceeds regardless of audit
  * outcome (writeAuditLog swallows failures).
  */
-const ACTIVATION_STEP_ID = z.enum([
-  "permission",
-  "required",
-  "verified",
-  "webhooks",
-  "activate",
-]);
+const ACTIVATION_STEP_ID = z.enum(["permission", "required", "verified", "webhooks", "activate"]);
 
 export const logActivationRetry = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -546,9 +531,7 @@ export const logActivationRetry = createServerFn({ method: "POST" })
     // retry grant issued below matches exactly what the user confirmed.
     const canonical = ["permission", "required", "verified", "webhooks", "activate"] as const;
     const unique = Array.from(new Set(data.stepIds));
-    const sorted = unique
-      .slice()
-      .sort((a, b) => canonical.indexOf(a) - canonical.indexOf(b));
+    const sorted = unique.slice().sort((a, b) => canonical.indexOf(a) - canonical.indexOf(b));
 
     if (data.scope === "all" && sorted.length !== canonical.length) {
       throw new Error("Retry scope 'all' must include every activation step.");
@@ -557,13 +540,8 @@ export const logActivationRetry = createServerFn({ method: "POST" })
       if (!data.fromStep) throw new Error("fromStep is required for scope 'from_step'.");
       const startIdx = canonical.indexOf(data.fromStep);
       const expected = canonical.slice(startIdx);
-      if (
-        sorted.length !== expected.length ||
-        sorted.some((s, i) => s !== expected[i])
-      ) {
-        throw new Error(
-          "Retry step IDs do not match the confirmed fromStep sequence.",
-        );
+      if (sorted.length !== expected.length || sorted.some((s, i) => s !== expected[i])) {
+        throw new Error("Retry step IDs do not match the confirmed fromStep sequence.");
       }
     }
     if (data.scope === "failed_only") {

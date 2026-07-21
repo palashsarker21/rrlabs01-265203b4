@@ -111,7 +111,6 @@ export function verifyUnsubscribeToken(token: string): { email: string } | null 
  * DB helpers
  * ------------------------------------------------------------------ */
 
-
 export async function loadPreferencesFor(email: string): Promise<PreferenceMap> {
   const prefs = defaultPreferences();
   const { data } = await supabaseAdmin

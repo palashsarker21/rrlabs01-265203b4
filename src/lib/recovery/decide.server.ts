@@ -53,20 +53,13 @@ export interface Decision {
   suggest_update_payment_method: boolean;
 }
 
-function nextChannel(
-  step: number,
-  preferred: string[],
-  available: string[],
-): string | null {
+function nextChannel(step: number, preferred: string[], available: string[]): string | null {
   const ordered = preferred.filter((c) => available.includes(c));
   if (ordered.length === 0) return null;
   return ordered[step % ordered.length];
 }
 
-function inQuietHours(
-  d: Date,
-  q: AutomationSettings["quiet_hours"],
-): boolean {
+function inQuietHours(d: Date, q: AutomationSettings["quiet_hours"]): boolean {
   if (!q) return false;
   const h = d.getUTCHours();
   if (q.start === q.end) return false;
@@ -117,18 +110,13 @@ export function decideRecovery(input: DecisionInput): Decision {
     };
   }
 
-  const channel = nextChannel(
-    step,
-    input.automation.preferred_channels,
-    input.channels_available,
-  );
+  const channel = nextChannel(step, input.automation.preferred_channels, input.channels_available);
 
   const minutes = schedule[Math.min(step, schedule.length - 1)] ?? 60;
   const raw = new Date(now.getTime() + minutes * 60_000);
   const send_at = shiftPastQuietHours(raw, input.automation.quiet_hours);
 
-  const tone: Decision["tone"] =
-    step === 0 ? "warm" : step === 1 ? "direct" : "urgent";
+  const tone: Decision["tone"] = step === 0 ? "warm" : step === 1 ? "direct" : "urgent";
 
   return {
     should_send: true,

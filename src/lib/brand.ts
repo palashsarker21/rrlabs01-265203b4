@@ -66,7 +66,6 @@ export const CONTACT_PHONES: readonly PhoneEntry[] = [
   },
 ];
 
-
 export const SOCIAL = {
   facebook: "https://www.facebook.com/rrlabsonline",
   linkedin: "https://www.linkedin.com/company/rrlabsonline",
@@ -212,9 +211,7 @@ export const ENABLED_SOCIAL_PROFILES: readonly SocialProfile[] = (() => {
 })();
 
 /** URLs of every publicly listed, enabled profile — used in JSON-LD `sameAs`. */
-export const SOCIAL_SAME_AS: readonly string[] = ENABLED_SOCIAL_PROFILES.map(
-  (p) => p.href,
-);
+export const SOCIAL_SAME_AS: readonly string[] = ENABLED_SOCIAL_PROFILES.map((p) => p.href);
 
 export const LOGO = {
   full: "/brand/logo.png",

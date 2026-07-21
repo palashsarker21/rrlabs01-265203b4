@@ -24,25 +24,16 @@ export function SectionCard({
   const hasHeader = Boolean(title || description || actions);
   return (
     <section
-      className={cn(
-        "rounded-xl border border-border bg-card shadow-elevated",
-        className,
-      )}
+      className={cn("rounded-xl border border-border bg-card shadow-elevated", className)}
       {...props}
     >
       {hasHeader ? (
         <header className="flex flex-wrap items-start justify-between gap-3 border-b border-border px-5 py-4">
           <div className="min-w-0 space-y-1">
-            {title ? (
-              <h2 className="text-h3 text-foreground truncate">{title}</h2>
-            ) : null}
-            {description ? (
-              <p className="text-sm text-muted-foreground">{description}</p>
-            ) : null}
+            {title ? <h2 className="text-h3 text-foreground truncate">{title}</h2> : null}
+            {description ? <p className="text-sm text-muted-foreground">{description}</p> : null}
           </div>
-          {actions ? (
-            <div className="flex shrink-0 items-center gap-2">{actions}</div>
-          ) : null}
+          {actions ? <div className="flex shrink-0 items-center gap-2">{actions}</div> : null}
         </header>
       ) : null}
       {toolbar ? (

@@ -15,7 +15,12 @@ interface ShareButtonsProps {
  * Accessible share bar for public content pages. Emits `share_click` /
  * `share_copy_link` analytics events on every action.
  */
-export function ShareButtons({ url, title, component = "share-bar", className }: ShareButtonsProps) {
+export function ShareButtons({
+  url,
+  title,
+  component = "share-bar",
+  className,
+}: ShareButtonsProps) {
   const encoded = encodeURIComponent(url);
   const encTitle = encodeURIComponent(title);
 

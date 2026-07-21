@@ -99,7 +99,10 @@ function FaqPage() {
         </h1>
         <p className="mt-3 text-muted-foreground">
           Everything you need before getting started. Still have questions? Email{" "}
-          <a href="mailto:support@rrlabs.online" className="text-foreground underline underline-offset-4">
+          <a
+            href="mailto:support@rrlabs.online"
+            className="text-foreground underline underline-offset-4"
+          >
             support@rrlabs.online
           </a>
           .

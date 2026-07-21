@@ -24,7 +24,6 @@ import {
   XCircle,
 } from "lucide-react";
 
-
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -119,7 +118,6 @@ function validateSetupField(f: SetupField, rawValue: string): string | null {
 function IntegrationCenter() {
   const navigate = useNavigate();
   const qc = useQueryClient();
-  
 
   const fetchCatalog = useServerFn(listProviderCatalog);
   const fetchList = useServerFn(listWorkspaceIntegrations);
@@ -209,7 +207,6 @@ function IntegrationCenter() {
       supabase.removeChannel(channel);
     };
   }, [workspace?.id, qc]);
-
 
   const { data: catalog = [] } = useQuery({
     queryKey: ["provider-catalog"],
@@ -362,7 +359,6 @@ function IntegrationCenter() {
               </span>
             )}
           </div>
-
         </div>
 
         <Link
@@ -370,9 +366,12 @@ function IntegrationCenter() {
           className="mt-6 flex items-center justify-between gap-4 rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-4 text-sm transition hover:bg-emerald-500/10"
         >
           <div>
-            <div className="font-semibold text-foreground">WhatsApp Cloud API — guided onboarding</div>
+            <div className="font-semibold text-foreground">
+              WhatsApp Cloud API — guided onboarding
+            </div>
             <p className="mt-0.5 text-xs text-muted-foreground">
-              Generate the Callback URL, Verify Token, and Webhook Secret Meta needs before you can save WhatsApp credentials here.
+              Generate the Callback URL, Verify Token, and Webhook Secret Meta needs before you can
+              save WhatsApp credentials here.
             </p>
           </div>
           <span className="rounded-full border border-emerald-500/50 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-500">
@@ -395,9 +394,7 @@ function IntegrationCenter() {
             const providers = providersByKind.get(step.kind) ?? [];
             const limit = limitByKind.get(step.kind);
             const connectedInKind = integrations.filter(
-              (i) =>
-                i.status === "connected" &&
-                providers.some((p) => p.code === i.provider),
+              (i) => i.status === "connected" && providers.some((p) => p.code === i.provider),
             ).length;
             const overLimit = limit?.max != null && limit.used >= limit.max;
             return (
@@ -507,9 +504,7 @@ function ModuleSection({
           <span
             className={cn(
               "rounded-full px-2.5 py-1 text-[10px] font-medium uppercase tracking-wider",
-              ready
-                ? "bg-emerald-500/15 text-emerald-400"
-                : "bg-muted text-muted-foreground",
+              ready ? "bg-emerald-500/15 text-emerald-400" : "bg-muted text-muted-foreground",
             )}
           >
             {ready ? `${connected} connected` : "Not connected"}
@@ -571,9 +566,7 @@ function ActivationCenter({
       label: "Test passed on every connection",
       ok:
         integrations.filter((i) => i.status === "connected").length > 0 &&
-        integrations
-          .filter((i) => i.status === "connected")
-          .every((i) => i.last_test_ok === true),
+        integrations.filter((i) => i.status === "connected").every((i) => i.last_test_ok === true),
     },
     { label: "No recent webhook failures", ok: failing.length === 0 },
   ];
@@ -586,9 +579,7 @@ function ActivationCenter({
     <div
       className={cn(
         "rounded-2xl border p-6 shadow-sm",
-        requiredOk
-          ? "border-emerald-500/40 bg-emerald-500/5"
-          : "border-primary/30 bg-primary/5",
+        requiredOk ? "border-emerald-500/40 bg-emerald-500/5" : "border-primary/30 bg-primary/5",
       )}
     >
       <div className="flex flex-wrap items-start justify-between gap-6">
@@ -607,8 +598,8 @@ function ActivationCenter({
                 : "Complete the minimum requirements to activate"}
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            The engine cannot send messages or process failed payments until every required
-            check below is green.
+            The engine cannot send messages or process failed payments until every required check
+            below is green.
           </p>
 
           <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-background/60">
@@ -637,11 +628,7 @@ function ActivationCenter({
                     )}
                   />
                 )}
-                <span
-                  className={cn(
-                    c.ok ? "text-foreground" : "text-muted-foreground",
-                  )}
-                >
+                <span className={cn(c.ok ? "text-foreground" : "text-muted-foreground")}>
                   {c.label}
                 </span>
                 {c.optional && (
@@ -681,9 +668,6 @@ function ActivationCenter({
     </div>
   );
 }
-
-
-
 
 function ProviderCard({
   provider,
@@ -848,7 +832,6 @@ function ProviderCard({
           <div className="flex items-center gap-2">
             <h3 className="truncate text-base font-semibold text-foreground">{provider.name}</h3>
             {disabled && (
-
               <span className="rounded-full border border-border/60 px-2 py-0.5 text-[10px] uppercase tracking-wider text-muted-foreground">
                 Disabled
               </span>
@@ -965,8 +948,7 @@ function ProviderCard({
               )}
               {setupFields.map((f) => {
                 const serverFieldError = saveError?.field === f.key;
-                const localError =
-                  touched[f.key] && fieldErrors[f.key] ? fieldErrors[f.key] : null;
+                const localError = touched[f.key] && fieldErrors[f.key] ? fieldErrors[f.key] : null;
                 const errorMessage = localError ?? (serverFieldError ? saveError!.message : null);
                 const fieldHasError = errorMessage !== null;
                 const onChangeField = (val: string) => {
@@ -987,7 +969,9 @@ function ProviderCard({
                         onChange={(e) => onChangeField(e.target.value)}
                         onBlur={onBlurField}
                         aria-invalid={fieldHasError || undefined}
-                        aria-describedby={fieldHasError ? `${provider.code}-${f.key}-err` : undefined}
+                        aria-describedby={
+                          fieldHasError ? `${provider.code}-${f.key}-err` : undefined
+                        }
                         className={cn(
                           "mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm",
                           fieldHasError
@@ -1022,7 +1006,9 @@ function ProviderCard({
                         placeholder={f.placeholder}
                         autoComplete="off"
                         aria-invalid={fieldHasError || undefined}
-                        aria-describedby={fieldHasError ? `${provider.code}-${f.key}-err` : undefined}
+                        aria-describedby={
+                          fieldHasError ? `${provider.code}-${f.key}-err` : undefined
+                        }
                         className={cn(
                           "mt-1",
                           fieldHasError &&
@@ -1047,9 +1033,7 @@ function ProviderCard({
                   className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-xs"
                 >
                   <p className="font-medium text-destructive">{saveError.message}</p>
-                  {saveError.hint && (
-                    <p className="mt-1 text-muted-foreground">{saveError.hint}</p>
-                  )}
+                  {saveError.hint && <p className="mt-1 text-muted-foreground">{saveError.hint}</p>}
                   {saveError.docsUrl && (
                     <a
                       href={saveError.docsUrl}
@@ -1096,7 +1080,6 @@ function ProviderCard({
                   )}
                 </span>
               </div>
-
             </form>
           )}
         </div>
@@ -1532,9 +1515,7 @@ function RealtimeStatusBadge({
   const syncedIso = lastSyncedAt ? lastSyncedAt.toISOString() : null;
   const syncedAbs = lastSyncedAt ? lastSyncedAt.toLocaleString() : null;
   const syncedRel = syncedIso ? timeAgo(syncedIso) : null;
-  const tooltip = syncedAbs
-    ? `${config.label} · Last sync ${syncedAbs}`
-    : config.label;
+  const tooltip = syncedAbs ? `${config.label} · Last sync ${syncedAbs}` : config.label;
 
   return (
     <span
@@ -1548,16 +1529,10 @@ function RealtimeStatusBadge({
     >
       <span className={cn("h-1.5 w-1.5 rounded-full", config.dot, config.pulse)} />
       {config.label}
-      {syncedRel && (
-        <span className="ml-1 opacity-70">· synced {syncedRel}</span>
-      )}
+      {syncedRel && <span className="ml-1 opacity-70">· synced {syncedRel}</span>}
     </span>
   );
 }
-
-
-
-
 
 function verifCls(status: string | null | undefined) {
   if (status === "verified") return "text-emerald-500";

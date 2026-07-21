@@ -24,7 +24,9 @@ export function WeeklyAnalytics({
         <br />
         Recovered carts: <strong>{recoveredCount}</strong> of {eventsCount} events
       </Text>
-      <Button href={dashboardUrl} style={styles.button}>Open dashboard</Button>
+      <Button href={dashboardUrl} style={styles.button}>
+        Open dashboard
+      </Button>
     </EmailShell>
   );
 }

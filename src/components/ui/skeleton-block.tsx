@@ -14,10 +14,7 @@ function Base({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
 export function SkeletonKpi({ className }: { className?: string }) {
   return (
     <div
-      className={cn(
-        "rounded-xl border border-border bg-card p-5 shadow-elevated",
-        className,
-      )}
+      className={cn("rounded-xl border border-border bg-card p-5 shadow-elevated", className)}
       aria-hidden="true"
     >
       <Base className="h-3 w-20" />
@@ -49,10 +46,7 @@ export function SkeletonRow({ className }: { className?: string }) {
 export function SkeletonChart({ className }: { className?: string }) {
   return (
     <div
-      className={cn(
-        "rounded-xl border border-border bg-card p-5 shadow-elevated",
-        className,
-      )}
+      className={cn("rounded-xl border border-border bg-card p-5 shadow-elevated", className)}
       aria-hidden="true"
     >
       <Base className="h-4 w-32" />

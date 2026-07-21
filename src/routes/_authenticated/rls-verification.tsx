@@ -27,14 +27,16 @@ const initialTests: BrowserTest[] = [
   {
     id: "read_own_workspaces",
     name: "Baseline: authenticated user can read own workspaces",
-    description: "Fetches workspaces via the browser Supabase client — expects at least one row when signed in.",
+    description:
+      "Fetches workspaces via the browser Supabase client — expects at least one row when signed in.",
     status: "pending",
     logs: [],
   },
   {
     id: "read_foreign_workspace",
     name: "Cross-tenant SELECT is blocked",
-    description: "Attempts to fetch a workspace by a random UUID that the user does not belong to — expects 0 rows.",
+    description:
+      "Attempts to fetch a workspace by a random UUID that the user does not belong to — expects 0 rows.",
     status: "pending",
     logs: [],
   },
@@ -55,7 +57,8 @@ const initialTests: BrowserTest[] = [
   {
     id: "insert_foreign_integration",
     name: "Cross-tenant INSERT is blocked",
-    description: "Tries to insert an integration row referencing a random workspace — expects an RLS error.",
+    description:
+      "Tries to insert an integration row referencing a random workspace — expects an RLS error.",
     status: "pending",
     logs: [],
   },
@@ -95,7 +98,9 @@ function RlsVerificationPage() {
   function log(id: string, line: string) {
     setTests((prev) =>
       prev.map((t) =>
-        t.id === id ? { ...t, logs: [...t.logs, `[${new Date().toLocaleTimeString()}] ${line}`] } : t,
+        t.id === id
+          ? { ...t, logs: [...t.logs, `[${new Date().toLocaleTimeString()}] ${line}`] }
+          : t,
       ),
     );
   }
@@ -112,14 +117,20 @@ function RlsVerificationPage() {
           if (error) throw error;
           log(t.id, `Received ${data?.length ?? 0} workspace row(s).`);
           if ((data?.length ?? 0) < 1) {
-            patch(t.id, { status: "failed", detail: "Expected at least one workspace visible to this user." });
+            patch(t.id, {
+              status: "failed",
+              detail: "Expected at least one workspace visible to this user.",
+            });
           } else {
             patch(t.id, { status: "passed", detail: `Visible workspaces: ${data!.length}` });
           }
           return;
         }
         case "read_foreign_workspace": {
-          const { data, error } = await supabase.from("workspaces").select("id").eq("id", fakeWorkspace);
+          const { data, error } = await supabase
+            .from("workspaces")
+            .select("id")
+            .eq("id", fakeWorkspace);
           if (error) throw error;
           log(t.id, `rows=${data?.length ?? 0}`);
           patch(t.id, {
@@ -196,7 +207,12 @@ function RlsVerificationPage() {
             .channel(channelName)
             .on(
               "postgres_changes",
-              { event: "*", schema: "public", table: "workspaces", filter: `id=eq.${fakeWorkspace}` },
+              {
+                event: "*",
+                schema: "public",
+                table: "workspaces",
+                filter: `id=eq.${fakeWorkspace}`,
+              },
               (payload) => {
                 events += 1;
                 log(t.id, `unexpected event: ${payload.eventType}`);
@@ -294,12 +310,17 @@ function RlsVerificationPage() {
               End-to-end RLS verification
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              Runs cross-tenant read, write, update, and realtime probes from this browser session, plus the
-              server-side synthetic tenant suite. Zero cross-tenant leakage should be reported.
+              Runs cross-tenant read, write, update, and realtime probes from this browser session,
+              plus the server-side synthetic tenant suite. Zero cross-tenant leakage should be
+              reported.
             </p>
           </div>
           <Button onClick={runAll} disabled={running}>
-            {running ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Play className="mr-2 h-4 w-4" />}
+            {running ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Play className="mr-2 h-4 w-4" />
+            )}
             {running ? "Running…" : "Run all tests"}
           </Button>
         </div>
@@ -366,11 +387,7 @@ function SummaryCard({
   tone?: "ok" | "bad" | "muted";
 }) {
   const color =
-    tone === "ok"
-      ? "text-emerald-500"
-      : tone === "bad"
-        ? "text-red-500"
-        : "text-foreground";
+    tone === "ok" ? "text-emerald-500" : tone === "bad" ? "text-red-500" : "text-foreground";
   return (
     <div className="rounded-2xl border border-border/60 bg-card/50 p-4">
       <div className="text-xs uppercase tracking-wide text-muted-foreground">{label}</div>
@@ -438,5 +455,7 @@ function StatusBadge({ status }: { status: Status }) {
     failed: { label: "failed", cls: "bg-red-500/15 text-red-600" },
   };
   const s = map[status];
-  return <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${s.cls}`}>{s.label}</span>;
+  return (
+    <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${s.cls}`}>{s.label}</span>
+  );
 }

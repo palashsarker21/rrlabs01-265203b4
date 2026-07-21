@@ -127,10 +127,7 @@ function ContactSalesPage() {
             >
               <Mail className="h-4 w-4" /> {CONTACT.supportEmail}
             </a>
-            <PhoneList
-              className="mt-1"
-              linkClassName="text-neutral-800 hover:text-emerald-700"
-            />
+            <PhoneList className="mt-1" linkClassName="text-neutral-800 hover:text-emerald-700" />
           </div>
         </div>
 

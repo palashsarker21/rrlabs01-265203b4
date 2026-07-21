@@ -212,18 +212,10 @@ function AdminMarketplacePage() {
                     </td>
                     <td className="p-3">{t.usage_count}</td>
                     <td className="p-3 text-right space-x-1">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => setEditing(t)}
-                      >
+                      <Button size="sm" variant="ghost" onClick={() => setEditing(t)}>
                         <Edit className="h-4 w-4" />
                       </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => del(t.id)}
-                      >
+                      <Button size="sm" variant="ghost" onClick={() => del(t.id)}>
                         <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>
                     </td>
@@ -259,16 +251,10 @@ function EditorForm({
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-3">
         <Field label="Slug">
-          <Input
-            value={value.slug ?? ""}
-            onChange={(e) => set("slug", e.target.value)}
-          />
+          <Input value={value.slug ?? ""} onChange={(e) => set("slug", e.target.value)} />
         </Field>
         <Field label="Name">
-          <Input
-            value={value.name ?? ""}
-            onChange={(e) => set("name", e.target.value)}
-          />
+          <Input value={value.name ?? ""} onChange={(e) => set("name", e.target.value)} />
         </Field>
       </div>
       <Field label="Description">
@@ -332,10 +318,7 @@ function EditorForm({
           />
         </Field>
         <Field label="Language">
-          <Input
-            value={value.language ?? "en"}
-            onChange={(e) => set("language", e.target.value)}
-          />
+          <Input value={value.language ?? "en"} onChange={(e) => set("language", e.target.value)} />
         </Field>
         <Field label="Failure class">
           <Input
@@ -347,10 +330,7 @@ function EditorForm({
       </div>
       {value.channel !== "whatsapp" && (
         <Field label="Subject">
-          <Input
-            value={value.subject ?? ""}
-            onChange={(e) => set("subject", e.target.value)}
-          />
+          <Input value={value.subject ?? ""} onChange={(e) => set("subject", e.target.value)} />
         </Field>
       )}
       <Field label="Body">

@@ -77,9 +77,9 @@ function SecuritySettings() {
             <CardTitle className="text-base">Log out everywhere</CardTitle>
           </div>
           <CardDescription>
-            Revoke every active session for your account on all devices and browsers.
-            Anyone signed in as you — including this device — will be signed out
-            immediately and required to sign in again.
+            Revoke every active session for your account on all devices and browsers. Anyone signed
+            in as you — including this device — will be signed out immediately and required to sign
+            in again.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -98,9 +98,9 @@ function SecuritySettings() {
               <AlertDialogHeader>
                 <AlertDialogTitle>Sign out of all sessions?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  This revokes every refresh token issued to your account. You will need
-                  to sign in again on this device and every other device where you were
-                  signed in. This action cannot be undone.
+                  This revokes every refresh token issued to your account. You will need to sign in
+                  again on this device and every other device where you were signed in. This action
+                  cannot be undone.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>

@@ -33,9 +33,7 @@ export function evaluatePassword(pw: string): PasswordEvaluation {
   for (const r of PASSWORD_RULES) if (r.test(pw)) passed.add(r.id);
   const score = passed.size as PasswordEvaluation["score"];
   const strong = score === PASSWORD_RULES.length;
-  const label = (
-    ["Too weak", "Weak", "Fair", "Good", "Strong", "Excellent"] as const
-  )[score];
+  const label = (["Too weak", "Weak", "Fair", "Good", "Strong", "Excellent"] as const)[score];
   return { score, passed, strong, label };
 }
 

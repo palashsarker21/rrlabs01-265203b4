@@ -7,11 +7,11 @@ All three must show RRLabs branding — otherwise Android falls back to "base.ap
 
 Canonical source. Read by Chrome, PWABuilder, and Bubblewrap.
 
-| Field        | Value                     |
-| ------------ | ------------------------- |
-| `id`         | `/`                       |
-| `name`       | `Revenue Recovery Labs`   |
-| `short_name` | `RRLabs`                  |
+| Field        | Value                   |
+| ------------ | ----------------------- |
+| `id`         | `/`                     |
+| `name`       | `Revenue Recovery Labs` |
+| `short_name` | `RRLabs`                |
 
 - Android install dialog → `name` → **Revenue Recovery Labs**
 - Home Screen / App Drawer → `short_name` → **RRLabs**
@@ -25,11 +25,11 @@ npx @bubblewrap/cli init --manifest ./twa-manifest.json
 npx @bubblewrap/cli build
 ```
 
-| Field          | Value                     | Surfaces as                     |
-| -------------- | ------------------------- | ------------------------------- |
-| `name`         | `Revenue Recovery Labs`   | Settings → Apps, Play Store     |
-| `launcherName` | `RRLabs`                  | Home Screen, App Drawer         |
-| `packageId`    | `online.rrlabs.twa`       | Android application ID          |
+| Field          | Value                   | Surfaces as                 |
+| -------------- | ----------------------- | --------------------------- |
+| `name`         | `Revenue Recovery Labs` | Settings → Apps, Play Store |
+| `launcherName` | `RRLabs`                | Home Screen, App Drawer     |
+| `packageId`    | `online.rrlabs.twa`     | Android application ID      |
 
 `launcherName` must be ≤ 12 chars to avoid launcher truncation — `RRLabs` fits.
 

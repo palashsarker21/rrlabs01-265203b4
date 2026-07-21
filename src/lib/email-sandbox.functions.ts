@@ -88,7 +88,12 @@ export const getSandboxStatusFn = createServerFn({ method: "POST" })
     return {
       recipient: callerEmail(context),
       config: cfg.ok
-        ? { ok: true as const, domain, fromEmail: cfg.config.fromEmail, fromName: cfg.config.fromName }
+        ? {
+            ok: true as const,
+            domain,
+            fromEmail: cfg.config.fromEmail,
+            fromName: cfg.config.fromName,
+          }
         : { ok: false as const, missing: cfg.missing, reason: cfg.reason },
       dns,
       usage,
@@ -175,7 +180,9 @@ export const sendSandboxTestFn = createServerFn({ method: "POST" })
             subject: row.subject ?? undefined,
           };
         }
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
     }
 
     const nextUsage = await readUsage(context.userId);

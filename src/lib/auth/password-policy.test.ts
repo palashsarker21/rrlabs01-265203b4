@@ -1,9 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  evaluatePassword,
-  generateStrongPassword,
-  safeRedirectPath,
-} from "./password-policy";
+import { evaluatePassword, generateStrongPassword, safeRedirectPath } from "./password-policy";
 
 describe("evaluatePassword", () => {
   it("rates empty as too weak", () => {

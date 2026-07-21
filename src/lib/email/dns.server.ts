@@ -42,7 +42,9 @@ export async function verifyEmailDns(domain: string, dkimSelector = "resend"): P
       host: domain,
       found: Boolean(spf),
       value: spf,
-      valid: Boolean(spf && spf.includes("include:") && (spf.includes("~all") || spf.includes("-all"))),
+      valid: Boolean(
+        spf && spf.includes("include:") && (spf.includes("~all") || spf.includes("-all")),
+      ),
       note: spf ? undefined : "No v=spf1 TXT record found on the sending domain.",
     },
     {
@@ -51,7 +53,9 @@ export async function verifyEmailDns(domain: string, dkimSelector = "resend"): P
       found: Boolean(dkim),
       value: dkim,
       valid: Boolean(dkim && dkim.includes("p=")),
-      note: dkim ? undefined : `No DKIM record at ${dkimSelector}._domainkey.${domain} — publish the key Resend provides.`,
+      note: dkim
+        ? undefined
+        : `No DKIM record at ${dkimSelector}._domainkey.${domain} — publish the key Resend provides.`,
     },
     {
       record: "DMARC",

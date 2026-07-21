@@ -16,7 +16,9 @@ export function PaymentSuccessful({ amountFormatted, invoiceUrl, period }: Payme
         {period ? ` for ${period}` : ""}. Your subscription is fully paid up.
       </Text>
       {invoiceUrl ? (
-        <Button href={invoiceUrl} style={styles.button}>Download invoice</Button>
+        <Button href={invoiceUrl} style={styles.button}>
+          Download invoice
+        </Button>
       ) : null}
     </EmailShell>
   );

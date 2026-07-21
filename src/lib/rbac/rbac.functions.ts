@@ -37,7 +37,9 @@ export const listMyPermissions = createServerFn({ method: "POST" })
     });
     if (error) throw new Response(error.message, { status: 500 });
     const keys = (rows ?? []).map((r: unknown) =>
-      typeof r === "string" ? r : (r as { workspace_permissions_of: string }).workspace_permissions_of,
+      typeof r === "string"
+        ? r
+        : (r as { workspace_permissions_of: string }).workspace_permissions_of,
     );
     return { permissions: keys as string[] };
   });
@@ -120,17 +122,15 @@ export const setMemberPermissionOverride = createServerFn({ method: "POST" })
       return { ok: true, cleared: true };
     }
 
-    const { error } = await supabase
-      .from("workspace_member_permissions")
-      .upsert(
-        {
-          workspace_id: data.workspaceId,
-          user_id: data.targetUserId,
-          permission_key: data.permission,
-          granted: data.granted,
-        },
-        { onConflict: "workspace_id,user_id,permission_key" },
-      );
+    const { error } = await supabase.from("workspace_member_permissions").upsert(
+      {
+        workspace_id: data.workspaceId,
+        user_id: data.targetUserId,
+        permission_key: data.permission,
+        granted: data.granted,
+      },
+      { onConflict: "workspace_id,user_id,permission_key" },
+    );
     if (error) throw new Response(error.message, { status: 500 });
     return { ok: true, cleared: false };
   });

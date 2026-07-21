@@ -6,14 +6,10 @@ describe("classifyFailure", () => {
     expect(classifyFailure({ decline_code: "expired_card" })).toBe("expired_card");
   });
   it("maps insufficient_funds via failure_code", () => {
-    expect(classifyFailure({ failure_code: "insufficient_funds" })).toBe(
-      "insufficient_funds",
-    );
+    expect(classifyFailure({ failure_code: "insufficient_funds" })).toBe("insufficient_funds");
   });
   it("maps 3DS auth requirement via decline_code", () => {
-    expect(classifyFailure({ decline_code: "authentication_required" })).toBe(
-      "auth_required",
-    );
+    expect(classifyFailure({ decline_code: "authentication_required" })).toBe("auth_required");
   });
   it("maps fraud via decline_code", () => {
     expect(classifyFailure({ decline_code: "fraudulent" })).toBe("fraud_suspected");
@@ -26,14 +22,12 @@ describe("classifyFailure", () => {
         failure_message: "Your card has expired.",
       }),
     ).toBe("expired_card");
-    expect(
-      classifyFailure({ failure_message: "3DS authentication required" }),
-    ).toBe("auth_required");
+    expect(classifyFailure({ failure_message: "3DS authentication required" })).toBe(
+      "auth_required",
+    );
   });
   it("returns unknown when nothing matches", () => {
-    expect(classifyFailure({ failure_message: "purple monkey dishwasher" })).toBe(
-      "unknown",
-    );
+    expect(classifyFailure({ failure_message: "purple monkey dishwasher" })).toBe("unknown");
     expect(classifyFailure({})).toBe("unknown");
   });
 });

@@ -47,9 +47,7 @@ self.addEventListener("fetch", (event) => {
 
   // NetworkFirst for HTML navigations — never serve stale app shell.
   if (req.mode === "navigate") {
-    event.respondWith(
-      fetch(req).catch(() => caches.match(req).then((r) => r || Response.error())),
-    );
+    event.respondWith(fetch(req).catch(() => caches.match(req).then((r) => r || Response.error())));
     return;
   }
 

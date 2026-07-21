@@ -17,10 +17,7 @@ export const Route = createFileRoute("/signed-out")({
   validateSearch: (s) => searchSchema.parse(s),
   component: SignedOut,
   head: () => ({
-    meta: [
-      { title: "Signed out — RRLabs" },
-      { name: "robots", content: "noindex, nofollow" },
-    ],
+    meta: [{ title: "Signed out — RRLabs" }, { name: "robots", content: "noindex, nofollow" }],
   }),
 });
 
@@ -56,11 +53,7 @@ function SignedOut() {
             className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
             aria-hidden
           >
-            {isGlobal ? (
-              <ShieldCheck className="h-6 w-6" />
-            ) : (
-              <CheckCircle2 className="h-6 w-6" />
-            )}
+            {isGlobal ? <ShieldCheck className="h-6 w-6" /> : <CheckCircle2 className="h-6 w-6" />}
           </div>
           <h1 className="text-xl font-semibold text-foreground">
             {isGlobal ? "You’ve been signed out everywhere" : "You’ve been signed out"}

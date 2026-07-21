@@ -121,11 +121,7 @@ function CustomerDetail() {
                 />
                 <SubMeta
                   label="Card"
-                  value={
-                    s.card_brand
-                      ? `${s.card_brand} •••• ${s.card_last_four ?? "----"}`
-                      : "—"
-                  }
+                  value={s.card_brand ? `${s.card_brand} •••• ${s.card_last_four ?? "----"}` : "—"}
                 />
                 <SubMeta
                   label="Current period"
@@ -185,14 +181,10 @@ function CustomerDetail() {
                     </td>
                     <td className="py-1.5 text-xs text-muted-foreground">
                       {e.next_action ?? "—"}
-                      {e.next_run_at
-                        ? ` · ${new Date(e.next_run_at).toLocaleString()}`
-                        : ""}
+                      {e.next_run_at ? ` · ${new Date(e.next_run_at).toLocaleString()}` : ""}
                     </td>
                     <td className="py-1.5 text-right text-xs text-muted-foreground">
-                      {new Date(
-                        e.recovered_at ?? e.created_at,
-                      ).toLocaleString()}
+                      {new Date(e.recovered_at ?? e.created_at).toLocaleString()}
                     </td>
                   </tr>
                 ))}
@@ -331,7 +323,6 @@ function SubMeta({ label, value }: { label: string; value: string }) {
     </div>
   );
 }
-
 
 function Meta({ label, value }: { label: string; value: string }) {
   return (

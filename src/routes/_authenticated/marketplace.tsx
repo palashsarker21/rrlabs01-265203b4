@@ -28,8 +28,7 @@ export const Route = createFileRoute("/_authenticated/marketplace")({
       { title: "Recovery Template Marketplace · RRLabs" },
       {
         name: "description",
-        content:
-          "Curated recovery templates and flows by industry, region, language, and channel.",
+        content: "Curated recovery templates and flows by industry, region, language, and channel.",
       },
     ],
   }),
@@ -96,9 +95,8 @@ function MarketplacePage() {
             Recovery flows, curated by industry & region
           </h1>
           <p className="text-muted-foreground mt-1 max-w-2xl">
-            Browse RRLabs-curated single-message templates and multi-step flows.
-            Install into your workspace with one click — customize before or
-            after.
+            Browse RRLabs-curated single-message templates and multi-step flows. Install into your
+            workspace with one click — customize before or after.
           </p>
         </div>
         <Button asChild variant="outline">
@@ -251,9 +249,7 @@ function TemplateCard({ t }: { t: TemplateItem }) {
     <Card className="card-hover">
       <CardHeader>
         <CardTitle className="text-base">{t.name}</CardTitle>
-        <p className="text-sm text-muted-foreground line-clamp-2">
-          {t.description ?? " "}
-        </p>
+        <p className="text-sm text-muted-foreground line-clamp-2">{t.description ?? " "}</p>
       </CardHeader>
       <CardContent className="space-y-3">
         <div className="flex flex-wrap gap-1.5">
@@ -261,9 +257,7 @@ function TemplateCard({ t }: { t: TemplateItem }) {
           {t.region && <Badge variant="secondary">{t.region}</Badge>}
           <Badge variant="secondary">{t.language}</Badge>
           <Badge variant="outline">{t.channel}</Badge>
-          {t.failure_classification && (
-            <Badge variant="outline">{t.failure_classification}</Badge>
-          )}
+          {t.failure_classification && <Badge variant="outline">{t.failure_classification}</Badge>}
           {t.tone && <Badge variant="outline">{t.tone}</Badge>}
         </div>
         <div className="flex items-center justify-between text-xs text-muted-foreground">
@@ -271,10 +265,7 @@ function TemplateCard({ t }: { t: TemplateItem }) {
           <span>{t.usage_count} installs</span>
         </div>
         <Button asChild size="sm" className="w-full">
-          <Link
-            to="/marketplace/templates/$id"
-            params={{ id: t.id }}
-          >
+          <Link to="/marketplace/templates/$id" params={{ id: t.id }}>
             Preview & install
           </Link>
         </Button>
@@ -303,9 +294,7 @@ function FlowCard({ f }: { f: FlowItem }) {
     <Card className="card-hover">
       <CardHeader>
         <CardTitle className="text-base">{f.name}</CardTitle>
-        <p className="text-sm text-muted-foreground line-clamp-2">
-          {f.description ?? " "}
-        </p>
+        <p className="text-sm text-muted-foreground line-clamp-2">{f.description ?? " "}</p>
       </CardHeader>
       <CardContent className="space-y-3">
         <div className="flex flex-wrap gap-1.5">
@@ -313,13 +302,9 @@ function FlowCard({ f }: { f: FlowItem }) {
           {f.region && <Badge variant="secondary">{f.region}</Badge>}
           <Badge variant="secondary">{f.language}</Badge>
           <Badge variant="outline">{stepCount} steps</Badge>
-          {f.failure_classification && (
-            <Badge variant="outline">{f.failure_classification}</Badge>
-          )}
+          {f.failure_classification && <Badge variant="outline">{f.failure_classification}</Badge>}
         </div>
-        <div className="text-xs text-muted-foreground">
-          {f.usage_count} installs
-        </div>
+        <div className="text-xs text-muted-foreground">{f.usage_count} installs</div>
         <Button asChild size="sm" className="w-full">
           <Link to="/marketplace/flows/$id" params={{ id: f.id }}>
             Preview & install

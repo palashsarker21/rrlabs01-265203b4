@@ -64,9 +64,7 @@ export const listWebhookDeliveries = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
 
     // Counters (unfiltered) for the status chip strip.
-    const { data: counters } = await context.supabase
-      .from("email_webhook_logs")
-      .select("outcome");
+    const { data: counters } = await context.supabase.from("email_webhook_logs").select("outcome");
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const counts: Record<string, number> = { all: (counters as any[] | null)?.length ?? 0 };

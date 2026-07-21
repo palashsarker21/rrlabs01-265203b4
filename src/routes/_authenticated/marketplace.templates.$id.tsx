@@ -14,10 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAccess } from "@/hooks/use-access";
 import { PERMISSIONS } from "@/lib/rbac";
 import { usePermissions } from "@/lib/rbac/use-permissions";
-import {
-  getMarketplaceTemplate,
-  installTemplate,
-} from "@/lib/marketplace/marketplace.functions";
+import { getMarketplaceTemplate, installTemplate } from "@/lib/marketplace/marketplace.functions";
 
 export const Route = createFileRoute("/_authenticated/marketplace/templates/$id")({
   component: TemplateDetailPage,
@@ -93,9 +90,7 @@ function TemplateDetailPage() {
           {t.region && <Badge variant="secondary">{t.region}</Badge>}
           <Badge variant="secondary">{t.language}</Badge>
           <Badge variant="outline">{t.channel}</Badge>
-          {t.failure_classification && (
-            <Badge variant="outline">{t.failure_classification}</Badge>
-          )}
+          {t.failure_classification && <Badge variant="outline">{t.failure_classification}</Badge>}
           {t.tone && <Badge variant="outline">{t.tone}</Badge>}
           <Badge variant="outline">Step {t.step}</Badge>
         </div>
@@ -130,8 +125,8 @@ function TemplateDetailPage() {
               />
               <p className="text-xs text-muted-foreground">
                 Leave blank to keep the original text. Variables like{" "}
-                <code className="bg-muted px-1 rounded">{"{{first_name}}"}</code>{" "}
-                are substituted at send time.
+                <code className="bg-muted px-1 rounded">{"{{first_name}}"}</code> are substituted at
+                send time.
               </p>
             </div>
 
@@ -168,9 +163,7 @@ function TemplateDetailPage() {
                 <div className="font-medium">{effectiveSubject}</div>
               </div>
             )}
-            <div className="rounded border p-4 whitespace-pre-wrap text-sm">
-              {effectiveBody}
-            </div>
+            <div className="rounded border p-4 whitespace-pre-wrap text-sm">{effectiveBody}</div>
             {t.tags?.length ? (
               <div className="flex gap-1 flex-wrap">
                 {t.tags.map((tag: string) => (
@@ -181,8 +174,7 @@ function TemplateDetailPage() {
               </div>
             ) : null}
             <div className="text-xs text-muted-foreground flex items-center gap-1 pt-2">
-              <Check className="h-3 w-3" /> {t.usage_count} workspaces have installed
-              this
+              <Check className="h-3 w-3" /> {t.usage_count} workspaces have installed this
             </div>
           </CardContent>
         </Card>

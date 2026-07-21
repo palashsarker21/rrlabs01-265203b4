@@ -218,9 +218,7 @@ export function AdminDataTable<T>({
                     key={c.key}
                     className={`px-4 py-3 text-${c.align ?? "left"} ${c.className ?? ""}`}
                   >
-                    {c.cell
-                      ? c.cell(row)
-                      : String((row as Record<string, unknown>)[c.key] ?? "—")}
+                    {c.cell ? c.cell(row) : String((row as Record<string, unknown>)[c.key] ?? "—")}
                   </td>
                 ))}
                 {rowActions && <td className="px-4 py-3 text-right">{rowActions(row)}</td>}

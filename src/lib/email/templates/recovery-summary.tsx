@@ -9,15 +9,25 @@ export type RecoverySummaryProps = {
   dashboardUrl: string;
 };
 
-export function RecoverySummary({ workspaceName, period, recoveredFormatted, attempts, dashboardUrl }: RecoverySummaryProps) {
+export function RecoverySummary({
+  workspaceName,
+  period,
+  recoveredFormatted,
+  attempts,
+  dashboardUrl,
+}: RecoverySummaryProps) {
   return (
     <EmailShell preview={`Recovery summary — ${period}.`}>
-      <Text style={styles.h1}>{workspaceName} — {period}</Text>
-      <Text style={styles.p}>
-        Recovered: <strong>{recoveredFormatted}</strong> across{" "}
-        <strong>{attempts}</strong> recovery attempts.
+      <Text style={styles.h1}>
+        {workspaceName} — {period}
       </Text>
-      <Button href={dashboardUrl} style={styles.button}>View details</Button>
+      <Text style={styles.p}>
+        Recovered: <strong>{recoveredFormatted}</strong> across <strong>{attempts}</strong> recovery
+        attempts.
+      </Text>
+      <Button href={dashboardUrl} style={styles.button}>
+        View details
+      </Button>
     </EmailShell>
   );
 }

@@ -40,16 +40,10 @@ export function DataTableShell({
       {hasHeader ? (
         <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border px-5 py-4">
           <div className="min-w-0 space-y-1">
-            {title ? (
-              <h2 className="text-h3 text-foreground truncate">{title}</h2>
-            ) : null}
-            {description ? (
-              <p className="text-sm text-muted-foreground">{description}</p>
-            ) : null}
+            {title ? <h2 className="text-h3 text-foreground truncate">{title}</h2> : null}
+            {description ? <p className="text-sm text-muted-foreground">{description}</p> : null}
           </div>
-          {actions ? (
-            <div className="flex shrink-0 items-center gap-2">{actions}</div>
-          ) : null}
+          {actions ? <div className="flex shrink-0 items-center gap-2">{actions}</div> : null}
         </div>
       ) : null}
       {toolbar ? (

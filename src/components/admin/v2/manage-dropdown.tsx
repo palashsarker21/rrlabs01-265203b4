@@ -76,7 +76,13 @@ export function ManageDropdown({ row, compact = false }: { row: Row; compact?: b
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button size="sm" variant="outline" className="h-8">
-          {compact ? <MoreHorizontal className="h-4 w-4" /> : <>Manage <MoreHorizontal className="ml-1.5 h-4 w-4" /></>}
+          {compact ? (
+            <MoreHorizontal className="h-4 w-4" />
+          ) : (
+            <>
+              Manage <MoreHorizontal className="ml-1.5 h-4 w-4" />
+            </>
+          )}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">

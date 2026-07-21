@@ -19,8 +19,7 @@ const badgeVariants = cva(
         warning:
           "border-transparent bg-[hsl(var(--warning)/0.14)] text-[hsl(25_100%_25%)] ring-1 ring-inset ring-[hsl(var(--warning)/0.35)]",
         info: "border-transparent bg-[hsl(var(--chart-2)/0.12)] text-[hsl(var(--chart-2))] ring-1 ring-inset ring-[hsl(var(--chart-2)/0.25)]",
-        neutral:
-          "border-transparent bg-muted text-muted-foreground ring-1 ring-inset ring-border",
+        neutral: "border-transparent bg-muted text-muted-foreground ring-1 ring-inset ring-border",
       },
     },
     defaultVariants: {

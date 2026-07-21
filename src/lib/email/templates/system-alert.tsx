@@ -16,7 +16,9 @@ export function SystemAlert({ title, message, severity, actionUrl }: SystemAlert
       <Text style={{ ...styles.h1, color }}>{title}</Text>
       <Text style={styles.p}>{message}</Text>
       {actionUrl ? (
-        <Button href={actionUrl} style={styles.button}>View in RRLabs</Button>
+        <Button href={actionUrl} style={styles.button}>
+          View in RRLabs
+        </Button>
       ) : null}
     </EmailShell>
   );

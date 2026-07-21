@@ -14,10 +14,11 @@ export function PaymentFailed({ reason, updateUrl, gracePeriodDays = 7 }: Paymen
       <Text style={styles.p}>
         We couldn't process your last RRLabs payment
         {reason ? ` (${reason})` : ""}. Update your payment method within{" "}
-        <strong>{gracePeriodDays} days</strong> to keep the recovery engine
-        running.
+        <strong>{gracePeriodDays} days</strong> to keep the recovery engine running.
       </Text>
-      <Button href={updateUrl} style={styles.button}>Update payment method</Button>
+      <Button href={updateUrl} style={styles.button}>
+        Update payment method
+      </Button>
     </EmailShell>
   );
 }

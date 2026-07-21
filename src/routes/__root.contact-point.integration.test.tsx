@@ -36,8 +36,8 @@ function extractOrganization(): JsonLdNode {
 
 function renderedPhoneListTels(): string[] {
   const { container } = render(<PhoneList />);
-  return Array.from(container.querySelectorAll('a[href^="tel:"]')).map(
-    (a) => (a.getAttribute("href") ?? "").replace(/^tel:/, ""),
+  return Array.from(container.querySelectorAll('a[href^="tel:"]')).map((a) =>
+    (a.getAttribute("href") ?? "").replace(/^tel:/, ""),
   );
 }
 
@@ -90,11 +90,10 @@ describe("Organization JSON-LD contactPoint ↔ PhoneList integration", () => {
 
     expect(renderedPhoneListTels()).toContain(whatsapp!.number);
 
-    const whatsappPoint = (org.contactPoint ?? []).find(
-      (c) => c.telephone === whatsapp!.number,
-    );
+    const whatsappPoint = (org.contactPoint ?? []).find((c) => c.telephone === whatsapp!.number);
     expect(whatsappPoint, "contactPoint must include the WhatsApp number").toBeDefined();
-    const marker = `${whatsappPoint!.description ?? ""} ${whatsappPoint!.contactType ?? ""}`.toLowerCase();
+    const marker =
+      `${whatsappPoint!.description ?? ""} ${whatsappPoint!.contactType ?? ""}`.toLowerCase();
     expect(marker.includes("whatsapp")).toBe(true);
   });
 

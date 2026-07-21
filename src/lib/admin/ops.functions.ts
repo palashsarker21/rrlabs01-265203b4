@@ -16,7 +16,10 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 async function assertSuperAdmin(context: { supabase: unknown; userId: string }) {
   const sb = context.supabase as {
-    rpc: (fn: "is_super_admin", args: { _user_id: string }) => Promise<{ data: unknown; error: unknown }>;
+    rpc: (
+      fn: "is_super_admin",
+      args: { _user_id: string },
+    ) => Promise<{ data: unknown; error: unknown }>;
   };
   const { data, error } = await sb.rpc("is_super_admin", { _user_id: context.userId });
   if (error) throw new Error((error as Error).message ?? "Authorization failed.");
@@ -91,9 +94,14 @@ export const setUserRole = createServerFn({ method: "POST" })
         .eq("role", data.role);
       if (error) throw new Error(error.message);
     }
-    await audit(context, `admin.user.role_${data.grant ? "granted" : "revoked"}`, {
-      role: data.role,
-    }, { type: "user", id: data.userId });
+    await audit(
+      context,
+      `admin.user.role_${data.grant ? "granted" : "revoked"}`,
+      {
+        role: data.role,
+      },
+      { type: "user", id: data.userId },
+    );
     return { ok: true as const };
   });
 
@@ -118,7 +126,9 @@ export const listAdminSubscriptions = createServerFn({ method: "POST" })
 
 export const listAdminWebhookLogs = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((raw) => z.object({ limit: z.number().int().min(1).max(1000).default(200) }).parse(raw ?? {}))
+  .inputValidator((raw) =>
+    z.object({ limit: z.number().int().min(1).max(1000).default(200) }).parse(raw ?? {}),
+  )
   .handler(async ({ data, context }) => {
     await assertSuperAdmin(context);
     const { data: rows, error } = await context.supabase
@@ -161,10 +171,15 @@ export const forceDisconnectIntegration = createServerFn({ method: "POST" })
       .update({ status: "disconnected" })
       .eq("id", data.integrationId);
     if (error) throw new Error(error.message);
-    await audit(context, "admin.integration.force_disconnected", {}, {
-      type: "integration",
-      id: data.integrationId,
-    });
+    await audit(
+      context,
+      "admin.integration.force_disconnected",
+      {},
+      {
+        type: "integration",
+        id: data.integrationId,
+      },
+    );
     return { ok: true as const };
   });
 
@@ -190,7 +205,9 @@ export const listAdminRecoveryEvents = createServerFn({ method: "POST" })
 export const listAdminNotifications = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((raw) =>
-    z.object({ channel: z.enum(["email", "whatsapp", "sms", "all"]).default("all") }).parse(raw ?? {}),
+    z
+      .object({ channel: z.enum(["email", "whatsapp", "sms", "all"]).default("all") })
+      .parse(raw ?? {}),
   )
   .handler(async ({ data, context }) => {
     await assertSuperAdmin(context);
@@ -229,7 +246,9 @@ export const listAdminContactLeads = createServerFn({ method: "POST" })
     await assertSuperAdmin(context);
     const { data, error } = await context.supabase
       .from("contact_leads")
-      .select("id, name, email, company, role, seats, arr_range, use_case, plan_code, source, created_at")
+      .select(
+        "id, name, email, company, role, seats, arr_range, use_case, plan_code, source, created_at",
+      )
       .order("created_at", { ascending: false })
       .limit(500);
     if (error) throw new Error(error.message);
@@ -250,7 +269,9 @@ export const getSystemHealth = createServerFn({ method: "POST" })
     const dbLatency = Date.now() - start;
     const { data: providers } = await supabaseAdmin
       .from("provider_status")
-      .select("integration_id, verification_status, last_delivery_at, last_success_at, last_error, retry_count")
+      .select(
+        "integration_id, verification_status, last_delivery_at, last_success_at, last_error, retry_count",
+      )
       .limit(50);
     const oneHourAgo = new Date(Date.now() - 3600_000).toISOString();
     const { count: webhookErrors } = await supabaseAdmin
@@ -303,10 +324,15 @@ export const setAdminSetting = createServerFn({ method: "POST" })
         { onConflict: "key" },
       );
     if (error) throw new Error(error.message);
-    await audit(context, "admin.settings.updated", { key: data.key }, {
-      type: "setting",
-      id: data.key,
-    });
+    await audit(
+      context,
+      "admin.settings.updated",
+      { key: data.key },
+      {
+        type: "setting",
+        id: data.key,
+      },
+    );
     return { ok: true as const };
   });
 

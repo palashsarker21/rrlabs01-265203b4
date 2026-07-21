@@ -13,10 +13,7 @@ import {
 export const Route = createFileRoute("/_authenticated/billing/statements")({
   component: StatementsPage,
   head: () => ({
-    meta: [
-      { title: "Success fee statements — RRLabs" },
-      { name: "robots", content: "noindex" },
-    ],
+    meta: [{ title: "Success fee statements — RRLabs" }, { name: "robots", content: "noindex" }],
   }),
   validateSearch: (search: Record<string, unknown>) => ({
     workspaceId: typeof search.workspaceId === "string" ? search.workspaceId : undefined,

@@ -57,18 +57,18 @@ function RefundPage() {
         <p>
           Annual plans include a <strong>14-day full refund window</strong> starting on the date of
           purchase or renewal. Within this window, you may request a full refund for any reason.
-          After the 14-day window, we offer a pro-rated refund on remaining unused months, less a
-          5% administrative fee to cover payment processing and platform costs.
+          After the 14-day window, we offer a pro-rated refund on remaining unused months, less a 5%
+          administrative fee to cover payment processing and platform costs.
         </p>
 
         <h2>4. Statutory consumer rights (EU and UK)</h2>
         <p>
           If you are a consumer resident in the European Union or the United Kingdom, you may
           benefit from a statutory right of withdrawal for 14 days after purchase under EU Consumer
-          Rights Directive 2011/83/EU and the UK Consumer Contracts Regulations 2013. By starting
-          to use the Services within the 14-day period, you expressly consent to immediate
-          performance and acknowledge that you may lose the right of withdrawal for the portion of
-          the service already supplied. Nothing in this policy limits your statutory rights.
+          Rights Directive 2011/83/EU and the UK Consumer Contracts Regulations 2013. By starting to
+          use the Services within the 14-day period, you expressly consent to immediate performance
+          and acknowledge that you may lose the right of withdrawal for the portion of the service
+          already supplied. Nothing in this policy limits your statutory rights.
         </p>
 
         <h2>5. Usage-based charges</h2>
@@ -80,18 +80,17 @@ function RefundPage() {
 
         <h2>6. Chargebacks</h2>
         <p>
-          Please contact us before filing a chargeback. Filing a chargeback without first
-          attempting to resolve the issue may result in immediate suspension of your workspace.
-          Legitimate disputes are always welcome and we will work with you to find a fair
-          resolution.
+          Please contact us before filing a chargeback. Filing a chargeback without first attempting
+          to resolve the issue may result in immediate suspension of your workspace. Legitimate
+          disputes are always welcome and we will work with you to find a fair resolution.
         </p>
 
         <h2>7. How to request a refund</h2>
         <p>
           Email <a href={`mailto:${CONTACT.supportEmail}`}>{CONTACT.supportEmail}</a> from the
-          workspace owner address, including your workspace name, invoice number, and reason for
-          the request. Refunds approved by {BRAND.name} are issued through Lemon Squeezy and
-          returned to your original payment method.
+          workspace owner address, including your workspace name, invoice number, and reason for the
+          request. Refunds approved by {BRAND.name} are issued through Lemon Squeezy and returned to
+          your original payment method.
         </p>
 
         <h2>8. Exceptions</h2>

@@ -85,9 +85,8 @@ function UnsubscribePage() {
 
         {state.kind === "no-token" && (
           <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-            This link is missing its unsubscribe token. Open the "Unsubscribe or
-            manage preferences" link at the bottom of any RRLabs email you've
-            received.
+            This link is missing its unsubscribe token. Open the "Unsubscribe or manage preferences"
+            link at the bottom of any RRLabs email you've received.
           </div>
         )}
 
@@ -99,8 +98,8 @@ function UnsubscribePage() {
 
         {state.kind === "invalid" && (
           <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-4 text-sm text-destructive">
-            This unsubscribe link is invalid or has expired. Please use the link
-            in a recent email, or contact{" "}
+            This unsubscribe link is invalid or has expired. Please use the link in a recent email,
+            or contact{" "}
             <a className="underline" href="mailto:support@rrlabs.online">
               support@rrlabs.online
             </a>
@@ -146,9 +145,8 @@ function UnsubscribePage() {
             </div>
 
             <p className="pt-4 text-xs text-muted-foreground">
-              You'll still receive essential emails such as security alerts,
-              payment failures, workspace invitations, and password resets.
-              These cannot be turned off.
+              You'll still receive essential emails such as security alerts, payment failures,
+              workspace invitations, and password resets. These cannot be turned off.
             </p>
           </div>
         )}

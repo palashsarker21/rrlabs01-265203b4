@@ -13,11 +13,7 @@ import { createLovableGateway, DEFAULT_CHAT_MODEL } from "@/lib/ai-gateway.serve
 import { decryptJSON } from "@/lib/crypto.server";
 import { sendEmailViaResend, sendWhatsAppText } from "./dispatch.server";
 import { classifyFailure } from "./classify.server";
-import {
-  decideRecovery,
-  DEFAULT_AUTOMATION,
-  type AutomationSettings,
-} from "./decide.server";
+import { decideRecovery, DEFAULT_AUTOMATION, type AutomationSettings } from "./decide.server";
 import { matchTemplate, type TemplateRow as MatchTemplateRow } from "./match-template.server";
 
 // ---------------------------------------------------------------------------
@@ -187,9 +183,7 @@ async function loadTemplates(workspaceId: string, step: number): Promise<Templat
   return (data ?? []) as TemplateRow[];
 }
 
-async function loadAllTemplatesForMatching(
-  workspaceId: string,
-): Promise<MatchTemplateRow[]> {
+async function loadAllTemplatesForMatching(workspaceId: string): Promise<MatchTemplateRow[]> {
   const { data } = await supabaseAdmin
     .from("recovery_templates")
     .select(
@@ -221,10 +215,10 @@ async function loadAutomationSettings(workspaceId: string): Promise<AutomationSe
       (data.preferred_channels as string[] | null) ?? DEFAULT_AUTOMATION.preferred_channels,
     ai_enabled: data.ai_enabled ?? DEFAULT_AUTOMATION.ai_enabled,
     retry_schedule_minutes:
-      (data.retry_schedule_minutes as number[] | null) ??
-      DEFAULT_AUTOMATION.retry_schedule_minutes,
-    template_reuse_threshold:
-      Number(data.template_reuse_threshold ?? DEFAULT_AUTOMATION.template_reuse_threshold),
+      (data.retry_schedule_minutes as number[] | null) ?? DEFAULT_AUTOMATION.retry_schedule_minutes,
+    template_reuse_threshold: Number(
+      data.template_reuse_threshold ?? DEFAULT_AUTOMATION.template_reuse_threshold,
+    ),
   };
 }
 
@@ -294,11 +288,7 @@ export async function runRecoveryForEvent({ eventId }: RunRecoveryArgs): Promise
     new Set(
       commIntegrations
         .map((i): string | null =>
-          i.provider === "resend"
-            ? "email"
-            : i.provider === "whatsapp_cloud"
-              ? "whatsapp"
-              : null,
+          i.provider === "resend" ? "email" : i.provider === "whatsapp_cloud" ? "whatsapp" : null,
         )
         .filter((c: string | null): c is string => c !== null),
     ),
@@ -306,7 +296,8 @@ export async function runRecoveryForEvent({ eventId }: RunRecoveryArgs): Promise
 
   const preferredLanguage =
     (raw.preferred_language as string | undefined) ??
-    ((event as { preferred_language?: string }).preferred_language ?? null);
+    (event as { preferred_language?: string }).preferred_language ??
+    null;
 
   const decision = decideRecovery({
     step: currentStep,
@@ -347,18 +338,26 @@ export async function runRecoveryForEvent({ eventId }: RunRecoveryArgs): Promise
   // Wave D: attempt template match first; fall back to AI only when confidence is low.
   const stepNumber = currentStep + 1;
   const allTemplates = await loadAllTemplatesForMatching(event.workspace_id);
-  const emailMatch = matchTemplate(allTemplates, {
-    step: stepNumber,
-    channel: "email",
-    classification,
-    language: decision.language,
-  }, automation.template_reuse_threshold);
-  const waMatch = matchTemplate(allTemplates, {
-    step: stepNumber,
-    channel: "whatsapp",
-    classification,
-    language: decision.language,
-  }, automation.template_reuse_threshold);
+  const emailMatch = matchTemplate(
+    allTemplates,
+    {
+      step: stepNumber,
+      channel: "email",
+      classification,
+      language: decision.language,
+    },
+    automation.template_reuse_threshold,
+  );
+  const waMatch = matchTemplate(
+    allTemplates,
+    {
+      step: stepNumber,
+      channel: "whatsapp",
+      classification,
+      language: decision.language,
+    },
+    automation.template_reuse_threshold,
+  );
 
   const needAi =
     automation.ai_enabled &&
@@ -554,9 +553,7 @@ export async function runRecoveryForEvent({ eventId }: RunRecoveryArgs): Promise
   // falling back to the legacy cadence when we've exhausted the schedule.
   const legacyNextAt = nextRunAt(stepNumber);
   const nextAtIso =
-    decision.next_step < automation.max_retries
-      ? decision.send_at.toISOString()
-      : legacyNextAt;
+    decision.next_step < automation.max_retries ? decision.send_at.toISOString() : legacyNextAt;
   const isLastStep = nextAtIso === null;
 
   await supabaseAdmin

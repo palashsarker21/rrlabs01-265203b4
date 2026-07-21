@@ -73,12 +73,7 @@ describe("validateRequiredFields — SaveFailure mapping", () => {
   });
 
   it("propagates docsUrl into the SaveFailure when provided", () => {
-    const res = validateRequiredFields(
-      "Shopify",
-      required,
-      {},
-      "https://docs.example.com/shopify",
-    );
+    const res = validateRequiredFields("Shopify", required, {}, "https://docs.example.com/shopify");
     expect(res!.docsUrl).toBe("https://docs.example.com/shopify");
   });
 

@@ -77,10 +77,7 @@ function TeamPage() {
   const [inviteRole, setInviteRole] = useState<Role>("member");
   const [sending, setSending] = useState(false);
 
-  const pendingInvites = useMemo(
-    () => invites.filter((i) => i.status === "pending"),
-    [invites],
-  );
+  const pendingInvites = useMemo(() => invites.filter((i) => i.status === "pending"), [invites]);
 
   async function handleInvite(e: React.FormEvent) {
     e.preventDefault();
@@ -190,10 +187,7 @@ function TeamPage() {
               Invite a teammate
             </h2>
           </div>
-          <form
-            onSubmit={handleInvite}
-            className="mt-4 grid gap-3 sm:grid-cols-[1fr_180px_auto]"
-          >
+          <form onSubmit={handleInvite} className="mt-4 grid gap-3 sm:grid-cols-[1fr_180px_auto]">
             <div>
               <Label htmlFor="invite-email" className="sr-only">
                 Email
@@ -225,9 +219,7 @@ function TeamPage() {
               Send invite
             </Button>
           </form>
-          <p className="mt-2 text-xs text-muted-foreground">
-            {ROLE_DESCRIPTIONS[inviteRole]}
-          </p>
+          <p className="mt-2 text-xs text-muted-foreground">{ROLE_DESCRIPTIONS[inviteRole]}</p>
         </section>
 
         {/* Members */}
@@ -252,10 +244,7 @@ function TeamPage() {
                   )}
                 </div>
                 <div className="flex items-center gap-2">
-                  <Select
-                    value={m.role}
-                    onValueChange={(v) => handleRoleChange(m.id, v as Role)}
-                  >
+                  <Select value={m.role} onValueChange={(v) => handleRoleChange(m.id, v as Role)}>
                     <SelectTrigger className="h-8 w-32">
                       <SelectValue />
                     </SelectTrigger>
@@ -303,24 +292,15 @@ function TeamPage() {
                     <div className="text-sm font-medium text-foreground">{i.email}</div>
                     <div className="text-xs text-muted-foreground">
                       <Shield className="mr-1 inline h-3 w-3" />
-                      {i.role} · expires{" "}
-                      {new Date(i.expires_at).toLocaleDateString()}
+                      {i.role} · expires {new Date(i.expires_at).toLocaleDateString()}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => copyInviteLink(i.token)}
-                    >
+                    <Button variant="outline" size="sm" onClick={() => copyInviteLink(i.token)}>
                       <Copy className="mr-2 h-4 w-4" />
                       Copy link
                     </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleRevoke(i.id)}
-                    >
+                    <Button variant="ghost" size="sm" onClick={() => handleRevoke(i.id)}>
                       Revoke
                     </Button>
                   </div>

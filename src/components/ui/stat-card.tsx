@@ -40,10 +40,7 @@ export function StatCard({
   className,
   ...props
 }: StatCardProps) {
-  const chip =
-    delta !== undefined && delta !== null && delta !== ""
-      ? formatDelta(delta)
-      : null;
+  const chip = delta !== undefined && delta !== null && delta !== "" ? formatDelta(delta) : null;
   return (
     <div
       className={cn(
@@ -55,9 +52,7 @@ export function StatCard({
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 space-y-1">
           {eyebrow ? <div className="text-eyebrow">{eyebrow}</div> : null}
-          <div className="text-sm font-medium text-muted-foreground truncate">
-            {label}
-          </div>
+          <div className="text-sm font-medium text-muted-foreground truncate">{label}</div>
         </div>
         {icon ? (
           <div
@@ -87,8 +82,7 @@ export function StatCard({
                   "bg-[hsl(var(--success)/0.12)] text-[hsl(var(--success))] ring-[hsl(var(--success)/0.25)]",
                 chip.dir === "down" &&
                   "bg-[hsl(var(--destructive)/0.1)] text-[hsl(var(--destructive))] ring-[hsl(var(--destructive)/0.25)]",
-                chip.dir === "flat" &&
-                  "bg-muted text-muted-foreground ring-border",
+                chip.dir === "flat" && "bg-muted text-muted-foreground ring-border",
               )}
             >
               {chip.dir === "up" ? (
@@ -101,12 +95,8 @@ export function StatCard({
               {chip.text}
             </span>
           ) : null}
-          {deltaLabel ? (
-            <span className="text-muted-foreground">{deltaLabel}</span>
-          ) : null}
-          {footnote ? (
-            <span className="text-muted-foreground">{footnote}</span>
-          ) : null}
+          {deltaLabel ? <span className="text-muted-foreground">{deltaLabel}</span> : null}
+          {footnote ? <span className="text-muted-foreground">{footnote}</span> : null}
         </div>
       )}
     </div>

@@ -20,9 +20,8 @@ export const Route = createFileRoute("/api/public/hooks/success-fee-monthly")({
         }
 
         try {
-          const { previousMonthBounds, buildStatementsForPeriod } = await import(
-            "@/lib/success-fee/engine.server"
-          );
+          const { previousMonthBounds, buildStatementsForPeriod } =
+            await import("@/lib/success-fee/engine.server");
           const result = await buildStatementsForPeriod(previousMonthBounds());
           return new Response(JSON.stringify({ ok: true, ...result }), {
             headers: { "content-type": "application/json" },

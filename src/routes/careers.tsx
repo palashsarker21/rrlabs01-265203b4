@@ -34,10 +34,9 @@ function CareersPage() {
         Careers at {BRAND.name}
       </h1>
       <p className="mt-4 text-lg text-muted-foreground">
-        We&apos;re a small, distributed team building the infrastructure subscription and
-        eCommerce businesses rely on to recover failed payments and reduce involuntary churn. If
-        payments, applied AI, and customer outcomes energize you, you&apos;ll find your people
-        here.
+        We&apos;re a small, distributed team building the infrastructure subscription and eCommerce
+        businesses rely on to recover failed payments and reduce involuntary churn. If payments,
+        applied AI, and customer outcomes energize you, you&apos;ll find your people here.
       </p>
 
       <section className="mt-12">
@@ -65,8 +64,8 @@ function CareersPage() {
         <h2 className="text-xl font-semibold text-foreground">Remote-first</h2>
         <p className="mt-3 text-muted-foreground">
           We are remote-first and hire across the US, UK, EU, and select time-compatible regions.
-          Meetings are minimal and scheduled during a shared collaboration window. We meet in
-          person a few times a year for planning, product summits, and social time.
+          Meetings are minimal and scheduled during a shared collaboration window. We meet in person
+          a few times a year for planning, product summits, and social time.
         </p>
       </section>
 
@@ -74,7 +73,9 @@ function CareersPage() {
         <h2 className="text-xl font-semibold text-foreground">Benefits</h2>
         <ul className="mt-3 list-disc space-y-2 pl-5 text-muted-foreground">
           <li>Competitive base salary and meaningful equity.</li>
-          <li>Health, dental, and vision cover (region-appropriate stipend where not available).</li>
+          <li>
+            Health, dental, and vision cover (region-appropriate stipend where not available).
+          </li>
           <li>Flexible time off with a paid minimum, plus local public holidays.</li>
           <li>Home office and productivity budget.</li>
           <li>Learning budget for books, courses, and conferences.</li>

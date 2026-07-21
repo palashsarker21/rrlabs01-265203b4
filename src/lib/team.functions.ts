@@ -24,7 +24,6 @@ async function assertManager(
   if (!data) throw new Error("You must be a workspace owner or admin.");
 }
 
-
 /** List members of a workspace (RLS scopes to workspaces the caller belongs to). */
 export const listWorkspaceMembers = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -39,7 +38,10 @@ export const listWorkspaceMembers = createServerFn({ method: "GET" })
     if (error) throw new Error(error.message);
 
     const userIds = (members ?? []).map((m) => m.user_id);
-    let profiles: Record<string, { email: string | null; display_name: string | null; avatar_url: string | null }> = {};
+    let profiles: Record<
+      string,
+      { email: string | null; display_name: string | null; avatar_url: string | null }
+    > = {};
     if (userIds.length) {
       const { data: profs } = await supabase
         .from("profiles")
@@ -122,8 +124,7 @@ export const createInvitation = createServerFn({ method: "POST" })
         supabase.from("workspaces").select("name").eq("id", data.workspaceId).single(),
         supabase.from("profiles").select("display_name, email").eq("id", userId).single(),
       ]);
-      const origin =
-        process.env.APP_URL ?? process.env.VITE_APP_URL ?? "https://rrlabs.online";
+      const origin = process.env.APP_URL ?? process.env.VITE_APP_URL ?? "https://rrlabs.online";
       const acceptUrl = `${origin.replace(/\/$/, "")}/invite/${inv.token}`;
       const { sendEmail } = await import("@/lib/email/service.server");
       await sendEmail({

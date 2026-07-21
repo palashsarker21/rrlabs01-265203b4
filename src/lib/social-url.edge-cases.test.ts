@@ -45,15 +45,15 @@ describe("normalizeSocialUrl — edge cases", () => {
     });
 
     it("normalizes host casing while keeping the query intact", () => {
-      expect(
-        normalizeSocialUrl("https://X.COM/rrlabsonline?utm_source=NAV"),
-      ).toBe("https://x.com/rrlabsonline?utm_source=NAV");
+      expect(normalizeSocialUrl("https://X.COM/rrlabsonline?utm_source=NAV")).toBe(
+        "https://x.com/rrlabsonline?utm_source=NAV",
+      );
     });
 
     it("strips the hash but keeps the query", () => {
-      expect(
-        normalizeSocialUrl("https://x.com/rrlabsonline?ref=site#top"),
-      ).toBe("https://x.com/rrlabsonline?ref=site");
+      expect(normalizeSocialUrl("https://x.com/rrlabsonline?ref=site#top")).toBe(
+        "https://x.com/rrlabsonline?ref=site",
+      );
     });
   });
 

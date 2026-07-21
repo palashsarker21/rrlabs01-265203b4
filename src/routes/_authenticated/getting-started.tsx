@@ -36,10 +36,7 @@ export const Route = createFileRoute("/_authenticated/getting-started")({
   component: GettingStartedPage,
 });
 
-const STEP_META: Record<
-  ProviderKind,
-  { icon: typeof Store; required: boolean; helper: string }
-> = {
+const STEP_META: Record<ProviderKind, { icon: typeof Store; required: boolean; helper: string }> = {
   store: {
     icon: Store,
     required: true,
@@ -98,9 +95,7 @@ function GettingStartedPage() {
       providerKindMap.set(p.provider, p.kind as ProviderKind);
     }
     return PROVIDER_STEP_ORDER.map((step) => {
-      const forStep = integrations.filter(
-        (i) => providerKindMap.get(i.provider) === step.kind,
-      );
+      const forStep = integrations.filter((i) => providerKindMap.get(i.provider) === step.kind);
       const connected = forStep.some(
         (i) => i.status === "connected" && (i.health === "healthy" || i.health === "ok"),
       );
@@ -242,9 +237,7 @@ function GettingStartedPage() {
                     <Button
                       size="sm"
                       variant={state === "done" ? "outline" : "default"}
-                      onClick={() =>
-                        navigate({ to: "/integrations", hash: `step-${step.kind}` })
-                      }
+                      onClick={() => navigate({ to: "/integrations", hash: `step-${step.kind}` })}
                     >
                       {state === "done" ? "Manage" : state === "progress" ? "Continue" : "Set up"}
                       <ArrowRight className="ml-2 h-4 w-4" />
@@ -333,7 +326,10 @@ function GettingStartedPage() {
         </section>
 
         <div className="mt-6 text-center text-xs text-muted-foreground">
-          Need help? <Link to="/app" className="underline hover:text-foreground">Back to dashboard</Link>
+          Need help?{" "}
+          <Link to="/app" className="underline hover:text-foreground">
+            Back to dashboard
+          </Link>
         </div>
       </main>
     </div>

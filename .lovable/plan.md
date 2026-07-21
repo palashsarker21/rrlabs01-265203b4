@@ -16,6 +16,7 @@ Audit-first, extend-only. No existing chat/notification code is replaced. Delive
 ## Waves
 
 ### Wave 1 — Schema, RLS, routing engine (server)
+
 - Migration adds `support_agent` + `moderator` to `app_role` enum.
 - New tables (all with GRANTs + RLS + `service_role` full access + `authenticated` scoped policies):
   `support_conversations`, `support_messages`, `support_participants`, `support_presence`, `support_assignments`, `support_tags`, `support_conversation_tags`, `support_internal_notes`, `support_attachments`, `support_feedback`, `support_activity_logs`.
@@ -27,6 +28,7 @@ Audit-first, extend-only. No existing chat/notification code is replaced. Delive
 - Realtime publication `ADD TABLE` for all support tables.
 
 ### Wave 2 — Customer chat UI
+
 - New route `src/routes/_authenticated/support.tsx` — conversation list + active thread.
 - Floating support widget component available on every authenticated page (opt-in via header).
 - Message composer with attachments, emoji picker, sending/sent/delivered/seen badges, typing indicator, auto-scroll, unread badge.
@@ -35,6 +37,7 @@ Audit-first, extend-only. No existing chat/notification code is replaced. Delive
 - WCAG 2.2 AA: focus rings, keyboard shortcuts (Enter send, Shift+Enter newline, Esc close), aria-live for new messages, screen-reader labels for status pills.
 
 ### Wave 3 — Staff inbox
+
 - New route group `src/routes/_authenticated/admin/support/`:
   - `index.tsx` — inbox with filters (status, priority, category, assignee, unassigned, tags, search).
   - `$conversationId.tsx` — full thread with internal-notes tab, transfer/assign controls, priority/category/tags, customer profile side panel.
@@ -43,12 +46,14 @@ Audit-first, extend-only. No existing chat/notification code is replaced. Delive
 - Presence toggle for staff (online/available/busy/away).
 
 ### Wave 4 — AI + SLA
+
 - Auto-tagging (Lovable AI, `google/gemini-3-flash-preview`) on first customer message → sets `category` + inserts tags. Structured output with Zod.
 - Close-summary AI job (problem / root cause / resolution / duration / category / agent) stored on the conversation row.
 - SLA computation server fn: first-response, avg response, resolution, waiting time. Rolled into `staffInboxMetrics`.
 - Alerts: new-conversation, SLA-breach, mention-in-internal-note.
 
 ### Wave 5 — Notifications, attachments, tests, hardening
+
 - Emit into existing `notification_logs` + header bell (new-message, assigned, transferred, closed).
 - Browser Notification API + optional desktop toast (existing pattern).
 - Rate limiting on `sendMessage` (server-fn in-process leaky bucket keyed by `userId`) + attachment size cap (10MB) + MIME allowlist.

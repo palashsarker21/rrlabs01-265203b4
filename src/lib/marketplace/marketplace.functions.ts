@@ -8,7 +8,22 @@ const filterSchema = z.object({
   region: z.string().optional().nullable(),
   language: z.string().optional().nullable(),
   channel: z.enum(["email", "whatsapp"]).optional().nullable(),
-  failureClass: z.enum(["auth_required","expired_card","fraud_suspected","gateway_timeout","hard_decline","incorrect_cvc","insufficient_funds","network_error","soft_decline","temporary_bank","unknown"]).optional().nullable(),
+  failureClass: z
+    .enum([
+      "auth_required",
+      "expired_card",
+      "fraud_suspected",
+      "gateway_timeout",
+      "hard_decline",
+      "incorrect_cvc",
+      "insufficient_funds",
+      "network_error",
+      "soft_decline",
+      "temporary_bank",
+      "unknown",
+    ])
+    .optional()
+    .nullable(),
   q: z.string().optional().nullable(),
   limit: z.number().int().min(1).max(100).default(50),
 });
