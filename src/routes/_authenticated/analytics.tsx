@@ -274,8 +274,8 @@ function AnalyticsPage() {
                     border: "1px solid hsl(var(--border))",
                     fontSize: 12,
                   }}
-                  labelFormatter={shortDate}
-                  formatter={(v: number) => money(v, data?.currency)}
+                  labelFormatter={(v) => shortDate(String(v))}
+                  formatter={(v) => money(Number(v), data?.currency)}
                 />
                 <Area
                   type="monotone"
@@ -311,7 +311,7 @@ function AnalyticsPage() {
                       border: "1px solid hsl(var(--border))",
                       fontSize: 12,
                     }}
-                    labelFormatter={shortDate}
+                    labelFormatter={(v) => shortDate(String(v))}
                   />
                   <Legend wrapperStyle={{ fontSize: 11 }} />
                   <Bar dataKey="events" name="Events" fill="hsl(var(--muted-foreground))" />
@@ -341,7 +341,7 @@ function AnalyticsPage() {
                       border: "1px solid hsl(var(--border))",
                       fontSize: 12,
                     }}
-                    labelFormatter={shortDate}
+                    labelFormatter={(v) => shortDate(String(v))}
                   />
                   <Legend wrapperStyle={{ fontSize: 11 }} />
                   <Line
