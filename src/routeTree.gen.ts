@@ -57,6 +57,7 @@ import { Route as AuthenticatedCheckoutRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
 import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as AuthenticatedPlatformIndexRouteImport } from './routes/_authenticated/platform.index'
 import { Route as BlogTagTagRouteImport } from './routes/blog.tag.$tag'
 import { Route as BlogCategoryCategoryRouteImport } from './routes/blog.category.$category'
 import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
@@ -332,6 +333,12 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedPlatformIndexRoute =
+  AuthenticatedPlatformIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedPlatformRoute,
+  } as any)
 const BlogTagTagRoute = BlogTagTagRouteImport.update({
   id: '/tag/$tag',
   path: '/tag/$tag',
@@ -541,7 +548,7 @@ export interface FileRoutesByFullPath {
   '/integrations': typeof AuthenticatedIntegrationsRouteWithChildren
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
-  '/platform': typeof AuthenticatedPlatformRoute
+  '/platform': typeof AuthenticatedPlatformRouteWithChildren
   '/recovery-strategy': typeof AuthenticatedRecoveryStrategyRoute
   '/rls-verification': typeof AuthenticatedRlsVerificationRoute
   '/setup': typeof AuthenticatedSetupRoute
@@ -566,6 +573,7 @@ export interface FileRoutesByFullPath {
   '/api/public/health': typeof ApiPublicHealthRoute
   '/blog/category/$category': typeof BlogCategoryCategoryRoute
   '/blog/tag/$tag': typeof BlogTagTagRoute
+  '/platform/': typeof AuthenticatedPlatformIndexRoute
   '/admin/email/deliveries': typeof AuthenticatedAdminEmailDeliveriesRoute
   '/admin/email/preview': typeof AuthenticatedAdminEmailPreviewRoute
   '/admin/email/sandbox': typeof AuthenticatedAdminEmailSandboxRoute
@@ -619,7 +627,6 @@ export interface FileRoutesByTo {
   '/integrations': typeof AuthenticatedIntegrationsRouteWithChildren
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
-  '/platform': typeof AuthenticatedPlatformRoute
   '/recovery-strategy': typeof AuthenticatedRecoveryStrategyRoute
   '/rls-verification': typeof AuthenticatedRlsVerificationRoute
   '/setup': typeof AuthenticatedSetupRoute
@@ -643,6 +650,7 @@ export interface FileRoutesByTo {
   '/api/public/health': typeof ApiPublicHealthRoute
   '/blog/category/$category': typeof BlogCategoryCategoryRoute
   '/blog/tag/$tag': typeof BlogTagTagRoute
+  '/platform': typeof AuthenticatedPlatformIndexRoute
   '/admin/email/deliveries': typeof AuthenticatedAdminEmailDeliveriesRoute
   '/admin/email/preview': typeof AuthenticatedAdminEmailPreviewRoute
   '/admin/email/sandbox': typeof AuthenticatedAdminEmailSandboxRoute
@@ -699,7 +707,7 @@ export interface FileRoutesById {
   '/_authenticated/integrations': typeof AuthenticatedIntegrationsRouteWithChildren
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
-  '/_authenticated/platform': typeof AuthenticatedPlatformRoute
+  '/_authenticated/platform': typeof AuthenticatedPlatformRouteWithChildren
   '/_authenticated/recovery-strategy': typeof AuthenticatedRecoveryStrategyRoute
   '/_authenticated/rls-verification': typeof AuthenticatedRlsVerificationRoute
   '/_authenticated/setup': typeof AuthenticatedSetupRoute
@@ -724,6 +732,7 @@ export interface FileRoutesById {
   '/api/public/health': typeof ApiPublicHealthRoute
   '/blog/category/$category': typeof BlogCategoryCategoryRoute
   '/blog/tag/$tag': typeof BlogTagTagRoute
+  '/_authenticated/platform/': typeof AuthenticatedPlatformIndexRoute
   '/_authenticated/admin/email/deliveries': typeof AuthenticatedAdminEmailDeliveriesRoute
   '/_authenticated/admin/email/preview': typeof AuthenticatedAdminEmailPreviewRoute
   '/_authenticated/admin/email/sandbox': typeof AuthenticatedAdminEmailSandboxRoute
@@ -805,6 +814,7 @@ export interface FileRouteTypes {
     | '/api/public/health'
     | '/blog/category/$category'
     | '/blog/tag/$tag'
+    | '/platform/'
     | '/admin/email/deliveries'
     | '/admin/email/preview'
     | '/admin/email/sandbox'
@@ -858,7 +868,6 @@ export interface FileRouteTypes {
     | '/integrations'
     | '/notifications'
     | '/onboarding'
-    | '/platform'
     | '/recovery-strategy'
     | '/rls-verification'
     | '/setup'
@@ -882,6 +891,7 @@ export interface FileRouteTypes {
     | '/api/public/health'
     | '/blog/category/$category'
     | '/blog/tag/$tag'
+    | '/platform'
     | '/admin/email/deliveries'
     | '/admin/email/preview'
     | '/admin/email/sandbox'
@@ -962,6 +972,7 @@ export interface FileRouteTypes {
     | '/api/public/health'
     | '/blog/category/$category'
     | '/blog/tag/$tag'
+    | '/_authenticated/platform/'
     | '/_authenticated/admin/email/deliveries'
     | '/_authenticated/admin/email/preview'
     | '/_authenticated/admin/email/sandbox'
@@ -1357,6 +1368,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/platform/': {
+      id: '/_authenticated/platform/'
+      path: '/'
+      fullPath: '/platform/'
+      preLoaderRoute: typeof AuthenticatedPlatformIndexRouteImport
+      parentRoute: typeof AuthenticatedPlatformRoute
+    }
     '/blog/tag/$tag': {
       id: '/blog/tag/$tag'
       path: '/tag/$tag'
@@ -1693,6 +1711,19 @@ const AuthenticatedIntegrationsRouteWithChildren =
     AuthenticatedIntegrationsRouteChildren,
   )
 
+interface AuthenticatedPlatformRouteChildren {
+  AuthenticatedPlatformIndexRoute: typeof AuthenticatedPlatformIndexRoute
+}
+
+const AuthenticatedPlatformRouteChildren: AuthenticatedPlatformRouteChildren = {
+  AuthenticatedPlatformIndexRoute: AuthenticatedPlatformIndexRoute,
+}
+
+const AuthenticatedPlatformRouteWithChildren =
+  AuthenticatedPlatformRoute._addFileChildren(
+    AuthenticatedPlatformRouteChildren,
+  )
+
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedAnalyticsRoute: typeof AuthenticatedAnalyticsRoute
@@ -1703,7 +1734,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedIntegrationsRoute: typeof AuthenticatedIntegrationsRouteWithChildren
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
-  AuthenticatedPlatformRoute: typeof AuthenticatedPlatformRoute
+  AuthenticatedPlatformRoute: typeof AuthenticatedPlatformRouteWithChildren
   AuthenticatedRecoveryStrategyRoute: typeof AuthenticatedRecoveryStrategyRoute
   AuthenticatedRlsVerificationRoute: typeof AuthenticatedRlsVerificationRoute
   AuthenticatedSetupRoute: typeof AuthenticatedSetupRoute
@@ -1728,7 +1759,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedIntegrationsRoute: AuthenticatedIntegrationsRouteWithChildren,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
-  AuthenticatedPlatformRoute: AuthenticatedPlatformRoute,
+  AuthenticatedPlatformRoute: AuthenticatedPlatformRouteWithChildren,
   AuthenticatedRecoveryStrategyRoute: AuthenticatedRecoveryStrategyRoute,
   AuthenticatedRlsVerificationRoute: AuthenticatedRlsVerificationRoute,
   AuthenticatedSetupRoute: AuthenticatedSetupRoute,
