@@ -32,9 +32,6 @@ export interface AvailableModelOption {
 
 const WorkspaceInput = z.object({ workspaceId: z.string().uuid() });
 
-
-
-
 export const getOrgAiSettings = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((raw: unknown) => WorkspaceInput.parse(raw))
@@ -91,7 +88,8 @@ export const updateOrgAiSettings = createServerFn({ method: "POST" })
       _user_id: userId,
     });
     if (rpcErr) throw new Error(rpcErr.message);
-    if (!canManage) throw new Error("You must be a workspace owner or admin to modify AI settings.");
+    if (!canManage)
+      throw new Error("You must be a workspace owner or admin to modify AI settings.");
 
     const { workspaceId, ...rest } = data;
     const payload = {
@@ -122,7 +120,8 @@ export const listAvailableAiModels = createServerFn({ method: "GET" })
     if (error) throw new Error(error.message);
     return (data ?? [])
       .map((r) => {
-        const p = (r as unknown as { ai_providers: { slug: string; enabled: boolean } }).ai_providers;
+        const p = (r as unknown as { ai_providers: { slug: string; enabled: boolean } })
+          .ai_providers;
         return { model_id: r.model_id as string, provider: p.slug, enabled: p.enabled };
       })
       .filter((r) => r.enabled)

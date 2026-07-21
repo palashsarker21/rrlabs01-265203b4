@@ -11,7 +11,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { listMyWorkspaces } from "@/lib/team.functions";
 import {
@@ -109,10 +115,14 @@ function OrgAiSettingsPage() {
           <div className="w-full max-w-xs">
             <Label className="text-xs">Workspace</Label>
             <Select value={workspaceId} onValueChange={setWorkspaceId}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
                 {workspaces.map((w) => (
-                  <SelectItem key={w.id} value={w.id}>{w.name}</SelectItem>
+                  <SelectItem key={w.id} value={w.id}>
+                    {w.name}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -169,7 +179,8 @@ function OrgAiSettingsPage() {
                 <Sparkles className="h-4 w-4" /> Default model
               </CardTitle>
               <CardDescription>
-                Override the routed default model for this workspace. Leave on <em>Auto</em> to let the router pick.
+                Override the routed default model for this workspace. Leave on <em>Auto</em> to let
+                the router pick.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -177,7 +188,9 @@ function OrgAiSettingsPage() {
                 value={form!.default_model ?? AUTO_MODEL}
                 onValueChange={(v) => patch("default_model", v === AUTO_MODEL ? null : v)}
               >
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value={AUTO_MODEL}>Auto (router default)</SelectItem>
                   {(models ?? []).map((m) => (
@@ -252,7 +265,8 @@ function OrgAiSettingsPage() {
                 <Database className="h-4 w-4" /> Custom system prompt
               </CardTitle>
               <CardDescription>
-                Prepended to system messages for all tasks in this workspace. Leave empty to use the router default.
+                Prepended to system messages for all tasks in this workspace. Leave empty to use the
+                router default.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -272,7 +286,11 @@ function OrgAiSettingsPage() {
 
           <div className="flex justify-end">
             <Button onClick={() => save.mutate()} disabled={save.isPending}>
-              {save.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+              {save.isPending ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Save className="mr-2 h-4 w-4" />
+              )}
               Save changes
             </Button>
           </div>
@@ -282,7 +300,12 @@ function OrgAiSettingsPage() {
   );
 }
 
-function ToggleRow(props: { title: string; description: string; checked: boolean; onChange: (v: boolean) => void }) {
+function ToggleRow(props: {
+  title: string;
+  description: string;
+  checked: boolean;
+  onChange: (v: boolean) => void;
+}) {
   return (
     <div className="flex items-start justify-between gap-6 rounded-lg border p-3">
       <div>
