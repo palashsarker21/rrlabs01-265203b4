@@ -26,7 +26,7 @@ _Generated: 2026-07-14_
 - **Server functions** (`src/lib/**.functions.ts`): access-context, admin, billing, integrations, onboarding, recovery, blog loaders.
 - **Database tables**: 22 tables — all with RLS and GRANT statements per migrations.
 - **Storage buckets**: `blog-media` (private).
-- **Secrets configured**: SUPABASE*\*, LEMONSQUEEZY*\*, LOVABLE_API_KEY, RRLABS_ENCRYPTION_KEY.
+- **Secrets configured**: SUPABASE*\*, LEMONSQUEEZY*\*, OPEN_ROUTER_API_KEY, RRLABS_ENCRYPTION_KEY.
 
 ## Known Limitations
 

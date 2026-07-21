@@ -130,9 +130,9 @@ function DocsPage() {
 
         <Section id="cadence" title="AI cadence">
           <p>
-            When Stripe fires a failure, the engine analyzes the failure code with Gemini through
-            the Lovable AI Gateway and picks a recommended action (retry, contact customer,
-            escalate). Messages go out on a four-step cadence:
+            When Stripe fires a failure, the engine analyzes the failure code through the
+            centralized AI gateway (OpenRouter) and picks a recommended action (retry, contact
+            customer, escalate). Messages go out on a four-step cadence:
           </p>
           <ul className="mt-3 list-disc space-y-1 pl-5 text-sm">
             <li>Step 0 — immediate</li>

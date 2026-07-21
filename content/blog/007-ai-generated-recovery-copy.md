@@ -72,7 +72,7 @@ For recovery copy specifically, model choice matters less than most teams think.
 - **Cost budget.** At $0.001 per generation, this is trivial. At $0.03, it's real money at scale.
 - **Reliability.** Retries, timeouts, circuit breakers. A recovery send that hangs on the LLM is worse than a template send that ships.
 
-RRLabs uses **Gemini via the Lovable AI Gateway** for its own recovery pipeline. Sub-second p50, generous rate limits, no per-request auth overhead.
+RRLabs uses **multi-model routing via OpenRouter** (DeepSeek + Gemini fallbacks) for its own recovery pipeline. Sub-second p50, generous rate limits, transparent per-model cost tracking.
 
 ## Privacy: what NEVER goes to the LLM
 
