@@ -152,6 +152,39 @@ function IntegrationCenter() {
     if (!wsLoading && !workspace) navigate({ to: "/onboarding", replace: true });
   }, [wsLoading, workspace, navigate]);
 
+  // Real-time: invalidate the integrations + provider_status queries whenever
+  // the DB row changes for this workspace. Keeps the health score, verification
+  // state, and webhook activity live without polling loops.
+  useEffect(() => {
+    if (!workspace?.id) return;
+    const channel = supabase
+      .channel(`ws-integrations-${workspace.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "integrations",
+          filter: `workspace_id=eq.${workspace.id}`,
+        },
+        () => qc.invalidateQueries({ queryKey: ["integrations", workspace.id] }),
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "provider_status",
+          filter: `workspace_id=eq.${workspace.id}`,
+        },
+        () => qc.invalidateQueries({ queryKey: ["provider-statuses", workspace.id] }),
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [workspace?.id, qc]);
+
   const { data: catalog = [] } = useQuery({
     queryKey: ["provider-catalog"],
     queryFn: () => fetchCatalog(),
