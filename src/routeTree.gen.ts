@@ -78,6 +78,7 @@ import { Route as ApiPublicHooksRecoveryCadenceRouteImport } from './routes/api/
 import { Route as AuthenticatedMarketplaceTemplatesIdRouteImport } from './routes/_authenticated/marketplace.templates.$id'
 import { Route as AuthenticatedMarketplaceFlowsIdRouteImport } from './routes/_authenticated/marketplace.flows.$id'
 import { Route as AuthenticatedAdminV2CustomersRouteImport } from './routes/_authenticated/admin.v2.customers'
+import { Route as AuthenticatedAdminV2AiRouteImport } from './routes/_authenticated/admin.v2.ai'
 import { Route as AuthenticatedAdminEmailWebhooksRouteImport } from './routes/_authenticated/admin.email.webhooks'
 import { Route as AuthenticatedAdminEmailSandboxRouteImport } from './routes/_authenticated/admin.email.sandbox'
 import { Route as AuthenticatedAdminEmailPreviewRouteImport } from './routes/_authenticated/admin.email.preview'
@@ -450,6 +451,11 @@ const AuthenticatedAdminV2CustomersRoute =
     path: '/customers',
     getParentRoute: () => AuthenticatedAdminV2Route,
   } as any)
+const AuthenticatedAdminV2AiRoute = AuthenticatedAdminV2AiRouteImport.update({
+  id: '/ai',
+  path: '/ai',
+  getParentRoute: () => AuthenticatedAdminV2Route,
+} as any)
 const AuthenticatedAdminEmailWebhooksRoute =
   AuthenticatedAdminEmailWebhooksRouteImport.update({
     id: '/webhooks',
@@ -551,6 +557,7 @@ export interface FileRoutesByFullPath {
   '/admin/email/preview': typeof AuthenticatedAdminEmailPreviewRoute
   '/admin/email/sandbox': typeof AuthenticatedAdminEmailSandboxRoute
   '/admin/email/webhooks': typeof AuthenticatedAdminEmailWebhooksRoute
+  '/admin/v2/ai': typeof AuthenticatedAdminV2AiRoute
   '/admin/v2/customers': typeof AuthenticatedAdminV2CustomersRouteWithChildren
   '/marketplace/flows/$id': typeof AuthenticatedMarketplaceFlowsIdRoute
   '/marketplace/templates/$id': typeof AuthenticatedMarketplaceTemplatesIdRoute
@@ -625,6 +632,7 @@ export interface FileRoutesByTo {
   '/admin/email/preview': typeof AuthenticatedAdminEmailPreviewRoute
   '/admin/email/sandbox': typeof AuthenticatedAdminEmailSandboxRoute
   '/admin/email/webhooks': typeof AuthenticatedAdminEmailWebhooksRoute
+  '/admin/v2/ai': typeof AuthenticatedAdminV2AiRoute
   '/admin/v2/customers': typeof AuthenticatedAdminV2CustomersRouteWithChildren
   '/marketplace/flows/$id': typeof AuthenticatedMarketplaceFlowsIdRoute
   '/marketplace/templates/$id': typeof AuthenticatedMarketplaceTemplatesIdRoute
@@ -703,6 +711,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/email/preview': typeof AuthenticatedAdminEmailPreviewRoute
   '/_authenticated/admin/email/sandbox': typeof AuthenticatedAdminEmailSandboxRoute
   '/_authenticated/admin/email/webhooks': typeof AuthenticatedAdminEmailWebhooksRoute
+  '/_authenticated/admin/v2/ai': typeof AuthenticatedAdminV2AiRoute
   '/_authenticated/admin/v2/customers': typeof AuthenticatedAdminV2CustomersRouteWithChildren
   '/_authenticated/marketplace/flows/$id': typeof AuthenticatedMarketplaceFlowsIdRoute
   '/_authenticated/marketplace/templates/$id': typeof AuthenticatedMarketplaceTemplatesIdRoute
@@ -781,6 +790,7 @@ export interface FileRouteTypes {
     | '/admin/email/preview'
     | '/admin/email/sandbox'
     | '/admin/email/webhooks'
+    | '/admin/v2/ai'
     | '/admin/v2/customers'
     | '/marketplace/flows/$id'
     | '/marketplace/templates/$id'
@@ -855,6 +865,7 @@ export interface FileRouteTypes {
     | '/admin/email/preview'
     | '/admin/email/sandbox'
     | '/admin/email/webhooks'
+    | '/admin/v2/ai'
     | '/admin/v2/customers'
     | '/marketplace/flows/$id'
     | '/marketplace/templates/$id'
@@ -932,6 +943,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/email/preview'
     | '/_authenticated/admin/email/sandbox'
     | '/_authenticated/admin/email/webhooks'
+    | '/_authenticated/admin/v2/ai'
     | '/_authenticated/admin/v2/customers'
     | '/_authenticated/marketplace/flows/$id'
     | '/_authenticated/marketplace/templates/$id'
@@ -1468,6 +1480,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminV2CustomersRouteImport
       parentRoute: typeof AuthenticatedAdminV2Route
     }
+    '/_authenticated/admin/v2/ai': {
+      id: '/_authenticated/admin/v2/ai'
+      path: '/ai'
+      fullPath: '/admin/v2/ai'
+      preLoaderRoute: typeof AuthenticatedAdminV2AiRouteImport
+      parentRoute: typeof AuthenticatedAdminV2Route
+    }
     '/_authenticated/admin/email/webhooks': {
       id: '/_authenticated/admin/email/webhooks'
       path: '/webhooks'
@@ -1549,11 +1568,13 @@ const AuthenticatedAdminV2CustomersRouteWithChildren =
   )
 
 interface AuthenticatedAdminV2RouteChildren {
+  AuthenticatedAdminV2AiRoute: typeof AuthenticatedAdminV2AiRoute
   AuthenticatedAdminV2CustomersRoute: typeof AuthenticatedAdminV2CustomersRouteWithChildren
   AuthenticatedAdminV2IndexRoute: typeof AuthenticatedAdminV2IndexRoute
 }
 
 const AuthenticatedAdminV2RouteChildren: AuthenticatedAdminV2RouteChildren = {
+  AuthenticatedAdminV2AiRoute: AuthenticatedAdminV2AiRoute,
   AuthenticatedAdminV2CustomersRoute:
     AuthenticatedAdminV2CustomersRouteWithChildren,
   AuthenticatedAdminV2IndexRoute: AuthenticatedAdminV2IndexRoute,
