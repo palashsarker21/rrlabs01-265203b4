@@ -76,17 +76,14 @@ function AdminV2Overview() {
           value={money(Number(billing?.mrrCents ?? 0))}
           hint="Current recurring revenue"
         />
+        <Kpi label="Active subs" value={Number(billing?.activeCount ?? 0)} />
         <Kpi
-          label="Active subs"
-          value={Number(billing?.activeSubscriptions ?? 0)}
-        />
-        <Kpi
-          label="Success fees (30d)"
-          value={money(Number(billing?.successFeeCents30d ?? 0))}
+          label="Recovered (all time)"
+          value={money(Number(billing?.recoveredCents ?? 0))}
         />
         <Kpi
           label="Failed webhooks (24h)"
-          value={Number(billing?.failedWebhooks24h ?? 0)}
+          value={Number(billing?.webhooks?.failed24h ?? 0)}
         />
       </section>
 
