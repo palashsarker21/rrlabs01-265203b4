@@ -12,7 +12,7 @@ export const Route = createFileRoute("/status")({
       { title: `System Status — ${BRAND.name}` },
       {
         name: "description",
-        content: `Real-time status of ${BRAND.name} recovery engine, API, and integrations.`,
+        content: `Real-time availability of ${BRAND.name} customer-facing services.`,
       },
     ],
     links: [{ rel: "canonical", href: `${SITE_URL}/status` }],
@@ -32,32 +32,19 @@ export const Route = createFileRoute("/status")({
   }),
 });
 
-type CheckStatus = "ok" | "degraded" | "down" | "not_configured";
-type HealthResponse = {
-  status: CheckStatus;
+type PublicStatus = "operational" | "degraded" | "partial_outage" | "major_outage";
+type PublicComponent = { id: string; name: string; status: PublicStatus };
+type PublicHealth = {
+  status: PublicStatus;
   checked_at: string;
-  checks: Record<string, { status: CheckStatus; latency_ms?: number }>;
+  components: PublicComponent[];
 };
 
-const LABELS: Record<string, string> = {
-  server: "API Server",
-  database: "Database & Auth",
-  lemonsqueezy: "Lemon Squeezy Billing",
-  stripe: "Stripe",
-  resend: "Resend Email",
-  whatsapp: "WhatsApp Cloud API",
-  gemini: "AI Gateway",
-};
-
-const TONE: Record<CheckStatus, { dot: string; text: string; label: string }> = {
-  ok: { dot: "bg-emerald-500", text: "text-emerald-600", label: "Operational" },
+const TONE: Record<PublicStatus, { dot: string; text: string; label: string }> = {
+  operational: { dot: "bg-emerald-500", text: "text-emerald-600", label: "Operational" },
   degraded: { dot: "bg-amber-500", text: "text-amber-600", label: "Degraded" },
-  down: { dot: "bg-red-500", text: "text-red-600", label: "Down" },
-  not_configured: {
-    dot: "bg-muted-foreground/40",
-    text: "text-muted-foreground",
-    label: "Not configured",
-  },
+  partial_outage: { dot: "bg-orange-500", text: "text-orange-600", label: "Partial Outage" },
+  major_outage: { dot: "bg-red-500", text: "text-red-600", label: "Major Outage" },
 };
 
 const IMPACT_TONE: Record<string, string> = {
@@ -67,13 +54,23 @@ const IMPACT_TONE: Record<string, string> = {
   critical: "bg-red-500/15 text-red-600 dark:text-red-400",
 };
 
+// Baseline customer-facing services always shown, even before the first
+// fetch resolves. Scheduled Maintenance is surfaced from the incidents feed.
+const BASELINE: PublicComponent[] = [
+  { id: "website", name: "Website", status: "operational" },
+  { id: "api", name: "API", status: "operational" },
+  { id: "authentication", name: "Authentication", status: "operational" },
+  { id: "billing", name: "Billing", status: "operational" },
+  { id: "email_delivery", name: "Email Delivery", status: "operational" },
+];
+
 function StatusPage() {
   const incidentsFn = useServerFn(listPublicIncidents);
-  const { data, isLoading, isError } = useQuery<HealthResponse>({
+  const { data, isLoading } = useQuery<PublicHealth>({
     queryKey: ["public-health"],
     queryFn: async () => {
       const res = await fetch("/api/public/health", { cache: "no-store" });
-      return (await res.json()) as HealthResponse;
+      return (await res.json()) as PublicHealth;
     },
     refetchInterval: 30_000,
     staleTime: 15_000,
@@ -88,19 +85,26 @@ function StatusPage() {
 
   const activeIncidents = incidents.filter((i) => i.status !== "resolved");
   const pastIncidents = incidents.filter((i) => i.status === "resolved").slice(0, 10);
+  const maintenance = activeIncidents.filter((i) => i.impact === "none");
 
-  const overall = activeIncidents.some((i) => i.impact === "critical" || i.impact === "major")
-    ? "down"
-    : activeIncidents.length > 0
-      ? "degraded"
-      : (data?.status ?? (isError ? "down" : "ok"));
+  const components = data?.components ?? BASELINE;
+  const overall: PublicStatus =
+    activeIncidents.some((i) => i.impact === "critical")
+      ? "major_outage"
+      : activeIncidents.some((i) => i.impact === "major")
+        ? "partial_outage"
+        : activeIncidents.length > 0
+          ? "degraded"
+          : (data?.status ?? "operational");
   const overallTone = TONE[overall];
   const headline =
-    overall === "ok"
+    overall === "operational"
       ? "All systems operational"
       : overall === "degraded"
         ? "Some services are degraded"
-        : "System disruption detected";
+        : overall === "partial_outage"
+          ? "Partial service outage"
+          : "Major service outage";
 
   return (
     <div className="min-h-screen bg-background">
@@ -131,46 +135,56 @@ function StatusPage() {
           <h2 className="mb-3 text-lg font-semibold text-foreground">Services</h2>
           <div className="divide-y divide-border/60 rounded-xl border border-border/60">
             {isLoading && !data
-              ? Array.from({ length: 6 }).map((_, i) => (
-                  <div key={i} className="flex items-center justify-between px-5 py-4">
+              ? BASELINE.map((c) => (
+                  <div key={c.id} className="flex items-center justify-between px-5 py-4">
                     <span className="h-4 w-40 animate-pulse rounded bg-muted" />
                     <span className="h-4 w-20 animate-pulse rounded bg-muted" />
                   </div>
                 ))
-              : Object.entries(data?.checks ?? {}).map(([key, c]) => {
+              : components.map((c) => {
                   const tone = TONE[c.status];
                   return (
-                    <div key={key} className="flex items-center justify-between px-5 py-4">
+                    <div key={c.id} className="flex items-center justify-between px-5 py-4">
                       <span className="flex items-center gap-3 text-foreground">
                         <span className={`h-2 w-2 rounded-full ${tone.dot}`} />
-                        {LABELS[key] ?? key}
+                        {c.name}
                       </span>
-                      <span className={`text-sm ${tone.text}`}>
-                        {tone.label}
-                        {typeof c.latency_ms === "number" && c.status === "ok" && (
-                          <span className="ml-2 text-muted-foreground">{c.latency_ms}ms</span>
-                        )}
-                      </span>
+                      <span className={`text-sm ${tone.text}`}>{tone.label}</span>
                     </div>
                   );
                 })}
           </div>
         </section>
 
-        {pastIncidents.length > 0 && (
-          <section className="mt-10">
-            <h2 className="mb-3 text-lg font-semibold text-foreground">Recent incidents</h2>
+        <section className="mt-10">
+          <h2 className="mb-3 text-lg font-semibold text-foreground">Scheduled maintenance</h2>
+          {maintenance.length === 0 ? (
+            <p className="rounded-xl border border-border/60 bg-card/40 px-5 py-4 text-sm text-muted-foreground">
+              No maintenance scheduled.
+            </p>
+          ) : (
+            <div className="space-y-4">
+              {maintenance.map((inc) => (
+                <IncidentCard key={inc.id} incident={inc} />
+              ))}
+            </div>
+          )}
+        </section>
+
+        <section className="mt-10">
+          <h2 className="mb-3 text-lg font-semibold text-foreground">Incident history</h2>
+          {pastIncidents.length === 0 ? (
+            <p className="rounded-xl border border-border/60 bg-card/40 px-5 py-4 text-sm text-muted-foreground">
+              No incidents in the recent history.
+            </p>
+          ) : (
             <div className="space-y-4">
               {pastIncidents.map((inc) => (
                 <IncidentCard key={inc.id} incident={inc} />
               ))}
             </div>
-          </section>
-        )}
-
-        <p className="mt-8 text-xs text-muted-foreground">
-          Provider health is checked server-side. No credentials are ever exposed to the client.
-        </p>
+          )}
+        </section>
       </main>
       <MarketingFooter />
     </div>

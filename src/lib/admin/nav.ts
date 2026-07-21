@@ -265,9 +265,10 @@ export const ADMIN_NAV: AdminNavNode[] = [
         kind: "leaf",
         id: "health",
         label: "System health",
+        description: "Internal diagnostics — infrastructure, secrets, providers.",
         icon: Activity,
-        keywords: ["uptime", "status"],
-        ...legacy("health"),
+        keywords: ["uptime", "status", "diagnostics", "infrastructure"],
+        to: "/admin/v2/system-health",
       },
       {
         kind: "leaf",

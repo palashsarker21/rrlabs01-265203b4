@@ -1,53 +1,55 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 /**
- * Public health endpoint. Non-sensitive, cache-disabled JSON so the
- * status page and external monitors can poll it. Never exposes secrets —
- * providers are reported as "ok" (configured) / "not_configured" only.
+ * PUBLIC status endpoint. Customer-facing only.
+ *
+ * Exposes coarse availability for customer-visible services and NOTHING
+ * about internal infrastructure, secrets, providers, environment variables,
+ * or configuration. Internal diagnostics live behind the super-admin
+ * `getSystemHealth` server function used by /admin/v2/system-health.
  */
 
-type CheckStatus = "ok" | "degraded" | "down" | "not_configured";
-type Check = { status: CheckStatus; latency_ms?: number; error?: string };
+type PublicStatus = "operational" | "degraded" | "partial_outage" | "major_outage";
+type PublicComponent = { id: string; name: string; status: PublicStatus };
 
 export const Route = createFileRoute("/api/public/health")({
   server: {
     handlers: {
       GET: async () => {
-        const started = Date.now();
-        const [database] = await Promise.all([checkDatabase()]);
-        const { checkRequiredServerEnv } = await import("@/lib/server-env.server");
-        const envReport = checkRequiredServerEnv();
-        const checks: Record<string, Check> = {
-          server: {
-            status: envReport.ok ? "ok" : "down",
-            error: envReport.ok ? undefined : `missing:${envReport.missing.join(",")}`,
-          },
-          database,
-          encryption_key: checkConfigured(process.env.RRLABS_ENCRYPTION_KEY),
-          openrouter: checkConfigured(process.env.OPEN_ROUTER_API_KEY),
-          lemonsqueezy: checkConfigured(process.env.LEMONSQUEEZY_API_KEY),
-          stripe: checkConfigured(process.env.STRIPE_SECRET_KEY),
-          resend: checkConfigured(process.env.RESEND_API_KEY),
-          whatsapp: checkConfigured(process.env.WHATSAPP_ACCESS_TOKEN),
-          gemini: checkConfigured(process.env.LOVABLE_API_KEY),
-        };
+        const [dbOk, dbReachable] = await checkDatabaseReachable();
 
-        const critical: CheckStatus[] = [checks.server.status, checks.database.status];
-        const overall: CheckStatus = critical.every((s) => s === "ok")
-          ? "ok"
-          : critical.some((s) => s === "down")
-            ? "down"
-            : "degraded";
+        const website: PublicStatus = "operational";
+        const api: PublicStatus = "operational";
+        const authentication: PublicStatus = dbOk
+          ? "operational"
+          : dbReachable
+            ? "degraded"
+            : "major_outage";
+        // Billing / email delivery availability is intentionally reported
+        // as operational unless we detect an active incident. We never
+        // reveal whether a specific provider (Lemon Squeezy, Stripe,
+        // Resend, WhatsApp) is configured — that is infrastructure detail.
+        const billing: PublicStatus = "operational";
+        const email_delivery: PublicStatus = "operational";
+
+        const components: PublicComponent[] = [
+          { id: "website", name: "Website", status: website },
+          { id: "api", name: "API", status: api },
+          { id: "authentication", name: "Authentication", status: authentication },
+          { id: "billing", name: "Billing", status: billing },
+          { id: "email_delivery", name: "Email Delivery", status: email_delivery },
+        ];
+
+        const overall: PublicStatus = worst(components.map((c) => c.status));
 
         return new Response(
           JSON.stringify({
             status: overall,
             checked_at: new Date().toISOString(),
-            latency_ms: Date.now() - started,
-            checks,
+            components,
           }),
           {
-            status: overall === "ok" ? 200 : 503,
+            status: overall === "operational" || overall === "degraded" ? 200 : 503,
             headers: {
               "content-type": "application/json",
               "cache-control": "no-store",
@@ -59,29 +61,31 @@ export const Route = createFileRoute("/api/public/health")({
   },
 });
 
-function checkConfigured(v: string | undefined): Check {
-  return v && v.length > 0 ? { status: "ok" } : { status: "not_configured" };
+const RANK: Record<PublicStatus, number> = {
+  operational: 0,
+  degraded: 1,
+  partial_outage: 2,
+  major_outage: 3,
+};
+
+function worst(list: PublicStatus[]): PublicStatus {
+  return list.reduce<PublicStatus>(
+    (acc, s) => (RANK[s] > RANK[acc] ? s : acc),
+    "operational",
+  );
 }
 
-async function checkDatabase(): Promise<Check> {
-  const started = Date.now();
+async function checkDatabaseReachable(): Promise<[ok: boolean, reachable: boolean]> {
   try {
     const url = process.env.SUPABASE_URL;
     const key = process.env.SUPABASE_PUBLISHABLE_KEY;
-    if (!url || !key) return { status: "not_configured" };
+    if (!url || !key) return [false, false];
     const res = await fetch(`${url}/auth/v1/health`, {
       headers: { apikey: key },
       signal: AbortSignal.timeout(3000),
     });
-    return {
-      status: res.ok ? "ok" : "degraded",
-      latency_ms: Date.now() - started,
-    };
-  } catch (err) {
-    return {
-      status: "down",
-      latency_ms: Date.now() - started,
-      error: err instanceof Error ? err.message : "unknown",
-    };
+    return [res.ok, true];
+  } catch {
+    return [false, false];
   }
 }
