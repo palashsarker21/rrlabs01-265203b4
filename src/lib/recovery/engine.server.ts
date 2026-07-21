@@ -403,33 +403,39 @@ export async function runRecoveryForEvent({ eventId }: RunRecoveryArgs): Promise
     (!emailMatch.matched || !waMatch.matched) &&
     !(cached && cached.email_subject && cached.email_body && cached.whatsapp_text);
 
-  const analysis: RecoveryAnalysis =
-    cached && cached.email_subject && cached.email_body && cached.whatsapp_text
-      ? (cached as RecoveryAnalysis)
-      : needAi
-        ? await analyzeFailure({
-            failure_code: event.failure_code,
-            failure_message: event.failure_message,
-            amount_cents: event.amount_cents,
-            currency: event.currency,
-            customer_name: customer?.name ?? null,
-            customer_email: customer?.email ?? null,
-            business_name: workspace.name,
-            update_payment_url: updateUrl,
-          })
-        : {
-            category: "other",
-            severity: "medium",
-            summary: event.failure_message ?? "Payment could not be processed.",
-            next_action: decision.suggest_update_payment_method ? "ask_update_card" : "retry_later",
-            email_subject: emailMatch.template?.subject ?? "Payment update needed",
-            email_body:
-              emailMatch.template?.body_text ??
-              "We tried to process your recent payment but it didn't go through. Please update your payment method when you get a moment.",
-            whatsapp_text:
-              waMatch.template?.body_text ??
-              "Quick note — your recent payment didn't go through. Could you take a look?",
-          };
+  let aiModelUsed: string = FALLBACK_MODEL;
+  let analysis: RecoveryAnalysis;
+  if (cached && cached.email_subject && cached.email_body && cached.whatsapp_text) {
+    analysis = cached as RecoveryAnalysis;
+  } else if (needAi) {
+    const result = await analyzeFailure({
+      failure_code: event.failure_code,
+      failure_message: event.failure_message,
+      amount_cents: event.amount_cents,
+      currency: event.currency,
+      customer_name: customer?.name ?? null,
+      customer_email: customer?.email ?? null,
+      business_name: workspace.name,
+      update_payment_url: updateUrl,
+      workspace_id: event.workspace_id,
+    });
+    analysis = result.analysis;
+    aiModelUsed = result.ai_model;
+  } else {
+    analysis = {
+      category: "other",
+      severity: "medium",
+      summary: event.failure_message ?? "Payment could not be processed.",
+      next_action: decision.suggest_update_payment_method ? "ask_update_card" : "retry_later",
+      email_subject: emailMatch.template?.subject ?? "Payment update needed",
+      email_body:
+        emailMatch.template?.body_text ??
+        "We tried to process your recent payment but it didn't go through. Please update your payment method when you get a moment.",
+      whatsapp_text:
+        waMatch.template?.body_text ??
+        "Quick note — your recent payment didn't go through. Could you take a look?",
+    };
+  }
 
   await supabaseAdmin
     .from("recovery_events")
