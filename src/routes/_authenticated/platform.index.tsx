@@ -23,7 +23,7 @@ import { getBillingMetrics } from "@/lib/billing-summary.functions";
 import { getPlatformBadges } from "@/lib/platform/badges.functions";
 
 export const Route = createFileRoute("/_authenticated/platform/")({
-  component: PlatformDashboard;
+  component: PlatformDashboard,
 });
 
 function money(cents: number | null | undefined) {
