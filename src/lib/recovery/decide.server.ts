@@ -82,7 +82,7 @@ function shiftPastQuietHours(d: Date, q: AutomationSettings["quiet_hours"]): Dat
 export function decideRecovery(input: DecisionInput): Decision {
   const now = input.now ?? new Date();
   const step = Math.max(0, input.step);
-  const schedule = input.automation.retry_schedule_minutes ?? [15, 1440, 2880];
+  const schedule = input.automation.retry_schedule_minutes ?? [120, 1440, 4320];
   const language = (input.preferred_language ?? "en").toLowerCase().slice(0, 5);
 
   if (step >= input.automation.max_retries) {
