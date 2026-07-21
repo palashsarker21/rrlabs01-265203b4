@@ -1497,8 +1497,10 @@ function UpgradeBadge({ reason, overLimit }: { reason: string; overLimit: boolea
 
 function RealtimeStatusBadge({
   status,
+  lastSyncedAt,
 }: {
   status: "connecting" | "connected" | "reconnecting" | "disconnected";
+  lastSyncedAt?: Date | null;
 }) {
   const config = {
     connected: {
@@ -1527,11 +1529,18 @@ function RealtimeStatusBadge({
     },
   }[status];
 
+  const syncedIso = lastSyncedAt ? lastSyncedAt.toISOString() : null;
+  const syncedAbs = lastSyncedAt ? lastSyncedAt.toLocaleString() : null;
+  const syncedRel = syncedIso ? timeAgo(syncedIso) : null;
+  const tooltip = syncedAbs
+    ? `${config.label} · Last sync ${syncedAbs}`
+    : config.label;
+
   return (
     <span
       role="status"
       aria-live="polite"
-      title={config.label}
+      title={tooltip}
       className={cn(
         "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium",
         config.cls,
@@ -1539,6 +1548,9 @@ function RealtimeStatusBadge({
     >
       <span className={cn("h-1.5 w-1.5 rounded-full", config.dot, config.pulse)} />
       {config.label}
+      {syncedRel && (
+        <span className="ml-1 opacity-70">· synced {syncedRel}</span>
+      )}
     </span>
   );
 }
