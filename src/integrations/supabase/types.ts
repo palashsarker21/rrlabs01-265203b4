@@ -265,11 +265,14 @@ export type Database = {
       }
       ai_providers: {
         Row: {
+          api_key_updated_at: string | null
+          api_key_updated_by: string | null
           auth_header: string
           auth_scheme: string
           base_url: string
           created_at: string
           enabled: boolean
+          encrypted_api_key: string | null
           id: string
           metadata: Json
           name: string
@@ -280,11 +283,14 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          api_key_updated_at?: string | null
+          api_key_updated_by?: string | null
           auth_header?: string
           auth_scheme?: string
           base_url: string
           created_at?: string
           enabled?: boolean
+          encrypted_api_key?: string | null
           id?: string
           metadata?: Json
           name: string
@@ -295,11 +301,14 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          api_key_updated_at?: string | null
+          api_key_updated_by?: string | null
           auth_header?: string
           auth_scheme?: string
           base_url?: string
           created_at?: string
           enabled?: boolean
+          encrypted_api_key?: string | null
           id?: string
           metadata?: Json
           name?: string
