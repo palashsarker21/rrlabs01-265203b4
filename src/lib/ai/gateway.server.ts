@@ -74,6 +74,7 @@ interface ModelRow {
   provider_slug: string;
   provider_base_url: string;
   provider_secret_env: string;
+  provider_encrypted_api_key: string | null;
   provider_enabled: boolean;
 }
 
