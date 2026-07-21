@@ -236,10 +236,6 @@ async function callModel(
     "Content-Type": "application/json",
     Authorization: `Bearer ${key}`,
   };
-  if (model.provider_slug === "lovable" || model.provider_slug === "google") {
-    headers["Lovable-API-Key"] = key;
-    headers["X-Lovable-AIG-SDK"] = "rrlabs-gateway";
-  }
   if (model.provider_slug === "openrouter") {
     headers["HTTP-Referer"] = "https://www.rrlabs.online";
     headers["X-Title"] = "RRLabs";

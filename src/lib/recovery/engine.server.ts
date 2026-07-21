@@ -5,11 +5,10 @@
  * Server-only. Callers: Stripe webhook route + retry server function.
  */
 
-import { generateText, Output } from "ai";
 import { z } from "zod";
 
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { createLovableGateway, DEFAULT_CHAT_MODEL } from "@/lib/ai-gateway.server";
+import { runAI } from "@/lib/ai/gateway.server";
 import { decryptJSON } from "@/lib/crypto.server";
 import { sendEmailViaResend, sendWhatsAppText } from "./dispatch.server";
 import { classifyFailure } from "./classify.server";
@@ -55,18 +54,46 @@ interface AnalyzeInput {
   customer_email: string | null;
   business_name: string | null;
   update_payment_url?: string | null;
+  workspace_id?: string | null;
 }
 
-export async function analyzeFailure(input: AnalyzeInput): Promise<RecoveryAnalysis> {
-  const gateway = createLovableGateway();
-  const model = gateway(DEFAULT_CHAT_MODEL);
+export interface RecoveryAnalysisResult {
+  analysis: RecoveryAnalysis;
+  ai_model: string;
+}
 
+const FALLBACK_MODEL = "fallback";
+
+function buildFallbackAnalysis(input: AnalyzeInput): RecoveryAnalysis {
+  const name = input.customer_name?.split(" ")[0] ?? "there";
+  return {
+    category: "other",
+    severity: "medium",
+    summary: input.failure_message ?? "Payment could not be processed.",
+    next_action: "ask_update_card",
+    email_subject: `Quick heads up about your recent payment`,
+    email_body:
+      `Hi ${name},\n\nWe tried to process your recent payment but the bank returned an error.\n` +
+      `Could you take a moment to update your payment method${input.update_payment_url ? ` here: ${input.update_payment_url}` : ""}? It only takes a minute.\n\n` +
+      `Thanks so much,\n${input.business_name ?? "The team"}`,
+    whatsapp_text:
+      `Hi ${name}, quick note — your recent payment didn't go through. ` +
+      (input.update_payment_url
+        ? `You can update your card here: ${input.update_payment_url}`
+        : "Could you take a look when you get a moment?"),
+  };
+}
+
+export async function analyzeFailure(input: AnalyzeInput): Promise<RecoveryAnalysisResult> {
   const amount =
     input.amount_cents != null && input.currency
       ? `${(input.amount_cents / 100).toFixed(2)} ${input.currency.toUpperCase()}`
       : "the outstanding amount";
 
-  const prompt = `You are the recovery specialist for ${input.business_name ?? "an online business"}.
+  const system =
+    "You are a senior payment recovery specialist. Reply with ONLY a valid JSON object matching the requested schema. No prose, no code fences.";
+
+  const user = `You are the recovery specialist for ${input.business_name ?? "an online business"}.
 A payment just failed. Analyse the failure and draft warm, concise recovery messages the customer will actually respond to.
 
 Failure code: ${input.failure_code ?? "unknown"}
@@ -82,35 +109,47 @@ Rules:
 - Email body: plain text, 3 short paragraphs max, sign as "${input.business_name ?? "The team"}".
 - WhatsApp text: 1–2 sentences, casual but professional. If a link is available, include it.
 - Do NOT include the amount if it's unknown.
-- Never include placeholders like {name} — write finished copy.`;
+- Never include placeholders like {name} — write finished copy.
 
-  try {
-    const { output } = await generateText({
-      model,
-      output: Output.object({ schema: AnalysisSchema }),
-      prompt,
-    });
-    return output;
-  } catch (err) {
-    // Deterministic fallback so the engine never blocks on an AI outage.
-    const name = input.customer_name?.split(" ")[0] ?? "there";
-    return {
-      category: "other",
-      severity: "medium",
-      summary: input.failure_message ?? "Payment could not be processed.",
-      next_action: "ask_update_card",
-      email_subject: `Quick heads up about your recent payment`,
-      email_body:
-        `Hi ${name},\n\nWe tried to process your recent payment but the bank returned an error.\n` +
-        `Could you take a moment to update your payment method${input.update_payment_url ? ` here: ${input.update_payment_url}` : ""}? It only takes a minute.\n\n` +
-        `Thanks so much,\n${input.business_name ?? "The team"}`,
-      whatsapp_text:
-        `Hi ${name}, quick note — your recent payment didn't go through. ` +
-        (input.update_payment_url
-          ? `You can update your card here: ${input.update_payment_url}`
-          : "Could you take a look when you get a moment?"),
-    };
+Return JSON with exactly these fields:
+{
+  "category": one of ["insufficient_funds","expired_card","card_declined","authentication_required","fraud_suspected","processor_error","other"],
+  "severity": one of ["low","medium","high"],
+  "summary": string (max 280 chars),
+  "next_action": one of ["retry_later","ask_update_card","ask_authenticate","contact_support","abandon"],
+  "email_subject": string (max 120 chars),
+  "email_body": string (max 1800 chars),
+  "whatsapp_text": string (max 700 chars)
+}`;
+
+  const maxAttempts = 2;
+  let lastErr: unknown;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      const res = await runAI({
+        task: "failure_analysis",
+        workspaceId: input.workspace_id ?? null,
+        system,
+        user,
+        json: true,
+        metadata: { component: "recovery-engine", attempt },
+      });
+      if (!res.ok) {
+        lastErr = new Error(res.error ?? "AI gateway failure");
+        continue;
+      }
+      const parsed = AnalysisSchema.safeParse(res.json);
+      if (parsed.success) {
+        return { analysis: parsed.data, ai_model: res.model };
+      }
+      lastErr = parsed.error;
+    } catch (err) {
+      lastErr = err;
+    }
   }
+
+  console.error("[recovery-engine] analyzeFailure fell back to deterministic copy", lastErr);
+  return { analysis: buildFallbackAnalysis(input), ai_model: FALLBACK_MODEL };
 }
 
 // ---------------------------------------------------------------------------
@@ -364,33 +403,39 @@ export async function runRecoveryForEvent({ eventId }: RunRecoveryArgs): Promise
     (!emailMatch.matched || !waMatch.matched) &&
     !(cached && cached.email_subject && cached.email_body && cached.whatsapp_text);
 
-  const analysis: RecoveryAnalysis =
-    cached && cached.email_subject && cached.email_body && cached.whatsapp_text
-      ? (cached as RecoveryAnalysis)
-      : needAi
-        ? await analyzeFailure({
-            failure_code: event.failure_code,
-            failure_message: event.failure_message,
-            amount_cents: event.amount_cents,
-            currency: event.currency,
-            customer_name: customer?.name ?? null,
-            customer_email: customer?.email ?? null,
-            business_name: workspace.name,
-            update_payment_url: updateUrl,
-          })
-        : {
-            category: "other",
-            severity: "medium",
-            summary: event.failure_message ?? "Payment could not be processed.",
-            next_action: decision.suggest_update_payment_method ? "ask_update_card" : "retry_later",
-            email_subject: emailMatch.template?.subject ?? "Payment update needed",
-            email_body:
-              emailMatch.template?.body_text ??
-              "We tried to process your recent payment but it didn't go through. Please update your payment method when you get a moment.",
-            whatsapp_text:
-              waMatch.template?.body_text ??
-              "Quick note — your recent payment didn't go through. Could you take a look?",
-          };
+  let aiModelUsed: string = FALLBACK_MODEL;
+  let analysis: RecoveryAnalysis;
+  if (cached && cached.email_subject && cached.email_body && cached.whatsapp_text) {
+    analysis = cached as RecoveryAnalysis;
+  } else if (needAi) {
+    const result = await analyzeFailure({
+      failure_code: event.failure_code,
+      failure_message: event.failure_message,
+      amount_cents: event.amount_cents,
+      currency: event.currency,
+      customer_name: customer?.name ?? null,
+      customer_email: customer?.email ?? null,
+      business_name: workspace.name,
+      update_payment_url: updateUrl,
+      workspace_id: event.workspace_id,
+    });
+    analysis = result.analysis;
+    aiModelUsed = result.ai_model;
+  } else {
+    analysis = {
+      category: "other",
+      severity: "medium",
+      summary: event.failure_message ?? "Payment could not be processed.",
+      next_action: decision.suggest_update_payment_method ? "ask_update_card" : "retry_later",
+      email_subject: emailMatch.template?.subject ?? "Payment update needed",
+      email_body:
+        emailMatch.template?.body_text ??
+        "We tried to process your recent payment but it didn't go through. Please update your payment method when you get a moment.",
+      whatsapp_text:
+        waMatch.template?.body_text ??
+        "Quick note — your recent payment didn't go through. Could you take a look?",
+    };
+  }
 
   await supabaseAdmin
     .from("recovery_events")
@@ -441,7 +486,7 @@ export async function runRecoveryForEvent({ eventId }: RunRecoveryArgs): Promise
           subject,
           body_text: bodyText,
           body_html: bodyHtml ?? null,
-          ai_model: DEFAULT_CHAT_MODEL,
+          ai_model: aiModelUsed,
         })
         .select("id")
         .single();
@@ -501,7 +546,7 @@ export async function runRecoveryForEvent({ eventId }: RunRecoveryArgs): Promise
           status: "sending",
           to_address: customer.phone,
           body_text: text,
-          ai_model: DEFAULT_CHAT_MODEL,
+          ai_model: aiModelUsed,
         })
         .select("id")
         .single();
