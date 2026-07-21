@@ -3792,9 +3792,14 @@ export type Database = {
       workspace_automation_settings: {
         Row: {
           ai_enabled: boolean
+          automation_mode: string
+          brand_voice: string
+          brand_voice_custom: string | null
           business_hours: Json
           created_at: string
+          escalation_rules: Json
           holiday_calendar: Json
+          max_discount_percent: number
           max_retries: number
           preferred_channels: string[]
           quiet_hours: Json
@@ -3806,9 +3811,14 @@ export type Database = {
         }
         Insert: {
           ai_enabled?: boolean
+          automation_mode?: string
+          brand_voice?: string
+          brand_voice_custom?: string | null
           business_hours?: Json
           created_at?: string
+          escalation_rules?: Json
           holiday_calendar?: Json
+          max_discount_percent?: number
           max_retries?: number
           preferred_channels?: string[]
           quiet_hours?: Json
@@ -3820,9 +3830,14 @@ export type Database = {
         }
         Update: {
           ai_enabled?: boolean
+          automation_mode?: string
+          brand_voice?: string
+          brand_voice_custom?: string | null
           business_hours?: Json
           created_at?: string
+          escalation_rules?: Json
           holiday_calendar?: Json
+          max_discount_percent?: number
           max_retries?: number
           preferred_channels?: string[]
           quiet_hours?: Json
