@@ -486,7 +486,7 @@ export async function runRecoveryForEvent({ eventId }: RunRecoveryArgs): Promise
           subject,
           body_text: bodyText,
           body_html: bodyHtml ?? null,
-          ai_model: DEFAULT_CHAT_MODEL,
+          ai_model: aiModelUsed,
         })
         .select("id")
         .single();
@@ -546,7 +546,7 @@ export async function runRecoveryForEvent({ eventId }: RunRecoveryArgs): Promise
           status: "sending",
           to_address: customer.phone,
           body_text: text,
-          ai_model: DEFAULT_CHAT_MODEL,
+          ai_model: aiModelUsed,
         })
         .select("id")
         .single();
