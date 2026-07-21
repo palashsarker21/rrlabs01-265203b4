@@ -111,7 +111,22 @@ export const getCustomerDetail = createServerFn({ method: "POST" })
     const { supabase, userId } = context;
     await assertSuperAdmin(supabase as never, userId);
 
-    const [wsR, membersR, subsR, integrationsR, eventsR, auditR] = await Promise.all([
+    const since30 = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+
+    const [
+      wsR,
+      membersR,
+      subsR,
+      integrationsR,
+      eventsCountR,
+      recentEventsR,
+      recoveredR,
+      failedR,
+      pendingR,
+      recoveredAmountR,
+      supportR,
+      auditR,
+    ] = await Promise.all([
       supabase
         .from("workspaces")
         .select(
@@ -126,7 +141,7 @@ export const getCustomerDetail = createServerFn({ method: "POST" })
       supabase
         .from("subscriptions")
         .select(
-          "id, plan_id, status, current_period_start, current_period_end, cancelled_at, ls_subscription_id",
+          "id, plan_id, status, current_period_start, current_period_end, cancelled_at, renews_at, ends_at, card_brand, card_last_four, ls_subscription_id, customer_portal_url, plans(code, name, price_cents, currency, interval)",
         )
         .eq("workspace_id", data.workspaceId)
         .order("created_at", { ascending: false })
@@ -137,8 +152,49 @@ export const getCustomerDetail = createServerFn({ method: "POST" })
         .eq("workspace_id", data.workspaceId),
       supabase
         .from("recovery_events")
-        .select("id, status, amount_cents, currency, created_at", { count: "exact", head: true })
+        .select("id", { count: "exact", head: true })
         .eq("workspace_id", data.workspaceId),
+      supabase
+        .from("recovery_events")
+        .select(
+          "id, status, provider, amount_cents, currency, failure_category, failure_code, next_action, next_run_at, recovered_at, created_at",
+        )
+        .eq("workspace_id", data.workspaceId)
+        .order("created_at", { ascending: false })
+        .limit(15),
+      supabase
+        .from("recovery_events")
+        .select("id", { count: "exact", head: true })
+        .eq("workspace_id", data.workspaceId)
+        .eq("status", "recovered")
+        .gte("recovered_at", since30),
+      supabase
+        .from("recovery_events")
+        .select("id", { count: "exact", head: true })
+        .eq("workspace_id", data.workspaceId)
+        .eq("status", "failed")
+        .gte("created_at", since30),
+      supabase
+        .from("recovery_events")
+        .select("id", { count: "exact", head: true })
+        .eq("workspace_id", data.workspaceId)
+        .in("status", ["new", "analyzing", "recovering"])
+        .gte("created_at", since30),
+      supabase
+        .from("recovery_events")
+        .select("amount_cents, currency")
+        .eq("workspace_id", data.workspaceId)
+        .eq("status", "recovered")
+        .gte("recovered_at", since30)
+        .limit(1000),
+      supabase
+        .from("support_conversations")
+        .select(
+          "id, subject, status, priority, category, assigned_to, last_message_at, unread_staff, created_at",
+        )
+        .eq("workspace_id", data.workspaceId)
+        .order("last_message_at", { ascending: false, nullsFirst: false })
+        .limit(15),
       supabase
         .from("audit_logs")
         .select("id, action, actor_email, target_type, target_id, details, created_at")
@@ -148,15 +204,67 @@ export const getCustomerDetail = createServerFn({ method: "POST" })
     ]);
 
     if (wsR.error) throw new Error(wsR.error.message);
+
+    const recoveredRows = (recoveredAmountR.data ?? []) as Array<{
+      amount_cents: number | null;
+      currency: string | null;
+    }>;
+    const recoveredAmountByCurrency: Record<string, number> = {};
+    for (const r of recoveredRows) {
+      const cur = (r.currency ?? "USD").toUpperCase();
+      recoveredAmountByCurrency[cur] = (recoveredAmountByCurrency[cur] ?? 0) + (r.amount_cents ?? 0);
+    }
+
+    const subs = (subsR.data ?? []) as Array<{
+      id: string;
+      status: string | null;
+      plan_id: string | null;
+      current_period_start: string | null;
+      current_period_end: string | null;
+      cancelled_at: string | null;
+      renews_at: string | null;
+      ends_at: string | null;
+      card_brand: string | null;
+      card_last_four: string | null;
+      ls_subscription_id: string | null;
+      customer_portal_url: string | null;
+      plans:
+        | { code: string; name: string; price_cents: number; currency: string; interval: string }
+        | null;
+    }>;
+    const activeSub =
+      subs.find((s) => s.status === "active" || s.status === "on_trial" || s.status === "past_due") ??
+      subs[0] ??
+      null;
+    const mrrCents =
+      activeSub?.plans?.interval === "month" ? activeSub?.plans?.price_cents ?? null : null;
+    const arrCents =
+      activeSub?.plans?.interval === "year" ? activeSub?.plans?.price_cents ?? null : null;
+
     return {
       workspace: wsR.data,
       members: membersR.data ?? [],
-      subscriptions: subsR.data ?? [],
+      subscriptions: subs,
+      subscriptionHealth: {
+        active: activeSub,
+        mrrCents,
+        arrCents,
+        currency: activeSub?.plans?.currency ?? "USD",
+      },
       integrations: integrationsR.data ?? [],
-      eventsCount: eventsR.count ?? 0,
+      eventsCount: eventsCountR.count ?? 0,
+      recovery: {
+        recentEvents: recentEventsR.data ?? [],
+        recovered30d: recoveredR.count ?? 0,
+        failed30d: failedR.count ?? 0,
+        pending30d: pendingR.count ?? 0,
+        recoveredAmountByCurrency,
+      },
+      support: supportR.data ?? [],
       audit: auditR.data ?? [],
     };
   });
+
 
 /** Change workspace status (activate / pause / suspend / archive / cancel). */
 export const setCustomerStatus = createServerFn({ method: "POST" })
