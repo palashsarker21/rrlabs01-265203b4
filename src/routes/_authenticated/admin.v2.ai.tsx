@@ -36,12 +36,18 @@ function AiPlatformPage() {
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 p-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">AI Platform</h1>
-        <p className="text-sm text-muted-foreground">
-          Manage AI providers, keys, and health. Keys are encrypted at rest (AES-256-GCM) and only super admins can view or update them.
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">AI Platform</h1>
+          <p className="text-sm text-muted-foreground">
+            Manage AI providers, keys, and health. Keys are encrypted at rest (AES-256-GCM) and only super admins can view or update them.
+          </p>
+        </div>
+        <Button asChild variant="outline" size="sm">
+          <a href="/admin/v2/ai/analytics">View analytics →</a>
+        </Button>
       </div>
+
 
       {isLoading ? (
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
