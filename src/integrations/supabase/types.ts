@@ -2697,6 +2697,470 @@ export type Database = {
           },
         ]
       }
+      support_activity_logs: {
+        Row: {
+          action: string
+          actor_id: string | null
+          conversation_id: string | null
+          created_at: string
+          id: string
+          payload: Json
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          conversation_id?: string | null
+          created_at?: string
+          id?: string
+          payload?: Json
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          conversation_id?: string | null
+          created_at?: string
+          id?: string
+          payload?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_activity_logs_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "support_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      support_assignments: {
+        Row: {
+          assigned_at: string
+          assigned_by: string | null
+          assignee_id: string | null
+          conversation_id: string
+          id: string
+          reason: string | null
+          released_at: string | null
+        }
+        Insert: {
+          assigned_at?: string
+          assigned_by?: string | null
+          assignee_id?: string | null
+          conversation_id: string
+          id?: string
+          reason?: string | null
+          released_at?: string | null
+        }
+        Update: {
+          assigned_at?: string
+          assigned_by?: string | null
+          assignee_id?: string | null
+          conversation_id?: string
+          id?: string
+          reason?: string | null
+          released_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_assignments_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "support_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      support_attachments: {
+        Row: {
+          content_type: string
+          conversation_id: string
+          created_at: string
+          file_name: string
+          id: string
+          message_id: string | null
+          scan_status: string
+          size_bytes: number
+          storage_path: string
+          uploader_id: string | null
+        }
+        Insert: {
+          content_type: string
+          conversation_id: string
+          created_at?: string
+          file_name: string
+          id?: string
+          message_id?: string | null
+          scan_status?: string
+          size_bytes: number
+          storage_path: string
+          uploader_id?: string | null
+        }
+        Update: {
+          content_type?: string
+          conversation_id?: string
+          created_at?: string
+          file_name?: string
+          id?: string
+          message_id?: string | null
+          scan_status?: string
+          size_bytes?: number
+          storage_path?: string
+          uploader_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_attachments_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "support_conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "support_attachments_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "support_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      support_conversation_tags: {
+        Row: {
+          conversation_id: string
+          created_at: string
+          tag_id: string
+        }
+        Insert: {
+          conversation_id: string
+          created_at?: string
+          tag_id: string
+        }
+        Update: {
+          conversation_id?: string
+          created_at?: string
+          tag_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_conversation_tags_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "support_conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "support_conversation_tags_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "support_tags"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      support_conversations: {
+        Row: {
+          ai_summary: Json | null
+          archived_at: string | null
+          assigned_to: string | null
+          category: Database["public"]["Enums"]["support_category"]
+          closed_at: string | null
+          created_at: string
+          customer_id: string
+          first_response_at: string | null
+          id: string
+          important: boolean
+          last_message_at: string | null
+          metadata: Json
+          pinned: boolean
+          priority: Database["public"]["Enums"]["support_priority"]
+          resolved_at: string | null
+          status: Database["public"]["Enums"]["support_status"]
+          subject: string | null
+          unread_customer: number
+          unread_staff: number
+          updated_at: string
+          workspace_id: string | null
+        }
+        Insert: {
+          ai_summary?: Json | null
+          archived_at?: string | null
+          assigned_to?: string | null
+          category?: Database["public"]["Enums"]["support_category"]
+          closed_at?: string | null
+          created_at?: string
+          customer_id: string
+          first_response_at?: string | null
+          id?: string
+          important?: boolean
+          last_message_at?: string | null
+          metadata?: Json
+          pinned?: boolean
+          priority?: Database["public"]["Enums"]["support_priority"]
+          resolved_at?: string | null
+          status?: Database["public"]["Enums"]["support_status"]
+          subject?: string | null
+          unread_customer?: number
+          unread_staff?: number
+          updated_at?: string
+          workspace_id?: string | null
+        }
+        Update: {
+          ai_summary?: Json | null
+          archived_at?: string | null
+          assigned_to?: string | null
+          category?: Database["public"]["Enums"]["support_category"]
+          closed_at?: string | null
+          created_at?: string
+          customer_id?: string
+          first_response_at?: string | null
+          id?: string
+          important?: boolean
+          last_message_at?: string | null
+          metadata?: Json
+          pinned?: boolean
+          priority?: Database["public"]["Enums"]["support_priority"]
+          resolved_at?: string | null
+          status?: Database["public"]["Enums"]["support_status"]
+          subject?: string | null
+          unread_customer?: number
+          unread_staff?: number
+          updated_at?: string
+          workspace_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_conversations_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      support_feedback: {
+        Row: {
+          agent_id: string | null
+          comment: string | null
+          conversation_id: string
+          created_at: string
+          customer_id: string
+          id: string
+          rating: Database["public"]["Enums"]["support_feedback_rating"] | null
+          stars: number
+        }
+        Insert: {
+          agent_id?: string | null
+          comment?: string | null
+          conversation_id: string
+          created_at?: string
+          customer_id: string
+          id?: string
+          rating?: Database["public"]["Enums"]["support_feedback_rating"] | null
+          stars: number
+        }
+        Update: {
+          agent_id?: string | null
+          comment?: string | null
+          conversation_id?: string
+          created_at?: string
+          customer_id?: string
+          id?: string
+          rating?: Database["public"]["Enums"]["support_feedback_rating"] | null
+          stars?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_feedback_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "support_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      support_internal_notes: {
+        Row: {
+          author_id: string | null
+          body: string
+          conversation_id: string
+          created_at: string
+          id: string
+          mentions: string[]
+          updated_at: string
+        }
+        Insert: {
+          author_id?: string | null
+          body: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          mentions?: string[]
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string | null
+          body?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          mentions?: string[]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_internal_notes_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "support_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      support_messages: {
+        Row: {
+          attachments: Json
+          body: string
+          client_message_id: string | null
+          conversation_id: string
+          created_at: string
+          deleted_at: string | null
+          delivery_status: Database["public"]["Enums"]["support_delivery_status"]
+          edited_at: string | null
+          id: string
+          is_staff: boolean
+          kind: Database["public"]["Enums"]["support_message_kind"]
+          metadata: Json
+          seen_at: string | null
+          sender_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          attachments?: Json
+          body?: string
+          client_message_id?: string | null
+          conversation_id: string
+          created_at?: string
+          deleted_at?: string | null
+          delivery_status?: Database["public"]["Enums"]["support_delivery_status"]
+          edited_at?: string | null
+          id?: string
+          is_staff?: boolean
+          kind?: Database["public"]["Enums"]["support_message_kind"]
+          metadata?: Json
+          seen_at?: string | null
+          sender_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          attachments?: Json
+          body?: string
+          client_message_id?: string | null
+          conversation_id?: string
+          created_at?: string
+          deleted_at?: string | null
+          delivery_status?: Database["public"]["Enums"]["support_delivery_status"]
+          edited_at?: string | null
+          id?: string
+          is_staff?: boolean
+          kind?: Database["public"]["Enums"]["support_message_kind"]
+          metadata?: Json
+          seen_at?: string | null
+          sender_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "support_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      support_participants: {
+        Row: {
+          conversation_id: string
+          id: string
+          joined_at: string
+          last_read_at: string | null
+          role: string
+          user_id: string
+        }
+        Insert: {
+          conversation_id: string
+          id?: string
+          joined_at?: string
+          last_read_at?: string | null
+          role?: string
+          user_id: string
+        }
+        Update: {
+          conversation_id?: string
+          id?: string
+          joined_at?: string
+          last_read_at?: string | null
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_participants_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "support_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      support_presence: {
+        Row: {
+          is_staff: boolean
+          last_seen_at: string
+          status: Database["public"]["Enums"]["support_presence_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          is_staff?: boolean
+          last_seen_at?: string
+          status?: Database["public"]["Enums"]["support_presence_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          is_staff?: boolean
+          last_seen_at?: string
+          status?: Database["public"]["Enums"]["support_presence_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      support_tags: {
+        Row: {
+          color: string | null
+          created_at: string
+          id: string
+          label: string
+          slug: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          id?: string
+          label: string
+          slug: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          id?: string
+          label?: string
+          slug?: string
+        }
+        Relationships: []
+      }
       template_installations: {
         Row: {
           id: string
@@ -3172,6 +3636,10 @@ export type Database = {
         Args: { _user_id: string; _workspace_id: string }
         Returns: boolean
       }
+      can_view_support_conversation: {
+        Args: { _conv_id: string; _user_id: string }
+        Returns: boolean
+      }
       create_alert: {
         Args: {
           _category: Database["public"]["Enums"]["alert_category"]
@@ -3199,10 +3667,12 @@ export type Database = {
         Returns: boolean
       }
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_support_staff: { Args: { _user_id: string }; Returns: boolean }
       is_workspace_member: {
         Args: { _user_id: string; _workspace_id: string }
         Returns: boolean
       }
+      next_support_assignee: { Args: never; Returns: string }
       preview_workspace_invitation: {
         Args: { _token: string }
         Returns: {
@@ -3318,6 +3788,44 @@ export type Database = {
         | "expired"
       success_fee_adjustment_kind: "credit" | "debit" | "refund" | "manual"
       success_fee_status: "draft" | "finalized" | "invoiced" | "paid" | "voided"
+      support_category:
+        | "general"
+        | "billing"
+        | "technical"
+        | "integration"
+        | "recovery_engine"
+        | "bug_report"
+        | "feature_request"
+        | "security"
+        | "account"
+        | "other"
+      support_delivery_status:
+        | "sending"
+        | "sent"
+        | "delivered"
+        | "seen"
+        | "failed"
+      support_feedback_rating:
+        | "very_unsatisfied"
+        | "unsatisfied"
+        | "neutral"
+        | "satisfied"
+        | "very_satisfied"
+      support_message_kind: "text" | "system" | "note"
+      support_presence_status:
+        | "online"
+        | "available"
+        | "busy"
+        | "away"
+        | "offline"
+      support_priority: "low" | "normal" | "high" | "urgent" | "critical"
+      support_status:
+        | "open"
+        | "pending"
+        | "waiting"
+        | "resolved"
+        | "closed"
+        | "archived"
       template_source: "curated" | "ai_generated" | "custom"
       workspace_role: "owner" | "admin" | "manager" | "member" | "viewer"
       workspace_status:
@@ -3527,6 +4035,49 @@ export const Constants = {
       ],
       success_fee_adjustment_kind: ["credit", "debit", "refund", "manual"],
       success_fee_status: ["draft", "finalized", "invoiced", "paid", "voided"],
+      support_category: [
+        "general",
+        "billing",
+        "technical",
+        "integration",
+        "recovery_engine",
+        "bug_report",
+        "feature_request",
+        "security",
+        "account",
+        "other",
+      ],
+      support_delivery_status: [
+        "sending",
+        "sent",
+        "delivered",
+        "seen",
+        "failed",
+      ],
+      support_feedback_rating: [
+        "very_unsatisfied",
+        "unsatisfied",
+        "neutral",
+        "satisfied",
+        "very_satisfied",
+      ],
+      support_message_kind: ["text", "system", "note"],
+      support_presence_status: [
+        "online",
+        "available",
+        "busy",
+        "away",
+        "offline",
+      ],
+      support_priority: ["low", "normal", "high", "urgent", "critical"],
+      support_status: [
+        "open",
+        "pending",
+        "waiting",
+        "resolved",
+        "closed",
+        "archived",
+      ],
       template_source: ["curated", "ai_generated", "custom"],
       workspace_role: ["owner", "admin", "manager", "member", "viewer"],
       workspace_status: [
