@@ -3263,7 +3263,7 @@ export type Database = {
         | "system"
       alert_severity: "info" | "warning" | "critical"
       alert_status: "open" | "acknowledged" | "dismissed"
-      app_role: "super_admin" | "admin" | "user"
+      app_role: "super_admin" | "admin" | "user" | "support_agent" | "moderator"
       blog_post_status: "draft" | "scheduled" | "published" | "archived"
       email_pref_category:
         | "billing"
@@ -3466,7 +3466,7 @@ export const Constants = {
       ],
       alert_severity: ["info", "warning", "critical"],
       alert_status: ["open", "acknowledged", "dismissed"],
-      app_role: ["super_admin", "admin", "user"],
+      app_role: ["super_admin", "admin", "user", "support_agent", "moderator"],
       blog_post_status: ["draft", "scheduled", "published", "archived"],
       email_pref_category: [
         "billing",
