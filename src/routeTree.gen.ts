@@ -66,8 +66,10 @@ import { Route as AuthenticatedIntegrationsWhatsappRouteImport } from './routes/
 import { Route as AuthenticatedGettingStartedCompleteRouteImport } from './routes/_authenticated/getting-started.complete'
 import { Route as AuthenticatedCheckoutStatusRouteImport } from './routes/_authenticated/checkout.status'
 import { Route as AuthenticatedBillingStatementsRouteImport } from './routes/_authenticated/billing.statements'
+import { Route as AuthenticatedAdminV2RouteImport } from './routes/_authenticated/admin.v2'
 import { Route as AuthenticatedAdminMarketplaceRouteImport } from './routes/_authenticated/admin.marketplace'
 import { Route as AuthenticatedAdminEmailRouteImport } from './routes/_authenticated/admin.email'
+import { Route as AuthenticatedAdminV2IndexRouteImport } from './routes/_authenticated/admin.v2.index'
 import { Route as ApiPublicWebhooksStripeRouteImport } from './routes/api/public/webhooks/stripe'
 import { Route as ApiPublicWebhooksResendRouteImport } from './routes/api/public/webhooks.resend'
 import { Route as ApiPublicWebhooksLemonsqueezyRouteImport } from './routes/api/public/webhooks/lemonsqueezy'
@@ -378,6 +380,11 @@ const AuthenticatedBillingStatementsRoute =
     path: '/billing/statements',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAdminV2Route = AuthenticatedAdminV2RouteImport.update({
+  id: '/v2',
+  path: '/v2',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
 const AuthenticatedAdminMarketplaceRoute =
   AuthenticatedAdminMarketplaceRouteImport.update({
     id: '/marketplace',
@@ -389,6 +396,12 @@ const AuthenticatedAdminEmailRoute = AuthenticatedAdminEmailRouteImport.update({
   path: '/email',
   getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
+const AuthenticatedAdminV2IndexRoute =
+  AuthenticatedAdminV2IndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedAdminV2Route,
+  } as any)
 const ApiPublicWebhooksStripeRoute = ApiPublicWebhooksStripeRouteImport.update({
   id: '/api/public/webhooks/stripe',
   path: '/api/public/webhooks/stripe',
@@ -508,6 +521,7 @@ export interface FileRoutesByFullPath {
   '/blog/': typeof BlogIndexRoute
   '/admin/email': typeof AuthenticatedAdminEmailRouteWithChildren
   '/admin/marketplace': typeof AuthenticatedAdminMarketplaceRoute
+  '/admin/v2': typeof AuthenticatedAdminV2RouteWithChildren
   '/billing/statements': typeof AuthenticatedBillingStatementsRoute
   '/checkout/status': typeof AuthenticatedCheckoutStatusRoute
   '/getting-started/complete': typeof AuthenticatedGettingStartedCompleteRoute
@@ -530,6 +544,7 @@ export interface FileRoutesByFullPath {
   '/api/public/webhooks/lemonsqueezy': typeof ApiPublicWebhooksLemonsqueezyRoute
   '/api/public/webhooks/resend': typeof ApiPublicWebhooksResendRoute
   '/api/public/webhooks/stripe': typeof ApiPublicWebhooksStripeRoute
+  '/admin/v2/': typeof AuthenticatedAdminV2IndexRoute
   '/api/public/webhooks/$provider/$integrationId': typeof ApiPublicWebhooksProviderIntegrationIdRoute
 }
 export interface FileRoutesByTo {
@@ -601,6 +616,7 @@ export interface FileRoutesByTo {
   '/api/public/webhooks/lemonsqueezy': typeof ApiPublicWebhooksLemonsqueezyRoute
   '/api/public/webhooks/resend': typeof ApiPublicWebhooksResendRoute
   '/api/public/webhooks/stripe': typeof ApiPublicWebhooksStripeRoute
+  '/admin/v2': typeof AuthenticatedAdminV2IndexRoute
   '/api/public/webhooks/$provider/$integrationId': typeof ApiPublicWebhooksProviderIntegrationIdRoute
 }
 export interface FileRoutesById {
@@ -653,6 +669,7 @@ export interface FileRoutesById {
   '/blog/': typeof BlogIndexRoute
   '/_authenticated/admin/email': typeof AuthenticatedAdminEmailRouteWithChildren
   '/_authenticated/admin/marketplace': typeof AuthenticatedAdminMarketplaceRoute
+  '/_authenticated/admin/v2': typeof AuthenticatedAdminV2RouteWithChildren
   '/_authenticated/billing/statements': typeof AuthenticatedBillingStatementsRoute
   '/_authenticated/checkout/status': typeof AuthenticatedCheckoutStatusRoute
   '/_authenticated/getting-started/complete': typeof AuthenticatedGettingStartedCompleteRoute
@@ -675,6 +692,7 @@ export interface FileRoutesById {
   '/api/public/webhooks/lemonsqueezy': typeof ApiPublicWebhooksLemonsqueezyRoute
   '/api/public/webhooks/resend': typeof ApiPublicWebhooksResendRoute
   '/api/public/webhooks/stripe': typeof ApiPublicWebhooksStripeRoute
+  '/_authenticated/admin/v2/': typeof AuthenticatedAdminV2IndexRoute
   '/api/public/webhooks/$provider/$integrationId': typeof ApiPublicWebhooksProviderIntegrationIdRoute
 }
 export interface FileRouteTypes {
@@ -727,6 +745,7 @@ export interface FileRouteTypes {
     | '/blog/'
     | '/admin/email'
     | '/admin/marketplace'
+    | '/admin/v2'
     | '/billing/statements'
     | '/checkout/status'
     | '/getting-started/complete'
@@ -749,6 +768,7 @@ export interface FileRouteTypes {
     | '/api/public/webhooks/lemonsqueezy'
     | '/api/public/webhooks/resend'
     | '/api/public/webhooks/stripe'
+    | '/admin/v2/'
     | '/api/public/webhooks/$provider/$integrationId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -820,6 +840,7 @@ export interface FileRouteTypes {
     | '/api/public/webhooks/lemonsqueezy'
     | '/api/public/webhooks/resend'
     | '/api/public/webhooks/stripe'
+    | '/admin/v2'
     | '/api/public/webhooks/$provider/$integrationId'
   id:
     | '__root__'
@@ -871,6 +892,7 @@ export interface FileRouteTypes {
     | '/blog/'
     | '/_authenticated/admin/email'
     | '/_authenticated/admin/marketplace'
+    | '/_authenticated/admin/v2'
     | '/_authenticated/billing/statements'
     | '/_authenticated/checkout/status'
     | '/_authenticated/getting-started/complete'
@@ -893,6 +915,7 @@ export interface FileRouteTypes {
     | '/api/public/webhooks/lemonsqueezy'
     | '/api/public/webhooks/resend'
     | '/api/public/webhooks/stripe'
+    | '/_authenticated/admin/v2/'
     | '/api/public/webhooks/$provider/$integrationId'
   fileRoutesById: FileRoutesById
 }
@@ -1335,6 +1358,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedBillingStatementsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin/v2': {
+      id: '/_authenticated/admin/v2'
+      path: '/v2'
+      fullPath: '/admin/v2'
+      preLoaderRoute: typeof AuthenticatedAdminV2RouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/marketplace': {
       id: '/_authenticated/admin/marketplace'
       path: '/marketplace'
@@ -1348,6 +1378,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/email'
       preLoaderRoute: typeof AuthenticatedAdminEmailRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/v2/': {
+      id: '/_authenticated/admin/v2/'
+      path: '/'
+      fullPath: '/admin/v2/'
+      preLoaderRoute: typeof AuthenticatedAdminV2IndexRouteImport
+      parentRoute: typeof AuthenticatedAdminV2Route
     }
     '/api/public/webhooks/stripe': {
       id: '/api/public/webhooks/stripe'
@@ -1457,14 +1494,27 @@ const AuthenticatedAdminEmailRouteWithChildren =
     AuthenticatedAdminEmailRouteChildren,
   )
 
+interface AuthenticatedAdminV2RouteChildren {
+  AuthenticatedAdminV2IndexRoute: typeof AuthenticatedAdminV2IndexRoute
+}
+
+const AuthenticatedAdminV2RouteChildren: AuthenticatedAdminV2RouteChildren = {
+  AuthenticatedAdminV2IndexRoute: AuthenticatedAdminV2IndexRoute,
+}
+
+const AuthenticatedAdminV2RouteWithChildren =
+  AuthenticatedAdminV2Route._addFileChildren(AuthenticatedAdminV2RouteChildren)
+
 interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminEmailRoute: typeof AuthenticatedAdminEmailRouteWithChildren
   AuthenticatedAdminMarketplaceRoute: typeof AuthenticatedAdminMarketplaceRoute
+  AuthenticatedAdminV2Route: typeof AuthenticatedAdminV2RouteWithChildren
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminEmailRoute: AuthenticatedAdminEmailRouteWithChildren,
   AuthenticatedAdminMarketplaceRoute: AuthenticatedAdminMarketplaceRoute,
+  AuthenticatedAdminV2Route: AuthenticatedAdminV2RouteWithChildren,
 }
 
 const AuthenticatedAdminRouteWithChildren =
