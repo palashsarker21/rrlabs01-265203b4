@@ -32,21 +32,8 @@ export interface AvailableModelOption {
 
 const WorkspaceInput = z.object({ workspaceId: z.string().uuid() });
 
-async function assertCanManage(
-  supabase: {
-    rpc: (name: string, args: Record<string, unknown>) => Promise<{ data: unknown; error: { message: string } | null }>;
-  },
-  workspaceId: string,
-): Promise<void> {
-  const { data, error } = await supabase.rpc("can_manage_workspace", {
-    _workspace_id: workspaceId,
-    _user_id: (await supabase.rpc("auth_uid_placeholder", {}).catch(() => ({ data: null }))).data ?? undefined,
-  });
-  // The RPC above may pass undefined for _user_id; RLS still enforces on the
-  // write side. We do a best-effort role check but never block on RPC failure.
-  if (error) return;
-  if (data === false) throw new Error("You must be a workspace owner or admin to modify AI settings.");
-}
+
+
 
 export const getOrgAiSettings = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
