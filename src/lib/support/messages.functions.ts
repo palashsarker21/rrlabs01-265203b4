@@ -72,10 +72,7 @@ export const sendMessage = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
 
     const now = new Date().toISOString();
-    type ConvUpdate = Parameters<
-      ReturnType<typeof supabase.from<"support_conversations">>["update"]
-    >[0];
-    const patch: ConvUpdate = { last_message_at: now };
+    const patch: TablesUpdate<"support_conversations"> = { last_message_at: now };
     if (senderIsStaff) {
       patch.unread_customer = 1;
       if (!conv.data.first_response_at) patch.first_response_at = now;
