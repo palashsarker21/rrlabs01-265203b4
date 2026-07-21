@@ -30,18 +30,21 @@ export function PlatformShell() {
     queryFn: async () => (await supabase.auth.getUser()).data.user,
   });
 
+  const email = session?.email?.toLowerCase();
+  const founderMode = !!me?.isSuperAdmin && email === FOUNDER_EMAIL;
+
   useEffect(() => {
-    if (!isLoading && me && !me.isSuperAdmin) {
+    if (isLoading) return;
+    // Platform Control Center is founder-only: super_admin AND founder email.
+    if (!me?.isSuperAdmin || email !== FOUNDER_EMAIL) {
       navigate({ to: "/app", replace: true });
     }
-  }, [me, isLoading, navigate]);
+  }, [me, isLoading, email, navigate]);
 
   if (isLoading || !me) {
     return <div className="p-10 text-sm text-muted-foreground">Loading Platform Control Center…</div>;
   }
-  if (!me.isSuperAdmin) return null;
-
-  const founderMode = me.isSuperAdmin && session?.email?.toLowerCase() === FOUNDER_EMAIL;
+  if (!founderMode) return null;
 
   return (
     <div className="flex min-h-dvh w-full bg-background">
