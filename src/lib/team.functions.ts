@@ -136,7 +136,7 @@ export const createInvitation = createServerFn({ method: "POST" })
           inviterName: inviter?.display_name ?? inviter?.email ?? undefined,
           role: String(data.role),
           acceptUrl,
-        } as any,
+        } as never,
         workspaceId: data.workspaceId,
         idempotencyKey: `invite-${inv.id}`,
         metadata: { kind: "workspace_invitation", invitationId: inv.id },
