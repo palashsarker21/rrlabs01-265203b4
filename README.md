@@ -4,7 +4,7 @@ AI-powered payment recovery for subscription businesses. Listens to your payment
 
 ## Features
 
-- **Gemini-powered failure analysis** via the Lovable AI Gateway
+- **AI-powered failure analysis** via the centralized OpenRouter gateway
 - **Multi-touch cadence** — 0h, +1d, +3d, +7d follow-ups with per-workspace template overrides
 - **Email + WhatsApp dispatch** (Resend + Meta WhatsApp Cloud API)
 - **Live dashboard** — recovered revenue, recovery rate, at-risk amounts, event stream
@@ -19,7 +19,7 @@ AI-powered payment recovery for subscription businesses. Listens to your payment
 - **Build**: Vite 7
 - **Styling**: Tailwind CSS v4 (`src/styles.css`) + shadcn/ui
 - **Backend**: Lovable Cloud (Supabase — Postgres, Auth, RLS, pg_cron, pg_net)
-- **AI**: Lovable AI Gateway (Gemini)
+- **AI**: OpenRouter (multi-model routing, fallback, caching)
 - **Payments**: Stripe webhooks + Lemon Squeezy billing
 - **Deployment**: Cloudflare Workers (edge)
 
@@ -78,7 +78,7 @@ Every table enforces **row-level security**. Grants are declared in the same mig
 ## Recovery engine flow
 
 1. Stripe webhook (`payment_intent.payment_failed`, `invoice.payment_failed`, …) hits `/api/public/webhooks/stripe?w=<workspace_id>`; signature verified per workspace.
-2. Engine inserts a `recovery_events` row and calls Gemini via the AI Gateway to classify the failure and draft copy.
+2. Engine inserts a `recovery_events` row and calls the centralized AI gateway (OpenRouter) to classify the failure and draft copy.
 3. Dispatcher sends the message via Resend / WhatsApp, records provider IDs and delivery state.
 4. `pg_cron` pings `/api/public/hooks/recovery-cadence` every 15 minutes; due events advance to the next cadence step (0h → +1d → +3d → +7d → auto-abandon).
 5. `payment_intent.succeeded` / `invoice.payment_succeeded` closes the event as recovered.
@@ -96,7 +96,8 @@ Secrets (server-only, stored in the platform secret manager):
 - `SUPABASE_SERVICE_ROLE_KEY` — admin client
 - `INTEGRATION_ENCRYPTION_KEY` — AES-256-GCM key for `integrations.secrets`
 - `STRIPE_WEBHOOK_SECRET_DEFAULT` — fallback signature secret (per-workspace secrets live in `integrations`)
-- `LOVABLE_API_KEY` — AI Gateway
+- `OPEN_ROUTER_API_KEY` — AI gateway (OpenRouter)
+- `RRLABS_ENCRYPTION_KEY` — platform-wide encryption key
 - `LEMONSQUEEZY_WEBHOOK_SECRET`
 
 ## Development
