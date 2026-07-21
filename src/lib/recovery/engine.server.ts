@@ -398,14 +398,23 @@ export async function runRecoveryForEvent({ eventId }: RunRecoveryArgs): Promise
     automation.template_reuse_threshold,
   );
 
+  // Enterprise workflow: generate a fresh AI message for every attempt so the
+  // customer never receives duplicate wording. We only reuse the cached
+  // analysis on step 0 (the initial webhook-triggered send). Subsequent
+  // attempts (2h/24h/72h later) always regenerate with the current tone/step.
+  const reuseCached =
+    currentStep === 0 &&
+    !!cached &&
+    !!cached.email_subject &&
+    !!cached.email_body &&
+    !!cached.whatsapp_text;
+
   const needAi =
-    automation.ai_enabled &&
-    (!emailMatch.matched || !waMatch.matched) &&
-    !(cached && cached.email_subject && cached.email_body && cached.whatsapp_text);
+    automation.ai_enabled && (!emailMatch.matched || !waMatch.matched) && !reuseCached;
 
   let aiModelUsed: string = FALLBACK_MODEL;
   let analysis: RecoveryAnalysis;
-  if (cached && cached.email_subject && cached.email_body && cached.whatsapp_text) {
+  if (reuseCached) {
     analysis = cached as RecoveryAnalysis;
   } else if (needAi) {
     const result = await analyzeFailure({

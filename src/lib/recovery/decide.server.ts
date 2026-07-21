@@ -24,10 +24,13 @@ export interface AutomationSettings {
 export const DEFAULT_AUTOMATION: AutomationSettings = {
   timezone: "UTC",
   quiet_hours: { start: 21, end: 8 },
-  max_retries: 3,
+  max_retries: 4,
   preferred_channels: ["whatsapp", "email", "sms"],
   ai_enabled: true,
-  retry_schedule_minutes: [15, 1440, 2880],
+  // Gaps BETWEEN attempts. The first attempt fires immediately from the
+  // webhook path; these values schedule attempts #2, #3, and #4:
+  //   attempt #2 → +2 hours, #3 → +24 hours, #4 → +72 hours.
+  retry_schedule_minutes: [120, 1440, 4320],
   template_reuse_threshold: 0.72,
 };
 
@@ -79,7 +82,7 @@ function shiftPastQuietHours(d: Date, q: AutomationSettings["quiet_hours"]): Dat
 export function decideRecovery(input: DecisionInput): Decision {
   const now = input.now ?? new Date();
   const step = Math.max(0, input.step);
-  const schedule = input.automation.retry_schedule_minutes ?? [15, 1440, 2880];
+  const schedule = input.automation.retry_schedule_minutes ?? [120, 1440, 4320];
   const language = (input.preferred_language ?? "en").toLowerCase().slice(0, 5);
 
   if (step >= input.automation.max_retries) {
