@@ -56,7 +56,7 @@ const SUBPROCESSORS: readonly Subprocessor[] = [
     region: "US",
   },
   {
-    name: "Lovable AI Gateway",
+    name: "OpenRouter",
     purpose: "LLM inference for automated recovery messaging.",
     region: "US / EU",
   },

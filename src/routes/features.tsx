@@ -41,7 +41,7 @@ const FEATURES = [
   {
     icon: Bot,
     title: "Gemini-powered analysis",
-    body: "Every failed payment is triaged by Gemini via the Lovable AI Gateway. It classifies the failure and drafts warm, on-brand copy per customer.",
+    body: "Every failed payment is triaged by the AI gateway (OpenRouter). It classifies the failure and drafts warm, on-brand copy per customer.",
   },
   {
     icon: Workflow,
