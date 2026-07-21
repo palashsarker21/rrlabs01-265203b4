@@ -25,7 +25,6 @@ export type SystemHealthReport = {
   };
   ai: {
     openrouter: InternalCheck;
-    lovable_gateway: InternalCheck;
   };
   messaging: {
     resend: InternalCheck;
@@ -94,7 +93,6 @@ export const getSystemHealth = createServerFn({ method: "GET" })
     };
     const ai = {
       openrouter: checkConfigured(process.env.OPEN_ROUTER_API_KEY),
-      lovable_gateway: checkConfigured(process.env.LOVABLE_API_KEY),
     };
     const messaging = {
       resend: checkConfigured(process.env.RESEND_API_KEY),

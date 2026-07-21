@@ -95,7 +95,6 @@ function SystemHealthPage() {
             description="LLM providers used by the recovery engine."
             rows={[
               { label: "OpenRouter (OPEN_ROUTER_API_KEY)", check: data.ai.openrouter },
-              { label: "Lovable AI Gateway (LOVABLE_API_KEY)", check: data.ai.lovable_gateway },
             ]}
           />
           <Section
