@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useQueryClient } from "@tanstack/react-query";
-import { useRef, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ArrowLeft, ArrowRight, Loader2, Sparkles } from "lucide-react";
 
@@ -27,6 +27,32 @@ function OnboardingPage() {
   const [wsName, setWsName] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const wsEditedRef = useRef(false);
+  const redirectedRef = useRef(false);
+
+  // Existing-workspace protection: if the signed-in user already belongs to a
+  // workspace, send them to the app instead of showing onboarding again.
+  const { data: existingWorkspaces, isLoading: checkingExisting } = useQuery({
+    queryKey: ["onboarding-existing-workspaces"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("workspaces")
+        .select("id, setup_step, recovery_engine_enabled")
+        .limit(1);
+      if (error) throw error;
+      return data ?? [];
+    },
+    staleTime: 0,
+    refetchOnWindowFocus: false,
+  });
+
+  useEffect(() => {
+    if (redirectedRef.current) return;
+    if (!existingWorkspaces || existingWorkspaces.length === 0) return;
+    redirectedRef.current = true;
+    const ws = existingWorkspaces[0];
+    const needsSetup = !ws.recovery_engine_enabled || (ws.setup_step ?? 0) < 3;
+    navigate({ to: needsSetup ? "/getting-started" : "/app", replace: true });
+  }, [existingWorkspaces, navigate]);
 
   function handleOrgChange(v: string) {
     setOrgName(v);
@@ -45,6 +71,7 @@ function OnboardingPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (submitting) return;
     const org = orgName.trim();
     const ws = wsName.trim();
     if (org.length < 2 || ws.length < 2) {
@@ -53,15 +80,31 @@ function OnboardingPage() {
     }
     setSubmitting(true);
     try {
-      await provision({ data: { organizationName: org, workspaceName: ws } });
+      const result = await provision({
+        data: { organizationName: org, workspaceName: ws },
+      });
       await qc.invalidateQueries();
-      toast.success("Your 14-day free trial has started.");
-      navigate({ to: "/app", replace: true });
+      toast.success("Workspace created successfully.");
+      redirectedRef.current = true;
+      // Fresh workspaces need setup; already-existing ones go straight to the app.
+      const destination = result.alreadyExists ? "/app" : "/getting-started";
+      navigate({ to: destination, replace: true });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not create your workspace.");
       setSubmitting(false);
     }
   }
+
+  // While we check for an existing workspace, render nothing to avoid a flash
+  // of the onboarding form for users who will be redirected away.
+  if (checkingExisting || (existingWorkspaces && existingWorkspaces.length > 0)) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
 
   return (
     <div className="min-h-screen bg-background">
