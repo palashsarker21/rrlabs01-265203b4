@@ -244,7 +244,7 @@ function AiAnalyticsPage() {
                   />
                   <YAxis fontSize={11} />
                   <Tooltip
-                    labelFormatter={(v: string) => new Date(v).toLocaleString()}
+                    labelFormatter={(v) => new Date(String(v)).toLocaleString()}
                     contentStyle={{ background: "hsl(var(--background))", border: "1px solid hsl(var(--border))" }}
                   />
                   <Legend />
