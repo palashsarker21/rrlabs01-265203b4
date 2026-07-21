@@ -38,6 +38,430 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_cache: {
+        Row: {
+          cache_key: string
+          created_at: string
+          expires_at: string
+          hit_count: number
+          id: string
+          input_tokens: number
+          last_hit_at: string | null
+          model_id: string
+          output_tokens: number
+          response: Json
+          task: string
+        }
+        Insert: {
+          cache_key: string
+          created_at?: string
+          expires_at: string
+          hit_count?: number
+          id?: string
+          input_tokens?: number
+          last_hit_at?: string | null
+          model_id: string
+          output_tokens?: number
+          response: Json
+          task: string
+        }
+        Update: {
+          cache_key?: string
+          created_at?: string
+          expires_at?: string
+          hit_count?: number
+          id?: string
+          input_tokens?: number
+          last_hit_at?: string | null
+          model_id?: string
+          output_tokens?: number
+          response?: Json
+          task?: string
+        }
+        Relationships: []
+      }
+      ai_models: {
+        Row: {
+          context_window: number | null
+          created_at: string
+          display_name: string
+          enabled: boolean
+          id: string
+          input_price_per_mtok: number
+          metadata: Json
+          model_id: string
+          output_price_per_mtok: number
+          provider_id: string
+          supports_json: boolean
+          supports_tools: boolean
+          tier: string
+          updated_at: string
+        }
+        Insert: {
+          context_window?: number | null
+          created_at?: string
+          display_name: string
+          enabled?: boolean
+          id?: string
+          input_price_per_mtok?: number
+          metadata?: Json
+          model_id: string
+          output_price_per_mtok?: number
+          provider_id: string
+          supports_json?: boolean
+          supports_tools?: boolean
+          tier: string
+          updated_at?: string
+        }
+        Update: {
+          context_window?: number | null
+          created_at?: string
+          display_name?: string
+          enabled?: boolean
+          id?: string
+          input_price_per_mtok?: number
+          metadata?: Json
+          model_id?: string
+          output_price_per_mtok?: number
+          provider_id?: string
+          supports_json?: boolean
+          supports_tools?: boolean
+          tier?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_models_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "ai_providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_prompt_library: {
+        Row: {
+          active_version_id: string | null
+          category: string
+          created_at: string
+          description: string | null
+          enabled: boolean
+          id: string
+          name: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          active_version_id?: string | null
+          category: string
+          created_at?: string
+          description?: string | null
+          enabled?: boolean
+          id?: string
+          name: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          active_version_id?: string | null
+          category?: string
+          created_at?: string
+          description?: string | null
+          enabled?: boolean
+          id?: string
+          name?: string
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_prompt_library_active_version_fk"
+            columns: ["active_version_id"]
+            isOneToOne: false
+            referencedRelation: "ai_prompt_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_prompt_versions: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          notes: string | null
+          prompt_id: string
+          status: string
+          system_prompt: string
+          updated_at: string
+          user_template: string | null
+          variables: Json
+          version: number
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          prompt_id: string
+          status?: string
+          system_prompt: string
+          updated_at?: string
+          user_template?: string | null
+          variables?: Json
+          version: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          prompt_id?: string
+          status?: string
+          system_prompt?: string
+          updated_at?: string
+          user_template?: string | null
+          variables?: Json
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_prompt_versions_prompt_id_fkey"
+            columns: ["prompt_id"]
+            isOneToOne: false
+            referencedRelation: "ai_prompt_library"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_provider_health: {
+        Row: {
+          checked_at: string
+          error_rate: number | null
+          id: string
+          latency_ms: number | null
+          metadata: Json
+          provider_slug: string
+          up: boolean
+        }
+        Insert: {
+          checked_at?: string
+          error_rate?: number | null
+          id?: string
+          latency_ms?: number | null
+          metadata?: Json
+          provider_slug: string
+          up: boolean
+        }
+        Update: {
+          checked_at?: string
+          error_rate?: number | null
+          id?: string
+          latency_ms?: number | null
+          metadata?: Json
+          provider_slug?: string
+          up?: boolean
+        }
+        Relationships: []
+      }
+      ai_providers: {
+        Row: {
+          auth_header: string
+          auth_scheme: string
+          base_url: string
+          created_at: string
+          enabled: boolean
+          id: string
+          metadata: Json
+          name: string
+          priority: number
+          secret_env_var: string
+          slug: string
+          supports_openai_compat: boolean
+          updated_at: string
+        }
+        Insert: {
+          auth_header?: string
+          auth_scheme?: string
+          base_url: string
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          metadata?: Json
+          name: string
+          priority?: number
+          secret_env_var: string
+          slug: string
+          supports_openai_compat?: boolean
+          updated_at?: string
+        }
+        Update: {
+          auth_header?: string
+          auth_scheme?: string
+          base_url?: string
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          metadata?: Json
+          name?: string
+          priority?: number
+          secret_env_var?: string
+          slug?: string
+          supports_openai_compat?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      ai_requests: {
+        Row: {
+          attempt: number
+          cached: boolean
+          cost_usd: number
+          created_at: string
+          error: string | null
+          fallback_used: boolean
+          id: string
+          input_tokens: number
+          latency_ms: number
+          metadata: Json
+          model_id: string
+          output_tokens: number
+          provider_slug: string
+          status: string
+          task: string
+          user_id: string | null
+          workspace_id: string | null
+        }
+        Insert: {
+          attempt?: number
+          cached?: boolean
+          cost_usd?: number
+          created_at?: string
+          error?: string | null
+          fallback_used?: boolean
+          id?: string
+          input_tokens?: number
+          latency_ms?: number
+          metadata?: Json
+          model_id: string
+          output_tokens?: number
+          provider_slug: string
+          status: string
+          task: string
+          user_id?: string | null
+          workspace_id?: string | null
+        }
+        Update: {
+          attempt?: number
+          cached?: boolean
+          cost_usd?: number
+          created_at?: string
+          error?: string | null
+          fallback_used?: boolean
+          id?: string
+          input_tokens?: number
+          latency_ms?: number
+          metadata?: Json
+          model_id?: string
+          output_tokens?: number
+          provider_slug?: string
+          status?: string
+          task?: string
+          user_id?: string | null
+          workspace_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_requests_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_routes: {
+        Row: {
+          cache_enabled: boolean
+          cache_ttl_seconds: number
+          created_at: string
+          description: string | null
+          enabled: boolean
+          fallback_model_id: string | null
+          id: string
+          max_retries: number
+          metadata: Json
+          premium_model_id: string | null
+          primary_model_id: string | null
+          secondary_model_id: string | null
+          task: string
+          timeout_ms: number
+          updated_at: string
+        }
+        Insert: {
+          cache_enabled?: boolean
+          cache_ttl_seconds?: number
+          created_at?: string
+          description?: string | null
+          enabled?: boolean
+          fallback_model_id?: string | null
+          id?: string
+          max_retries?: number
+          metadata?: Json
+          premium_model_id?: string | null
+          primary_model_id?: string | null
+          secondary_model_id?: string | null
+          task: string
+          timeout_ms?: number
+          updated_at?: string
+        }
+        Update: {
+          cache_enabled?: boolean
+          cache_ttl_seconds?: number
+          created_at?: string
+          description?: string | null
+          enabled?: boolean
+          fallback_model_id?: string | null
+          id?: string
+          max_retries?: number
+          metadata?: Json
+          premium_model_id?: string | null
+          primary_model_id?: string | null
+          secondary_model_id?: string | null
+          task?: string
+          timeout_ms?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_routes_fallback_model_id_fkey"
+            columns: ["fallback_model_id"]
+            isOneToOne: false
+            referencedRelation: "ai_models"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_routes_premium_model_id_fkey"
+            columns: ["premium_model_id"]
+            isOneToOne: false
+            referencedRelation: "ai_models"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_routes_primary_model_id_fkey"
+            columns: ["primary_model_id"]
+            isOneToOne: false
+            referencedRelation: "ai_models"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_routes_secondary_model_id_fkey"
+            columns: ["secondary_model_id"]
+            isOneToOne: false
+            referencedRelation: "ai_models"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       alerts: {
         Row: {
           acknowledged_at: string | null
@@ -1710,6 +2134,65 @@ export type Database = {
             foreignKeyName: "notification_preferences_workspace_id_fkey"
             columns: ["workspace_id"]
             isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organization_ai_settings: {
+        Row: {
+          ai_enabled: boolean
+          budget_alert_threshold: number
+          cache_enabled: boolean
+          created_at: string
+          custom_system_prompt: string | null
+          daily_budget_usd: number | null
+          default_model: string | null
+          fallback_enabled: boolean
+          metadata: Json
+          monthly_budget_usd: number | null
+          monthly_token_limit: number | null
+          premium_enabled: boolean
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          ai_enabled?: boolean
+          budget_alert_threshold?: number
+          cache_enabled?: boolean
+          created_at?: string
+          custom_system_prompt?: string | null
+          daily_budget_usd?: number | null
+          default_model?: string | null
+          fallback_enabled?: boolean
+          metadata?: Json
+          monthly_budget_usd?: number | null
+          monthly_token_limit?: number | null
+          premium_enabled?: boolean
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          ai_enabled?: boolean
+          budget_alert_threshold?: number
+          cache_enabled?: boolean
+          created_at?: string
+          custom_system_prompt?: string | null
+          daily_budget_usd?: number | null
+          default_model?: string | null
+          fallback_enabled?: boolean
+          metadata?: Json
+          monthly_budget_usd?: number | null
+          monthly_token_limit?: number | null
+          premium_enabled?: boolean
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_ai_settings_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: true
             referencedRelation: "workspaces"
             referencedColumns: ["id"]
           },
