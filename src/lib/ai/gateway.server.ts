@@ -111,12 +111,12 @@ async function loadModel(id: string | null): Promise<ModelRow | null> {
     .from("ai_models")
     .select(
       `id, model_id, input_price_per_mtok, output_price_per_mtok, supports_json, enabled,
-       ai_providers!inner(slug, base_url, secret_env_var, enabled)`,
+       ai_providers!inner(slug, base_url, secret_env_var, encrypted_api_key, enabled)`,
     )
     .eq("id", id)
     .maybeSingle();
   if (!data) return null;
-  const p = (data as unknown as { ai_providers: { slug: string; base_url: string; secret_env_var: string; enabled: boolean } })
+  const p = (data as unknown as { ai_providers: { slug: string; base_url: string; secret_env_var: string; encrypted_api_key: string | null; enabled: boolean } })
     .ai_providers;
   return {
     id: data.id,
@@ -128,6 +128,7 @@ async function loadModel(id: string | null): Promise<ModelRow | null> {
     provider_slug: p.slug,
     provider_base_url: p.base_url,
     provider_secret_env: p.secret_env_var,
+    provider_encrypted_api_key: p.encrypted_api_key,
     provider_enabled: p.enabled,
   };
 }
