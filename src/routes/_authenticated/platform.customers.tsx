@@ -8,7 +8,7 @@ import { AdminDataTable, type Column } from "@/components/admin/data-table";
 import { ManageDropdown } from "@/components/admin/v2/manage-dropdown";
 import { listCustomers } from "@/lib/admin/customers.functions";
 
-export const Route = createFileRoute("/_authenticated/admin/v2/customers")({
+export const Route = createFileRoute("/_authenticated/platform/customers")({
   component: CustomersPage,
   head: () => ({
     meta: [

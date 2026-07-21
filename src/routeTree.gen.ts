@@ -65,29 +65,27 @@ import { Route as AuthenticatedSettingsSecurityRouteImport } from './routes/_aut
 import { Route as AuthenticatedSettingsEmailPreferencesRouteImport } from './routes/_authenticated/settings.email-preferences'
 import { Route as AuthenticatedSettingsChangePasswordRouteImport } from './routes/_authenticated/settings.change-password'
 import { Route as AuthenticatedSettingsAiRouteImport } from './routes/_authenticated/settings.ai'
+import { Route as AuthenticatedPlatformSystemHealthRouteImport } from './routes/_authenticated/platform.system-health'
+import { Route as AuthenticatedPlatformCustomersRouteImport } from './routes/_authenticated/platform.customers'
+import { Route as AuthenticatedPlatformAiRouteImport } from './routes/_authenticated/platform.ai'
 import { Route as AuthenticatedInviteTokenRouteImport } from './routes/_authenticated/invite.$token'
 import { Route as AuthenticatedIntegrationsWhatsappRouteImport } from './routes/_authenticated/integrations.whatsapp'
 import { Route as AuthenticatedGettingStartedCompleteRouteImport } from './routes/_authenticated/getting-started.complete'
 import { Route as AuthenticatedCheckoutStatusRouteImport } from './routes/_authenticated/checkout.status'
 import { Route as AuthenticatedBillingStatementsRouteImport } from './routes/_authenticated/billing.statements'
-import { Route as AuthenticatedAdminV2RouteImport } from './routes/_authenticated/admin.v2'
 import { Route as AuthenticatedAdminEmailRouteImport } from './routes/_authenticated/admin.email'
-import { Route as AuthenticatedAdminV2IndexRouteImport } from './routes/_authenticated/admin.v2.index'
 import { Route as ApiPublicWebhooksStripeRouteImport } from './routes/api/public/webhooks/stripe'
 import { Route as ApiPublicWebhooksResendRouteImport } from './routes/api/public/webhooks.resend'
 import { Route as ApiPublicWebhooksLemonsqueezyRouteImport } from './routes/api/public/webhooks/lemonsqueezy'
 import { Route as ApiPublicHooksSuccessFeeMonthlyRouteImport } from './routes/api/public/hooks/success-fee-monthly'
 import { Route as ApiPublicHooksRecoveryCadenceRouteImport } from './routes/api/public/hooks/recovery-cadence'
-import { Route as AuthenticatedAdminV2SystemHealthRouteImport } from './routes/_authenticated/admin.v2.system-health'
-import { Route as AuthenticatedAdminV2CustomersRouteImport } from './routes/_authenticated/admin.v2.customers'
-import { Route as AuthenticatedAdminV2AiRouteImport } from './routes/_authenticated/admin.v2.ai'
+import { Route as AuthenticatedPlatformCustomersIdRouteImport } from './routes/_authenticated/platform.customers.$id'
+import { Route as AuthenticatedPlatformAiAnalyticsRouteImport } from './routes/_authenticated/platform.ai.analytics'
 import { Route as AuthenticatedAdminEmailWebhooksRouteImport } from './routes/_authenticated/admin.email.webhooks'
 import { Route as AuthenticatedAdminEmailSandboxRouteImport } from './routes/_authenticated/admin.email.sandbox'
 import { Route as AuthenticatedAdminEmailPreviewRouteImport } from './routes/_authenticated/admin.email.preview'
 import { Route as AuthenticatedAdminEmailDeliveriesRouteImport } from './routes/_authenticated/admin.email.deliveries'
 import { Route as ApiPublicWebhooksProviderIntegrationIdRouteImport } from './routes/api/public/webhooks/$provider.$integrationId'
-import { Route as AuthenticatedAdminV2CustomersIdRouteImport } from './routes/_authenticated/admin.v2.customers.$id'
-import { Route as AuthenticatedAdminV2AiAnalyticsRouteImport } from './routes/_authenticated/admin.v2.ai.analytics'
 
 const VerifyEmailRoute = VerifyEmailRouteImport.update({
   id: '/verify-email',
@@ -377,6 +375,23 @@ const AuthenticatedSettingsAiRoute = AuthenticatedSettingsAiRouteImport.update({
   path: '/settings/ai',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedPlatformSystemHealthRoute =
+  AuthenticatedPlatformSystemHealthRouteImport.update({
+    id: '/system-health',
+    path: '/system-health',
+    getParentRoute: () => AuthenticatedPlatformRoute,
+  } as any)
+const AuthenticatedPlatformCustomersRoute =
+  AuthenticatedPlatformCustomersRouteImport.update({
+    id: '/customers',
+    path: '/customers',
+    getParentRoute: () => AuthenticatedPlatformRoute,
+  } as any)
+const AuthenticatedPlatformAiRoute = AuthenticatedPlatformAiRouteImport.update({
+  id: '/ai',
+  path: '/ai',
+  getParentRoute: () => AuthenticatedPlatformRoute,
+} as any)
 const AuthenticatedInviteTokenRoute =
   AuthenticatedInviteTokenRouteImport.update({
     id: '/invite/$token',
@@ -407,22 +422,11 @@ const AuthenticatedBillingStatementsRoute =
     path: '/billing/statements',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedAdminV2Route = AuthenticatedAdminV2RouteImport.update({
-  id: '/v2',
-  path: '/v2',
-  getParentRoute: () => AuthenticatedAdminRoute,
-} as any)
 const AuthenticatedAdminEmailRoute = AuthenticatedAdminEmailRouteImport.update({
   id: '/email',
   path: '/email',
   getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
-const AuthenticatedAdminV2IndexRoute =
-  AuthenticatedAdminV2IndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => AuthenticatedAdminV2Route,
-  } as any)
 const ApiPublicWebhooksStripeRoute = ApiPublicWebhooksStripeRouteImport.update({
   id: '/api/public/webhooks/stripe',
   path: '/api/public/webhooks/stripe',
@@ -451,23 +455,18 @@ const ApiPublicHooksRecoveryCadenceRoute =
     path: '/api/public/hooks/recovery-cadence',
     getParentRoute: () => rootRouteImport,
   } as any)
-const AuthenticatedAdminV2SystemHealthRoute =
-  AuthenticatedAdminV2SystemHealthRouteImport.update({
-    id: '/system-health',
-    path: '/system-health',
-    getParentRoute: () => AuthenticatedAdminV2Route,
+const AuthenticatedPlatformCustomersIdRoute =
+  AuthenticatedPlatformCustomersIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => AuthenticatedPlatformCustomersRoute,
   } as any)
-const AuthenticatedAdminV2CustomersRoute =
-  AuthenticatedAdminV2CustomersRouteImport.update({
-    id: '/customers',
-    path: '/customers',
-    getParentRoute: () => AuthenticatedAdminV2Route,
+const AuthenticatedPlatformAiAnalyticsRoute =
+  AuthenticatedPlatformAiAnalyticsRouteImport.update({
+    id: '/analytics',
+    path: '/analytics',
+    getParentRoute: () => AuthenticatedPlatformAiRoute,
   } as any)
-const AuthenticatedAdminV2AiRoute = AuthenticatedAdminV2AiRouteImport.update({
-  id: '/ai',
-  path: '/ai',
-  getParentRoute: () => AuthenticatedAdminV2Route,
-} as any)
 const AuthenticatedAdminEmailWebhooksRoute =
   AuthenticatedAdminEmailWebhooksRouteImport.update({
     id: '/webhooks',
@@ -497,18 +496,6 @@ const ApiPublicWebhooksProviderIntegrationIdRoute =
     id: '/api/public/webhooks/$provider/$integrationId',
     path: '/api/public/webhooks/$provider/$integrationId',
     getParentRoute: () => rootRouteImport,
-  } as any)
-const AuthenticatedAdminV2CustomersIdRoute =
-  AuthenticatedAdminV2CustomersIdRouteImport.update({
-    id: '/$id',
-    path: '/$id',
-    getParentRoute: () => AuthenticatedAdminV2CustomersRoute,
-  } as any)
-const AuthenticatedAdminV2AiAnalyticsRoute =
-  AuthenticatedAdminV2AiAnalyticsRouteImport.update({
-    id: '/analytics',
-    path: '/analytics',
-    getParentRoute: () => AuthenticatedAdminV2AiRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -560,12 +547,14 @@ export interface FileRoutesByFullPath {
   '/error/$code': typeof ErrorCodeRoute
   '/blog/': typeof BlogIndexRoute
   '/admin/email': typeof AuthenticatedAdminEmailRouteWithChildren
-  '/admin/v2': typeof AuthenticatedAdminV2RouteWithChildren
   '/billing/statements': typeof AuthenticatedBillingStatementsRoute
   '/checkout/status': typeof AuthenticatedCheckoutStatusRoute
   '/getting-started/complete': typeof AuthenticatedGettingStartedCompleteRoute
   '/integrations/whatsapp': typeof AuthenticatedIntegrationsWhatsappRoute
   '/invite/$token': typeof AuthenticatedInviteTokenRoute
+  '/platform/ai': typeof AuthenticatedPlatformAiRouteWithChildren
+  '/platform/customers': typeof AuthenticatedPlatformCustomersRouteWithChildren
+  '/platform/system-health': typeof AuthenticatedPlatformSystemHealthRoute
   '/settings/ai': typeof AuthenticatedSettingsAiRoute
   '/settings/change-password': typeof AuthenticatedSettingsChangePasswordRoute
   '/settings/email-preferences': typeof AuthenticatedSettingsEmailPreferencesRoute
@@ -578,17 +567,13 @@ export interface FileRoutesByFullPath {
   '/admin/email/preview': typeof AuthenticatedAdminEmailPreviewRoute
   '/admin/email/sandbox': typeof AuthenticatedAdminEmailSandboxRoute
   '/admin/email/webhooks': typeof AuthenticatedAdminEmailWebhooksRoute
-  '/admin/v2/ai': typeof AuthenticatedAdminV2AiRouteWithChildren
-  '/admin/v2/customers': typeof AuthenticatedAdminV2CustomersRouteWithChildren
-  '/admin/v2/system-health': typeof AuthenticatedAdminV2SystemHealthRoute
+  '/platform/ai/analytics': typeof AuthenticatedPlatformAiAnalyticsRoute
+  '/platform/customers/$id': typeof AuthenticatedPlatformCustomersIdRoute
   '/api/public/hooks/recovery-cadence': typeof ApiPublicHooksRecoveryCadenceRoute
   '/api/public/hooks/success-fee-monthly': typeof ApiPublicHooksSuccessFeeMonthlyRoute
   '/api/public/webhooks/lemonsqueezy': typeof ApiPublicWebhooksLemonsqueezyRoute
   '/api/public/webhooks/resend': typeof ApiPublicWebhooksResendRoute
   '/api/public/webhooks/stripe': typeof ApiPublicWebhooksStripeRoute
-  '/admin/v2/': typeof AuthenticatedAdminV2IndexRoute
-  '/admin/v2/ai/analytics': typeof AuthenticatedAdminV2AiAnalyticsRoute
-  '/admin/v2/customers/$id': typeof AuthenticatedAdminV2CustomersIdRoute
   '/api/public/webhooks/$provider/$integrationId': typeof ApiPublicWebhooksProviderIntegrationIdRoute
 }
 export interface FileRoutesByTo {
@@ -643,6 +628,9 @@ export interface FileRoutesByTo {
   '/getting-started/complete': typeof AuthenticatedGettingStartedCompleteRoute
   '/integrations/whatsapp': typeof AuthenticatedIntegrationsWhatsappRoute
   '/invite/$token': typeof AuthenticatedInviteTokenRoute
+  '/platform/ai': typeof AuthenticatedPlatformAiRouteWithChildren
+  '/platform/customers': typeof AuthenticatedPlatformCustomersRouteWithChildren
+  '/platform/system-health': typeof AuthenticatedPlatformSystemHealthRoute
   '/settings/ai': typeof AuthenticatedSettingsAiRoute
   '/settings/change-password': typeof AuthenticatedSettingsChangePasswordRoute
   '/settings/email-preferences': typeof AuthenticatedSettingsEmailPreferencesRoute
@@ -655,17 +643,13 @@ export interface FileRoutesByTo {
   '/admin/email/preview': typeof AuthenticatedAdminEmailPreviewRoute
   '/admin/email/sandbox': typeof AuthenticatedAdminEmailSandboxRoute
   '/admin/email/webhooks': typeof AuthenticatedAdminEmailWebhooksRoute
-  '/admin/v2/ai': typeof AuthenticatedAdminV2AiRouteWithChildren
-  '/admin/v2/customers': typeof AuthenticatedAdminV2CustomersRouteWithChildren
-  '/admin/v2/system-health': typeof AuthenticatedAdminV2SystemHealthRoute
+  '/platform/ai/analytics': typeof AuthenticatedPlatformAiAnalyticsRoute
+  '/platform/customers/$id': typeof AuthenticatedPlatformCustomersIdRoute
   '/api/public/hooks/recovery-cadence': typeof ApiPublicHooksRecoveryCadenceRoute
   '/api/public/hooks/success-fee-monthly': typeof ApiPublicHooksSuccessFeeMonthlyRoute
   '/api/public/webhooks/lemonsqueezy': typeof ApiPublicWebhooksLemonsqueezyRoute
   '/api/public/webhooks/resend': typeof ApiPublicWebhooksResendRoute
   '/api/public/webhooks/stripe': typeof ApiPublicWebhooksStripeRoute
-  '/admin/v2': typeof AuthenticatedAdminV2IndexRoute
-  '/admin/v2/ai/analytics': typeof AuthenticatedAdminV2AiAnalyticsRoute
-  '/admin/v2/customers/$id': typeof AuthenticatedAdminV2CustomersIdRoute
   '/api/public/webhooks/$provider/$integrationId': typeof ApiPublicWebhooksProviderIntegrationIdRoute
 }
 export interface FileRoutesById {
@@ -719,12 +703,14 @@ export interface FileRoutesById {
   '/error/$code': typeof ErrorCodeRoute
   '/blog/': typeof BlogIndexRoute
   '/_authenticated/admin/email': typeof AuthenticatedAdminEmailRouteWithChildren
-  '/_authenticated/admin/v2': typeof AuthenticatedAdminV2RouteWithChildren
   '/_authenticated/billing/statements': typeof AuthenticatedBillingStatementsRoute
   '/_authenticated/checkout/status': typeof AuthenticatedCheckoutStatusRoute
   '/_authenticated/getting-started/complete': typeof AuthenticatedGettingStartedCompleteRoute
   '/_authenticated/integrations/whatsapp': typeof AuthenticatedIntegrationsWhatsappRoute
   '/_authenticated/invite/$token': typeof AuthenticatedInviteTokenRoute
+  '/_authenticated/platform/ai': typeof AuthenticatedPlatformAiRouteWithChildren
+  '/_authenticated/platform/customers': typeof AuthenticatedPlatformCustomersRouteWithChildren
+  '/_authenticated/platform/system-health': typeof AuthenticatedPlatformSystemHealthRoute
   '/_authenticated/settings/ai': typeof AuthenticatedSettingsAiRoute
   '/_authenticated/settings/change-password': typeof AuthenticatedSettingsChangePasswordRoute
   '/_authenticated/settings/email-preferences': typeof AuthenticatedSettingsEmailPreferencesRoute
@@ -737,17 +723,13 @@ export interface FileRoutesById {
   '/_authenticated/admin/email/preview': typeof AuthenticatedAdminEmailPreviewRoute
   '/_authenticated/admin/email/sandbox': typeof AuthenticatedAdminEmailSandboxRoute
   '/_authenticated/admin/email/webhooks': typeof AuthenticatedAdminEmailWebhooksRoute
-  '/_authenticated/admin/v2/ai': typeof AuthenticatedAdminV2AiRouteWithChildren
-  '/_authenticated/admin/v2/customers': typeof AuthenticatedAdminV2CustomersRouteWithChildren
-  '/_authenticated/admin/v2/system-health': typeof AuthenticatedAdminV2SystemHealthRoute
+  '/_authenticated/platform/ai/analytics': typeof AuthenticatedPlatformAiAnalyticsRoute
+  '/_authenticated/platform/customers/$id': typeof AuthenticatedPlatformCustomersIdRoute
   '/api/public/hooks/recovery-cadence': typeof ApiPublicHooksRecoveryCadenceRoute
   '/api/public/hooks/success-fee-monthly': typeof ApiPublicHooksSuccessFeeMonthlyRoute
   '/api/public/webhooks/lemonsqueezy': typeof ApiPublicWebhooksLemonsqueezyRoute
   '/api/public/webhooks/resend': typeof ApiPublicWebhooksResendRoute
   '/api/public/webhooks/stripe': typeof ApiPublicWebhooksStripeRoute
-  '/_authenticated/admin/v2/': typeof AuthenticatedAdminV2IndexRoute
-  '/_authenticated/admin/v2/ai/analytics': typeof AuthenticatedAdminV2AiAnalyticsRoute
-  '/_authenticated/admin/v2/customers/$id': typeof AuthenticatedAdminV2CustomersIdRoute
   '/api/public/webhooks/$provider/$integrationId': typeof ApiPublicWebhooksProviderIntegrationIdRoute
 }
 export interface FileRouteTypes {
@@ -801,12 +783,14 @@ export interface FileRouteTypes {
     | '/error/$code'
     | '/blog/'
     | '/admin/email'
-    | '/admin/v2'
     | '/billing/statements'
     | '/checkout/status'
     | '/getting-started/complete'
     | '/integrations/whatsapp'
     | '/invite/$token'
+    | '/platform/ai'
+    | '/platform/customers'
+    | '/platform/system-health'
     | '/settings/ai'
     | '/settings/change-password'
     | '/settings/email-preferences'
@@ -819,17 +803,13 @@ export interface FileRouteTypes {
     | '/admin/email/preview'
     | '/admin/email/sandbox'
     | '/admin/email/webhooks'
-    | '/admin/v2/ai'
-    | '/admin/v2/customers'
-    | '/admin/v2/system-health'
+    | '/platform/ai/analytics'
+    | '/platform/customers/$id'
     | '/api/public/hooks/recovery-cadence'
     | '/api/public/hooks/success-fee-monthly'
     | '/api/public/webhooks/lemonsqueezy'
     | '/api/public/webhooks/resend'
     | '/api/public/webhooks/stripe'
-    | '/admin/v2/'
-    | '/admin/v2/ai/analytics'
-    | '/admin/v2/customers/$id'
     | '/api/public/webhooks/$provider/$integrationId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -884,6 +864,9 @@ export interface FileRouteTypes {
     | '/getting-started/complete'
     | '/integrations/whatsapp'
     | '/invite/$token'
+    | '/platform/ai'
+    | '/platform/customers'
+    | '/platform/system-health'
     | '/settings/ai'
     | '/settings/change-password'
     | '/settings/email-preferences'
@@ -896,17 +879,13 @@ export interface FileRouteTypes {
     | '/admin/email/preview'
     | '/admin/email/sandbox'
     | '/admin/email/webhooks'
-    | '/admin/v2/ai'
-    | '/admin/v2/customers'
-    | '/admin/v2/system-health'
+    | '/platform/ai/analytics'
+    | '/platform/customers/$id'
     | '/api/public/hooks/recovery-cadence'
     | '/api/public/hooks/success-fee-monthly'
     | '/api/public/webhooks/lemonsqueezy'
     | '/api/public/webhooks/resend'
     | '/api/public/webhooks/stripe'
-    | '/admin/v2'
-    | '/admin/v2/ai/analytics'
-    | '/admin/v2/customers/$id'
     | '/api/public/webhooks/$provider/$integrationId'
   id:
     | '__root__'
@@ -959,12 +938,14 @@ export interface FileRouteTypes {
     | '/error/$code'
     | '/blog/'
     | '/_authenticated/admin/email'
-    | '/_authenticated/admin/v2'
     | '/_authenticated/billing/statements'
     | '/_authenticated/checkout/status'
     | '/_authenticated/getting-started/complete'
     | '/_authenticated/integrations/whatsapp'
     | '/_authenticated/invite/$token'
+    | '/_authenticated/platform/ai'
+    | '/_authenticated/platform/customers'
+    | '/_authenticated/platform/system-health'
     | '/_authenticated/settings/ai'
     | '/_authenticated/settings/change-password'
     | '/_authenticated/settings/email-preferences'
@@ -977,17 +958,13 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/email/preview'
     | '/_authenticated/admin/email/sandbox'
     | '/_authenticated/admin/email/webhooks'
-    | '/_authenticated/admin/v2/ai'
-    | '/_authenticated/admin/v2/customers'
-    | '/_authenticated/admin/v2/system-health'
+    | '/_authenticated/platform/ai/analytics'
+    | '/_authenticated/platform/customers/$id'
     | '/api/public/hooks/recovery-cadence'
     | '/api/public/hooks/success-fee-monthly'
     | '/api/public/webhooks/lemonsqueezy'
     | '/api/public/webhooks/resend'
     | '/api/public/webhooks/stripe'
-    | '/_authenticated/admin/v2/'
-    | '/_authenticated/admin/v2/ai/analytics'
-    | '/_authenticated/admin/v2/customers/$id'
     | '/api/public/webhooks/$provider/$integrationId'
   fileRoutesById: FileRoutesById
 }
@@ -1424,6 +1401,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsAiRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/platform/system-health': {
+      id: '/_authenticated/platform/system-health'
+      path: '/system-health'
+      fullPath: '/platform/system-health'
+      preLoaderRoute: typeof AuthenticatedPlatformSystemHealthRouteImport
+      parentRoute: typeof AuthenticatedPlatformRoute
+    }
+    '/_authenticated/platform/customers': {
+      id: '/_authenticated/platform/customers'
+      path: '/customers'
+      fullPath: '/platform/customers'
+      preLoaderRoute: typeof AuthenticatedPlatformCustomersRouteImport
+      parentRoute: typeof AuthenticatedPlatformRoute
+    }
+    '/_authenticated/platform/ai': {
+      id: '/_authenticated/platform/ai'
+      path: '/ai'
+      fullPath: '/platform/ai'
+      preLoaderRoute: typeof AuthenticatedPlatformAiRouteImport
+      parentRoute: typeof AuthenticatedPlatformRoute
+    }
     '/_authenticated/invite/$token': {
       id: '/_authenticated/invite/$token'
       path: '/invite/$token'
@@ -1459,26 +1457,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedBillingStatementsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/admin/v2': {
-      id: '/_authenticated/admin/v2'
-      path: '/v2'
-      fullPath: '/admin/v2'
-      preLoaderRoute: typeof AuthenticatedAdminV2RouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
-    }
     '/_authenticated/admin/email': {
       id: '/_authenticated/admin/email'
       path: '/email'
       fullPath: '/admin/email'
       preLoaderRoute: typeof AuthenticatedAdminEmailRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
-    }
-    '/_authenticated/admin/v2/': {
-      id: '/_authenticated/admin/v2/'
-      path: '/'
-      fullPath: '/admin/v2/'
-      preLoaderRoute: typeof AuthenticatedAdminV2IndexRouteImport
-      parentRoute: typeof AuthenticatedAdminV2Route
     }
     '/api/public/webhooks/stripe': {
       id: '/api/public/webhooks/stripe'
@@ -1515,26 +1499,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksRecoveryCadenceRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/admin/v2/system-health': {
-      id: '/_authenticated/admin/v2/system-health'
-      path: '/system-health'
-      fullPath: '/admin/v2/system-health'
-      preLoaderRoute: typeof AuthenticatedAdminV2SystemHealthRouteImport
-      parentRoute: typeof AuthenticatedAdminV2Route
+    '/_authenticated/platform/customers/$id': {
+      id: '/_authenticated/platform/customers/$id'
+      path: '/$id'
+      fullPath: '/platform/customers/$id'
+      preLoaderRoute: typeof AuthenticatedPlatformCustomersIdRouteImport
+      parentRoute: typeof AuthenticatedPlatformCustomersRoute
     }
-    '/_authenticated/admin/v2/customers': {
-      id: '/_authenticated/admin/v2/customers'
-      path: '/customers'
-      fullPath: '/admin/v2/customers'
-      preLoaderRoute: typeof AuthenticatedAdminV2CustomersRouteImport
-      parentRoute: typeof AuthenticatedAdminV2Route
-    }
-    '/_authenticated/admin/v2/ai': {
-      id: '/_authenticated/admin/v2/ai'
-      path: '/ai'
-      fullPath: '/admin/v2/ai'
-      preLoaderRoute: typeof AuthenticatedAdminV2AiRouteImport
-      parentRoute: typeof AuthenticatedAdminV2Route
+    '/_authenticated/platform/ai/analytics': {
+      id: '/_authenticated/platform/ai/analytics'
+      path: '/analytics'
+      fullPath: '/platform/ai/analytics'
+      preLoaderRoute: typeof AuthenticatedPlatformAiAnalyticsRouteImport
+      parentRoute: typeof AuthenticatedPlatformAiRoute
     }
     '/_authenticated/admin/email/webhooks': {
       id: '/_authenticated/admin/email/webhooks'
@@ -1571,20 +1548,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicWebhooksProviderIntegrationIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/admin/v2/customers/$id': {
-      id: '/_authenticated/admin/v2/customers/$id'
-      path: '/$id'
-      fullPath: '/admin/v2/customers/$id'
-      preLoaderRoute: typeof AuthenticatedAdminV2CustomersIdRouteImport
-      parentRoute: typeof AuthenticatedAdminV2CustomersRoute
-    }
-    '/_authenticated/admin/v2/ai/analytics': {
-      id: '/_authenticated/admin/v2/ai/analytics'
-      path: '/analytics'
-      fullPath: '/admin/v2/ai/analytics'
-      preLoaderRoute: typeof AuthenticatedAdminV2AiAnalyticsRouteImport
-      parentRoute: typeof AuthenticatedAdminV2AiRoute
-    }
   }
 }
 
@@ -1609,60 +1572,12 @@ const AuthenticatedAdminEmailRouteWithChildren =
     AuthenticatedAdminEmailRouteChildren,
   )
 
-interface AuthenticatedAdminV2AiRouteChildren {
-  AuthenticatedAdminV2AiAnalyticsRoute: typeof AuthenticatedAdminV2AiAnalyticsRoute
-}
-
-const AuthenticatedAdminV2AiRouteChildren: AuthenticatedAdminV2AiRouteChildren =
-  {
-    AuthenticatedAdminV2AiAnalyticsRoute: AuthenticatedAdminV2AiAnalyticsRoute,
-  }
-
-const AuthenticatedAdminV2AiRouteWithChildren =
-  AuthenticatedAdminV2AiRoute._addFileChildren(
-    AuthenticatedAdminV2AiRouteChildren,
-  )
-
-interface AuthenticatedAdminV2CustomersRouteChildren {
-  AuthenticatedAdminV2CustomersIdRoute: typeof AuthenticatedAdminV2CustomersIdRoute
-}
-
-const AuthenticatedAdminV2CustomersRouteChildren: AuthenticatedAdminV2CustomersRouteChildren =
-  {
-    AuthenticatedAdminV2CustomersIdRoute: AuthenticatedAdminV2CustomersIdRoute,
-  }
-
-const AuthenticatedAdminV2CustomersRouteWithChildren =
-  AuthenticatedAdminV2CustomersRoute._addFileChildren(
-    AuthenticatedAdminV2CustomersRouteChildren,
-  )
-
-interface AuthenticatedAdminV2RouteChildren {
-  AuthenticatedAdminV2AiRoute: typeof AuthenticatedAdminV2AiRouteWithChildren
-  AuthenticatedAdminV2CustomersRoute: typeof AuthenticatedAdminV2CustomersRouteWithChildren
-  AuthenticatedAdminV2SystemHealthRoute: typeof AuthenticatedAdminV2SystemHealthRoute
-  AuthenticatedAdminV2IndexRoute: typeof AuthenticatedAdminV2IndexRoute
-}
-
-const AuthenticatedAdminV2RouteChildren: AuthenticatedAdminV2RouteChildren = {
-  AuthenticatedAdminV2AiRoute: AuthenticatedAdminV2AiRouteWithChildren,
-  AuthenticatedAdminV2CustomersRoute:
-    AuthenticatedAdminV2CustomersRouteWithChildren,
-  AuthenticatedAdminV2SystemHealthRoute: AuthenticatedAdminV2SystemHealthRoute,
-  AuthenticatedAdminV2IndexRoute: AuthenticatedAdminV2IndexRoute,
-}
-
-const AuthenticatedAdminV2RouteWithChildren =
-  AuthenticatedAdminV2Route._addFileChildren(AuthenticatedAdminV2RouteChildren)
-
 interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminEmailRoute: typeof AuthenticatedAdminEmailRouteWithChildren
-  AuthenticatedAdminV2Route: typeof AuthenticatedAdminV2RouteWithChildren
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminEmailRoute: AuthenticatedAdminEmailRouteWithChildren,
-  AuthenticatedAdminV2Route: AuthenticatedAdminV2RouteWithChildren,
 }
 
 const AuthenticatedAdminRouteWithChildren =
@@ -1711,11 +1626,49 @@ const AuthenticatedIntegrationsRouteWithChildren =
     AuthenticatedIntegrationsRouteChildren,
   )
 
+interface AuthenticatedPlatformAiRouteChildren {
+  AuthenticatedPlatformAiAnalyticsRoute: typeof AuthenticatedPlatformAiAnalyticsRoute
+}
+
+const AuthenticatedPlatformAiRouteChildren: AuthenticatedPlatformAiRouteChildren =
+  {
+    AuthenticatedPlatformAiAnalyticsRoute:
+      AuthenticatedPlatformAiAnalyticsRoute,
+  }
+
+const AuthenticatedPlatformAiRouteWithChildren =
+  AuthenticatedPlatformAiRoute._addFileChildren(
+    AuthenticatedPlatformAiRouteChildren,
+  )
+
+interface AuthenticatedPlatformCustomersRouteChildren {
+  AuthenticatedPlatformCustomersIdRoute: typeof AuthenticatedPlatformCustomersIdRoute
+}
+
+const AuthenticatedPlatformCustomersRouteChildren: AuthenticatedPlatformCustomersRouteChildren =
+  {
+    AuthenticatedPlatformCustomersIdRoute:
+      AuthenticatedPlatformCustomersIdRoute,
+  }
+
+const AuthenticatedPlatformCustomersRouteWithChildren =
+  AuthenticatedPlatformCustomersRoute._addFileChildren(
+    AuthenticatedPlatformCustomersRouteChildren,
+  )
+
 interface AuthenticatedPlatformRouteChildren {
+  AuthenticatedPlatformAiRoute: typeof AuthenticatedPlatformAiRouteWithChildren
+  AuthenticatedPlatformCustomersRoute: typeof AuthenticatedPlatformCustomersRouteWithChildren
+  AuthenticatedPlatformSystemHealthRoute: typeof AuthenticatedPlatformSystemHealthRoute
   AuthenticatedPlatformIndexRoute: typeof AuthenticatedPlatformIndexRoute
 }
 
 const AuthenticatedPlatformRouteChildren: AuthenticatedPlatformRouteChildren = {
+  AuthenticatedPlatformAiRoute: AuthenticatedPlatformAiRouteWithChildren,
+  AuthenticatedPlatformCustomersRoute:
+    AuthenticatedPlatformCustomersRouteWithChildren,
+  AuthenticatedPlatformSystemHealthRoute:
+    AuthenticatedPlatformSystemHealthRoute,
   AuthenticatedPlatformIndexRoute: AuthenticatedPlatformIndexRoute,
 }
 
@@ -1848,13 +1801,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

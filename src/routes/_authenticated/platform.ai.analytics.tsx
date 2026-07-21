@@ -48,7 +48,7 @@ import {
 } from "@/components/ui/table";
 import { getAiAnalytics } from "@/lib/ai/analytics.functions";
 
-export const Route = createFileRoute("/_authenticated/admin/v2/ai/analytics")({
+export const Route = createFileRoute("/_authenticated/platform/ai/analytics")({
   component: AiAnalyticsPage,
   head: () => ({
     meta: [{ title: "AI Analytics — RRLabs" }, { name: "robots", content: "noindex" }],

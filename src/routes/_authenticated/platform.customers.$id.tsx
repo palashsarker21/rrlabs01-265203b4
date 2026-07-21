@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { ManageDropdown } from "@/components/admin/v2/manage-dropdown";
 import { getCustomerDetail } from "@/lib/admin/customers.functions";
 
-export const Route = createFileRoute("/_authenticated/admin/v2/customers/$id")({
+export const Route = createFileRoute("/_authenticated/platform/customers/$id")({
   component: CustomerDetail,
   head: () => ({
     meta: [
