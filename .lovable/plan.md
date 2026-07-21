@@ -1,94 +1,74 @@
-## Enterprise App Shell Redesign
+## Platform Control Center — Separation & Enterprise Upgrade
 
-Structural navigation/layout overhaul for the entire `_authenticated` area. No business logic, schema, or API changes — routes, server functions, and data flow all stay intact. Only the shell and dashboard composition change.
+This is a large structural change. I'll ship it in ordered waves so nothing breaks, keeping all existing DB, APIs, and business logic intact.
 
-### 1. New authenticated shell (`src/routes/_authenticated/route.tsx`)
+### Wave 1 — Route & Shell Separation
 
-Wrap every authenticated route in a persistent shell using the existing shadcn `Sidebar` primitives:
+- Move admin surface from `/admin/*` and `/admin/v2/*` to a new top-level `/platform/*` tree with its own layout (`src/routes/_authenticated/platform/route.tsx`).
+- Keep `/admin/*` routes alive as thin redirects to their `/platform` equivalents (no broken bookmarks, no lost audit trails).
+- Add `/platform` to `BYPASS_PREFIXES` in `app-shell.tsx` so the customer chrome never leaks in. Platform gets its own shell: `PlatformShell` (sidebar + top bar + status bar), Customer keeps `AuthenticatedShell`.
+- Customer sidebar (`app-nav.ts`) loses every admin-only entry; those live only in the platform nav registry.
 
-```text
-┌─────────────────────────────────────────────────────────┐
-│ TopBar: [☰ mobile] [Workspace ▾] [Search] [+ Create] [🔔] [User ▾] │
-├────────────┬────────────────────────────────────────────┤
-│ Sidebar    │                                            │
-│  Logo      │                                            │
-│  Search    │            <Outlet />                      │
-│  Nav       │      (independent scroll area)             │
-│  groups    │                                            │
-│  (collap-  │                                            │
-│   sible)   │                                            │
-└────────────┴────────────────────────────────────────────┘
-```
+### Wave 2 — Platform Shell Chrome
 
-- Desktop ≥`md`: permanent left sidebar (`collapsible="icon"`), sticky top header, main content scrolls independently.
-- Mobile: sidebar becomes an offcanvas drawer via `SidebarTrigger`; top header keeps workspace/search/notifications/user; no bottom nav.
-- Sidebar state (expanded groups + collapsed rail) persisted to `localStorage`.
-- Active route highlighting via `useRouterState` pathname matching.
+- `src/components/platform/platform-shell.tsx` — layout wrapper.
+- `src/components/platform/platform-sidebar.tsx` — collapsible module groups, persisted expand state (`localStorage`), keyboard nav, active-route highlight, live badge slots.
+- `src/components/platform/platform-topbar.tsx` — Global Create dropdown, Command Palette trigger, Organization Switcher (impersonation entry point), profile menu.
+- `src/components/platform/system-status-bar.tsx` — always-visible strip with 8 service pills (API, DB, Queues, Workers, AI, Email, WhatsApp, Payments) fed by `getSystemHealth`.
+- `src/components/platform/impersonation-banner.tsx` — sticky banner when viewing a workspace as admin, with "Exit" action.
 
-### 2. Navigation config (`src/lib/app-nav.ts`)
+### Wave 3 — Nav Registry + Live Badges + Command Palette
 
-Single source of truth consumed by sidebar, command palette, and global search. Groups: Dashboard, Recovery, Customers, Orders, Payments, Communication, AI, Automation, Integrations, Analytics, Team, Security, Settings, Support — matching the structure in the request.
+- New `src/lib/platform/nav.ts` — module-grouped registry (Monitoring, Customers, Revenue, Operations, Messaging, Content, Platform, Security, God Mode). Reuses existing `ADMIN_NAV` labels and destinations, just retargeted to `/platform/*`.
+- `src/lib/platform/badges.functions.ts` — `getPlatformBadges` server fn returning counts for Failed Jobs, Pending Emails, Pending WhatsApp, Webhook Failures, Open Incidents, New Tickets. Wired via `useQuery` with 30 s refetch + Supabase Realtime invalidation.
+- Reuse existing `AppCommandPalette` pattern in `src/components/platform/command-palette.tsx`, scoped to platform nav plus entity search (orgs, users, invoices, recovery events, audit logs, queues, API keys, routes, integrations).
 
-- Each item: `{ id, label, to, icon, keywords, badge?, permission?, adminOnly? }`.
-- Items filtered by `usePermissions` / `getMyAdminStatus` so users only see what they can open.
-- Items that don't yet have a dedicated route point at the nearest existing route (e.g. "Recovery Attempts" → `/events`, "Invoices" → `/billing/statements`, "Prompt Library" → `/admin/v2/ai`). No new feature routes are created — this is a discoverability redesign; existing pages are simply surfaced.
+### Wave 4 — Global Create + Impersonation
 
-### 3. Top header (`src/components/app-shell/top-bar.tsx`)
+- `src/components/platform/create-menu.tsx` — dropdown with the 9 create actions. Each opens the existing creation dialog/route (New Organization → workspaces admin flow, etc.). No new business logic.
+- Secure impersonation via existing `admin_workspace_overview` gate: `startImpersonation(workspaceId)` server fn (super_admin only, audited), sets a signed cookie/session flag read by `impersonation-banner`. "Exit" clears it. All impersonated reads still go through RLS as the admin user; we just scope the active workspace context — never a customer session token.
 
-Minimal, no duplicate nav:
-- Mobile `SidebarTrigger` (hamburger).
-- `WorkspaceSwitcher` (reuses current workspace query).
-- Global `SearchTrigger` → opens `⌘K` command palette (extends the existing `AdminCommandPalette` pattern into `AppCommandPalette` fed by `app-nav.ts` + recent customers/events).
-- `QuickCreateMenu`: Connect Store, Connect Payment, Create Campaign, Invite Member, Send Test Email, Run AI Test — each links to the existing route/dialog that already implements it.
-- `NotificationsBell` (existing `listAlerts` + realtime).
-- `UserMenu` (profile, security, sign out — existing actions).
+### Wave 5 — Dangerous Actions + Audit
 
-### 4. Left sidebar (`src/components/app-shell/app-sidebar.tsx`)
+- `src/components/platform/confirm-dangerous.tsx` — dialog requiring password re-entry (via `supabase.auth.signInWithPassword` re-check) or MFA challenge before running delete/suspend/refund/plan-change/god-mode actions.
+- Every platform server fn calls `writeAuditLog` (already exists in `src/lib/audit.server.ts`) with actor, IP, UA, old/new value, reason. Add a `reason` text field to dangerous-action dialogs.
 
-- `BrandLockup` at top.
-- Inline workspace switcher (compact).
-- Search input that opens the command palette.
-- `SidebarGroup` per category with collapsible header; default-open groups derived from active route; state stored per group in `localStorage`.
-- Icon-only rail when collapsed; tooltips on hover.
+### Wave 6 — Dashboard, Empty States, God Mode
 
-### 5. Dashboard rework (`src/routes/_authenticated/app.tsx`)
+- Rewrite `/platform` index (`platform.index.tsx`) with the 17 KPI cards, all sourced from existing analytics/billing/system-health server fns. No placeholders — when a metric returns null, show "No data yet" + CTA.
+- Standard `<EmptyState />` primitive with explanation + CTA + docs link + example data toggle. Applied to every list route.
+- God Mode section only rendered when `isSuperAdmin && email === 'palashsarker1993@gmail.com'`. Confirmation + audit for every action.
 
-Trim to a summary surface — every tile links into the module that owns the detail:
+### Wave 7 — Responsive, Perf, Cleanup
 
-- KPI row: MRR, Recovered Revenue, Recovery Rate, Failed Payments, Recovered Customers, Recovery Queue depth.
-- Secondary row: Today's Activity, Active Integrations, AI Status, System Health.
-- Recent Events feed (existing `listRecoveryEvents`) with realtime subscription on `recovery_events` — replaces manual refresh.
-- Quick Actions card mirroring the top-bar Quick Create.
-- Every card is a `Link` to its module; long-form panels (billing, workflow diagram, full event table) move out of the dashboard and stay reachable via their existing routes.
+- Sidebar: desktop collapsible, tablet auto-collapsed, mobile drawer (Sheet).
+- Route-level lazy loading for platform pages via TanStack code-splitting (already default).
+- Virtualized tables (`@tanstack/react-virtual`, already installed) for customer directory, audit logs, recovery events.
+- Server-side pagination on all list fetchers.
+- Remove hardcoded stats from existing admin panels; replace with live queries.
 
-### 6. Live recovery pipeline
+### What stays untouched
 
-Upgrade `RecoveryWorkflowDiagram` to a live pipeline view fed by realtime `recovery_events` + `recovery_attempts` counts (data already exposed by `getRecoveryStats` / `listRecoveryEvents`). Each node shows status, last timestamp, and opens a detail drawer listing the most recent events for that stage. No engine/schema changes.
+- Database schema, RLS policies, RBAC helpers.
+- All server functions and webhook handlers.
+- Recovery engine, AI gateway, billing, email/WhatsApp adapters.
+- Customer-facing routes and shell.
 
-### 7. Empty states, mobile, performance
+### Technical notes
 
-- Reuse `EmptyState` primitive everywhere a list can be empty (illustration + description + primary/secondary CTA).
-- Mobile: sidebar drawer, single-column dashboard grid, no horizontal scroll; verified with the mobile viewport tool.
-- Route-level code splitting stays as TanStack's default; heavy dashboard panels (`RecoveryWorkflowDiagram`, `BillingPanel`) become `React.lazy` behind Suspense so the dashboard shell stays light.
+- `/admin/*` → `/platform/*` redirects live in the old route files as `beforeLoad: () => redirect(...)`, preserving deep links (`?tab=` params carry over).
+- Sidebar expand state persisted per user under `localStorage["platform.nav.collapsed"]`.
+- Badges use a single `useQuery(["platform-badges"])` fed by one aggregated server fn to avoid N queries.
+- Status bar polls `getSystemHealth` every 60 s + realtime channel on `incidents` for immediate red-state flips.
+- Impersonation uses an httpOnly cookie `platform_impersonating_workspace` set by a server fn; middleware refuses to set it for non-super-admins.
 
-### Files touched
+### Rollout order (single PR chain)
 
-- `src/routes/_authenticated/route.tsx` — swap `<Outlet />` for the new `<AppShell>` wrapper.
-- `src/components/app-shell/` (new): `app-sidebar.tsx`, `top-bar.tsx`, `workspace-switcher.tsx`, `quick-create-menu.tsx`, `app-command-palette.tsx`, `nav-config.tsx`.
-- `src/lib/app-nav.ts` (new): grouped nav registry.
-- `src/routes/_authenticated/app.tsx` — dashboard rewrite (summary-only).
-- `src/components/recovery-workflow-diagram.tsx` — live pipeline upgrade.
-- Small tweaks to `admin.v2.tsx` so it nests cleanly inside the new shell (drop the duplicate header, keep its admin sub-nav).
+1. Wave 1 + 2 (shell + redirects) — safe, no data change.
+2. Wave 3 (nav, badges, palette).
+3. Wave 4 (create menu, impersonation).
+4. Wave 5 (dangerous-action guard + audit hooks).
+5. Wave 6 (dashboard, empty states, god mode).
+6. Wave 7 (responsive polish, virtualization, cleanup of legacy hardcoded values).
 
-### Out of scope
-
-- No new server functions, migrations, RLS, or edge functions.
-- No changes to Recovery Engine timing/logic, AI gateway, billing math, or auth flows.
-- No new feature pages — every sidebar link resolves to an existing route.
-
-### Rollout
-
-Single PR. Verified by:
-1. `bunx tsgo --noEmit` clean.
-2. `bun run build` clean.
-3. Playwright screenshot of dashboard + `/events` + `/admin/v2` on desktop and 390px mobile viewport.
+Shall I proceed starting with Wave 1?
