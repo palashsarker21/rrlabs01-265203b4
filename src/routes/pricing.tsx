@@ -15,7 +15,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { MarketingHeader, MarketingFooter } from "@/components/marketing-chrome";
 import { SITE_URL } from "@/lib/brand";
-import { PLANS, COMPARE_ROWS, PRICING_FAQ, TRIAL_DAYS, type PricingPlan } from "@/lib/pricing";
+import {
+  TRIAL_DAYS_FALLBACK as TRIAL_DAYS,
+  type PricingPlan,
+  type CompareRow,
+  type FaqItem,
+} from "@/lib/pricing";
+import { getPricingContent } from "@/lib/pricing.functions";
 import { listPublicPlans } from "@/lib/billing.functions";
 import { CtaButton } from "@/components/pricing/cta-button";
 import { useIsAuthed } from "@/hooks/use-is-authed";
