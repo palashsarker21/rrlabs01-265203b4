@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { MarketingHeader, MarketingFooter } from "@/components/marketing-chrome";
 import { Button } from "@/components/ui/button";
-import { PLANS, TRIAL_DAYS } from "@/lib/pricing";
+import { TRIAL_DAYS_FALLBACK as TRIAL_DAYS, type PricingPlan } from "@/lib/pricing";
 import { listPublicPlans } from "@/lib/billing.functions";
 import { CtaButton } from "@/components/pricing/cta-button";
 import { useIsAuthed } from "@/hooks/use-is-authed";
