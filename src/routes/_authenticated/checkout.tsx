@@ -42,7 +42,7 @@ function CheckoutPage() {
   });
 
   // Enterprise/contact-sales rows never appear as a self-serve option here.
-  const selfServePlans = (plans ?? []).filter((p) => !p.is_contact_sales);
+  const selfServePlans = (plans ?? []).filter((p) => !p.isContactSales);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
