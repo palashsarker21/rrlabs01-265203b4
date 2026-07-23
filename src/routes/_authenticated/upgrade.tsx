@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { BrandLockup } from "@/components/brand-mark";
 import { cn } from "@/lib/utils";
 import { listPublicPlans } from "@/lib/billing.functions";
-import { getPlanByCode } from "@/lib/pricing";
+
 
 const searchSchema = z.object({
   reason: z.enum(["trial_expired", "feature_locked", "manual"]).optional(),
