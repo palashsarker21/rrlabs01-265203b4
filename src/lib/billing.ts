@@ -44,11 +44,11 @@ export function resolveCta({
   currentPlanCode,
   planIdForCheckout,
 }: CtaContext): CtaState {
-  // Enterprise always → Contact Sales.
-  if (plan.cta.kind === "contact_sales" || plan.enterprise) {
+  // Enterprise / contact-sales tier → Talk to Sales.
+  if (plan.ctaKind === "contact_sales" || plan.isMarketedEnterprise || plan.isContactSales) {
     return {
       kind: "contact_sales",
-      label: plan.cta.label,
+      label: plan.ctaLabel || "Talk to Sales",
       href: `/contact-sales?plan=${plan.code}`,
     };
   }
@@ -65,14 +65,14 @@ export function resolveCta({
   if (!isAuthenticated) {
     return {
       kind: "signup",
-      label: plan.cta.label,
+      label: plan.ctaLabel,
       href: `/auth?redirect=${encodeURIComponent(`/checkout${planIdForCheckout ? `?plan=${planIdForCheckout}` : ""}`)}`,
     };
   }
 
   return {
     kind: "checkout",
-    label: plan.cta.label,
+    label: plan.ctaLabel,
     href: planIdForCheckout ? `/checkout?plan=${planIdForCheckout}` : "/checkout",
   };
 }
