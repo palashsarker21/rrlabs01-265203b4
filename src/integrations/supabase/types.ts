@@ -2265,63 +2265,99 @@ export type Database = {
         Row: {
           code: string
           created_at: string
+          cta_kind: string
+          cta_label: string
           currency: string
           description: string | null
           features: Json
+          features_lead: string | null
+          highlight: boolean
           id: string
           interval: string
           is_active: boolean
           is_contact_sales: boolean
+          is_marketed_enterprise: boolean
           ls_product_id: string | null
+          ls_variant_env_key: string | null
           ls_variant_id: string | null
+          monthly_base_cents: number | null
           monthly_event_limit: number | null
           name: string
           price_cents: number
+          price_display: string | null
+          price_lead: string | null
+          price_suffix: string | null
           sort_order: number
           starting_at_price_cents: number | null
           success_fee_bps: number | null
+          success_fee_label: string | null
+          tagline: string | null
           trial_days: number
           updated_at: string
         }
         Insert: {
           code: string
           created_at?: string
+          cta_kind?: string
+          cta_label?: string
           currency?: string
           description?: string | null
           features?: Json
+          features_lead?: string | null
+          highlight?: boolean
           id?: string
           interval?: string
           is_active?: boolean
           is_contact_sales?: boolean
+          is_marketed_enterprise?: boolean
           ls_product_id?: string | null
+          ls_variant_env_key?: string | null
           ls_variant_id?: string | null
+          monthly_base_cents?: number | null
           monthly_event_limit?: number | null
           name: string
           price_cents?: number
+          price_display?: string | null
+          price_lead?: string | null
+          price_suffix?: string | null
           sort_order?: number
           starting_at_price_cents?: number | null
           success_fee_bps?: number | null
+          success_fee_label?: string | null
+          tagline?: string | null
           trial_days?: number
           updated_at?: string
         }
         Update: {
           code?: string
           created_at?: string
+          cta_kind?: string
+          cta_label?: string
           currency?: string
           description?: string | null
           features?: Json
+          features_lead?: string | null
+          highlight?: boolean
           id?: string
           interval?: string
           is_active?: boolean
           is_contact_sales?: boolean
+          is_marketed_enterprise?: boolean
           ls_product_id?: string | null
+          ls_variant_env_key?: string | null
           ls_variant_id?: string | null
+          monthly_base_cents?: number | null
           monthly_event_limit?: number | null
           name?: string
           price_cents?: number
+          price_display?: string | null
+          price_lead?: string | null
+          price_suffix?: string | null
           sort_order?: number
           starting_at_price_cents?: number | null
           success_fee_bps?: number | null
+          success_fee_label?: string | null
+          tagline?: string | null
           trial_days?: number
           updated_at?: string
         }
@@ -2954,6 +2990,27 @@ export type Database = {
             referencedColumns: ["key"]
           },
         ]
+      }
+      site_content: {
+        Row: {
+          key: string
+          updated_at: string
+          updated_by: string | null
+          value: Json
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
+        }
+        Relationships: []
       }
       subscriptions: {
         Row: {
