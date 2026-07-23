@@ -433,16 +433,16 @@ function ROICalculator({
               </div>
             </div>
             <p className="mt-6 text-xs text-neutral-500">
-              Based on the Growth plan ({growth.price}
-              {growth.priceSuffix} · {growth.successFee}). Estimates vary by industry and payment
-              mix.
+              Based on the {growth.name} plan ({growth.priceDisplay}
+              {growth.priceSuffix} · {growth.successFeeLabel ?? ""}). Estimates vary by industry and
+              payment mix.
             </p>
             <div className="mt-6">
               <CtaButton
                 plan={growth}
                 isAuthenticated={isAuthenticated}
-                hasCheckoutVariant={byCode.get("growth")?.has_variant ?? false}
-                planIdForCheckout={byCode.get("growth")?.id ?? null}
+                hasCheckoutVariant={!!growth.hasVariant}
+                planIdForCheckout={growth.id}
               />
             </div>
           </div>
