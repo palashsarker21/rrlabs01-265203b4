@@ -358,7 +358,7 @@ function ROICalculator({
   const results = useMemo(() => {
     const failedRevenue = failedPayments * aov;
     const recovered = failedRevenue * (recoveryRate / 100);
-    const successFee = recovered * (growth.successFeeBps / 10000);
+    const successFee = recovered * ((growth.successFeeBps ?? 400) / 10000);
     const platformCost = (growth.monthlyBaseCents ?? 9900) / 100 + successFee;
     const netGain = recovered - platformCost;
     const annualGain = netGain * 12;
