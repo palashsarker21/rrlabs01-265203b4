@@ -254,7 +254,13 @@ function PlanCard({
   );
 }
 
-function ComparisonTable() {
+function ComparisonTable({
+  plans,
+  compareRows,
+}: {
+  plans: PricingPlan[];
+  compareRows: CompareRow[];
+}) {
   return (
     <section className="mx-auto max-w-7xl px-6 py-16">
       <div className="mx-auto max-w-2xl text-center">
@@ -276,7 +282,7 @@ function ComparisonTable() {
                 <th scope="col" className="p-4 text-left font-medium text-neutral-500">
                   Feature
                 </th>
-                {PLANS.map((p) => (
+                {plans.map((p) => (
                   <th
                     scope="col"
                     key={p.code}
@@ -293,7 +299,7 @@ function ComparisonTable() {
               </tr>
             </thead>
             <tbody>
-              {COMPARE_ROWS.map((row, i) => (
+              {compareRows.map((row, i) => (
                 <tr key={row.label} className={i % 2 === 1 ? "bg-neutral-50/40" : ""}>
                   <th scope="row" className="p-4 text-left font-normal text-neutral-800">
                     {row.label}
