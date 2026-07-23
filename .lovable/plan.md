@@ -1,74 +1,70 @@
-## Platform Control Center — Separation & Enterprise Upgrade
+# Enterprise Architecture Consolidation — Phased Plan
 
-This is a large structural change. I'll ship it in ordered waves so nothing breaks, keeping all existing DB, APIs, and business logic intact.
+This refactor spans ~15 subsystems and thousands of LOC. Shipping it as one commit would break production. Below is the wave breakdown. Each wave is independently deployable, typecheck-clean, and preserves all business logic, RLS, data, webhook URLs, and billing behavior.
 
-### Wave 1 — Route & Shell Separation
+I need your approval on the **wave order and scope** before I start Wave 1. If you want a different order (e.g. Integration Framework first because it unblocks more), say so.
 
-- Move admin surface from `/admin/*` and `/admin/v2/*` to a new top-level `/platform/*` tree with its own layout (`src/routes/_authenticated/platform/route.tsx`).
-- Keep `/admin/*` routes alive as thin redirects to their `/platform` equivalents (no broken bookmarks, no lost audit trails).
-- Add `/platform` to `BYPASS_PREFIXES` in `app-shell.tsx` so the customer chrome never leaks in. Platform gets its own shell: `PlatformShell` (sidebar + top bar + status bar), Customer keeps `AuthenticatedShell`.
-- Customer sidebar (`app-nav.ts`) loses every admin-only entry; those live only in the platform nav registry.
+---
 
-### Wave 2 — Platform Shell Chrome
+## Wave 1 — Audit & Dependency Graph (read-only, no code changes)
 
-- `src/components/platform/platform-shell.tsx` — layout wrapper.
-- `src/components/platform/platform-sidebar.tsx` — collapsible module groups, persisted expand state (`localStorage`), keyboard nav, active-route highlight, live badge slots.
-- `src/components/platform/platform-topbar.tsx` — Global Create dropdown, Command Palette trigger, Organization Switcher (impersonation entry point), profile menu.
-- `src/components/platform/system-status-bar.tsx` — always-visible strip with 8 service pills (API, DB, Queues, Workers, AI, Email, WhatsApp, Payments) fed by `getSystemHealth`.
-- `src/components/platform/impersonation-banner.tsx` — sticky banner when viewing a workspace as admin, with "Exit" action.
+Deliverable: `.lovable/architecture-audit.md` containing:
+- Every duplicate route, component, server fn, table column, and constant
+- Domain → owner map (pricing, nav, brand, AI, recovery, integrations, RBAC, flags)
+- Dependency graph of what consumes each duplicate (so Wave 2+ can safely delete)
+- Concrete removal list per wave
 
-### Wave 3 — Nav Registry + Live Badges + Command Palette
+No code touched. This is the safety net for every subsequent wave.
 
-- New `src/lib/platform/nav.ts` — module-grouped registry (Monitoring, Customers, Revenue, Operations, Messaging, Content, Platform, Security, God Mode). Reuses existing `ADMIN_NAV` labels and destinations, just retargeted to `/platform/*`.
-- `src/lib/platform/badges.functions.ts` — `getPlatformBadges` server fn returning counts for Failed Jobs, Pending Emails, Pending WhatsApp, Webhook Failures, Open Incidents, New Tickets. Wired via `useQuery` with 30 s refetch + Supabase Realtime invalidation.
-- Reuse existing `AppCommandPalette` pattern in `src/components/platform/command-palette.tsx`, scoped to platform nav plus entity search (orgs, users, invoices, recovery events, audit logs, queues, API keys, routes, integrations).
+## Wave 2 — Pricing SSOT (`plans` table only)
 
-### Wave 4 — Global Create + Impersonation
+- Migrate all pricing/limits/trial/success-fee constants out of `src/lib/pricing.ts` into the `plans` table (fields already exist; backfill missing ones via migration).
+- Convert `src/lib/pricing.ts` into a thin server-fn wrapper that reads `plans` and caches per request.
+- Marketing pricing page, checkout, upgrade, dashboard current-plan card, comparison table, ROI calc, admin billing → all consume the server fn.
+- Env vars keep only `LEMONSQUEEZY_VARIANT_*` / store IDs / secrets. No prices, no limits.
+- Platform → Billing → Plans becomes the only editor (writes to `plans`, invalidates React Query cache).
 
-- `src/components/platform/create-menu.tsx` — dropdown with the 9 create actions. Each opens the existing creation dialog/route (New Organization → workspaces admin flow, etc.). No new business logic.
-- Secure impersonation via existing `admin_workspace_overview` gate: `startImpersonation(workspaceId)` server fn (super_admin only, audited), sets a signed cookie/session flag read by `impersonation-banner`. "Exit" clears it. All impersonated reads still go through RLS as the admin user; we just scope the active workspace context — never a customer session token.
+## Wave 3 — Platform / Admin Consolidation
 
-### Wave 5 — Dangerous Actions + Audit
+- `/admin` legacy tabbed console: keep panels as internal components, remove top-level route, redirect `/admin` and every `/admin/<tab>` to the equivalent `/platform/*` route.
+- Delete every `admin.v2.*` file (already partially done last turn — finish).
+- One super-admin console at `/platform`. Customer sidebar loses every `adminOnly` leak.
 
-- `src/components/platform/confirm-dangerous.tsx` — dialog requiring password re-entry (via `supabase.auth.signInWithPassword` re-check) or MFA challenge before running delete/suspend/refund/plan-change/god-mode actions.
-- Every platform server fn calls `writeAuditLog` (already exists in `src/lib/audit.server.ts`) with actor, IP, UA, old/new value, reason. Add a `reason` text field to dangerous-action dialogs.
+## Wave 4 — Unified Navigation Registry
 
-### Wave 6 — Dashboard, Empty States, God Mode
+- Single `src/lib/nav/registry.ts` typed as `{ id, label, path, icon, audience: 'customer' | 'platform', permission?, badgeKey?, keywords, group }`.
+- Sidebar, top nav, command palette, quick actions, breadcrumbs, and global search all derive from it.
+- Delete `src/lib/app-nav.ts` and `src/lib/platform/nav.ts` after migration.
 
-- Rewrite `/platform` index (`platform.index.tsx`) with the 17 KPI cards, all sourced from existing analytics/billing/system-health server fns. No placeholders — when a metric returns null, show "No data yet" + CTA.
-- Standard `<EmptyState />` primitive with explanation + CTA + docs link + example data toggle. Applied to every list route.
-- God Mode section only rendered when `isSuperAdmin && email === 'palashsarker1993@gmail.com'`. Confirmation + audit for every action.
+## Wave 5 — Integration Framework (biggest wave)
 
-### Wave 7 — Responsive, Perf, Cleanup
+Split into 5 sub-steps, each shippable:
 
-- Sidebar: desktop collapsible, tablet auto-collapsed, mobile drawer (Sheet).
-- Route-level lazy loading for platform pages via TanStack code-splitting (already default).
-- Virtualized tables (`@tanstack/react-virtual`, already installed) for customer directory, audit logs, recovery events.
-- Server-side pagination on all list fetchers.
-- Remove hardcoded stats from existing admin panels; replace with live queries.
+1. **Provider Registry** — one `provider_catalog` row per provider with JSON `credential_schema`, `capabilities`, `verification`, `webhook_config`. Migrate current hardcoded provider metadata.
+2. **Dynamic Form Engine** — one `<ProviderCredentialForm schema={…} />` component; delete every per-provider form.
+3. **Unified Connection Card** — one `<ConnectionCard integration={…} />`; delete per-provider cards. Realtime status via existing `supabase.channel`.
+4. **Verification Engine** — one server fn `verifyIntegration(integrationId)` dispatches to per-provider verifiers behind a common interface returning the standardized status enum.
+5. **Webhook Engine** — one `/api/public/webhooks/$provider/$integrationId` handler (already exists) becomes the single entry; per-provider signature verifiers behind a common interface. DLQ + replay reuse existing `webhook_logs` + `job_queue`.
 
-### What stays untouched
+Webhook URLs already have this shape, so no customer needs to re-paste anything. Existing signing secrets are preserved.
 
-- Database schema, RLS policies, RBAC helpers.
-- All server functions and webhook handlers.
-- Recovery engine, AI gateway, billing, email/WhatsApp adapters.
-- Customer-facing routes and shell.
+## Wave 6 — Realtime & Health Dashboard
 
-### Technical notes
+- One `/platform/integrations` dashboard subscribing to `integrations` + `webhook_logs` via `postgres_changes`. Delete duplicate health widgets.
+- Customer `/integrations` page uses the same `<ConnectionCard>` but scoped to their workspace.
 
-- `/admin/*` → `/platform/*` redirects live in the old route files as `beforeLoad: () => redirect(...)`, preserving deep links (`?tab=` params carry over).
-- Sidebar expand state persisted per user under `localStorage["platform.nav.collapsed"]`.
-- Badges use a single `useQuery(["platform-badges"])` fed by one aggregated server fn to avoid N queries.
-- Status bar polls `getSystemHealth` every 60 s + realtime channel on `incidents` for immediate red-state flips.
-- Impersonation uses an httpOnly cookie `platform_impersonating_workspace` set by a server fn; middleware refuses to set it for non-super-admins.
+## Wave 7 — Dead Code Sweep & Final Validation
 
-### Rollout order (single PR chain)
+- Delete unused routes, files, imports, enums, helpers, commented code found in Wave 1.
+- `tsgo` clean, `bun run build` clean, `run_rls_test_suite` green.
+- Produce final Architecture Audit Report with the ✔ checklist from your brief.
 
-1. Wave 1 + 2 (shell + redirects) — safe, no data change.
-2. Wave 3 (nav, badges, palette).
-3. Wave 4 (create menu, impersonation).
-4. Wave 5 (dangerous-action guard + audit hooks).
-5. Wave 6 (dashboard, empty states, god mode).
-6. Wave 7 (responsive polish, virtualization, cleanup of legacy hardcoded values).
+---
 
-Shall I proceed starting with Wave 1?
+## What I need from you
+
+1. **Approve the wave order** (or reorder — e.g. Integration Framework before Pricing if that's higher business priority).
+2. **Confirm no customer-facing URL changes** beyond `/admin/*` → `/platform/*` redirects. In particular, `/pricing`, `/integrations`, `/dashboard`, `/app`, and every webhook URL stay identical.
+3. **Confirm I can drop `src/lib/pricing.ts` as a hardcoded module** and replace it with a server-fn-backed loader. This is a breaking change for any component that imports `PLANS` synchronously at module scope — I'll convert those call sites in the same wave.
+
+Once you approve, I'll start with Wave 1 (audit only, zero code changes) and post the audit doc for you to review before Wave 2 touches any code.
