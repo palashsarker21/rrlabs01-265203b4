@@ -100,7 +100,6 @@ function CheckoutPage() {
               <div className="mt-2 grid gap-3 sm:grid-cols-3">
                 {selfServePlans.map((p) => {
                   const active = selectedPlanId === p.id;
-                  const display = getPlanByCode(p.code);
                   return (
                     <button
                       type="button"
@@ -117,13 +116,13 @@ function CheckoutPage() {
                         <div className="text-sm font-semibold text-foreground">{p.name}</div>
                       </div>
                       <div className="mt-1 text-xs text-muted-foreground">
-                        {p.price_cents != null
-                          ? `$${(p.price_cents / 100).toFixed(0)}/${p.interval} · ${p.trial_days}d trial`
+                        {p.monthlyBaseCents != null
+                          ? `${p.priceDisplay}${p.priceSuffix ?? ""} · ${p.trialDays}d trial`
                           : "Custom pricing"}
                       </div>
-                      {display && (
+                      {p.successFeeLabel && (
                         <div className="mt-1 text-[11px] font-medium text-emerald-700">
-                          {display.successFee}
+                          {p.successFeeLabel}
                         </div>
                       )}
                     </button>
