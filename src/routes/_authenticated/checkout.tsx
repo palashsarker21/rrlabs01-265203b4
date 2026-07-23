@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { BrandLockup } from "@/components/brand-mark";
 import { createCheckoutSession, listPublicPlans } from "@/lib/billing.functions";
-import { getPlanByCode, TRIAL_DAYS } from "@/lib/pricing";
+import { TRIAL_DAYS_FALLBACK as TRIAL_DAYS } from "@/lib/pricing";
 
 const searchSchema = z.object({
   plan: z.string().uuid().optional(),
