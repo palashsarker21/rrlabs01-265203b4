@@ -404,9 +404,8 @@ function Landing() {
             </p>
           </div>
           <div className="mx-auto mt-14 grid max-w-6xl gap-6 md:grid-cols-2 lg:grid-cols-4">
-            {PLANS.map((plan) => {
-              const server = serverPlans?.find((s) => s.code === plan.code);
-              const hasVariant = server ? server.has_variant : true;
+            {(serverPlans ?? []).map((plan: PricingPlan) => {
+              const hasVariant = plan.hasVariant;
               return (
                 <div
                   key={plan.code}
@@ -422,15 +421,23 @@ function Landing() {
                     <p className="mt-2 text-xs text-muted-foreground">{plan.priceLead}</p>
                   ) : null}
                   <div className="mt-2 flex items-baseline gap-1">
-                    <span className="text-4xl font-semibold text-foreground">{plan.price}</span>
+                    <span className="text-4xl font-semibold text-foreground">
+                      {plan.priceDisplay}
+                    </span>
                     {plan.priceSuffix ? (
                       <span className="text-sm text-muted-foreground">{plan.priceSuffix}</span>
                     ) : null}
                   </div>
-                  <p className="mt-1 text-xs font-medium text-foreground">{plan.successFee}</p>
-                  <p className="mt-2 text-sm text-muted-foreground">{plan.tagline}</p>
+                  {plan.successFeeLabel ? (
+                    <p className="mt-1 text-xs font-medium text-foreground">
+                      {plan.successFeeLabel}
+                    </p>
+                  ) : null}
+                  {plan.tagline ? (
+                    <p className="mt-2 text-sm text-muted-foreground">{plan.tagline}</p>
+                  ) : null}
                   <ul className="mt-6 flex-1 space-y-3">
-                    {plan.features.slice(0, 5).map((f) => (
+                    {plan.features.slice(0, 5).map((f: string) => (
                       <li key={f} className="flex items-start gap-2 text-sm text-foreground">
                         <Check className="mt-0.5 h-4 w-4 shrink-0 text-foreground" />
                         <span>{f}</span>
@@ -442,7 +449,7 @@ function Landing() {
                       plan={plan}
                       isAuthenticated={!!authed}
                       hasCheckoutVariant={hasVariant}
-                      planIdForCheckout={server?.id ?? null}
+                      planIdForCheckout={plan.id}
                       variant={plan.highlight ? "primary" : "outline"}
                       fullWidth
                     />
