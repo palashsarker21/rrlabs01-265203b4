@@ -547,12 +547,6 @@ function PricingConfigPanel({
         <div className="flex flex-wrap items-center gap-6 text-sm">
           <div>
             <div className="text-xs uppercase tracking-wider text-muted-foreground">
-              Trial length
-            </div>
-            <div className="mt-1 font-medium text-foreground">{data.trialDays} days</div>
-          </div>
-          <div>
-            <div className="text-xs uppercase tracking-wider text-muted-foreground">
               Lemon Squeezy store
             </div>
             <div className="mt-1 font-medium text-foreground">
@@ -577,10 +571,10 @@ function PricingConfigPanel({
           </div>
         </div>
         <p className="mt-4 text-xs text-muted-foreground">
-          Display copy comes from <code className="font-mono">src/lib/pricing.ts</code> (PLANS).
-          Checkout binds to the <code className="font-mono">plans</code> table by{" "}
-          <code className="font-mono">code</code>; the resolved LS variant id is read from the
-          matching environment variable.
+          Display copy, trial length, and success-fee % are stored in{" "}
+          <code className="font-mono">public.plans</code>. Marketing content (trust badges, FAQ,
+          comparison matrix) is stored in <code className="font-mono">public.site_content</code>.
+          Edit those rows to update every pricing surface.
         </p>
       </div>
 
@@ -593,97 +587,78 @@ function PricingConfigPanel({
                 <th className="px-4 py-3 text-left">Name</th>
                 <th className="px-4 py-3 text-left">Display price</th>
                 <th className="px-4 py-3 text-left">Success fee</th>
+                <th className="px-4 py-3 text-left">Trial</th>
                 <th className="px-4 py-3 text-left">CTA</th>
-                <th className="px-4 py-3 text-left">DB plan</th>
                 <th className="px-4 py-3 text-left">LS variant</th>
+                <th className="px-4 py-3 text-left">Status</th>
               </tr>
             </thead>
             <tbody>
-              {data.rows.map(({ plan, dbPlan, lsVariantEnvKey, lsVariantConfigured }) => {
-                const dbMatches =
-                  dbPlan &&
-                  dbPlan.code === plan.code &&
-                  (plan.monthlyBaseCents == null || dbPlan.price_cents === plan.monthlyBaseCents) &&
-                  (plan.successFeeBps == null || dbPlan.success_fee_bps === plan.successFeeBps);
-                return (
-                  <tr key={plan.code} className="border-t border-border/60 align-top">
-                    <td className="px-4 py-3 font-mono text-xs">{plan.code}</td>
-                    <td className="px-4 py-3">
-                      <div className="font-medium text-foreground">{plan.name}</div>
-                      <div className="text-xs text-muted-foreground">{plan.tagline}</div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="font-medium">
-                        {plan.price}
-                        {plan.priceSuffix ?? ""}
+              {data.rows.map((row) => (
+                <tr key={row.id} className="border-t border-border/60 align-top">
+                  <td className="px-4 py-3 font-mono text-xs">{row.code}</td>
+                  <td className="px-4 py-3">
+                    <div className="font-medium text-foreground">{row.name}</div>
+                    {row.highlight ? (
+                      <div className="text-[10px] uppercase tracking-wider text-emerald-500">
+                        Most Popular
                       </div>
-                      {plan.priceLead ? (
-                        <div className="text-xs text-muted-foreground">{plan.priceLead}</div>
-                      ) : null}
-                    </td>
-                    <td className="px-4 py-3">
-                      <div>{formatSuccessFeeBps(plan.successFeeBps)}</div>
-                      <div className="text-xs text-muted-foreground">{plan.successFee}</div>
-                    </td>
-                    <td className="px-4 py-3 text-xs">
-                      <div className="font-mono">{plan.cta.kind}</div>
-                      <div className="text-muted-foreground">{plan.cta.label}</div>
-                    </td>
-                    <td className="px-4 py-3 text-xs">
-                      {dbPlan ? (
-                        <div className="space-y-1">
-                          <div className="inline-flex items-center gap-1">
-                            {dbMatches ? (
-                              <Check className="h-3.5 w-3.5 text-emerald-500" />
-                            ) : (
-                              <X className="h-3.5 w-3.5 text-amber-500" />
-                            )}
-                            <span className="font-mono">{dbPlan.code}</span>
-                          </div>
-                          <div className="text-muted-foreground">
-                            {(dbPlan.price_cents / 100).toLocaleString(undefined, {
+                    ) : null}
+                    {row.is_marketed_enterprise ? (
+                      <div className="text-[10px] uppercase tracking-wider text-foreground">
+                        Enterprise
+                      </div>
+                    ) : null}
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="font-medium">
+                      {row.price_display ??
+                        (row.price_cents != null
+                          ? (row.price_cents / 100).toLocaleString(undefined, {
                               style: "currency",
-                              currency: "USD",
-                            })}
-                            {" · "}
-                            {formatSuccessFeeBps(dbPlan.success_fee_bps)}
-                            {" · trial "}
-                            {dbPlan.trial_days}d
-                          </div>
-                          {!dbPlan.is_active ? (
-                            <div className="text-amber-500">inactive</div>
-                          ) : null}
+                              currency: row.currency,
+                            })
+                          : "—")}
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-xs">{formatSuccessFeeBps(row.success_fee_bps)}</td>
+                  <td className="px-4 py-3 text-xs">{row.trial_days}d</td>
+                  <td className="px-4 py-3 text-xs">
+                    <div className="font-mono">{row.cta_kind}</div>
+                    <div className="text-muted-foreground">{row.cta_label}</div>
+                  </td>
+                  <td className="px-4 py-3 text-xs">
+                    {row.ls_variant_env_key ? (
+                      <div className="space-y-1">
+                        <div className="font-mono">{row.ls_variant_env_key}</div>
+                        <div>
+                          {row.ls_variant_env_configured ? (
+                            <span className="inline-flex items-center gap-1 text-emerald-500">
+                              <Check className="h-3.5 w-3.5" /> configured
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 text-rose-500">
+                              <X className="h-3.5 w-3.5" /> missing env
+                            </span>
+                          )}
                         </div>
-                      ) : (
-                        <span className="text-rose-500">Missing row</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-xs">
-                      {lsVariantEnvKey ? (
-                        <div className="space-y-1">
-                          <div className="font-mono">{lsVariantEnvKey}</div>
-                          <div>
-                            {lsVariantConfigured ? (
-                              <span className="inline-flex items-center gap-1 text-emerald-500">
-                                <Check className="h-3.5 w-3.5" /> configured
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center gap-1 text-rose-500">
-                                <X className="h-3.5 w-3.5" /> missing env
-                              </span>
-                            )}
-                          </div>
-                          <div className="text-muted-foreground">
-                            db id: {dbPlan?.ls_variant_id ?? "—"}
-                          </div>
+                        <div className="text-muted-foreground">
+                          db id: {row.ls_variant_id ?? "—"}
                         </div>
-                      ) : (
-                        <span className="text-muted-foreground">n/a (contact sales)</span>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
+                      </div>
+                    ) : (
+                      <span className="text-muted-foreground">n/a (contact sales)</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-xs">
+                    {row.is_active ? (
+                      <span className="text-emerald-500">active</span>
+                    ) : (
+                      <span className="text-amber-500">inactive</span>
+                    )}
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
