@@ -15,7 +15,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { MarketingHeader, MarketingFooter } from "@/components/marketing-chrome";
 import { SITE_URL } from "@/lib/brand";
-import { PLANS, COMPARE_ROWS, PRICING_FAQ, TRIAL_DAYS, type PricingPlan } from "@/lib/pricing";
+import {
+  TRIAL_DAYS_FALLBACK as TRIAL_DAYS,
+  type PricingPlan,
+  type CompareRow,
+  type FaqItem,
+} from "@/lib/pricing";
+import { getPricingContent } from "@/lib/pricing.functions";
 import { listPublicPlans } from "@/lib/billing.functions";
 import { CtaButton } from "@/components/pricing/cta-button";
 import { useIsAuthed } from "@/hooks/use-is-authed";
@@ -71,21 +77,24 @@ function PricingPage() {
     queryFn: () => listPublicPlans(),
     staleTime: 60_000,
   });
+  const { data: content } = useQuery({
+    queryKey: ["pricing-content"],
+    queryFn: () => getPricingContent(),
+    staleTime: 60_000,
+  });
 
-  const byCode = useMemo(() => {
-    const m = new Map<string, ServerPlan>();
-    (serverPlans ?? []).forEach((p) => m.set(p.code, p));
-    return m;
-  }, [serverPlans]);
+  const plans = serverPlans ?? [];
+  const compareRows = content?.compareRows ?? [];
+  const faq = content?.faq ?? [];
 
   return (
     <div className="min-h-screen bg-white text-neutral-900">
       <MarketingHeader />
       <Hero />
-      <PlanGrid isAuthenticated={!!authed} byCode={byCode} />
-      <ComparisonTable />
-      <ROICalculator isAuthenticated={!!authed} byCode={byCode} />
-      <FAQ />
+      <PlanGrid isAuthenticated={!!authed} plans={plans} />
+      <ComparisonTable plans={plans} compareRows={compareRows} />
+      <ROICalculator isAuthenticated={!!authed} plans={plans} />
+      <FAQ items={faq} />
       <FinalCTA />
       <StickyMobileCTA />
       <MarketingFooter />
@@ -147,21 +156,16 @@ function Hero() {
 
 function PlanGrid({
   isAuthenticated,
-  byCode,
+  plans,
 }: {
   isAuthenticated: boolean;
-  byCode: Map<string, ServerPlan>;
+  plans: PricingPlan[];
 }) {
   return (
     <section className="mx-auto max-w-7xl px-6 py-16">
       <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
-        {PLANS.map((p) => (
-          <PlanCard
-            key={p.code}
-            plan={p}
-            isAuthenticated={isAuthenticated}
-            server={byCode.get(p.code)}
-          />
+        {plans.map((p) => (
+          <PlanCard key={p.code} plan={p} isAuthenticated={isAuthenticated} />
         ))}
       </div>
       <p className="mt-6 text-center text-xs text-neutral-500">
@@ -174,15 +178,13 @@ function PlanGrid({
 function PlanCard({
   plan,
   isAuthenticated,
-  server,
 }: {
   plan: PricingPlan;
   isAuthenticated: boolean;
-  server?: ServerPlan;
 }) {
   const highlight = !!plan.highlight;
-  const enterprise = !!plan.enterprise;
-  const hasCheckoutVariant = server ? !!server.has_variant : true;
+  const enterprise = !!plan.isMarketedEnterprise;
+  const hasCheckoutVariant = !!plan.hasVariant;
 
   return (
     <div
@@ -206,18 +208,20 @@ function PlanCard({
 
       <div>
         <h3 className="text-lg font-semibold text-neutral-950">{plan.name}</h3>
-        <p className="mt-1 text-sm text-neutral-600">{plan.tagline}</p>
+        {plan.tagline && <p className="mt-1 text-sm text-neutral-600">{plan.tagline}</p>}
       </div>
 
       <div className="mt-6 min-h-[92px]">
         {plan.priceLead && <p className="text-xs text-neutral-500">{plan.priceLead}</p>}
         <div className="flex items-baseline gap-1">
           <span className="text-4xl font-semibold tracking-tight text-neutral-950">
-            {plan.price}
+            {plan.priceDisplay}
           </span>
           {plan.priceSuffix && <span className="text-sm text-neutral-500">{plan.priceSuffix}</span>}
         </div>
-        <p className="mt-1 text-xs font-medium text-emerald-700">{plan.successFee}</p>
+        {plan.successFeeLabel && (
+          <p className="mt-1 text-xs font-medium text-emerald-700">{plan.successFeeLabel}</p>
+        )}
       </div>
 
       <div className="my-6 h-px bg-neutral-200" />
@@ -241,7 +245,7 @@ function PlanCard({
           plan={plan}
           isAuthenticated={isAuthenticated}
           hasCheckoutVariant={hasCheckoutVariant}
-          planIdForCheckout={server?.id ?? null}
+          planIdForCheckout={plan.id}
           variant={highlight ? "primary" : "outline"}
           fullWidth
         />
@@ -250,7 +254,13 @@ function PlanCard({
   );
 }
 
-function ComparisonTable() {
+function ComparisonTable({
+  plans,
+  compareRows,
+}: {
+  plans: PricingPlan[];
+  compareRows: CompareRow[];
+}) {
   return (
     <section className="mx-auto max-w-7xl px-6 py-16">
       <div className="mx-auto max-w-2xl text-center">
@@ -272,7 +282,7 @@ function ComparisonTable() {
                 <th scope="col" className="p-4 text-left font-medium text-neutral-500">
                   Feature
                 </th>
-                {PLANS.map((p) => (
+                {plans.map((p) => (
                   <th
                     scope="col"
                     key={p.code}
@@ -289,7 +299,7 @@ function ComparisonTable() {
               </tr>
             </thead>
             <tbody>
-              {COMPARE_ROWS.map((row, i) => (
+              {compareRows.map((row, i) => (
                 <tr key={row.label} className={i % 2 === 1 ? "bg-neutral-50/40" : ""}>
                   <th scope="row" className="p-4 text-left font-normal text-neutral-800">
                     {row.label}
@@ -322,21 +332,33 @@ function ComparisonTable() {
 
 function ROICalculator({
   isAuthenticated,
-  byCode,
+  plans,
 }: {
   isAuthenticated: boolean;
-  byCode: Map<string, ServerPlan>;
+  plans: PricingPlan[];
 }) {
   const [failedPayments, setFailedPayments] = useState(200);
   const [aov, setAov] = useState(49);
   const [recoveryRate, setRecoveryRate] = useState(35);
 
-  const growth = PLANS.find((p) => p.code === "growth")!;
+  const growth =
+    plans.find((p) => p.code === "growth") ??
+    plans[0] ??
+    ({
+      code: "growth",
+      name: "Growth",
+      priceDisplay: "$99",
+      priceSuffix: "/month",
+      successFeeBps: 400,
+      successFeeLabel: "+4% success fee",
+      monthlyBaseCents: 9900,
+      features: [],
+    } as unknown as PricingPlan);
 
   const results = useMemo(() => {
     const failedRevenue = failedPayments * aov;
     const recovered = failedRevenue * (recoveryRate / 100);
-    const successFee = recovered * (growth.successFeeBps / 10000);
+    const successFee = recovered * ((growth.successFeeBps ?? 400) / 10000);
     const platformCost = (growth.monthlyBaseCents ?? 9900) / 100 + successFee;
     const netGain = recovered - platformCost;
     const annualGain = netGain * 12;
@@ -411,16 +433,16 @@ function ROICalculator({
               </div>
             </div>
             <p className="mt-6 text-xs text-neutral-500">
-              Based on the Growth plan ({growth.price}
-              {growth.priceSuffix} · {growth.successFee}). Estimates vary by industry and payment
-              mix.
+              Based on the {growth.name} plan ({growth.priceDisplay}
+              {growth.priceSuffix} · {growth.successFeeLabel ?? ""}). Estimates vary by industry and
+              payment mix.
             </p>
             <div className="mt-6">
               <CtaButton
                 plan={growth}
                 isAuthenticated={isAuthenticated}
-                hasCheckoutVariant={byCode.get("growth")?.has_variant ?? false}
-                planIdForCheckout={byCode.get("growth")?.id ?? null}
+                hasCheckoutVariant={!!growth.hasVariant}
+                planIdForCheckout={growth.id}
               />
             </div>
           </div>
@@ -502,7 +524,7 @@ function Result({ label, value, accent }: { label: string; value: string; accent
   );
 }
 
-function FAQ() {
+function FAQ({ items }: { items: FaqItem[] }) {
   return (
     <section className="mx-auto max-w-3xl px-6 py-16">
       <div className="text-center">
@@ -511,7 +533,7 @@ function FAQ() {
         </h2>
       </div>
       <div className="mt-10 divide-y divide-neutral-200 rounded-2xl border border-neutral-200 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
-        {PRICING_FAQ.map((item, i) => (
+        {items.map((item, i) => (
           <FAQItem key={item.q} q={item.q} a={item.a} defaultOpen={i === 0} />
         ))}
       </div>

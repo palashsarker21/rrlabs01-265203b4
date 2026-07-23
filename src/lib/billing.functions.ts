@@ -193,44 +193,83 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
   });
 
 /**
- * Public: list active plans + whether each has a working self-serve variant.
- * Enterprise / contact-sales rows are included with `has_variant=false`.
- * We never expose the raw variant ID to the client.
+ * Public: list active plans in the unified `PricingPlan` shape used by
+ * every marketing/app pricing surface. All display copy is read from the
+ * `public.plans` table (Wave 2 SSOT). The raw LS variant id is never
+ * exposed — we only expose whether a self-serve variant is resolvable.
  */
-export const listPublicPlans = createServerFn({ method: "GET" }).handler(async () => {
-  const { createClient } = await import("@supabase/supabase-js");
-  const url = process.env.SUPABASE_URL!;
-  const key = process.env.SUPABASE_PUBLISHABLE_KEY!;
-  const client = createClient(url, key, {
-    auth: { persistSession: false, autoRefreshToken: false },
-    global: {
-      fetch: (input, init) => {
-        const h = new Headers(init?.headers);
-        if (key.startsWith("sb_") && h.get("Authorization") === `Bearer ${key}`) {
-          h.delete("Authorization");
-        }
-        h.set("apikey", key);
-        return fetch(input, { ...init, headers: h });
+export const listPublicPlans = createServerFn({ method: "GET" }).handler(
+  async (): Promise<import("@/lib/pricing").PricingPlan[]> => {
+    const { createClient } = await import("@supabase/supabase-js");
+    const url = process.env.SUPABASE_URL!;
+    const key = process.env.SUPABASE_PUBLISHABLE_KEY!;
+    const client = createClient(url, key, {
+      auth: { persistSession: false, autoRefreshToken: false },
+      global: {
+        fetch: (input, init) => {
+          const h = new Headers(init?.headers);
+          if (key.startsWith("sb_") && h.get("Authorization") === `Bearer ${key}`) {
+            h.delete("Authorization");
+          }
+          h.set("apikey", key);
+          return fetch(input, { ...init, headers: h });
+        },
       },
-    },
-  });
-  const { data, error } = await client
-    .from("plans")
-    .select(
-      "id, code, name, description, price_cents, currency, interval, trial_days, features, sort_order, success_fee_bps, is_contact_sales, starting_at_price_cents, ls_variant_id",
-    )
-    .eq("is_active", true)
-    .order("sort_order", { ascending: true });
-  if (error) throw error;
+    });
+    const { data, error } = await client
+      .from("plans")
+      .select(
+        "id, code, name, description, tagline, price_cents, price_display, price_suffix, price_lead, currency, interval, trial_days, features, features_lead, sort_order, success_fee_bps, success_fee_label, monthly_base_cents, highlight, is_marketed_enterprise, is_contact_sales, starting_at_price_cents, cta_kind, cta_label, ls_variant_id",
+      )
+      .eq("is_active", true)
+      .order("sort_order", { ascending: true });
+    if (error) throw error;
 
-  return (data ?? []).map((p) => {
-    const variantId = cleanVariantId(envVariantForPlan(p.code)) ?? cleanVariantId(p.ls_variant_id);
-    const hasVariant = !p.is_contact_sales && (Boolean(variantId) || isSelfServePlan(p.code));
-    // Strip the raw variant id from the public payload.
-    const { ls_variant_id: _drop, ...rest } = p;
-    return { ...rest, has_variant: hasVariant };
-  });
-});
+    return (data ?? []).map((p) => {
+      const variantId =
+        cleanVariantId(envVariantForPlan(p.code)) ?? cleanVariantId(p.ls_variant_id);
+      const hasVariant = !p.is_contact_sales && (Boolean(variantId) || isSelfServePlan(p.code));
+      const features = Array.isArray(p.features)
+        ? (p.features as unknown[]).filter((f): f is string => typeof f === "string")
+        : [];
+      const ctaKind: "trial" | "contact_sales" =
+        (p.cta_kind as string) === "contact_sales" ? "contact_sales" : "trial";
+      const priceDisplay =
+        p.price_display ??
+        (p.price_cents != null
+          ? `$${Math.round(p.price_cents / 100)}`
+          : p.starting_at_price_cents != null
+            ? "Custom"
+            : "Custom");
+      return {
+        id: p.id,
+        code: p.code,
+        name: p.name,
+        tagline: p.tagline ?? null,
+        description: p.description ?? null,
+        priceDisplay,
+        priceSuffix: p.price_suffix ?? (p.price_cents != null ? `/${p.interval ?? "month"}` : null),
+        priceLead: p.price_lead ?? null,
+        successFeeBps: p.success_fee_bps ?? null,
+        successFeeLabel: p.success_fee_label ?? null,
+        monthlyBaseCents: p.monthly_base_cents ?? p.price_cents ?? null,
+        featuresLead: p.features_lead ?? null,
+        features,
+        ctaKind,
+        ctaLabel: p.cta_label ?? (ctaKind === "contact_sales" ? "Talk to Sales" : "Get Started"),
+        highlight: Boolean(p.highlight),
+        isMarketedEnterprise: Boolean(p.is_marketed_enterprise),
+        isContactSales: Boolean(p.is_contact_sales),
+        trialDays: p.trial_days ?? 14,
+        currency: p.currency ?? "USD",
+        interval: p.interval ?? "month",
+        startingAtPriceCents: p.starting_at_price_cents ?? null,
+        sortOrder: p.sort_order ?? 0,
+        hasVariant,
+      };
+    });
+  },
+);
 
 const statusInput = z.object({ sessionId: z.string().uuid() });
 

@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { BrandLockup } from "@/components/brand-mark";
 import { createCheckoutSession, listPublicPlans } from "@/lib/billing.functions";
-import { getPlanByCode, TRIAL_DAYS } from "@/lib/pricing";
+import { TRIAL_DAYS_FALLBACK as TRIAL_DAYS } from "@/lib/pricing";
 
 const searchSchema = z.object({
   plan: z.string().uuid().optional(),
@@ -42,7 +42,7 @@ function CheckoutPage() {
   });
 
   // Enterprise/contact-sales rows never appear as a self-serve option here.
-  const selfServePlans = (plans ?? []).filter((p) => !p.is_contact_sales);
+  const selfServePlans = (plans ?? []).filter((p) => !p.isContactSales);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -100,7 +100,6 @@ function CheckoutPage() {
               <div className="mt-2 grid gap-3 sm:grid-cols-3">
                 {selfServePlans.map((p) => {
                   const active = selectedPlanId === p.id;
-                  const display = getPlanByCode(p.code);
                   return (
                     <button
                       type="button"
@@ -117,13 +116,13 @@ function CheckoutPage() {
                         <div className="text-sm font-semibold text-foreground">{p.name}</div>
                       </div>
                       <div className="mt-1 text-xs text-muted-foreground">
-                        {p.price_cents != null
-                          ? `$${(p.price_cents / 100).toFixed(0)}/${p.interval} · ${p.trial_days}d trial`
+                        {p.monthlyBaseCents != null
+                          ? `${p.priceDisplay}${p.priceSuffix ?? ""} · ${p.trialDays}d trial`
                           : "Custom pricing"}
                       </div>
-                      {display && (
+                      {p.successFeeLabel && (
                         <div className="mt-1 text-[11px] font-medium text-emerald-700">
-                          {display.successFee}
+                          {p.successFeeLabel}
                         </div>
                       )}
                     </button>
