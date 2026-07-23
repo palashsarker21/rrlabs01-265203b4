@@ -77,21 +77,24 @@ function PricingPage() {
     queryFn: () => listPublicPlans(),
     staleTime: 60_000,
   });
+  const { data: content } = useQuery({
+    queryKey: ["pricing-content"],
+    queryFn: () => getPricingContent(),
+    staleTime: 60_000,
+  });
 
-  const byCode = useMemo(() => {
-    const m = new Map<string, ServerPlan>();
-    (serverPlans ?? []).forEach((p) => m.set(p.code, p));
-    return m;
-  }, [serverPlans]);
+  const plans = serverPlans ?? [];
+  const compareRows = content?.compareRows ?? [];
+  const faq = content?.faq ?? [];
 
   return (
     <div className="min-h-screen bg-white text-neutral-900">
       <MarketingHeader />
       <Hero />
-      <PlanGrid isAuthenticated={!!authed} byCode={byCode} />
-      <ComparisonTable />
-      <ROICalculator isAuthenticated={!!authed} byCode={byCode} />
-      <FAQ />
+      <PlanGrid isAuthenticated={!!authed} plans={plans} />
+      <ComparisonTable plans={plans} compareRows={compareRows} />
+      <ROICalculator isAuthenticated={!!authed} plans={plans} />
+      <FAQ items={faq} />
       <FinalCTA />
       <StickyMobileCTA />
       <MarketingFooter />
