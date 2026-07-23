@@ -75,14 +75,9 @@ function UpgradePage() {
 
         <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           {(plans ?? []).map((plan) => {
-            const display = getPlanByCode(plan.code);
-            const featured = display?.highlight;
-            const enterprise = plan.is_contact_sales;
-            const features =
-              display?.features ??
-              (Array.isArray(plan.features)
-                ? (plan.features as unknown[]).filter((f): f is string => typeof f === "string")
-                : []);
+            const featured = plan.highlight;
+            const enterprise = plan.isContactSales || plan.isMarketedEnterprise;
+            const features = plan.features;
             return (
               <div
                 key={plan.id}
@@ -105,35 +100,39 @@ function UpgradePage() {
                     </span>
                   ) : null}
                 </div>
-                {plan.description ? (
-                  <p className="mt-1 text-sm text-muted-foreground">{plan.description}</p>
+                {plan.tagline ?? plan.description ? (
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {plan.tagline ?? plan.description}
+                  </p>
                 ) : null}
                 <div className="mt-4">
-                  {enterprise && plan.starting_at_price_cents ? (
+                  {enterprise && plan.startingAtPriceCents ? (
                     <>
                       <span className="text-xs text-muted-foreground">Starting at </span>
                       <span className="text-3xl font-semibold text-foreground">
-                        {money(plan.starting_at_price_cents, plan.currency ?? "USD")}
+                        {money(plan.startingAtPriceCents, plan.currency)}
                       </span>
-                      <span className="text-sm text-muted-foreground">
-                        /{plan.interval ?? "month"}
-                      </span>
+                      <span className="text-sm text-muted-foreground">/{plan.interval}</span>
                     </>
-                  ) : plan.price_cents != null ? (
+                  ) : plan.monthlyBaseCents != null ? (
                     <>
                       <span className="text-3xl font-semibold text-foreground">
-                        {money(plan.price_cents, plan.currency ?? "USD")}
+                        {plan.priceDisplay}
                       </span>
                       <span className="text-sm text-muted-foreground">
-                        /{plan.interval ?? "month"}
+                        {plan.priceSuffix ?? `/${plan.interval}`}
                       </span>
                     </>
                   ) : (
-                    <span className="text-3xl font-semibold text-foreground">Custom</span>
+                    <span className="text-3xl font-semibold text-foreground">
+                      {plan.priceDisplay}
+                    </span>
                   )}
                 </div>
-                {display?.successFee && (
-                  <p className="mt-1 text-xs font-medium text-emerald-700">{display.successFee}</p>
+                {plan.successFeeLabel && (
+                  <p className="mt-1 text-xs font-medium text-emerald-700">
+                    {plan.successFeeLabel}
+                  </p>
                 )}
 
                 {features.length > 0 ? (
