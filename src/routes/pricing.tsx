@@ -178,15 +178,13 @@ function PlanGrid({
 function PlanCard({
   plan,
   isAuthenticated,
-  server,
 }: {
   plan: PricingPlan;
   isAuthenticated: boolean;
-  server?: ServerPlan;
 }) {
   const highlight = !!plan.highlight;
-  const enterprise = !!plan.enterprise;
-  const hasCheckoutVariant = server ? !!server.has_variant : true;
+  const enterprise = !!plan.isMarketedEnterprise;
+  const hasCheckoutVariant = !!plan.hasVariant;
 
   return (
     <div
@@ -210,18 +208,20 @@ function PlanCard({
 
       <div>
         <h3 className="text-lg font-semibold text-neutral-950">{plan.name}</h3>
-        <p className="mt-1 text-sm text-neutral-600">{plan.tagline}</p>
+        {plan.tagline && <p className="mt-1 text-sm text-neutral-600">{plan.tagline}</p>}
       </div>
 
       <div className="mt-6 min-h-[92px]">
         {plan.priceLead && <p className="text-xs text-neutral-500">{plan.priceLead}</p>}
         <div className="flex items-baseline gap-1">
           <span className="text-4xl font-semibold tracking-tight text-neutral-950">
-            {plan.price}
+            {plan.priceDisplay}
           </span>
           {plan.priceSuffix && <span className="text-sm text-neutral-500">{plan.priceSuffix}</span>}
         </div>
-        <p className="mt-1 text-xs font-medium text-emerald-700">{plan.successFee}</p>
+        {plan.successFeeLabel && (
+          <p className="mt-1 text-xs font-medium text-emerald-700">{plan.successFeeLabel}</p>
+        )}
       </div>
 
       <div className="my-6 h-px bg-neutral-200" />
@@ -245,7 +245,7 @@ function PlanCard({
           plan={plan}
           isAuthenticated={isAuthenticated}
           hasCheckoutVariant={hasCheckoutVariant}
-          planIdForCheckout={server?.id ?? null}
+          planIdForCheckout={plan.id}
           variant={highlight ? "primary" : "outline"}
           fullWidth
         />
