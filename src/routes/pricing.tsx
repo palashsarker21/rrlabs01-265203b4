@@ -524,7 +524,7 @@ function Result({ label, value, accent }: { label: string; value: string; accent
   );
 }
 
-function FAQ() {
+function FAQ({ items }: { items: FaqItem[] }) {
   return (
     <section className="mx-auto max-w-3xl px-6 py-16">
       <div className="text-center">
@@ -533,7 +533,7 @@ function FAQ() {
         </h2>
       </div>
       <div className="mt-10 divide-y divide-neutral-200 rounded-2xl border border-neutral-200 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
-        {PRICING_FAQ.map((item, i) => (
+        {items.map((item, i) => (
           <FAQItem key={item.q} q={item.q} a={item.a} defaultOpen={i === 0} />
         ))}
       </div>
