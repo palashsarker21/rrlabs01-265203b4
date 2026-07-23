@@ -332,16 +332,28 @@ function ComparisonTable({
 
 function ROICalculator({
   isAuthenticated,
-  byCode,
+  plans,
 }: {
   isAuthenticated: boolean;
-  byCode: Map<string, ServerPlan>;
+  plans: PricingPlan[];
 }) {
   const [failedPayments, setFailedPayments] = useState(200);
   const [aov, setAov] = useState(49);
   const [recoveryRate, setRecoveryRate] = useState(35);
 
-  const growth = PLANS.find((p) => p.code === "growth")!;
+  const growth =
+    plans.find((p) => p.code === "growth") ??
+    plans[0] ??
+    ({
+      code: "growth",
+      name: "Growth",
+      priceDisplay: "$99",
+      priceSuffix: "/month",
+      successFeeBps: 400,
+      successFeeLabel: "+4% success fee",
+      monthlyBaseCents: 9900,
+      features: [],
+    } as unknown as PricingPlan);
 
   const results = useMemo(() => {
     const failedRevenue = failedPayments * aov;
