@@ -238,13 +238,19 @@ function IntegrationCenter() {
     return m;
   }, [statuses]);
 
+  // Provider allowlist per kind. Stores are locked to the three officially
+  // supported connectors — Shopify, WooCommerce, Custom Store API. Everything
+  // else in the catalog (edd, memberpress, surecart, etc.) is hidden from
+  // the UI; the database rows and server adapters stay untouched.
+  const STORE_ALLOWLIST = new Set(["shopify", "woocommerce", "custom"]);
   const providersByKind = useMemo(() => {
     const m = new Map<ProviderKind, ProviderRow[]>();
     for (const step of PROVIDER_STEP_ORDER) {
-      m.set(
-        step.kind,
-        catalog.filter((p) => p.kind === step.kind).sort((a, b) => a.sort_order - b.sort_order),
-      );
+      const rows = catalog
+        .filter((p) => p.kind === step.kind)
+        .filter((p) => (step.kind === "store" ? STORE_ALLOWLIST.has(p.code) : true))
+        .sort((a, b) => a.sort_order - b.sort_order);
+      m.set(step.kind, rows);
     }
     return m;
   }, [catalog]);
@@ -344,11 +350,13 @@ function IntegrationCenter() {
       <main className="mx-auto max-w-6xl px-6 py-10">
         <div className="flex flex-wrap items-baseline justify-between gap-3">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-foreground">Setup</h1>
+            <h1 className="text-3xl font-bold tracking-tight text-foreground">
+              Integration Center
+            </h1>
             <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-              Complete the four modules below to activate the RRLabs Recovery Engine. Every
-              credential is encrypted at rest, changes autosave, and each connection gets its own
-              signed webhook URL.
+              Connect the store, payment gateway, email, and messaging providers that power the
+              RRLabs Recovery Engine. Every credential is encrypted at rest and each connection
+              gets its own signed webhook URL.
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -360,24 +368,6 @@ function IntegrationCenter() {
             )}
           </div>
         </div>
-
-        <Link
-          to="/integrations/whatsapp"
-          className="mt-6 flex items-center justify-between gap-4 rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-4 text-sm transition hover:bg-emerald-500/10"
-        >
-          <div>
-            <div className="font-semibold text-foreground">
-              WhatsApp Cloud API — guided onboarding
-            </div>
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              Generate the Callback URL, Verify Token, and Webhook Secret Meta needs before you can
-              save WhatsApp credentials here.
-            </p>
-          </div>
-          <span className="rounded-full border border-emerald-500/50 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-500">
-            Open wizard →
-          </span>
-        </Link>
 
         <div className="mt-8">
           <ActivationCenter
@@ -430,7 +420,32 @@ function IntegrationCenter() {
                       />
                     );
                   })}
-                  {providers.length === 0 && (
+                  {step.kind === "store" && !providers.some((p) => p.code === "custom") && (
+                    <div className="rounded-2xl border border-dashed border-border/60 bg-card/30 p-6">
+                      <div className="flex items-start gap-3">
+                        <div className="flex h-9 w-9 items-center justify-center rounded-full border border-border/60 bg-background/40 text-xs font-semibold text-muted-foreground">
+                          API
+                        </div>
+                        <div className="min-w-0">
+                          <div className="text-sm font-semibold text-foreground">
+                            Custom Store API
+                          </div>
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            Bring your own store using our generic API adapter. Requires
+                            provisioning by RRLabs — contact support to enable this connector
+                            for your workspace.
+                          </p>
+                          <a
+                            href="mailto:support@rrlabs.online?subject=Custom%20Store%20API%20request"
+                            className="mt-3 inline-flex items-center gap-1 rounded-full border border-border/60 bg-background/40 px-3 py-1 text-[11px] font-medium text-muted-foreground hover:text-foreground"
+                          >
+                            Contact support →
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  {providers.length === 0 && step.kind !== "store" && (
                     <div className="col-span-2 rounded-2xl border border-dashed border-border/60 p-8 text-center text-sm text-muted-foreground">
                       No providers available in this module yet.
                     </div>

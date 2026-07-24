@@ -92,14 +92,14 @@ export function AppSidebar({ isSuperAdmin = false }: { isSuperAdmin?: boolean })
       <SidebarContent>
         {visibleGroups.map((group) => {
           const activeInGroup = group.items.some((i) => i.to === pathname);
-          const defaultCollapsed =
-            !activeInGroup && group.id !== "dashboard" && group.id !== "recovery";
+          const singleLeaf = group.items.length === 1 ? group.items[0] : null;
+          const defaultCollapsed = !activeInGroup && !singleLeaf;
           const isCollapsed = collapsed[group.id] ?? defaultCollapsed;
-          const open = query ? true : !isCollapsed;
+          const open = query || singleLeaf ? true : !isCollapsed;
           const GroupIcon = group.icon;
           return (
             <SidebarGroup key={group.id}>
-              {!collapsedRail && (
+              {!collapsedRail && !singleLeaf && (
                 <button
                   type="button"
                   onClick={() =>
