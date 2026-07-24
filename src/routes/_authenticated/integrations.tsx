@@ -238,13 +238,19 @@ function IntegrationCenter() {
     return m;
   }, [statuses]);
 
+  // Provider allowlist per kind. Stores are locked to the three officially
+  // supported connectors — Shopify, WooCommerce, Custom Store API. Everything
+  // else in the catalog (edd, memberpress, surecart, etc.) is hidden from
+  // the UI; the database rows and server adapters stay untouched.
+  const STORE_ALLOWLIST = new Set(["shopify", "woocommerce", "custom"]);
   const providersByKind = useMemo(() => {
     const m = new Map<ProviderKind, ProviderRow[]>();
     for (const step of PROVIDER_STEP_ORDER) {
-      m.set(
-        step.kind,
-        catalog.filter((p) => p.kind === step.kind).sort((a, b) => a.sort_order - b.sort_order),
-      );
+      const rows = catalog
+        .filter((p) => p.kind === step.kind)
+        .filter((p) => (step.kind === "store" ? STORE_ALLOWLIST.has(p.code) : true))
+        .sort((a, b) => a.sort_order - b.sort_order);
+      m.set(step.kind, rows);
     }
     return m;
   }, [catalog]);
