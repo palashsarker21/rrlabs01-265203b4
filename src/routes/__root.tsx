@@ -31,6 +31,7 @@ import { isDebugMode } from "../lib/debug-mode";
 import { InstallPrompt } from "../components/install-prompt";
 import { IosInstallHelp } from "../components/ios-install-help";
 import { registerPwa } from "../lib/pwa-register";
+import { TawkChat } from "../components/support/TawkChat";
 
 function NotFoundComponent() {
   return <ErrorPage code={404} />;
