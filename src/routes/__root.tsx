@@ -260,6 +260,7 @@ function RootComponent() {
       <InstallPrompt />
       <IosInstallHelp />
       <Toaster position="top-right" richColors closeButton />
+      <TawkChat />
     </QueryClientProvider>
   );
 }
