@@ -1,70 +1,70 @@
-# Enterprise Architecture Consolidation — Phased Plan
+# Enterprise Consolidation Plan
 
-This refactor spans ~15 subsystems and thousands of LOC. Shipping it as one commit would break production. Below is the wave breakdown. Each wave is independently deployable, typecheck-clean, and preserves all business logic, RLS, data, webhook URLs, and billing behavior.
+Frontend-only refactor. No schema, RLS, server function logic, recovery, billing, AI, or webhook changes. Business logic in `src/lib/**/*.functions.ts`, `*.server.ts`, `src/routes/api/**` stays untouched.
 
-I need your approval on the **wave order and scope** before I start Wave 1. If you want a different order (e.g. Integration Framework first because it unblocks more), say so.
+## 1. Customer Navigation (SSOT: `src/lib/app-nav.ts`)
 
----
+Reduce `APP_NAV` to exactly 5 groups, each a single leaf:
 
-## Wave 1 — Audit & Dependency Graph (read-only, no code changes)
+- Overview → `/app`
+- Analytics → `/analytics`
+- Integrations → `/integrations`
+- Team → `/team`
+- Billing → `/billing/statements`
 
-Deliverable: `.lovable/architecture-audit.md` containing:
-- Every duplicate route, component, server fn, table column, and constant
-- Domain → owner map (pricing, nav, brand, AI, recovery, integrations, RBAC, flags)
-- Dependency graph of what consumes each duplicate (so Wave 2+ can safely delete)
-- Concrete removal list per wave
+Move everything else off the sidebar:
 
-No code touched. This is the safety net for every subsequent wave.
+- Settings (AI, Notifications, Email Prefs, Security, Change Password), Support, Recovery Engine/Strategy, RLS Verification, Recovery Events → still reachable via top-bar user menu + in-page links, but removed from sidebar and command palette groups.
+- WhatsApp deep page (`/integrations/whatsapp`) folded into the unified Integration Center; route file kept as redirect to `/integrations?provider=meta_wa` to preserve any external links.
 
-## Wave 2 — Pricing SSOT (`plans` table only)
+## 2. Overview Page (`src/routes/_authenticated/app.tsx`)
 
-- Migrate all pricing/limits/trial/success-fee constants out of `src/lib/pricing.ts` into the `plans` table (fields already exist; backfill missing ones via migration).
-- Convert `src/lib/pricing.ts` into a thin server-fn wrapper that reads `plans` and caches per request.
-- Marketing pricing page, checkout, upgrade, dashboard current-plan card, comparison table, ROI calc, admin billing → all consume the server fn.
-- Env vars keep only `LEMONSQUEEZY_VARIANT_*` / store IDs / secrets. No prices, no limits.
-- Platform → Billing → Plans becomes the only editor (writes to `plans`, invalidates React Query cache).
+Restructure existing widgets (no new data sources) into 7 named sections in this order:
+Workspace Summary, Recovery Summary, Revenue Summary, Recent Activity, Integration Status, Billing Status, Quick Actions. Remove any duplicated cards/links that also live on Analytics or Integrations.
 
-## Wave 3 — Platform / Admin Consolidation
+## 3. Analytics Page (`src/routes/_authenticated/analytics.tsx`)
 
-- `/admin` legacy tabbed console: keep panels as internal components, remove top-level route, redirect `/admin` and every `/admin/<tab>` to the equivalent `/platform/*` route.
-- Delete every `admin.v2.*` file (already partially done last turn — finish).
-- One super-admin console at `/platform`. Customer sidebar loses every `adminOnly` leak.
+Single tabbed page consolidating: Revenue, Recovery, Funnels, Reports, Performance, Exports, Customers, Recovery Results. Reuses existing analytics queries — no new endpoints. Drops the separate `/events` from the sidebar (page remains, linked from Analytics → Recovery Results drill-down).
 
-## Wave 4 — Unified Navigation Registry
+## 4. Integration Center (`src/routes/_authenticated/integrations.tsx`)
 
-- Single `src/lib/nav/registry.ts` typed as `{ id, label, path, icon, audience: 'customer' | 'platform', permission?, badgeKey?, keywords, group }`.
-- Sidebar, top nav, command palette, quick actions, breadcrumbs, and global search all derive from it.
-- Delete `src/lib/app-nav.ts` and `src/lib/platform/nav.ts` after migration.
+Rebuilt around one reusable component set (new files under `src/components/integrations/`):
 
-## Wave 5 — Integration Framework (biggest wave)
+- `ProviderCard.tsx` — logo, status chip (Connected/Disconnected), Last Verified, Webhook status, Credential status, Realtime health; actions: Connect, Disconnect, Verify, Rotate Secret, Logs.
+- `ProviderConnectDialog.tsx` — dynamic form driven by `provider_catalog.setup_fields` (no per-provider layouts).
+- `ProviderLogsDrawer.tsx` — thin wrapper over existing `listWebhookLogs`.
+- `WebhookPanel.tsx` — one component for URL/secret/verify token reveal + rotate.
 
-Split into 5 sub-steps, each shippable:
+Page structure: 4 sections (Stores, Payment Gateways, Email, Messaging) each rendering `ProviderCard` from filtered `provider_catalog`. All existing per-provider ad-hoc UI in `integrations.tsx` (1550 → target ~400 lines) collapses into these components. Save/Test/Disconnect/Rotate all go through existing server functions unchanged.
 
-1. **Provider Registry** — one `provider_catalog` row per provider with JSON `credential_schema`, `capabilities`, `verification`, `webhook_config`. Migrate current hardcoded provider metadata.
-2. **Dynamic Form Engine** — one `<ProviderCredentialForm schema={…} />` component; delete every per-provider form.
-3. **Unified Connection Card** — one `<ConnectionCard integration={…} />`; delete per-provider cards. Realtime status via existing `supabase.channel`.
-4. **Verification Engine** — one server fn `verifyIntegration(integrationId)` dispatches to per-provider verifiers behind a common interface returning the standardized status enum.
-5. **Webhook Engine** — one `/api/public/webhooks/$provider/$integrationId` handler (already exists) becomes the single entry; per-provider signature verifiers behind a common interface. DLQ + replay reuse existing `webhook_logs` + `job_queue`.
+## 5. Store Provider Cleanup
 
-Webhook URLs already have this shape, so no customer needs to re-paste anything. Existing signing secrets are preserved.
+Filter Stores to `shopify`, `woocommerce`, `custom` only. Removals are UI-only:
 
-## Wave 6 — Realtime & Health Dashboard
+- `provider_catalog` DB rows for `edd`, `memberpress`, `surecart` are **not** deleted (schema untouched). Frontend simply hides any provider whose code isn't in the allow-list. Server adapters (`eddAdapter`, `memberpressAdapter`, `surecartAdapter`) stay — orphaned but harmless.
+- If a `custom` provider row doesn't exist in catalog, add it via a new migration? **No — schema untouched per instructions.** Instead, "Custom Store API" is rendered from a small client-side constant that reuses the same `ProviderCard` + dynamic form; save flow reuses existing `saveIntegration` with a generic provider code already supported, OR is shown as "Contact support to enable" if not in catalog. Will confirm during implementation which path the catalog already supports and pick the non-schema-changing one.
 
-- One `/platform/integrations` dashboard subscribing to `integrations` + `webhook_logs` via `postgres_changes`. Delete duplicate health widgets.
-- Customer `/integrations` page uses the same `<ConnectionCard>` but scoped to their workspace.
+Payments, Email, Messaging: kept as-is, only UI de-duplicated.
 
-## Wave 7 — Dead Code Sweep & Final Validation
+## 6. Route Deletions / Redirects
 
-- Delete unused routes, files, imports, enums, helpers, commented code found in Wave 1.
-- `tsgo` clean, `bun run build` clean, `run_rls_test_suite` green.
-- Produce final Architecture Audit Report with the ✔ checklist from your brief.
+Delete duplicate/legacy customer routes not in the 5-module set from the sidebar, but preserve URL access with redirects where reasonable:
 
----
+- `getting-started.tsx`, `getting-started.complete.tsx`, `recovery-strategy.tsx`, `rls-verification.tsx`, `notifications.tsx`, `settings.*`, `events.tsx`, `integrations.whatsapp.tsx`, `onboarding.tsx`, `upgrade.tsx`, `checkout*.tsx`, `billing.statements.tsx`, `invite.$token.tsx`, `admin.tsx`, `admin.email.*`, `admin.v2.$.tsx` — **kept as files** (still linked from top-bar menu, billing flow, admin, onboarding redirect). Only removed from `APP_NAV`.
 
-## What I need from you
+No route file deletions in this pass (removing them risks breaking billing/admin/onboarding flows that are out of scope). The consolidation is enforced via navigation + Overview + Integration Center being the only entry points a customer sees.
 
-1. **Approve the wave order** (or reorder — e.g. Integration Framework before Pricing if that's higher business priority).
-2. **Confirm no customer-facing URL changes** beyond `/admin/*` → `/platform/*` redirects. In particular, `/pricing`, `/integrations`, `/dashboard`, `/app`, and every webhook URL stay identical.
-3. **Confirm I can drop `src/lib/pricing.ts` as a hardcoded module** and replace it with a server-fn-backed loader. This is a breaking change for any component that imports `PLANS` synchronously at module scope — I'll convert those call sites in the same wave.
+## 7. Validation
 
-Once you approve, I'll start with Wave 1 (audit only, zero code changes) and post the audit doc for you to review before Wave 2 touches any code.
+- `bunx tsgo --noEmit` clean
+- Manual smoke via Playwright: `/app`, `/analytics`, `/integrations`, `/team`, `/billing/statements` all render; sidebar shows exactly 5 items; Integration Center renders Stores (3), Payments, Email, Messaging with unified cards.
+- Grep confirms no duplicate provider card components remain.
+
+## Out of Scope (explicit)
+
+- No changes to: `src/lib/**/*.functions.ts` handlers, `src/lib/**/*.server.ts`, `src/routes/api/**`, `supabase/migrations/**`, RLS, auth, `/platform/**`.
+- No new features, no schema edits, no removed server adapters.
+
+## Deliverable
+
+Audit report at end of implementation confirming each checkbox from the request.
