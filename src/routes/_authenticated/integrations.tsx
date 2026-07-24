@@ -350,11 +350,13 @@ function IntegrationCenter() {
       <main className="mx-auto max-w-6xl px-6 py-10">
         <div className="flex flex-wrap items-baseline justify-between gap-3">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-foreground">Setup</h1>
+            <h1 className="text-3xl font-bold tracking-tight text-foreground">
+              Integration Center
+            </h1>
             <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-              Complete the four modules below to activate the RRLabs Recovery Engine. Every
-              credential is encrypted at rest, changes autosave, and each connection gets its own
-              signed webhook URL.
+              Connect the store, payment gateway, email, and messaging providers that power the
+              RRLabs Recovery Engine. Every credential is encrypted at rest and each connection
+              gets its own signed webhook URL.
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -366,24 +368,6 @@ function IntegrationCenter() {
             )}
           </div>
         </div>
-
-        <Link
-          to="/integrations/whatsapp"
-          className="mt-6 flex items-center justify-between gap-4 rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-4 text-sm transition hover:bg-emerald-500/10"
-        >
-          <div>
-            <div className="font-semibold text-foreground">
-              WhatsApp Cloud API — guided onboarding
-            </div>
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              Generate the Callback URL, Verify Token, and Webhook Secret Meta needs before you can
-              save WhatsApp credentials here.
-            </p>
-          </div>
-          <span className="rounded-full border border-emerald-500/50 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-500">
-            Open wizard →
-          </span>
-        </Link>
 
         <div className="mt-8">
           <ActivationCenter
